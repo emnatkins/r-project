@@ -36,7 +36,7 @@ C <- function(object, contr, how.many, ...)
 		if(is.ordered(object)) contr.poly else contr.treatment
 	    else oc[1 + is.ordered(object)]
     }
-    if(missing(how.many) && missing(...))
+    if(missing(how.many) && !length(list(...)))
 	contrasts(object) <- contr
     else {
 	if(is.character(contr)) contr <- get(contr, mode = "function")

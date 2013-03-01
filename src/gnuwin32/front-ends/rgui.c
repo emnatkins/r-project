@@ -50,6 +50,8 @@ typedef BOOL (*AC)(DWORD);
 
 int AppMain(int argc, char **argv)
 {
+    AC entry;
+
     CharacterMode = RGui;
     if(strcmp(getDLLVersion(), getRVersion()) != 0) {
 	MessageBox(0, "R.DLL version does not match", "Terminating",
@@ -63,10 +65,13 @@ int AppMain(int argc, char **argv)
         GA_exitapp();
     }
 
-/* C writes to stdout/stderr get set to the launching terminal (if
-   there was one).  Needs XP, and works for C but not Fortran. */
+/* If we have this, C writes to stdout/stderr would get set to the 
+   launching terminal (if there was one).  Unfortunately needs XP, and
+   works for C but not Fortran. */
 
-    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    entry = (AC) GetProcAddress((HMODULE)GetModuleHandle("KERNEL32"),
+				"AttachConsole");
+    if (entry && entry(ATTACH_PARENT_PROCESS))
     {
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);

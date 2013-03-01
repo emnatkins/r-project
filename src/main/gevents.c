@@ -42,7 +42,7 @@ static void checkHandler(const char * name, SEXP eventEnv)
 	warning(_("'%s' events not supported in this device"), name);
 }
 
-SEXP
+SEXP attribute_hidden
 do_setGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP eventEnv;
@@ -81,7 +81,7 @@ do_setGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP env)
     return(R_NilValue);
 }
 
-SEXP
+SEXP attribute_hidden
 do_getGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     int devnum;
@@ -98,7 +98,7 @@ do_getGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP env)
     return gdd->dev->eventEnv;
 }
 
-SEXP
+SEXP attribute_hidden
 do_getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP result = R_NilValue, prompt;
@@ -121,7 +121,7 @@ do_getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP env)
 	    gd = GEgetDevice(devNum);
 	    dd = gd->dev;
 	    if (dd->gettingEvent)
-	    	error(_("recursive use of 'getGraphicsEvent' not supported"));
+	    	error(_("recursive use of getGraphicsEvent not supported"));
 	    if (dd->eventEnv != R_NilValue) {
 	        if (dd->eventHelper) dd->eventHelper(dd, 1);
 	        dd->gettingEvent = TRUE;

@@ -287,8 +287,7 @@ information in the shape of extra arguments.
     SSH should be set
     up to use silent authentication: setups which require a password
     to be supplied may or may not work.
-  \item Socket communication is done over port a randomly chosen port
-    in the range \code{11000:11999}: site policies
+  \item Socket communication is done over port 10187: site policies
     might require some other port to be used, in which case set
     argument \code{port} or environment variable \env{R\_PARALLEL\_PORT}.
 \end{itemize}

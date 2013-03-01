@@ -62,8 +62,8 @@ plot(hci)
 identify(hci, function(k) print(table(iris[k,5])))
 
 # open a new device (one for dendrogram, one for bars):
-dev.new() # << make that narrow (& small)
-          # and *beside* 1st one
+get(getOption("device"))() # << make that narrow (& small)
+                           # and *beside* 1st one
 nD <- dev.cur()            # to be for the barplot
 dev.set(dev.prev())  # old one for dendrogram
 plot(hci)

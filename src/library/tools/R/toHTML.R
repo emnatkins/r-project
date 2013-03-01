@@ -1,7 +1,7 @@
 toHTML <- function(x, ...) UseMethod("toHTML")
 
 #
-#  Copyright (C) 1995-2013 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 
 HTMLheader <-
 function(title="R", logo=TRUE,
@@ -160,20 +160,19 @@ makeVignetteTable <- function(vignettes, depth=2) {
     for (i in seq_len(nrow(vignettes))) {
 	topic <- file_path_sans_ext(vignettes[i, "File"])
 	Title <- vignettes[i, "Title"]
-	Outfile <- vignettes[i, "PDF"]
+	PDF   <- vignettes[i, "PDF"]
 	File  <- vignettes[i, "File"]
 	R     <- vignettes[i, "R"]
 	pkg   <- vignettes[i, "Package"]
         root <- c(rep("../", depth), "library/", pkg, "/doc/")
-        isHTML <- vignette_is_HTML(File)
 	link  <- c('<a href="', root,
-		  if (nchar(Outfile)) Outfile else File, '">',
+		  if (nchar(PDF)) PDF else File, '">',
 		  pkg, "::", topic, '</a>')
 	line <- c('<tr><td align="right" valign="top">', link,
 		    '</td>\n<td></td><td valign="top">', Title,
 		    '</td>\n<td valign="top">',
-		    if (nchar(Outfile))
-			c('<a href="', root, Outfile,'">', if (isHTML) 'HTML' else 'PDF', '</a>'),
+		    if (nchar(PDF))
+			c('<a href="', root, PDF,'">PDF</a>'),
 		    '</td>\n<td valign="top">',
 		    '<a href="', root, File,'">source</a>',
 		    '</td>\n<td valign="top" nowrap>',

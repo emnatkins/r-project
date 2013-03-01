@@ -60,7 +60,7 @@ xg <- xsplineGrob(x=c(0, .2, .4, .2, .5, .7, .9, .7),
 grid.draw(xg)
 trace <- xsplinePoints(xg)
 pushViewport(vp)
-invisible(lapply(trace, function(t) grid.lines(t$x, t$y, gp=gpar(col="red"))))
+lapply(trace, function(t) grid.lines(t$x, t$y, gp=gpar(col="red")))
 popViewport()
 
 grid.newpage()

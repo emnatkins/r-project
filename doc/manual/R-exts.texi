@@ -189,7 +189,7 @@ loaded without the package being attached (for example by calls like
 
 The option of @emph{lazy loading} of code or data is mentioned at
 several points.  This is part of the installation, always selected for
-@R{} code but optional for data.  When used
+@R{} code@footnote{since @R{} 2.14.0} but optional for data.  When used
 the @R{} objects of the package are created at installation time, and
 stored in a database in the @file{R} directory of the installed package,
 being loaded into the session at first use.  This makes the @R{} session
@@ -359,24 +359,22 @@ Continuation lines (for example, for descriptions longer than one line)
 start with a space or tab.  Field names are case-sensitive: all those
 used by @R{} are capitalized.
 
-The @samp{Package}, @samp{Version}, @samp{License}, @samp{Description},
-@samp{Title}, @samp{Author}, and @samp{Maintainer} fields are mandatory,
-all other fields are optional.  Fields @samp{Author} and
-@samp{Maintainer} can be auto-generated from @samp{Authors@@R}, and may
-be omitted if the latter is provided (and the package depends on @code{R
-(>= 2.14)}: see below for details): however if they are not ASCII we
-recommend that they are provided.
+The @samp{Package}, @samp{Version}, @samp{License},
+@samp{Description}, @samp{Title}, @samp{Author}, and @samp{Maintainer}
+fields are mandatory, all other fields are optional.  For @R{} 2.14.0 or
+later, @samp{Author} and @samp{Maintainer} can be auto-generated from
+@samp{Authors@@R}, and may be omitted if the latter is provided (and
+the package depends on @code{R (>= 2.14)}: see below for details):
+however if they are not ASCII we recommend that they are provided.
 
 For maximal portability, the @file{DESCRIPTION} file should be written
 entirely in @acronym{ASCII} --- if this is not possible it must contain
 an @samp{Encoding} field (see below).
 
-@c DESCRIPTION field Package
 The mandatory @samp{Package} field gives the name of the package.  This
 should contain only (ASCII) letters, numbers and dot, have at least two
 characters and start with a letter and not end in a dot.
 
-@c DESCRIPTION field Version
 The mandatory @samp{Version} field gives the version of the package.
 This is a sequence of at least @emph{two} (and usually three)
 non-negative integers separated by single @samp{.} or @samp{-}
@@ -385,7 +383,6 @@ version such as @samp{0.01} or @samp{0.01.0} will be handled as if it
 were @samp{0.1-0}.  It is @strong{not} a decimal number, so for example
 @code{0.9 < 0.75} since @code{9 < 75}.
 
-@c DESCRIPTION field License
 The mandatory @samp{License} field should specify the license of the
 package in a standardized form.  Alternatives are indicated @emph{via}
 vertical bars.  Individual specifications must be one of
@@ -449,19 +446,15 @@ Please ensure that the license you choose also covers any dependencies
 important that any restrictions on the use of such dependencies are
 evident to people reading your @file{DESCRIPTION} file.
 
-@c DESCRIPTION field Description
 The mandatory @samp{Description} field should give a comprehensive
 description of what the package does.  One can use several (complete)
 sentences, but only one paragraph.
 
-@c DESCRIPTION field Title
 The mandatory @samp{Title} field should give a short description of the
 package. Some package listings may truncate the title to 65 characters.
 It should be capitalized, not use any markup, not have any continuation
 lines, and not end in a period.
 
-@c DESCRIPTION field Author
-@c DESCRIPTION field Authors@R
 The mandatory @samp{Author} field describes who wrote @emph{the
 package}.  It is a plain text field intended for human readers, but not
 for automatic processing (such as extracting the email addresses of all
@@ -470,7 +463,6 @@ significant contributors must be included: if you wrote an @R{} wrapper
 for the work of others included in the @file{src} directory, you are not
 the sole (and maybe not even the main) author.
 
-@c DESCRIPTION field Maintainer
 The mandatory @samp{Maintainer} field should give a @emph{single} name
 followed a @emph{valid} (RFC 2822) email address in angle brackets.  It
 should not end in a period or comma.  This field is what is reported by
@@ -479,24 +471,21 @@ the @code{maintainer} function and used by @code{bug.report}.  For a
 and not a corporate entity: do ensure that it is valid and will remain
 valid for the lifetime of the package.
 
-Both @samp{Author} and @samp{Maintainer} fields can be omitted if a
-suitable @samp{Authors@@R} field is given.  This field can be used to
-provide a refined and machine-readable description of the package
-``authors'' (in particular specifying their precise @emph{roles}), via
-suitable @R{} code.  The roles can include @samp{"aut"} (author) for
-full authors, @samp{"cre"} (creator) for the package maintainer, and
-@samp{"ctb"} (contributor) for other contributors, @samp{"cph"}
-(copyright holder), among others.  See @code{?person} for more
-information.  Note that no role is assumed by default.  Auto-generated
-package citation information takes advantage of this specification.  In
-@R{} 2.14.0 or later, the @samp{Author} and @samp{Maintainer} fields are
-auto-generated from it if needed when building@footnote{at least if this
-is done in a locale which matches the package encoding.} or
-installing@footnote{installation generates an ASCII version in @R{}
-< 3.0.0.}.
+Both @samp{Author} and @samp{Maintainer} fields can be omitted (as from
+@R{} 2.14.0) if a suitable @samp{Authors@@R} field is given.  This field
+can be used to provide a refined and machine-readable description of the
+package ``authors'' (in particular specifying their precise
+@emph{roles}), via suitable @R{} code.  The roles can include
+@samp{"aut"} (author) for full authors, @samp{"cre"} (creator) for the
+package maintainer, and @samp{"ctb"} (contributor) for other
+contributors, @samp{"cph"} (copyright holder), among others.  See
+@code{?person} for more information.  Note that no role is assumed by
+default.  Auto-generated package citation information takes advantage of
+this specification.  In @R{} 2.14.0 or later, the @samp{Author} and
+@samp{Maintainer} fields are auto-generated from it if needed when
+building or installing.
 
 @findex COPYRIGHTS
-@c DESCRIPTION field Copyright
 An optional @samp{Copyright} field can be used where the copyright
 holder(s) are not the authors.  If necessary, this can refer to a file:
 the convention is to use file @file{inst/COPYRIGHTS}.
@@ -505,20 +494,17 @@ Several optional fields take @emph{logical values}: these can be
 specified as @samp{yes}, @samp{true}, @samp{no} or @samp{false}:
 capitalized values are also accepted.
 
-@c DESCRIPTION field Date
 The @samp{Date} field gives the release date of the current
 version of the package.  It is strongly recommended to use the yyyy-mm-dd
 format conforming to the ISO 8601 standard.
 
-@c DESCRIPTION field Depends
-@c DESCRIPTION field SystemRequirements
 The @samp{Depends} field gives a comma-separated list of package names
 which this package depends on.  The package name may be optionally
 followed by a comment in parentheses.  The comment should contain a
 comparison operator, whitespace and a valid version number.  You can
 also use the special package name @samp{R} if your package depends on a
 certain version of @R{} --- e.g., if the package works only with @R{}
-version 3.0.0 or later, include @samp{R (>= 3.0.0)} in the
+version 2.11.0 or later, include @samp{R (>= 2.11.0)} in the
 @samp{Depends} field.  You can also require a certain SVN revision for
 R-devel or R-patched, e.g.@: @samp{R (>= 2.14.0), R (>= r56550)}
 requires a version later than R-devel of late July 2011 (including
@@ -541,20 +527,20 @@ It makes no sense to declare a dependence on @code{R} without a version
 specification, nor on the package @pkg{base}: this is an @R{} package
 and @pkg{base} is always available.
 
-@c DESCRIPTION field Imports
-The @samp{Imports} field lists packages whose namespaces are imported
-from (as specified in the @file{NAMESPACE} file) but which do not need
-to be attached.  Namespaces accessed by the @samp{::} and @samp{:::}
-operators must be listed here, or in @samp{Suggests} or @samp{Enhances}
-(see below).  Ideally this field will include all the standard packages
-that are used, and it is important to include S4-using packages (as
-their class definitions can change and the @file{DESCRIPTION} file is
-used to decide which packages to re-install when this happens).
-Packages declared in the @samp{Depends} field should not also be in the
-@samp{Imports} field.  Version requirements can be specified but are
-only be checked when the namespace is loaded in @R{} >= 3.0.0.
+The @samp{Imports} field lists packages whose namespaces are
+imported from (as specified in the @file{NAMESPACE} file) but which do
+not need to be attached.  Namespaces accessed by the @samp{::} and
+@samp{:::} operators must be listed here, or in @samp{Suggests} or
+@samp{Enhances} (see below).  Ideally this field will include all the
+standard packages that are used, and it is important to include S4-using
+packages (as their class definitions can change and the
+@file{DESCRIPTION} file is used to decide which packages to re-install
+when this happens).  Packages declared in the @samp{Depends} field
+should not also be in the @samp{Imports} field.  Version requirements
+can be specified, but are @strong{not} currently checked when the namespace is
+loaded (whereas they are checked by @command{R CMD check}, and will be
+checked on loading in @R{} >= 3.0.0).
 
-@c DESCRIPTION field Suggests
 The @samp{Suggests} field uses the same syntax as @samp{Depends} and
 lists packages that are not necessarily needed.  This includes packages
 used only in examples, tests or vignettes (@pxref{Writing package
@@ -569,7 +555,6 @@ suggested package available (and it may not even be possible to install
 it for that platform), so it is helpful if the use of suggested packages
 is made conditional @emph{via} @code{if(require(@var{pkgname}))}).
 
-@c DESCRIPTION field Enhances
 Finally, the @samp{Enhances} field lists packages ``enhanced'' by the
 package at hand, e.g., by providing methods for classes from these
 packages, or ways to handle objects from these packages (so several
@@ -625,29 +610,23 @@ complete and accurate: it is for example used to compute which packages
 depend on an updated package and which packages can safely be installed
 in parallel.
 
-@c DESCRIPTION field URL
 The @samp{URL} field may give a list of @acronym{URL}s
 separated by commas or whitespace, for example the homepage of the
 author or a page where additional material describing the software can
 be found.  These @acronym{URL}s are converted to active hyperlinks in
 @acronym{CRAN} package listings.
 
-@c DESCRIPTION field BugReports
 The @samp{BugReports} field may contain a single
 @acronym{URL} to which bug reports about the package should be
 submitted.  This @acronym{URL} will be used by @code{bug.reports}
 instead of sending an email to the maintainer.
 
-@c DESCRIPTION field Priority
 Base and recommended packages (i.e., packages contained in the @R{}
 source distribution or available from @acronym{CRAN} and recommended to
 be included in every binary distribution of @R{}) have a @samp{Priority}
 field with value @samp{base} or @samp{recommended}, respectively.  These
 priorities must not be used by other packages.
 
-@c DESCRIPTION field Collate
-@c DESCRIPTION field Collate.unix
-@c DESCRIPTION field Collate.windows
 A @samp{Collate} field can be used for controlling the collation order
 for the @R{} code files in a package when these are processed for
 package installation.  The default is to collate according to the
@@ -661,26 +640,21 @@ Paths containing white space or quotes need to be quoted.  An
 OS-specific collation field (@samp{Collate.unix} or
 @samp{Collate.windows}) will be used in preference to @samp{Collate}.
 
-@c DESCRIPTION field LazyData
-@c DESCRIPTION field LazyLoad
 The @samp{LazyData} logical field controls whether the @R{} datasets use
 lazy-loading.  A @samp{LazyLoad} field was used in versions prior to
 2.14.0, but now is ignored.
 
-@c DESCRIPTION field KeepSource
 The @samp{KeepSource} logical field controls if the package code is sourced
 using @code{keep.source = TRUE} or @code{FALSE}: it might be needed
 exceptionally for a package designed to always be used with
 @code{keep.source = TRUE}.
 
-@c DESCRIPTION field ByteCompile
 The @samp{ByteCompile} logical field controls if the package code is
 byte-compiled on installation: the default is currently not to, so this
 may be useful for a package known to benefit particularly from
 byte-compilation (which can take quite a long time and increases the
 installed size of the package).
 
-@c DESCRIPTION field ZipData
 The @samp{ZipData} logical field was used to control whether the automatic
 Windows build would zip up the data directory or not: set this to
 @samp{no} if your package will not work with a zipped data directory.
@@ -688,25 +662,12 @@ Windows build would zip up the data directory or not: set this to
 2.13.0: but it might still be needed if the package can be installed
 under earlier versions of @R{}.)
 
-@c DESCRIPTION field Biarch
-The @samp{Biarch} logical field is used on Windows to select the
-@command{INSTALL} option @option{--force-biarch} for this package.
-(Introduced in @R{} 3.0.0.)
-
-@c DESCRIPTION field BuildVignettes
 The @samp{BuildVignettes} logical field can be set to a false value to stop
 @command{R CMD build} from attempting to rebuild the vignettes, as well
 as preventing @command{R CMD check} from testing this.  This should only
 be used exceptionally, for example if the PDFs need large figures which
 are not part of the package sources.
 
-@c DESCRIPTION field VignetteBuilder
-The @samp{VignetteBuilder} field names a package that provides 
-an engine other than Sweave for building vignettes.  This may
-be the current package, or one listed in @samp{Depends},
-@samp{Suggests} or @samp{Imports}.
-See @ref{Non-Sweave vignettes} for details.
-@c DESCRIPTION field Encoding
 If the @file{DESCRIPTION} file is not entirely in @acronym{ASCII} it
 should contain an @samp{Encoding} field specifying an encoding.  This is
 used as the encoding of the @file{DESCRIPTION} file itself and of the
@@ -719,7 +680,6 @@ unless one is actually needed: doing so makes the package @emph{less}
 portable.  If a package has a specified encoding, you should run
 @command{R CMD build} etc in a locale using that encoding.)
 
-@c DESCRIPTION NeedsCompilation
 This should be set to @code{"yes"} if the package contains code which
 needs to be compiled, otherwise @code{"no"} (when the package would be
 able to be installed from source on any platform without additional
@@ -728,26 +688,19 @@ tools).  This is used by @code{install.packages(type = "both")} in @R{}
 normally set by the repository assuming compilation is required if and
 only if the package has a @file{src} directory.
 
-@c DESCRIPTION field OS_type
 The @samp{OS_type} field specifies the OS(es) for which the
 package is intended.  If present, it should be one of @code{unix} or
 @code{windows}, and indicates that the package can only be installed
 on a platform with @samp{.Platform$OS.type} having that value.
 
-@c DESCRIPTION field Type
 The @samp{Type} field specifies the type of the package:
 @pxref{Package types}.
 
-@c DESCRIPTION field Built
-@c DESCRIPTION field Packaged
 @quotation Note
 There should be no @samp{Built} or @samp{Packaged} fields, as these are
 added by the package management tools.
 @end quotation
 
-@c DESCRIPTION field Classification/ACM
-@c DESCRIPTION field Classification/JEL
-@c DESCRIPTION field Classification/MSC
 One can add subject classifications for the content of the package using
 the fields @samp{Classification/ACM} (using the Computing
 Classification System of the Association for Computing Machinery,
@@ -760,7 +713,6 @@ subject classifications should be comma-separated lists of the
 respective classification codes, e.g., @samp{Classification/ACM: G.4,
 H.2.8, I.5.1}.
 
-@c DESCRIPTION field Language
 An @samp{Language} field can be used to indicate if the package
 documentation is not in English: this should be a comma-separated list
 of standard (not private use or grandfathered) IETF language tags as
@@ -772,9 +724,6 @@ language subtags which in essence are 2-letter ISO 639-1
 639-3 (@uref{http://en.wikipedia.@/org/@/wiki/@/ISO_639-3}) language
 codes.
 
-@c DESCRIPTION field Note
-@c DESCRIPTION field Contact
-@c DESCRIPTION field MailingList
 There is no restriction on the use of other fields not mentioned here
 (but using other capitalizations of these field names would cause
 confusion).  Fields @code{Note}, @code{Contact} (for contacting the
@@ -955,8 +904,6 @@ libarch <- if (nzchar(R_ARCH)) paste('libs', R_ARCH, sep='') else 'libs'
 dest <- file.path(R_PACKAGE_DIR, libarch)
 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 file.copy(files, dest, overwrite = TRUE)
-if(file.exists("symbols.rds"))
-    file.copy("symbols.rds", dest, overwrite = TRUE)
 @end example
 
 The @file{data} subdirectory is for data files: @xref{Data in packages}.
@@ -971,9 +918,7 @@ and have one of the extensions @file{.R} or @file{.r}.  If present, the
 line for each demo, giving its name and a description separated by white
 space. (Note that it is not possible to generate this index file
 automatically.)  Note that a demo does not have a specified encoding and
-so should be an ASCII file (@pxref{Encoding issues}).  As from @R{} 3.0.0
-@code{demo()} will use the package encoding if there is one, but this
-is mainly useful for non-ASCII comments.
+so should be an ASCII file (@pxref{Encoding issues}).
 
 @cindex .Rinstignore file
 The contents of the @file{inst} subdirectory will be copied recursively
@@ -1103,7 +1048,9 @@ function @code{tools::add_datalist}.
 Tables (@file{.tab}, @file{.txt}, or @file{.csv} files) can be
 compressed by @command{gzip}, @command{bzip2} or @command{xz},
 optionally with additional extension @file{.gz}, @file{.bz2} or
-@file{.xz}.
+@file{.xz}.  However, such files can only be used with @R{} 2.10.0 or
+later, and so the package should have an appropriate @samp{Depends}
+entry in its DESCRIPTION file.
 
 If your package is to be distributed, do consider the resource
 implications of large datasets for your users: they can make packages
@@ -1113,14 +1060,15 @@ large datasets as @file{.rda} images prepared by @code{save(, compress =
 TRUE)} (the default): there is no excuse for distributing ASCII saves.
 Using @command{bzip2} or @command{xz} compression will usually reduce
 the size of both the package tarball and the installed package, in some
-cases by a factor of two or more.
+cases by a factor of two or more.  However, such compression can only be
+used with @R{} 2.10.0 or later, and so the package should have an
+appropriate @samp{Depends} entry in its DESCRIPTION file.
 
 Package @pkg{tools} has a couple of functions to help with data images:
 @code{checkRdaFiles} reports on the way the image was saved, and
 @code{resaveRdaFiles} will re-save with a different type of compression,
 including choosing the best type for that particular image.
 
-@c DESCRIPTION field LazyDataCompression
 Some packages using @samp{LazyData} will benefit from using a form of
 compression other than @command{gzip} in the installed lazy-loading
 database.  This can be selected by the @option{--data-compress} option
@@ -2003,8 +1951,7 @@ directly.
 
 If your package specifies an encoding in its @file{DESCRIPTION} file,
 you should run these tools in a locale which makes use of that encoding:
-they may not work at all or may work incorrectly in other locales
-(although UTF-8 locales will most likely work).
+they may not work at all or may work incorrectly in other locales.
 
 @quotation Note
 @code{R CMD check} and @code{R CMD build} run @R{} with
@@ -2334,11 +2281,12 @@ of exclude patterns in file @file{.Rbuildignore} in the top-level source
 directory.  These patterns should be Perl-like regular expressions (see
 the help for @code{regexp} in @R{} for the precise details), one per
 line, to be matched@footnote{case-insensitively on Windows.} against the
-file and directory names relative to the top-level package source
-directory.  In addition, directories from source control
-systems@footnote{called @file{CVS} or @file{.svn} or @file{.arch-ids} or
-@file{.bzr} or @file{.git} (but not files called @file{.git}) or
-@file{.hg}.} or from @command{eclipse}@footnote{called
+file names@footnote{including directory names as from @R{} 2.13.0:
+earlier versions accepted the names of non-empty directories.} relative
+to the top-level package source directory.  In addition, directories
+from source control systems@footnote{called @file{CVS} or @file{.svn} or
+@file{.arch-ids} or @file{.bzr} or @file{.git} (but not files called
+@file{.git}) or @file{.hg}.} or from @command{eclipse}@footnote{called
 @file{.metadata}.}, directories with names ending @file{.Rcheck} or
 @file{Old} or @file{old} and files @file{GNUMakefile},
 @file{Read-and-delete-me} or with base names starting with @samp{.#}, or
@@ -2351,16 +2299,14 @@ Use @kbd{R CMD build --help} to obtain more information about the usage
 of the @R{} package builder.
 
 @c DESCRIPTION field BuildVignettes
-Unless @kbd{R CMD build} is invoked with the
-@option{--no-build-vignettes} option (or the package's
-@file{DESCRIPTION} contains @samp{BuildVignettes: no} or similar), it
-will attempt to (re)build the vignettes (@pxref{Writing package
-vignettes}) in the package.  To do so it installs the current package
-into a temporary library tree, but any dependent packages need to be
-installed in an available library tree (see the Note: at the top of this
-section).
+Unless @kbd{R CMD build} is invoked with the @option{--no-vignettes}
+option (or the package's @file{DESCRIPTION} contains
+@samp{BuildVignettes: no} or similar), it will attempt to rebuild the
+vignettes (@pxref{Writing package vignettes}) in the package.  To do so
+it installs the current package into a temporary library tree, but any
+dependent packages need to be installed in an available library tree
+(see the Note: at the top of this section).
 
-@c DESCRIPTION field BuildManual
 Similarly, if the @file{.Rd} documentation files contain any
 @code{\Sexpr} macros (@pxref{Dynamic pages}), the package will be
 temporarily installed to execute them.  Post-execution binary copies of
@@ -2373,7 +2319,6 @@ are unable to install the package.)  This can be suppressed by the
 option @option{--no-manual} or if package's @file{DESCRIPTION} contains
 @samp{BuildManual: no} or similar.
 
-@c DESCRIPTION field BuildKeepEmpty
 One of the checks that @command{R CMD build} runs is for empty source
 directories.  These are in most (but not all) cases unintentional, if
 they are intentional use the option @option{--keep-empty-dirs} (or set
@@ -2381,7 +2326,6 @@ the environment variable @env{_R_BUILD_KEEP_EMPTY_DIRS_} to @samp{TRUE},
 or have a @samp{BuildKeepEmpty} field with a true value in the
 @file{DESCRIPTION} file).
 
-@c DESCRIPTION field BuildResaveData
 The @option{--resave-data} option allows saved images (@file{.rda} and
 @file{.RData} files) in the @file{data} directory to be optimized for
 size.  It will also compress tabular files and convert @file{.R} files
@@ -2413,7 +2357,11 @@ produce a compressed tarball: almost certainly one will have been found
 when @R{} was configured on a Unix-alike (and the Windows toolset
 contains one), but if an unsuitable one is found, set the environment
 variable @env{TAR} to the path to a suitable program or to
-@code{"internal"} if none is available.
+@samp{internal} if none is available.  @strong{Note to users of
+OpenSUSE:} It seems OpenSUSE 12.2 uses a modified version of GNU
+@command{tar} which produces by default non-portable tarballs, so set
+@env{TAR} to @samp{internal} or @samp{/bin/tar --format=gnu} or set
+environment variable @env{TAR_OPTIONS} to @samp{--format=gnu}.
 
 @node Building binary packages,  , Building package tarballs, Checking and building packages
 @subsection Building binary packages
@@ -2491,8 +2439,7 @@ Windows platform.
 @cindex Sweave
 
 @menu
-* Encodings and vignettes::
-* Non-Sweave vignettes::
+* Encodings and vignettes::     
 @end menu
 
 In addition to the help files in @file{Rd} format, @R{} packages allow
@@ -2508,13 +2455,11 @@ provided), the file names should start with an @acronym{ASCII} letter
 and be comprised entirely of @acronym{ASCII} letters or digits or hyphen
 or underscore.
 
-A special case are PDF documents with sources in Sweave, which we call
-@emph{package vignettes}.  (Since @R{} version 3.0.0, other vignette
-formats besides Sweave are supported; see @ref{Non-Sweave vignettes}.)
-The preferred location for the sources is the subdirectory
-@file{vignettes} of the source packages, but for compatibility with
-earlier versions of @R{}, vignette sources will be looked for in
-@file{inst/doc} if @file{vignettes} does not exist.
+A special case are PDF documents with sources in Sweave format, which we
+call @emph{package vignettes}.  The preferred location for the Sweave
+sources is the subdirectory @file{vignettes} of the source packages, but
+for compatibility with earlier versions of @R{}, vignette sources will
+be looked for in @file{inst/doc} if @file{vignettes} does not exist.
 
 Vignette sources are normally given the file extension @file{.Rnw} or
 @file{.Rtex}, but for historical reasons extensions@footnote{and to
@@ -2555,11 +2500,11 @@ care of both creation of PDF files and cleaning up afterwards (including
 after @code{Sweave}), i.e., delete all files that shall not appear in
 the final package archive.  Note that if the @code{make} step runs @R{}
 it needs to be careful to respect the environment values of @env{R_LIBS}
-and @env{R_HOME}@footnote{@code{R_HOME/bin} is prepended to the
-@env{PATH} so that references to @command{R} or @command{Rscript} in the
-@file{Makefile} do make use of the currently running version of @R{}.}.
-Finally, if there is a @file{Makefile} and it has a @samp{clean:}
-target, @command{make clean} is run.
+and @env{R_HOME}@footnote{As from @R{} 2.13.0, @code{R_HOME/bin} is
+prepended to the @env{PATH} so that references to @command{R} or
+@command{Rscript} in the @file{Makefile} do make use of the currently
+running version of @R{}.}.  Finally, if there is a @file{Makefile} and
+it has a @samp{clean:} target, @command{make clean} is run.
 
 All the usual @emph{caveats} about including a @file{Makefile} apply.
 It must be portable (no @acronym{GNU} extensions), use LF line endings
@@ -2600,8 +2545,7 @@ Others you may see are @code{\VignettePackage} (currently ignored),
 @code{\VignetteKeywords}).  These are processed at package installation
 time to create the saved data frame @file{Meta/vignette.rds}, but only
 the @code{\VignetteIndexEntry} and @code{\VignetteKeyword} statements
-are currently used.  The @code{\VignetteEngine} statement
-is described in @ref{Non-Sweave vignettes}.
+are currently used.
 
 At install time an @HTML{} index for all vignettes in the package is
 automatically created from the @code{\VignetteIndexEntry} statements
@@ -2633,7 +2577,7 @@ Perl-like regular expressions on one or more lines.  (See the
 description of the @file{.Rinstignore} file for full details.)
 
 
-@node Encodings and vignettes, Non-Sweave vignettes, Writing package vignettes, Writing package vignettes
+@node Encodings and vignettes,  , Writing package vignettes, Writing package vignettes
 @subsection Encodings and vignettes
 
 Vignette PDFs will in general include descriptive text, @R{} input, @R{}
@@ -2691,51 +2635,6 @@ are read from a UTF-8 CSV file and will be assumed to be in the current
 encoding, so @file{fortunes.tex} will be in UTF-8 in any locale.  Had
 @code{read.table} been told the data were UTF-8, @file{fortunes.tex}
 would have been in the locale's encoding.
-
-@node Non-Sweave vignettes, , Encodings and vignettes, Writing package vignettes
-@subsection Non-Sweave vignettes
-
-New in @R{} version 3.0.0 is the possibility of vignettes in formats
-other than Sweave by means of ``vignette engines''. For example
-@CRANpkg{knitr} version 1.1 or higher can create @file{.tex} files
-from a variation on Sweave format, or @file{.html} files from a
-variation on ``markdown'' format. These engines replace the
-@code{Sweave()} and @code{Stangle()} functions with other functions to
-convert vignette source files into @LaTeX{} files, @file{.html} files,
-or @R{} source.
-
-@R{} recognizes non-Sweave vignettes using the same extensions as for
-Sweave vignettes; in addition, the extension @file{.Rmd} (standing for
-``R markdown'') is supported.  The user indicates the vignette engine
-using the @code{\VignetteEngine} line, for example
-@example
-%\VignetteEngine@{knitr@}
-@end example
-@noindent
-This specifies the name of an engine to use in place of Sweave in
-processing the vignette.  As @code{Sweave} is the only engine supplied
-with @R{}, the package providing any other engine must be specified in
-the @samp{VignetteBuilder} field of the package @file{DESCRIPTION}
-file, and also specified in the @samp{Suggests}, @samp{Imports} or
-@samp{Depends} field in the @file{DESCRIPTION} file (since its
-namespace must be available to build or check your package).
-
-If the vignette source has the @file{.Rmd} extension  then it is
-assumed that the weaving procedure produces @file{.html} output
-directly.  Otherwise, the weaver is assumed to produce @file{.tex}
-output, and @R{} handles the conversion to @file{.pdf} files.
-
-Package writers who would like to supply vignette engines need
-to register those engines in the package @code{.onLoad} function.
-For example, that function could make the call
-@example
-tools::vignetteEngine("knitr", weave = vweave, tangle = vtangle)
-@end example
-@noindent
-The @code{weave} and @code{tangle} arguments specify functions with
-headers compatible with @code{Sweave} and @code{Stangle} respectively.
-These will be called by @R{} when processing vignettes.  See
-the @code{?tools::vignetteEngine} help topic for more details.
 
 @node Submitting a package to CRAN, Package namespaces, Writing package vignettes, Creating R packages
 @section Submitting a package to @acronym{CRAN}
@@ -3056,9 +2955,24 @@ functions in the package.  If not found locally, @R{} searches the
 package namespace first, then the imports, then the base namespace and
 then the normal search path.
 
-Prior to version 2.14.0, namespaces were optional in packages: a default
-namespace was generated in 2.14.x and 2.15.x.  As from 3.0.0 a namespace
-is mandatory.
+If a @file{NAMESPACE} file is not present, then one is generated
+automatically when the package is built or installed, all objects are
+exported, and all packages listed in the Imports or Depends fields in
+the @file{DESCRIPTION} file are imported.  This is only intended as a
+temporary measure whilst packages are converted to have a
+@file{NAMESPACE} file and will be removed in due course.  A hand-crafted
+@file{NAMESPACE} should be added to any existing package which does not
+have one.
+
+Prior to version 2.14.0, namespaces were optional in packages.  In such
+packages searches for non-local variables started with the search path,
+so a package's own functions could be masked by those of a package
+appearing earlier.
+
+As from @R{} 2.14.0 all packages have a namespace, and a default
+@file{NAMESPACE} file is generated on installation if there is not one
+in the sources.  However, not all versions of @R{} will read the
+@file{NAMESPACE} file if the package contains not @R{} code.
 
 @menu
 * Specifying imports and exports::  
@@ -3066,6 +2980,7 @@ is mandatory.
 * Load hooks::                  
 * useDynLib::                   
 * An example::                  
+* Summary -- converting an existing package::  
 * Namespaces with S4 classes and methods::  
 @end menu
 
@@ -3102,7 +3017,9 @@ list all exports or use narrowly-defined groups.  (As from @R{} 2.13.0
 this pattern applies to S4 classes, but did not in earlier versions of
 @R{}.)  Beware of patterns which include names starting with a period:
 some of these are internal-only variables and should never be exported,
-e.g.@: @samp{.__S3MethodsTable__.} .
+e.g.@: @samp{.__S3MethodsTable__.} .  (Such objects are excluded from
+pattern matches in recent versions of @R{}, so such patterns are safer
+for packages only to be used with @R{} 2.14.0 or later.)
 
 Packages implicitly import the base namespace.
 Variables exported from other packages with namespaces need to be
@@ -3200,19 +3117,17 @@ with two unnamed arguments, in that order.} @code{libname} and
 @code{pkgname}; they should be defined in the namespace but not
 exported.
 
-@findex .onUnload
-@findex .onDetach
 @findex .Last.lib
-Packages can use a @code{.onDetach} (as from @R{} 3.0.0) or @code{.Last.lib}
-function (provided the latter is exported from the namespace) when
-@code{detach} is called on the package.  It is called with a single
-argument, the full path to the installed package.  There is also a hook
-@code{.onUnload} which is called when the namespace is unloaded
-(@emph{via} a call to @code{unloadNamespace}, perhaps called by
-@code{detach(unload = TRUE)}) with argument the full path to the installed
-package's directory.  @code{.onUnload} and @code{.onDetach} should be
-defined in the namespace and not exported, but @code{.Last.lib} does
-need to be exported.
+@findex .onUnload
+Packages use a @code{.Last.lib} function (provided it is exported from
+the namespace) when @code{detach} is called on the package.  It is
+called with a single argument, the full path to the installed package.
+There is also a hook @code{.onUnload} which is called when the namespace
+is unloaded (@emph{via} a call to @code{unloadNamespace}, perhaps called
+by @code{detach(unload=TRUE)}) with argument the full path to the
+installed package's directory.  @code{.onUnload} should be defined in
+the namespace and not exported, but @code{.Last.lib} does need to be
+exported.
 
 Packages are not likely to need @code{.onAttach} (except perhaps for a
 start-up banner); code to set options and load shared objects should be
@@ -3409,7 +3324,7 @@ namespace.
 @c for customizing it, is available from
 @c @uref{http://www.omegahat.org/@/examples/@/RDotCall}.
 
-@node An example, Namespaces with S4 classes and methods, useDynLib, Package namespaces
+@node An example, Summary -- converting an existing package, useDynLib, Package namespaces
 @subsection An example
 
 As an example consider two packages named @pkg{foo} and @pkg{bar}.  The
@@ -3481,7 +3396,37 @@ in @pkg{bar} the function @code{c} is defined to be equivalent to
 @code{sum}, but in @pkg{foo} the variable @code{c} refers to the
 standard function @code{c} in @pkg{base}.
 
-@node Namespaces with S4 classes and methods,  , An example, Package namespaces
+@node Summary -- converting an existing package, Namespaces with S4 classes and methods, An example, Package namespaces
+@subsection Summary -- converting an existing package
+
+To summarize, converting a pre-2.14.0 package to use a namespace involves
+several simple steps:
+
+@itemize @bullet
+@item
+Identify the public definitions and place them in @code{export} directives.
+@item
+Identify S3-style method definitions and write corresponding
+@code{S3method} declarations.
+@item
+Identify dependencies and replace any @code{require} calls by
+@code{import} directives (and make appropriate changes in the
+@code{Depends} and @code{Imports} fields of the @file{DESCRIPTION}
+file).
+@item
+Replace a @code{.First.lib} function with
+@code{.onLoad}/@code{.onAttach} functions or use a @code{useDynLib}
+directive in the @file{NAMESPACE} file.
+@end itemize
+
+The first two of these are done automatically, but a package author
+can usually improve on @R{}'s guesswork.
+
+@command{R CMD build} will add a basic @file{NAMESPACE} file to a
+package.  If this is edited, do remove the first line (as the comment in
+the file says).
+
+@node Namespaces with S4 classes and methods,  , Summary -- converting an existing package, Package namespaces
 @subsection Namespaces with S4 classes and methods
 
 Some additional steps are needed for packages which make use of formal
@@ -3495,7 +3440,7 @@ the @pkg{stats4} package has
 @findex exportMethods
 
 @example
-export(mle) # exporting methods implicitly exports the generic
+export(mle)
 importFrom("graphics", plot)
 importFrom("stats", optim, qchisq)
 ## For these, we define methods or (AIC, BIC, nobs) an implicit generic:
@@ -3963,7 +3908,7 @@ and packaged with the @code{poEdit} package
 * C-level messages::            
 * R messages::                  
 * Installing translations::     
-* Supporting R function::       
+* Makefile support::            
 @end menu
 
 @node C-level messages, R messages, Internationalization, Internationalization
@@ -4011,6 +3956,10 @@ and mark strings by
 @example
 dngettext(("@var{pkg}", @var{<singular string>}, @var{<plural string>}, n)
 @end example
+
+@noindent
+(This is only supported from @R{} 2.10.0, so packages which use
+@code{dngettext} need to depend on @code{R (>= 2.10)}.)
 
 @item
 In the package's @file{src} directory run
@@ -4066,7 +4015,7 @@ calls to @code{ngettext}, and necessary for earlier versions of @R{}
 unless they are calls directly from a function in the package.
 
 
-@node Installing translations, Supporting R function, R messages, Internationalization
+@node Installing translations, Makefile support, R messages, Internationalization
 @subsection Installing translations
 
 Once the template files have been created, translations can be made.
@@ -4098,26 +4047,19 @@ msgfmt -c --statistics -o inst/po/@var{ll}/LC_MESSAGES/@var{pkg}.mo po/@var{ll}.
 from the package's top-level directory.  Using @option{-c} does some
 useful validity checks, and @option{--statistics} notes the coverage.
 
-Note that as from @R{} 3.0.0 the location of the compiled translations
-(the @file{.mo} file) is different for a standard package (stored in the
-@pkg{translations} package) and a contributed one (stored in the
-package's own sources).
+@node Makefile support,  , Installing translations, Internationalization
+@subsection Makefile support
 
-@node Supporting R function,  , Installing translations, Internationalization
-@subsection Supporting R function
+There is some makefile support in the @file{po} directory of the @R{}
+sources.  To use this to create the template files, use
 
-As from @R{} 3.0.0 there is an @R{} function, @code{update_pkg_po} in
-package @pkg{tools}, to automate much of the maintenance of message
-translations.  See its help for what it does in detail.
+@example
+mkdir -p @var{pkgdir}/po
+@end example
 
-If this is called on a package with no existing translations, in creates
-the directory @file{@var{pkgdir}/po}, creates a template file of @R{}
-messages, @file{@var{pkgdir}/po/R-@var{pkg}.pot}, within it, creates the
-@samp{en@@quot} translation and installs that.  (The @samp{en@@quot}
-pseudo-language interprets quotes in their directional forms in suitable
-(e.g.@: UTF-8) locales.)
-
-If the package has C source files in its @file{src} directory
+@noindent
+where @file{@var{pkgdir}} is the top-level directory of the package
+sources.  If the package has C source files in its @file{src} directory
 that are marked for translation, use
 
 @example
@@ -4125,28 +4067,35 @@ touch @var{pkgdir}/po/@var{pkg}.pot
 @end example
 
 @noindent
-to create a dummy template file, then call @code{update_pkg_po} again
-(this can also be done before it is called for the first time).
+to create a dummy template file.  Then
+
+@example
+cd @var{R_BUILD_DIR}/po
+make pkg-update PKG=@var{pkg} PKGDIR=@var{pkgdir}
+@end example
+
+@noindent
+will create a template file of @R{} messages and update any template of
+C messages.  It will also prepare and install a translation for the
+@samp{en@@quot} pseudo-language, which if selected interprets (single
+and double) quotes in their directional forms in suitable (e.g.@: UTF-8)
+locales.
 
 When translations to new languages are added in the @file{@var{pkgdir}/po}
-directory, running the same command will check and then
+directory, running the same @command{make} command will check and then
 install the translations.
 
-If the package sources are updated, the same command will update the
-template files, merge the changes into the translation @file{.po} files
-and then installed the updated translations.  You will often see that
-merging marks translations as `fuzzy' and this is reported in the
-coverage statistics.  As fuzzy translations are @emph{not} used, this is
-an indication that the translation files need human attention.
+If the package sources are updated, the same @command{make} command will
+update the template files, merge the changes into the translation
+@file{.po} files and then installed the updated translations.  You will
+often see that merging marks translations as `fuzzy' and this is
+reported in the coverage statistics.  As fuzzy translations are
+@emph{not} used, this is an indication that the translation files need
+human attention.
 
-The merged translations are run through @code{tools::checkPofile} to
-check that C-style formats are used correctly: if not the mismatches are
-reported and the broken translations are not installed.
 
-This support need the GNU @command{gettext-tools}: there are usually
-installed on Unix-alikes, and are available for Windows (see the help
-page for @code{update_pkg_po}).
-
+This support is only for Unix-alikes, and the tools did not work
+correctly on at least one Mac OS X system.
 
 @findex CITATION
 @cindex citation
@@ -5806,11 +5755,10 @@ The command @command{Rprof} is used to control profiling, and its help
 page can be consulted for full details.  Profiling works by recording
 at fixed intervals@footnote{For Unix-alikes these are intervals of CPU
 time, and for Windows of elapsed time.} (by default every 20 msecs)
-which line in which @R{} function is being used, and recording the
-results in a file (default @file{Rprof.out} in the working directory).
-Then the function @code{summaryRprof} or the command-line utility
-@code{R CMD Rprof @var{Rprof.out}} can be used to summarize the
-activity.
+which @R{} function is being used, and recording the results in a file
+(default @file{Rprof.out} in the working directory).  Then the function
+@code{summaryRprof} or the command-line utility @code{R CMD Rprof
+@var{Rprof.out}} can be used to summarize the activity.
 
 As an example, consider the following code (from Venables & Ripley,
 2002, pp. 225--6).
@@ -5887,7 +5835,7 @@ Self seconds: time spent in function alone.
 @end smallexample
 
 @noindent
-This often produces
+(Function names are not quoted on Windows.)  This often produces
 surprising results and can be used to identify bottlenecks or pieces of
 @R{} code that could benefit from being replaced by compiled code.
 
@@ -6830,14 +6778,6 @@ Selection: 3
 Since the @R{} process may be damaged, the only really safe option is
 the first.
 
-A fairly common cause of such crashes is a package which uses @code{.C}
-or @code{.Fortran} and writes beyond (at either end) one of the
-arguments it is passed.  As from @R{} 3.0.0 there is a good way to
-detect this: using @code{options(CBoundsCheck = TRUE)} (which can be
-selected @emph{via} the environment variable @env{R_C_BOUNDS_CHECK=yes)}
-changes the way @code{.C} and @code{.Fortran} work to check if the
-compiled code writes in the 64 bytes at either end of an argument.
-
 Another cause of a `crash' is to overrun the C stack.  @R{} tries to
 track that in its own code, but it may happen in third-party compiled
 code.  For modern POSIX-compliant OSes @R{} can safely catch that and
@@ -6852,10 +6792,8 @@ Error: segfault from C stack overflow
 @noindent
 However, C stack overflows are fatal under Windows and normally defeat
 attempts at debugging on that platform.  Further, the size of the stack
-is set when @R{} is compiled@footnote{For a long time the compilation
-default was 10MB, but this was increased to 64MB for @R{} 2.15.2.},
-whereas on POSIX OSes it can be set in the shell from which @R{} is
-launched.
+is set when @R{} is compiled (normally to 64MB, but to 10MB prior to
+@R{} 2.15.2).
 
 If you have a crash which gives a core dump you can use something like
 
@@ -7267,12 +7205,11 @@ a @code{char **} array, and on exit the elements of the C array are
 copied to create new elements of a character vector.  This means that
 the contents of the character strings of the @code{char **} array can be
 changed, including to @code{\0} to shorten the string, but the strings
-cannot be lengthened.  It is possible@footnote{Note that this is then
-not checked for over-runs by option @code{CBoundsCheck = TRUE}.} to
-allocate a new string @emph{via} @code{R_alloc} and replace an entry in
-the @code{char **} array by the new string.  However, when character
-vectors are used other than in a read-only way, the @code{.Call}
-interface is much to be preferred.
+cannot be lengthened.  It is possible to allocate a new string
+@emph{via} @code{R_alloc} and replace an entry in the @code{char **}
+array by the new string.  However, when character vectors are used other
+than in a read-only way, the @code{.Call} interface is much to be
+preferred.
 
 Passing character strings to FORTRAN code needs even more care, and
 should be avoided where possible.  Only the first element of the
@@ -7484,8 +7421,8 @@ along with any other routines for the @code{.Call} interface. For
 routines with a variable number of arguments invoked @emph{via} the
 @code{.External} interface, one specifies @code{-1} for the number of
 arguments which tells @R{} not to check the actual number passed.  Note
-that the number of arguments passed to @code{.External} were not
-checked prior to @R{} 3.0.0.
+that the number of arguments passed to @code{.External} are not currently
+checked but they will be in @R{} 3.0.0.
 
 Routines for use with the @code{.C} and @code{.Fortran} interfaces are
 described with similar data structures, but which have two additional
@@ -7695,7 +7632,6 @@ The author of @pkg{packB} is responsible for ensuring that
 provide some automated tools to simplify exporting larger numbers of
 routines.
 
-@c DESCRIPTION field LinkingTo
 A package that wishes to make use of header files in other packages needs
 to declare them as a comma-separated list in the field @samp{LinkingTo}
 in the @file{DESCRIPTION} file.  For example
@@ -8768,7 +8704,8 @@ you.   The variant @code{mkCharLen} can be used to create a
 
 Note that @R{} character strings are restricted to @code{2^31 - 1}
 bytes, and hence so should the input to @code{mkChar} be (C allows
-longer strings on 64-bit platforms).
+longer strings on 64-bit platforms): the function itself did not check
+prior to @R{} 2.15.1.
 
 @node Finding and setting variables, Some convenience functions, Handling character data, Handling R objects in C
 @subsection Finding and setting variables
@@ -9749,20 +9686,18 @@ expression.
 @findex R_ParseVector
 @code{R_ParseVector} is essentially the code used to implement
 @code{parse(text=)} at @R{} level.  The first argument is a character
-vector (corresponding to @code{text}) and the second the maximal
-number of expressions to parse (corresponding to @code{n}).  The third
-argument is a pointer to a variable of an enumeration type, and it is
-normal (as @code{parse} does) to regard all values other than
-@code{PARSE_OK} as an error.  Other values which might be returned are
-@code{PARSE_INCOMPLETE} (an incomplete expression was found) and
-@code{PARSE_ERROR} (a syntax error), in both cases the value returned
-being @code{R_NilValue}. The fourth argument is a length one character
-vector to be used as a filename in error messages, a @code{srcfile}
-object or the @R{} @code{NULL} object (as in the example above). If a
-@code{srcfile} object was used, a @code{srcref} attribute would be
-attached to the result, containing a list of @code{srcref} objects of
-the same length as the expression, to allow it to be echoed with its
-original formatting.
+vector (corresponding to @code{text}) and the second the maximal number
+of expressions to parse (corresponding to @code{n}).  The third argument
+is a pointer to a variable of an enumeration type, and it is normal (as
+@code{parse} does) to regard all values other than @code{PARSE_OK} as an
+error.  Other values which might be returned are @code{PARSE_INCOMPLETE}
+(an incomplete expression was found) and @code{PARSE_ERROR} (a syntax
+error), in both cases the value returned being @code{R_NilValue}.
+The fourth argument is a @code{srcfile} object or the @R{} @code{NULL}
+object (as in the example above). In the former case a @code{srcref}
+attribute would be attached to the result, containing a list of
+@code{srcref} objects of the same length as the expression, to allow it to be
+echoed with its original formatting.
 
 @menu
 * Accessing source references::  
@@ -11076,23 +11011,7 @@ more details, particularly about reasons for failure (@code{ier >= 1}).
 @cindex Sort functions from C
 
 @R{} has a fairly comprehensive set of sort routines which are made
-available to users' C code.
-The following is declared in header file @file{Rinternals.h}.
-
-@deftypefun void  R_orderVector (int* @var{indx}, int @var{n}, SEXP @var{arglist}, Rboolean @var{nalast}, Rboolean @var{decreasing})
-
-This corresponds to @R{}'s @code{order(..., na.last, decreasing)}.
-More specifically, @code{indx <- order(x, y, na.last, decreasing)} corresponds to
-@code{R_orderVector(indx, n, Rf_lang2(x, y), nalast, decreasing)} and for
-three vectors, @code{Rf_lang3(x,y,z)} is used as @var{arglist}.
-
-Note that  @code{R_orderVector()} assumes the vector @code{indx}
-to be allocated to length @eqn{\ge n, >= n}.  On return, @code{indx[]}
-contains a permutation of @code{0:(n-1)}, i.e., 0-based C indices (and not
-1-based @R{} indices, as @R{}'s @code{order()}).
-@end deftypefun
-
-All other sort routines are declared in header file
+available to users' C code.  These are declared in header file
 @file{R_ext/Utils.h} (included by @file{R.h}) and include the following.
 
 @deftypefun void R_isort (int* @var{x}, int @var{n})
@@ -11120,10 +11039,9 @@ These all provide (very) partial sorting: they permute @var{x} so that
 the left, larger ones to the right.
 @end deftypefun
 
-
-@deftypefun  void R_qsort   (double *@var{v}, size_t @var{i}, size_t @var{j})
+@deftypefun  void R_qsort   (double *@var{v}, int @var{i}, int @var{j})
 @deftypefunx void R_qsort_I (double *@var{v}, int *@var{I}, int @var{i}, int @var{j})
-@deftypefunx void R_qsort_int   (int *@var{iv}, size_t @var{i}, size_t @var{j})
+@deftypefunx void R_qsort_int   (int *@var{iv}, int @var{i}, int @var{j})
 @deftypefunx void R_qsort_int_I (int *@var{iv}, int *@var{I}, int @var{i}, int @var{j})
 
 
@@ -11918,12 +11836,6 @@ extern int  (*ptr_R_EditFile)(const char *);
 extern void (*ptr_R_loadhistory)(SEXP, SEXP, SEXP, SEXP);
 extern void (*ptr_R_savehistory)(SEXP, SEXP, SEXP, SEXP);
 extern void (*ptr_R_addhistory)(SEXP, SEXP, SEXP, SEXP);
-// added in R 3.0.0
-extern int  (*ptr_R_EditFiles)(int, const char **, const char **, const char *);
-extern SEXP (*ptr_do_selectlist)(SEXP, SEXP, SEXP, SEXP);
-extern SEXP (*ptr_do_dataentry)(SEXP, SEXP, SEXP, SEXP);
-extern SEXP (*ptr_do_dataviewer)(SEXP, SEXP, SEXP, SEXP);
-extern void (*ptr_R_ProcessEvents)();
 @end example
 
 @noindent
@@ -11994,11 +11906,6 @@ Return value is 0 for success, > 0 otherwise.
 
 @deftypefun int R_EditFile (const char *@var{buf})
 Send a file to an editor window.
-@end deftypefun
-
-@deftypefun int R_EditFiles (int @var{nfile}, const char **@var{file}, const char **@var{title}, const char *@var{editor})
-Send @var{nfile} files to an editor, with titles possibly to be used for
-the editor window(s).
 @end deftypefun
 
 @deftypefun SEXP R_loadhistory (SEXP, SEXP, SEXP, SEXP);
@@ -12094,16 +12001,6 @@ void R_CleanUp (SA_TYPE saveact, int status, int RunLast)
 
 These callbacks should never be changed in a running @R{} session (and
 hence cannot be called from an extension package).
-
-@deftypefun SEXP R_dataentry (SEXP, SEXP, SEXP, SEXP);
-@deftypefunx SEXP R_dataviewer (SEXP, SEXP, SEXP, SEXP);
-@deftypefunx SEXP R_selectlist (SEXP, SEXP, SEXP, SEXP);
-
-@code{.External} functions for @code{dataentry} (and @code{edit} on
-matrices and data frames), @code{View} and @code{select.list}.  These
-can be changed if they are not currently in use.
-@end deftypefun
-
 
 @node Registering symbols, Meshing event loops, Setting R callbacks, Embedding R under Unix-alikes
 @subsection Registering symbols
@@ -12536,8 +12433,8 @@ When @R{} is installed and recording is not disabled then two string
 values are written at that location for keys @code{InstallPath} and
 @code{Current Version}, and these keys are removed when @R{} is
 uninstalled.  To allow information about other installed versions to be
-retained, there is also a key named something like @code{3.0.0} or
-@code{3.0.0 patched} or @code{3.1.0 Pre-release} with a value for
+retained, there is also a key named something like @code{2.15.2} or
+@code{2.15.2 patched} or @code{3.0.0 Pre-release} with a value for
 @code{InstallPath}.
 
 So a comprehensive algorithm to search for @code{R_HOME} is something

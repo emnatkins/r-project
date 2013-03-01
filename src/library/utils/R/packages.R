@@ -49,7 +49,9 @@ function(contriburl = contrib.url(getOption("repos"), type), method,
             if(length(res0)) rownames(res0) <- res0[, "Package"]
         } else {
             dest <- file.path(tempdir(),
-                              paste0("repos_", URLencode(repos, TRUE), ".rds"))
+                              paste("repos_",
+                                    URLencode(repos, TRUE),
+                                    ".rds", sep=""))
             if(file.exists(dest)) {
                 res0 <- readRDS(dest)
             } else {
@@ -104,7 +106,7 @@ function(contriburl = contrib.url(getOption("repos"), type), method,
             if ("Path" %in% colnames(res0)) {
                 rp <- rep.int(repos, nrow(res0))
                 path <- res0[, "Path"]
-                rp[!is.na(path)] <- paste(repos, path[!is.na(path)], sep = "/")
+                rp[!is.na(path)] <- paste(repos, path[!is.na(path)], sep="/")
             } else rp <- repos
             res0 <- cbind(res0[, fields, drop = FALSE], Repository = rp)
             res <- rbind(res, res0)
@@ -134,7 +136,7 @@ function(contriburl = contrib.url(getOption("repos"), type), method,
             f <- available_packages_filters_db[[f[1L]]]
         }
         if(!is.function(f))
-            stop("invalid 'filters' argument.")
+            stop("Invalid 'filters' argument.")
         res <- f(res)
     }
 
@@ -383,7 +385,7 @@ old.packages <- function(lib.loc = NULL, repos = getOption("repos"),
     if(!missing(instPkgs)) {
         ## actually we need rather more than this
         if(!is.matrix(instPkgs) || !is.character(instPkgs[, "Package"]))
-            stop("ill-formed 'instPkgs' matrix")
+            stop("illformed 'instPkgs' matrix")
     }
     if(NROW(instPkgs) == 0L) return(NULL)
 
@@ -409,8 +411,7 @@ old.packages <- function(lib.loc = NULL, repos = getOption("repos"),
             Rdeps <- tools:::.split_dependencies(deps)[["R", exact=TRUE]]
             if(length(Rdeps) > 1L) {
                 target <- Rdeps$version
-                res <- do.call(Rdeps$op, list(currentR, target))
- ##               res <- eval(parse(text=paste("currentR", Rdeps$op, "target")))
+                res <- eval(parse(text=paste("currentR", Rdeps$op, "target")))
                 if(!res) next
             }
         }
@@ -548,10 +549,12 @@ installed.packages <-
             ## Previously used URLencode for e.g. Windows paths with drives
             ## This version works for very long file names.
             base <- paste(c(lib, fields), collapse = ",")
-            ## add length and 64-bit CRC in hex (in theory, seems
-            ## it is actually 32-bit on some systems)
-            enc <- sprintf("%d_%s", nchar(base), .Call(C_crc64, base))
-            dest <- file.path(tempdir(), paste0("libloc_", enc, ".rds"))
+            enc <- sprintf("%d_%s", nchar(base),
+                           ## add 64-bit CRC in hex (in theory, seems
+                           ## it is actually 32-bit on some systems)
+                           .Call("crc64ToString", base, PACKAGE = "base"))
+            dest <- file.path(tempdir(),
+                              paste0("libloc_", enc, ".rds"))
             if(file.exists(dest) &&
                file.info(dest)$mtime > file.info(lib)$mtime &&
                (val <- readRDS(dest))$base == base)
@@ -614,10 +617,8 @@ remove.packages <- function(pkgs, lib)
 
     if(missing(lib) || is.null(lib)) {
         lib <- .libPaths()[1L]
-	message(sprintf(ngettext(length(pkgs),
-                                 "Removing package from %s\n(as %s is unspecified)",
-                                 "Removing packages from %s\n(as %s is unspecified)"),
-                        sQuote(lib), sQuote("lib")), domain = NA)
+	message(gettextf("Removing package(s) from %s\n(as %s is unspecified)",
+			 sQuote(lib), sQuote("lib")), domain = NA)
     }
 
     paths <- find.package(pkgs, lib)
@@ -659,11 +660,12 @@ download.packages <- function(pkgs, destdir, available = NULL,
             if (substr(type, 1L, 10L) == "mac.binary") type <- "mac.binary"
             ## in Oct 2009 we introduced file names in PACKAGES files
             File <- available[ok, "File"]
-            fn <- paste0(p, "_", available[ok, "Version"],
-                         switch(type,
-                                "source" = ".tar.gz",
-                                "mac.binary" = ".tgz",
-                                "win.binary" = ".zip"))
+            fn <- paste(p, "_", available[ok, "Version"],
+                        switch(type,
+                               "source" = ".tar.gz",
+                               "mac.binary" = ".tgz",
+                               "win.binary" = ".zip"),
+                        sep = "")
             have_fn <- !is.na(File)
             fn[have_fn] <- File[have_fn]
             repos <- available[ok, "Repository"]
@@ -688,7 +690,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
                     warning(gettextf("package %s does not exist on the local repository", sQuote(p)),
                             domain = NA, immediate. = TRUE)
             } else {
-                url <- paste(repos, fn, sep = "/")
+                url <- paste(repos, fn, sep="/")
                 destfile <- file.path(destdir, fn)
 
                 res <- try(download.file(url, destfile, method, mode="wb", ...))
@@ -731,9 +733,9 @@ contrib.url <- function(repos, type = getOption("pkgType"))
         type <- "mac.binary"
     }
     res <- switch(type,
-		"source" = paste(gsub("/$", "", repos), "src", "contrib", sep = "/"),
+		"source" = paste(gsub("/$", "", repos), "src", "contrib", sep="/"),
                 "mac.binary" = paste(gsub("/$", "", repos), "bin", "macosx", mac.subtype, "contrib", ver, sep = "/"),
-                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep = "/")
+                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep="/")
                )
     res
 }
@@ -746,12 +748,11 @@ getCRANmirrors <- function(all=FALSE, local.only=FALSE)
         ## try to handle explicitly failure to connect to CRAN.
         con <- url("http://cran.r-project.org/CRAN_mirrors.csv")
         m <- try(open(con, "r"), silent = TRUE)
-        if(!inherits(m, "try-error")) m <- try(read.csv(con, as.is = TRUE))
+        if(!inherits(m, "try-error")) m <- try(read.csv(con, as.is=TRUE))
         close(con)
     }
     if(is.null(m) || inherits(m, "try-error"))
-        m <- read.csv(file.path(R.home("doc"), "CRAN_mirrors.csv"),
-                      as.is = TRUE)
+        m <- read.csv(file.path(R.home("doc"), "CRAN_mirrors.csv"), as.is=TRUE)
     if(!all) m <- m[as.logical(m$OK), ]
     m
 }
@@ -904,8 +905,7 @@ compareVersion <- function(a, b)
             ## so for now just see if any installed version will do.
             current <- as.package_version(installed[pkgs == x[[1L]], "Version"])
             target <- as.package_version(x[[3L]])
-            any(do.call(x$op, list(current, target)))
-##            eval(parse(text = paste("any(current", x$op, "target)")))
+            eval(parse(text = paste("any(current", x$op, "target)")))
         } else x[[1L]] %in% pkgs
     })
     xx <- xx[!have]
@@ -922,8 +922,7 @@ compareVersion <- function(a, b)
             ## install.packages() will find the highest version.
             current <- as.package_version(available[pkgs == x[[1L]], "Version"])
             target <- as.package_version(x[[3L]])
-            res <- any(do.call(x$op, list(current, target)))
-##            res <- eval(parse(text = paste("any(current", x$op, "target)")))
+            res <- eval(parse(text = paste("any(current", x$op, "target)")))
             if(res) canget <- c(canget, x[[1L]])
             else  miss <- c(miss, paste0(x[[1L]], " (>= ", x[[3L]], ")"))
         } else if(x[[1L]] %in% pkgs) canget <- c(canget, x[[1L]])

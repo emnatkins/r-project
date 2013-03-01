@@ -71,12 +71,11 @@ The current version of this document is @value{VERSION}.
 * Package Structure::           
 * Files::                       
 * Graphics Devices::            
-* GUI consoles::                
 * Tools::                       
 * R coding standards::          
 * Testing R code::              
 * Use of TeX dialects::         
-* Current and future directions::  
+* Future directions::           
 * Function and variable index::  
 * Concept index::               
 @end menu
@@ -568,7 +567,7 @@ the global environment (possibly as part of a recursive search).
 
 @menu
 * Search paths::                
-* Namespaces::                  
+* Namespaces::                 
 * Hash table::                  
 @end menu
 
@@ -1204,11 +1203,7 @@ their attributes after themselves.  Atomic vector objects write their
 length followed by the data: generic vector-list objects write their
 length followed by a call to @code{WriteItem} for each element.  The
 code for @code{CHARSXP}s special-cases @code{NA_STRING} and writes it as
-length @code{-1} with no data.  In @R{} 2.x.y the `length' is
-always written as a 32-bit integer: in later versions lengths no more
-than @code{2^31 - 1} are written in that way and larger lengths as
-@code{-1} followed by the upper and lower 32-bits as integers (regarded
-as unsigned).
+length @code{-1} with no data.
 
 Environments are treated in several ways: as we have seen, some are
 written as specific pseudo-@code{SEXPTYPE}s.  Package and namespace
@@ -1633,16 +1628,6 @@ mechanism will warn far enough from the stack limit to allow for modest
 use of alloca).  (@code{do_makeunique} in file @file{src/main/unique.c}
 provides an example of both points.)
 
-As from @R{} 3.0.0 there is an alternative check,
-@findex R_CheckStack2
-@example
-    R_CheckStack2(size_t extra);
-@end example
-
-@noindent
-to be called immediately @emph{before} trying an allocation of
-@code{extra} bytes.
-
 An alternative strategy has been used for various functions which
 require intermediate blocks of storage of varying but usually small
 size, and this has been consolidated into the routines in the header
@@ -1699,8 +1684,10 @@ static R_StringBuffer ex_buff = @{NULL, 0, MAXELTSIZE@};
 @subsection Internals of R_alloc
 
 The memory used by @code{R_alloc} is allocated as @R{} vectors, of type
-@code{RAWSXP}.  Thus the allocation is in units of 8 bytes, and is
-rounded up.  A request for zero bytes currently returns @code{NULL} (but
+@code{RAWSXP} for `small' allocations (less than 2^31 - 1 bytes) and of
+type @code{REALSXP} for allocations up to 2^34 - 1 bytes on 64-bit
+machines.  Thus the allocation is in units of 8 bytes, and is rounded
+up.  A request for zero bytes currently returns @code{NULL} (but
 this should not be relied on).  For historical reasons, in all other
 cases 1 byte is added before rounding up so the allocation is always
 1--8 bytes more than was asked for: again this should not be relied on.
@@ -1715,10 +1702,6 @@ chain of the vectors currently allocated via @code{R_alloc}.  Function
 value that has previously be obtained @emph{via} @code{vmaxget}:
 allocations after the value was obtained will no longer be protected and
 hence available for garbage collection.
-
-In @R{} 2.x.y, type @code{RAWSXP} was used for `small' allocations (less
-than 2^31 - 1 bytes) and type @code{REALSXP} for allocations up to 2^34
-- 1 bytes on 64-bit machines.
 
 @node Internal use of global and base environments, Modules, Memory allocators, R Internal Structures
 @section Internal use of global and base environments
@@ -1980,23 +1963,23 @@ or directly accessible in which case it is printed in @R{} as
 
 Functions using @code{.Internal()} wrapped in a closure are in general
 preferred as this ensures standard handling of named and default
-arguments.  For example, @code{grep} is defined as
+arguments.  For example, @code{axis} is defined as
 
 @example
 @group
-grep <- 
-function (pattern, x, ignore.case = FALSE, perl = FALSE, value = FALSE, 
-         fixed = FALSE, useBytes = FALSE, invert = FALSE) 
+axis <- function (side, at = NULL, labels = TRUE, tick = TRUE, line = NA, 
+    pos = NA, outer = FALSE, font = NA, lty = "solid", lwd = 1, 
+    lwd.ticks = lwd, col = NULL, col.ticks = NULL, hadj = NA, 
+    padj = NA, ...) 
 @{
-    if (!is.character(x)) x <- structure(as.character(x), names = names(x))
-    .Internal(grep(as.character(pattern), x, ignore.case, value, 
-                   perl, fixed, useBytes, invert))
+    if (is.null(col) && length(list(...)) && !is.null(fg <- list(...)$fg))
+        col <- fg
+    .Internal(axis(side, at, as.graphicsAnnot(labels), tick, 
+        line, pos, outer, font, lty, lwd, lwd.ticks, col, col.ticks, 
+        hadj, padj, ...))
 @}
-
 @end group
 @end example
-and the use of @code{as.character} allows methods to be dispatched (for
-example, for factors).
 
 However, for reasons of convenience and also efficiency (as there is
 some overhead in using the @code{.Internal} interface wrapped in a
@@ -2035,7 +2018,7 @@ arithmetic and logic:
 @example
 @group
                [    [[    $    @@
-<-   <<-  =    [<-  [[<-  $<-  @@<-
+<-   <<-  =    [<-  [[<-  $<-
 
 +    -    *    /     ^    %%   %*%  %/%
 <    <=   ==   !=    >=   >
@@ -2185,8 +2168,8 @@ call       switch
 @noindent
 intentionally use positional matching, and need to do so to avoid
 partial matching to their first argument.  They do check that the first
-argument is unnamed or for the first two, partially matches the formal
-argument name.  On the other hand,
+argument (partially) matched the formal argument name.  On the other
+hand,
 
 @example
 @group
@@ -2212,7 +2195,6 @@ required.
 * Special primitives::          
 * Special internals::           
 * Prototypes for primitives::   
-* Adding a primitive::          
 @end menu
 
 @node Special primitives, Special internals, .Internal vs .Primitive, .Internal vs .Primitive
@@ -2249,7 +2231,7 @@ There are also special @code{.Internal} functions: @code{NextMethod},
 for the @code{deparse.level} argument), @code{eapply}, @code{lapply} and
 @code{vapply}.
 
-@node Prototypes for primitives, Adding a primitive, Special internals, .Internal vs .Primitive
+@node Prototypes for primitives,  , Special internals, .Internal vs .Primitive
 @section Prototypes for primitives
 
 Prototypes are available for the primitive functions and operators, and
@@ -2272,7 +2254,7 @@ included are better thought of as language elements (at the time of
 writing
 
 @example
-$  $<-  &&  (  :  @@  @@<-  [  [[  [[<-  [<-  @{  ||  ~  <-  <<-  =
+$  $<-  &&  (  :  @@  [  [[  [[<-  [<-  @{  ||  ~  <-  <<-  =
 break  for function  if  next  repeat  return  while
 @end example
 
@@ -2307,39 +2289,6 @@ generic, by setting a method and checking it is not dispatched to (but
 this can fail for other reasons).  However, there is no certain way to
 know that if other @code{.Internal} or primitive functions are not
 internally generic except by reading the source code.
-
-@node Adding a primitive,  , Prototypes for primitives, .Internal vs .Primitive
-@section Adding a primitive
-
-[For R-core use: reverse this procedure to remove a primitive.  Most
-commonly this is done by changing a @code{.Internal} to a primitive or
-@emph{vice versa}.]
-
-Primitives are listed in the table @code{R_FunTab} in
-@file{src/main/names.c}: primitives have @samp{Y = 0} in the @samp{eval}
-field.
-
-There needs to an a @samp{\alias} entry in a help file in the @pkg{base}
-package, and the primitive needs to be added to one of the lists at the
-start of this section.
-
-Some primitives are regarded as language elements (the current ones are
-listed above).  These need to be in added to two lists of exceptions,
-@code{langElts} in @code{undoc()} (in file
-@file{src/library/tools/R/QC.R}) and @code{lang_elements} in
-@file{tests/primitives.R}.
-
-All other primitives are regarded as functions and should be listed in
-one of the environments defined in @file{src/library/base/R/zzz.R},
-either @code{.ArgsEnv} or @code{.GenericArgsEnv}: internal generics also
-need to be listed in the character vector @code{.S3PrimitiveGenerics}.
-Note too the discussion about argument matching above: if you add a
-primitive function with more than one argument by converting a
-@code{.Internal} you need to add argument matching to the C code, and
-for those with a single argument, add argument-name checking.
-
-Do ensure that @command{make check-devel} has been run: that tests most
-of these requirements.
 
 @node Internationalization in the R sources, Package Structure, .Internal vs .Primitive, Top
 @chapter Internationalization in the R sources
@@ -2707,7 +2656,7 @@ specifications (the last being the current directory on drive
 @c unlink          Wchar   ~
 
 
-@node Graphics Devices, GUI consoles, Files, Top
+@node Graphics Devices, Tools, Files, Top
 @chapter Graphics
 
 @R{}'s graphics internals were revised for version 1.4.0 (and tidied up
@@ -3428,10 +3377,11 @@ on the graphics hardware and undocumented properties of GDI.
 @node Colours, Base graphics, Graphics devices, Graphics Devices
 @section Colours
 
-Devices receive colours as a @code{typedef} @code{rcolor} (an
-@code{unsigned int}) defined in the header
-@file{R_ext/GraphicsEngine.h}).  The 4 bytes are
-@emph{R} ,@emph{G}, @emph{B} and @emph{alpha} from least to most
+Devices receive colours as an @code{unsigned int} (in the @code{GPar}
+structure and some of the devices as the @code{typedef} @code{rcolor}):
+the comments in file @file{R_ext/GraphicsDevice.h} are the primary
+documentation.  The 4 bytes in the @code{unsigned int} are
+@emph{R},@emph{G},@emph{B} and @emph{alpha} from least to most
 significant. So each of RGB has 256 levels of luminosity from 0 to 255.
 The alpha byte represents (from @R{} 2.0.0) opacity, so value 255 is
 fully opaque and 0 fully transparent: many but not all devices handle
@@ -3449,31 +3399,28 @@ device).  @R{} introduced the idea of referring to colours by character
 strings, either in the forms @samp{#RRGGBB} or @samp{#RRGGBBAA}
 (representing the bytes in hex) as given by function @code{rgb()} or via
 names: the 657 known names are given in the character vector
-@code{colors} and in a table in file @file{colors.c} in package
-@pkg{grDevices}.  Note that semi-transparent colours are not
-`premultiplied', so 50% transparent white is @samp{#ffffff80}.
+@code{colors} and in a table in file @file{colors.c}.  Note that
+semi-transparent colours are not `premultiplied', so 50% transparent
+white is @samp{#ffffff80}.
 
-Integer or character @code{NA} colours are mapped internally to
-transparent white, as is the character string @code{"NA"}.
-
-The handling of negative colour numbers was undefined (and inconsistent)
-prior to @R{} 3.0.0, which made them an error.  Colours greater than
+The handling of negative colour numbers is undefined (and inconsistent):
+they will in future be made an error.  Colours greater than
 @samp{@var{N}} are wrapped around, so that for example with the default
 palette of size 8, colour @samp{10} is colour @samp{2} in the palette.
 
 Integer colours have been used more widely than the base graphics
 sub-system, as they are supported by package @pkg{grid} and hence by
-@CRANpkg{lattice} and @CRANpkg{ggplot2}.  (They are also used by package
-@CRANpkg{rgl}.)  @pkg{grid} did re-define colour @samp{0} to be
-transparent white, but @CRANpkg{rgl} used @code{col2rgb} and hence the
-background colour of base graphics.
+@pkg{lattice} and @pkg{ggplot2}.  (They are also used by package
+@pkg{rgl}.)  @pkg{grid} re-defines colour @samp{0} to be transparent
+white, but @pkg{rgl} uses @code{col2rgb} and hence the background colour
+of base graphics.
 
-Note that positive integer colours refer to the current palette and
-colour @samp{0} to the current device (and a device is opened if needs
-be).  These are mapped to type @code{rcolor} at the time of use: this
-matters when re-playing the display list, e.g.@: when a device is
-resized or @code{dev.copy} is used.  The palette should be thought of as
-per-session: as from @R{} 3.0.0 it is stored in package @pkg{grDevices}.
+Note that positive integer colours refer to the current palette (which
+is per-session, not per-device) and colour @samp{0} to the current
+device (and a device is opened if needs be).  These are mapped to type
+@code{rcolor} at the time of use: this matters when re-playing the
+display list, e.g.@: when a device is resized or @code{dev.copy} is
+used.
 
 What was for a long time unclear was how the RGB values were to be
 mapped to display colours in the graphics device.  @R{} 2.13.0 adopted
@@ -3496,35 +3443,16 @@ Edition, version 1.7.  Unfortunately, although this is what the PDF
 standard says should happen, it is not correctly implemented by some
 viewers.)
 
-The mapping from colour numbers to type @code{rcolor} is primarily done
-by function @code{RGBpar3}: this is exported from the @R{} binary but
-linked to code in package @pkg{grDevices}.  The first argument is a
-@code{SEXP} pointing to a character, integer or double vector, and the
-second is the @code{rcolor} value for colour @code{0} (or @code{"0"}).
-C entry point @code{RGBpar} is a wrapper that takes @code{0} to be
-transparent white: it is often used to set colour defaults for devices.
-The @R{}-level wrapper is @code{col2rgb}.
-
-There is also @code{R_GE_str2col} which takes a C string and converts to
-type @code{rcolor}: @code{"0'} is converted to transparent white.
-
-There is a @R{}-level conversion of colours to @samp{##RRGGBBAA} by
-@code{image.default(useRaster = TRUE)}.
-
-The other color-conversion entry point in the API is @code{name2col}
-which takes a colour name (a C string) and returns a value of type
-@code{rcolor}.  This handles @code{"NA"}, @code{"transparent"} and the
-657 colours known to the @R{} function @code{colors()}.
 
 @node Base graphics, Grid graphics, Colours, Graphics Devices
 @section Base graphics
 
-The base graphics system was migrated to package @pkg{graphics} in @R{}
-3.0.0: it was previously implemented in files in @file{src/main}.
+The base graphics system will move to package @pkg{graphics} in @R{}
+3.0.0, but is currently implemented in files in @file{src/main}.
 
 For historical reasons it is largely implemented in two layers.
 Files @file{plot.c}, @code{plot3d.c} and @code{par.c} contain the code
-for the around 30 @code{.External} calls that implement the basic
+for the around 30 @code{.Internal} calls that implement the basic
 graphics operations.  This code then calls functions with names starting
 with @code{G} and declared in header @file{Rgraphics.h} in file
 @file{graphics.c}, which in turn call the graphics engine (whose
@@ -3564,218 +3492,18 @@ high-level graphics calls (handled by @code{ProcessInlinePars}).
 Snapshots of the base subsystem record the `saved device copy' of the
 @code{GPar} structure.
 
-@menu
-* Arguments and parameters::    
-@end menu
+There remain quite a number of anomalies.  For example, function
+@code{GEcontourLines} is (despite its name) coded in file
+@file{plot3d.c} and used to support function @code{contourLines} in
+package @pkg{grDevices}.
 
-@node Arguments and parameters,  , Base graphics, Base graphics
-@subsection Arguments and parameters
-
-There is an unfortunate confusion between some of the graphical
-parameters (as set by @code{par}) and arguments to base graphic
-functions of the same name.  This description may help set the record
-straight.
-
-Most of the high-level plotting functions accept graphical parameters as
-additional arguments, which are then often passed to lower-level
-functions if not already named arguments (which is the main source of
-confusion).
-
-Graphical parameter @code{bg} is the background colour of the plot.
-Argument @code{bg} refers to the fill colour for the filled symbols
-@code{21} to @code{25}.  It is an argument to the function
-@code{plot.xy}, but normally passed by the default method of
-@code{points}, often from a @code{plot} method.
-
-Graphics parameters @code{cex}, @code{col}, @code{lty}, @code{lwd} and
-@code{pch} also appear as arguments of @code{plot.xy} and so are often
-passed as arguments from higher-level plot functions such as
-@code{lines}, @code{points} and @code{plot} methods.  They appear as
-arguments of @code{legend}, @code{col}, @code{lty} and @code{lwd} are
-arguments of @code{arrows} and @code{segments}.  When used as arguments
-they can be vectors, recycled to control the various lines, points and
-segments.  When set a graphical parameters they set the default
-rendering: in addition @code{par(cex=)} sets the overall character
-expansion which subsequent calls (as arguments or on-line graphical
-parameters) multiply.
-
-The handling of missing values differs in the two classes of uses.
-Generally these are errors when used in @code{par} but cause the
-corresponding element of the plot to be omitted when used as an element
-of a vector argument.  Originally the interpretation of arguments was
-mainly left to the device, but as from @R{} 3.0.0 some of this is
-pre-empted in the graphics engine (but for example the handling of
-@code{lwd = 0} remains device-specific, with some interpreting it as a
-`thinnest possible' line).
 
 @node Grid graphics,  , Base graphics, Graphics Devices
 @section Grid graphics
 
 [At least pointers to documentation.]
 
-@node GUI consoles, Tools, Graphics Devices, Top
-@chapter GUI consoles
-
-The standard @R{} front-ends are programs which run in a terminal, but
-there are several ways to provide a GUI console.
-
-This can be done by a package which is loaded from terminal-based @R{}
-and launches a console as part of its startup code or by the user
-running a specific function: package @CRANpkg{Rcmdr} is a well-known
-example with a Tk-based GUI.
-
-There used to be a Gtk-based console invoked by @command{R --gui=GNOME}:
-this relied on special-casing in the front-end shell script to launch a
-different executable.  There still is @command{R --gui=Tk}, which starts
-terminal-based @R{} and runs @code{tcltk::tkStartGui()} as part of the
-modified startup sequence.
-
-However, the main way to run a GUI console is to launch a separate
-program which runs embedded @R{}: this is done by @command{Rgui.exe} on
-Windows and @command{R.app} on Mac OS X.  The first is an integral part
-of @R{} and the code for the console is currently in @file{R.dll}.
-
-@menu
-* R.app::                       
-@end menu
-
-@node R.app,  , GUI consoles, GUI consoles
-@section R.app
-
-@command{R.app} is a Mac OS X application which provides a console.  Its
-sources are a separate project@footnote{an Xcode project, in SVN at
-@uref{https://svn.r-project.org/R-packages/trunk/Mac-GUI}.}, and its binaries
-link to an @R{} installation which it runs as a dynamic library
-@file{libR.dylib}.  The standard @acronym{CRAN} distribution of @R{} for
-OS X bundles the GUI and @R{} itself, but installing the GUI is optional
-and either component can be updated separately.
-
-@command{R.app} relies on @file{libR.dylib} being in a specific place,
-and hence on @R{} having been built and installed as a Mac OS X
-`framework'.  Specifically, it uses
-@file{/Library/Frameworks/R.framework/R}.  This is a symbolic link, as
-frameworks can contain multiple versions of @R{}.  It eventually
-resolves to
-@file{/Library/Frameworks/R.framework/Versions/Current/Resources/lib/libR.dylib},
-which is (in the @acronym{CRAN} distribution) a `fat' binary containing
-multiple sub-architectures.
-
-Mac OS X applications are directory trees: each @command{R.app} contains
-a front-end written in Objective-C for one sub-architecture: in the
-standard distribution there are separate applications for 32- and 64-bit
-Intel architectures.
-
-Originally the @R{} sources contained quite a lot of code used only by
-the OS X GUI, but by @R{} 3.0.0 this was been migrated to the
-@command{R.app} sources.
-
-@command{R.app} starts @R{} as an embedded application with a
-command-line which includes @option{--gui=aqua} (see below).  It uses
-most of the interface pointers defined in the header
-@file{Rinterface.h}, plus a private interface pointer in file
-@file{src/main/sysutils.c}.  It adds an environment
-it names @code{tools:RGUI} to the second position in the search path.
-This contains a number of utility functions used to support the menu
-items, for example @code{package.manager()}, plus functions @code{q()}
-and @code{quit()} which mask those in package @pkg{base}---the custom
-versions save the history in a way specific to @code{R.app}.
-
-There is a @command{configure} option @option{--with-aqua} for @R{}
-which customizes the way @R{} is built: this is distinct from the
-@option{--enable-R-framework} option which causes @command{make install}
-to install @R{} as the framework needed for use with @code{R.app}.  (The
-option @option{--with-aqua} is the default on Mac OS X.)  It sets the
-macro @code{HAVE_AQUA} in @file{config.h} and the make variable
-@code{BUILD_AQUA_TRUE}.  These have several consequences:
-
-@itemize
-@item
-The @code{quartz()} device is built (other than as a stub) in package
-@pkg{grDevices}: this needs an Objective-C compiler.  Then
-@code{quartz()} can be used with terminal @R{} provided the latter has
-access to the Mac OS X screen.
-
-@item
-File @code{src/unix/aqua.c} is compiled.  This now only contains an
-interface pointer for the @code{quartz()} device(s).
-
-@item
-@code{capabilities("aqua")} is set to @code{TRUE}.
-
-@item
-The default path for a personal library directory is set as
-@file{~/Library/R/x.y/library}.
-@c This is done in @file{etc/Renviron}.
-
-@item
-There is support for setting a `busy' indicator whilst waiting for
-@code{system()} to return.
-
-@item
-@code{R_ProcessEvents} is inhibited in a forked child from package
-@pkg{parallel}.  The associated callback in @code{R.app} does things
-which should not be done in a child, and forking forks the whole process
-including the console.
-
-@item
-There is support for starting the embedded @R{} with the option
-@option{--gui=aqua}: when this is done the global C variable
-@code{useaqua} is set to a true value.  This has consequences:
-
-@itemize
-@item
-The @R{} session is asserted to be interactive @emph{via} @code{R_Interactive}.
-
-@item 
-@code{.Platform$GUI} is set to @code{"AQUA"}.  That has consequences:
-@itemize
-@item 
-The environment variable @env{DISPLAY} is set to @samp{:0} if not
-already set.
-
-@item
-@file{/usr/local/bin} is appended to @env{PATH} since that is where
-@command{gfortran} is installed.
-
-@item
-The default HTML browser is switched to the one in @command{R.app}.
-
-@item
-Various widgets are switched to the versions provided in
-@command{R.app}: these include graphical menus, the data editor (but not
-the data viewer used by @code{View()}) and the workspace browser invoked
-by @code{browseEnv()}.
-
-@item
-The @pkg{grDevices} package when loaded knows that it is being run
-under @command{R.app} and so informs any @code{quartz} devices that a
-Quartz event loop is already running.
-@end itemize
-
-@item
-The use of the OS's @code{system} function (including by @code{system()}
-and @code{system2()}, and to launch editors and pagers) is replaced by a
-version in @code{R.app} (which by default just calls the OS's
-@code{system} with various signal handlers reset).
-
-@end itemize
-
-@item
-If either @R{} was started by @option{--gui=aqua} or @R{} is running in
-a terminal which is not of type @samp{dumb}, the standard output to
-files @file{stdout} and @file{stderr} is directed through the C function
-@code{Rstd_WriteConsoleEx}.  This uses ANSI terminal escapes to render
-lines sent to @code{stderr} as bold on @code{stdout}.
-
-@item
-For historical reasons the startup option @code{-psn} is allowed but
-ignored.  (It seems that in 2003, @samp{r27492}, this was added by Finder.)
-
-@end itemize
-
-
-
-@node Tools, R coding standards, GUI consoles, Top
+@node Tools, R coding standards, Graphics Devices, Top
 @chapter Tools
 
 The behavior of @command{R CMD check} can be controlled through a
@@ -3805,7 +3533,7 @@ which require the package to be installed.
 
 The following environment variables can be used to customize the
 operation of @command{check}: a convenient place to set these is the
-check environment file (default, @file{~/.R/check.Renviron}).
+file @file{~/.R/check.Renviron}.
 
 @vtable @code
 @item _R_CHECK_ALL_NON_ISO_C_
@@ -3955,7 +3683,7 @@ Default: false.
 Should the @file{vign_test} directory be removed if the test is successful?
 Default: true.
 @item _R_CHECK_REPLACING_IMPORTS_
-Should warnings about replacing imports be reported?  These come
+Should warnings about replacing imports be reported?  These mainly come
 from auto-generated @file{NAMESPACE} files in other packages.
 Default: false.
 @item _R_CHECK_UNSAFE_CALLS_
@@ -4034,31 +3762,6 @@ tables for objects (@file{.o} files) at installation in a file
 @file{symbols.rds}.  (Only currently supported on Linux, Solaris, OS X,
 Windows and FreeBSD.)
 Default: true.
-
-@item _R_CHECK_CODE_ASSIGN_TO_GLOBALENV_
-Should the package code be checked for assignments to the global
-environment?
-Default: false (but true for CRAN submission checks).
-
-@item _R_CHECK_CODE_ATTACH_
-Should the package code be checked for calls to @code{attach()}?
-Default: false (but true for CRAN submission checks).
-
-@item _R_CHECK_CODE_DATA_INTO_GLOBALENV_
-Should the package code be checked for calls to @code{data()} which load
-into the global environment?
-Default: false (but true for CRAN submission checks).
-
-@item _R_CHECK_DOT_FIRSTLIB_
-Should the package code be checked for the presence of the obsolete function 
-@code{.First.lib()}?
-Default: false (but true for CRAN submission checks).
-
-@item _R_CHECK_DEPRECATED_DEFUNCT_
-Should the package code be checked for the presence of recently deprecated
-or defunct functions (including completely removed functions). 
-Default: false (but true for CRAN submission checks).
-
 @end vtable
 
 CRAN's submission checks use something like
@@ -4072,11 +3775,6 @@ _R_CHECK_SUGGESTS_ONLY_=TRUE
 _R_CHECK_NO_RECOMMENDED_=TRUE
 _R_CHECK_EXECUTABLES_EXCLUSIONS_=FALSE
 _R_CHECK_DOC_SIZES2_=TRUE
-_R_CHECK_CODE_ASSIGN_TO_GLOBALENV_=TRUE
-_R_CHECK_CODE_ATTACH_=TRUE
-_R_CHECK_CODE_DATA_INTO_GLOBALENV_=TRUE
-_R_CHECK_DOT_FIRSTLIB_=TRUE
-_R_CHECK_DEPRECATED_DEFUNCT_=TRUE
 @end example
 
 @noindent
@@ -4239,7 +3937,7 @@ list'' in @file{tests/no-segfault.Rin}.
 [To be revised: use @command{make check-devel}, check the write barrier
 if you change internal structures.]
 
-@node Use of TeX dialects, Current and future directions, Testing R code, Top
+@node Use of TeX dialects, Future directions, Testing R code, Top
 @chapter Use of TeX dialects
 
 Various dialects of TeX and used for different purposes in @R{}.  The
@@ -4282,175 +3980,14 @@ at run time.  The latter can be important for binary distributions: one
 does not want to be tied to, for example, TeXLive 2007.
 
 
-@node Current and future directions, Function and variable index, Use of TeX dialects, Top
-@chapter Current and future directions
+@node Future directions, Function and variable index, Use of TeX dialects, Top
+@chapter Future directions
 
-This chapter is for notes about possible in-progress and future changes
-to @R{}: there is no commitment to release such changes, let alone to a
-timescale.
+This chapter is for notes about possible future changes to @R{}: these
+are now listed only in the version of this manual for the development
+version of @R{}.
 
-@menu
-* Long vectors::                
-* 64-bit types::                
-* Large matrices::              
-@end menu
-
-@node Long vectors, 64-bit types, Current and future directions, Current and future directions
-@section Long vectors
-
-Vectors in @R{} 2.x.y were limited to a length of 2^31 - 1 elements
-(about 2 billion), as the length is stored in the @code{SEXPREC} as a C
-@code{int}, and that type is used extensively to record lengths and
-element numbers, including in packages.
-
-Note that longer vectors are effectively impossible under 32-bit
-platforms because of their address limit, so this section applies only
-on 64-bit platforms.  The internals are unchanged on a 32-bit build of
-@R{}.
-
-A single object with 2^31 or more elements will take up at least 8GB of
-memory if integer or logical and 16GB if numeric or character, so
-routine use of such objects is still some way off.
-
-There is now some support for long vectors.  This applies to raw,
-logical, integer, numeric and character vectors, and lists and
-expression vectors.  (Elements of character vectors (@code{CHARSXP}s)
-remain limited to 2^31 - 1 bytes.)  Some considerations:
-
-
-@itemize
-
-@item
-This has been implemented by recording the length (and true length) as
-@code{-1} and recording the actual length as a 64-bit field at the
-beginning of the header.  Because a fair amount of code in @R{} uses a
-signed type for the length, the `long length' is recorded using the
-signed C99 type @code{ptrdiff_t}, which is typedef-ed to
-@code{R_xlen_t}.
-
-@item
-These can in theory have 63-bit lengths, but note that current 64-bit
-OSes do not even theoretically offer 64-bit address spaces and there is
-currently a 52-bit limit (which exceeds the theoretical limit of current
-OSes and ensures that such lengths can be stored exactly in doubles).
-
-@item
-The serialization format has been changed to accommodate longer lengths,
-but vectors of lengths up to 2^31-1 are stored in the same way as
-before.  Longer vectors have their length field set to @code{-1} and
-followed by two 32-bit fields giving the upper and lower 32-bits of the
-actual length.  There is currently a sanity check which limits lengths
-to 2^48 on unserialization.
-
-@item
-The type @code{R_xlen_t} is made available to packages in C header
-@file{Rinternals.h}: this should be fine in C code since C99 is
-required.  People do try to use @R{} internals in C++, but C++98
-compilers are not required to support these types (and there are
-currently no C++11 compilers).
-
-@item
-Indexing can be done via the use of doubles.  The internal indexing code
-used to work with positive integer indices (and negative, logical and
-matrix indices were all converted to positive integers): it now works
-with either @code{INTSXP} or @code{REALSXP} indices.
-
-@item
-@R{} function @code{length} was documented to currently return an
-integer, possibly @code{NA}.  A lot of code has been written that
-assumes that, and even code which calls @code{as.integer(length(x))}
-before passing to @code{.C}/@code{.Fortran} rarely checks for an
-@code{NA} result.
-
-There is a new function @code{xlength} which works for long vectors and
-returns a double value if the length exceeds 2^31-1. At present
-@code{length} returns @code{NA} for long vectors, but it may be safer to
-make that an error.
-
-@end itemize
-
-@node 64-bit types, Large matrices, Long vectors, Current and future directions
-@section 64-bit types
-
-There is also some desire to be able to store larger integers in @R{},
-although the possibility of storing these as @code{double} is often
-overlooked (and e.g.@: file pointers as returned by @code{seek} are
-already stored as @code{double}).
-
-Different routes have been proposed:
-
-@itemize
-
-@item
-Add a new type to @R{} and use that for lengths and indices---most likely
-this would be a 64-bit signed type, say @code{longint}.  @R{}'s usual
-implicit coercion rules would ensure that supplying an @code{integer}
-vector for indexing or @code{length<-} would work.
-
-@item
-A more radical alternative is to change the existing @code{integer} type
-to be 64-bit on 64-bit platforms (which was the approach taken by S-PLUS
-for DEC/Compaq Alpha systems).  Or even on all platforms.
-
-@item
-Allow either @code{integer} or @code{double} values for lengths and
-indices, and return @code{double} only when necessary.
-
-@end itemize
-
-The third has the advantages of minimal disruption to existing code and
-not increasing memory requirements. In the first and third scenarios
-both @R{}'s own code and user code would have to be adapted for lengths
-that were not of type @code{integer}, and in the third code branches for
-long vectors would be tested rarely.
-
-Most users of the @code{.C} and @code{.Fortran} interfaces use
-@code{as.integer} for lengths and element numbers, but a few omit these
-in the knowledge that these were of type @code{integer}.  It may be
-reasonable to assume that these are never intended to be used with long
-vectors.
-
-The remaining interfaces will need to cope with the changed
-@code{VECTOR_SEXPREC} types.  It seems likely that in most cases lengths
-are accessed by the @code{length} and @code{LENGTH}
-functions@footnote{but @code{LENGTH} is a macro under some internal
-uses.}  The current approach is to keep these returning 32-bit lengths and
-introduce `long' versions @code{xlength} and @code{XLENGTH} which return
-@code{R_xlen_t} values.
-
-
-See also @uref{http://www.cs.uiowa.edu/~luke/talks/useR10.pdf}.
-
-@node Large matrices,  , 64-bit types, Current and future directions
-@section Large matrices
-
-Matrices are stored as vectors and so were also limited to 2^31-1
-elements.  Now longer vectors are allowed, matrices with more elements
-are supported provided that each of the dimensions is no more than
-2^31-1.  However, not all applications can be supported.
-
-The main problem is linear algebra, on done by FORTRAN code compiled
-with 32-bit @code{INTEGER}.  Although not guaranteed, it seems that all
-the compilers currently used with @R{} on a 64-bit platform allow
-matrices each of whose dimensions is less than 2^31 but with more than
-2^31 elements, and index them correctly, and a substantial part of the
-support software (such as @acronym{BLAS} and @acronym{LAPACK}) also
-work.
-
-There are exceptions: for example some complex @acronym{LAPACK})
-auxiliary routines do use a single @code{INTEGER} index and hence
-overflow silently and segfault or give incorrect results.  One example
-is @code{svd()} on a complex matrix.
-
-Since this is implementation-dependent, it is possible that optimized
-@acronym{BLAS} and @acronym{LAPACK} may have further restrictions,
-although none have yet been encountered.  For matrix algebra on large
-matrices one almost certainly wants a machine with a lot of RAM (100s of
-gigabytes), many cores and a multi-threaded @acronym{BLAS}.
-
-
-
-@node Function and variable index, Concept index, Current and future directions, Top
+@node Function and variable index, Concept index, Future directions, Top
 @unnumbered Function and variable index
 
 @printindex vr

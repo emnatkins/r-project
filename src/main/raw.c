@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001--2012 The R Core Team
+ *  Copyright (C) 2001--2009 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Pulic License as published by
@@ -22,7 +22,6 @@
 #endif
 
 #include <Defn.h>
-#include <Internal.h>
 
 #define isRaw(x) (TYPEOF(x) == RAWSXP)
 
@@ -47,15 +46,15 @@ SEXP attribute_hidden do_charToRaw(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_rawToChar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args);
+    int i, j, nc = LENGTH(x), multiple;
 
     checkArity(op, args);
     if (!isRaw(x))
 	error(_("argument 'x' must be a raw vector"));
-    int multiple = asLogical(CADR(args));
+    multiple = asLogical(CADR(args));
     if (multiple == NA_LOGICAL)
 	error(_("argument 'multiple' must be TRUE or FALSE"));
     if (multiple) {
-	R_xlen_t i, nc = XLENGTH(x);
 	char buf[2];
 	buf[1] = '\0';
 	PROTECT(ans = allocVector(STRSXP, nc));
@@ -65,7 +64,6 @@ SEXP attribute_hidden do_rawToChar(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	/* do we want to copy e.g. names here? */
     } else {
-	int i, j, nc = LENGTH(x);
 	/* String is not necessarily 0-terminated and may contain nuls.
 	   Strip trailing nuls */
 	for (i = 0, j = -1; i < nc; i++) if(RAW(x)[i]) j = i;
@@ -82,8 +80,7 @@ SEXP attribute_hidden do_rawToChar(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_rawShift(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args);
-    int shift = asInteger(CADR(args));
-
+    int i, shift = asInteger(CADR(args));
 
     if (!isRaw(x))
 	error(_("argument 'x' must be a raw vector"));
@@ -91,10 +88,10 @@ SEXP attribute_hidden do_rawShift(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("argument 'shift' must be a small integer"));
     PROTECT(ans = duplicate(x));
     if (shift > 0)
-	for (R_xlen_t i = 0; i < XLENGTH(x); i++)
+	for (i = 0; i < LENGTH(x); i++)
 	    RAW(ans)[i] <<= shift;
     else
-	for (R_xlen_t i = 0; i < XLENGTH(x); i++)
+	for (i = 0; i < LENGTH(x); i++)
 	    RAW(ans)[i] >>= (-shift);
     UNPROTECT(1);
     return ans;
@@ -103,15 +100,15 @@ SEXP attribute_hidden do_rawShift(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_rawToBits(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args);
-    R_xlen_t i, j = 0;
+    int i, j = 0, k;
     unsigned int tmp;
 
     if (!isRaw(x))
 	error(_("argument 'x' must be a raw vector"));
-    PROTECT(ans = allocVector(RAWSXP, 8*XLENGTH(x)));
-    for (i = 0; i < XLENGTH(x); i++) {
+    PROTECT(ans = allocVector(RAWSXP, 8*LENGTH(x)));
+    for (i = 0; i < LENGTH(x); i++) {
 	tmp = (unsigned int) RAW(x)[i];
-	for (int k = 0; k < 8; k++, tmp >>= 1)
+	for (k = 0; k < 8; k++, tmp >>= 1)
 	    RAW(ans)[j++] = tmp & 0x1;
     }
     UNPROTECT(1);
@@ -121,16 +118,16 @@ SEXP attribute_hidden do_rawToBits(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_intToBits(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x;
-    R_xlen_t i, j = 0;
+    int i, j = 0, k;
     unsigned int tmp;
     
     PROTECT(x = coerceVector(CAR(args), INTSXP));
     if (!isInteger(x))
 	error(_("argument 'x' must be an integer vector"));
-    PROTECT(ans = allocVector(RAWSXP, 32*XLENGTH(x)));
-    for (i = 0; i < XLENGTH(x); i++) {
+    PROTECT(ans = allocVector(RAWSXP, 32*LENGTH(x)));
+    for (i = 0; i < LENGTH(x); i++) {
 	tmp = (unsigned int) INTEGER(x)[i];
-	for (int k = 0; k < 32; k++, tmp >>= 1)
+	for (k = 0; k < 32; k++, tmp >>= 1)
 	    RAW(ans)[j++] = tmp & 0x1;
     }
     UNPROTECT(2);
@@ -141,8 +138,9 @@ SEXP attribute_hidden do_packBits(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args), stype = CADR(args);
     Rboolean useRaw;
-    R_xlen_t i, len = XLENGTH(x), slen;
-    int fac;
+    int i, j, k, fac, len = LENGTH(x), slen;
+    unsigned int itmp;
+    Rbyte btmp;
 
     if (TYPEOF(x) != RAWSXP && TYPEOF(x) != LGLSXP && TYPEOF(x) != INTSXP)
 	error(_("argument 'x' must be raw, integer or logical"));
@@ -156,13 +154,13 @@ SEXP attribute_hidden do_packBits(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(ans = allocVector(useRaw ? RAWSXP : INTSXP, slen));
     for (i = 0; i < slen; i++)
 	if (useRaw) {
-	    Rbyte btmp = 0;
-	    for (int k = 7; k >= 0; k--) {
+	    btmp = 0;
+	    for (k = 7; k >= 0; k--) {
 		btmp <<= 1;
 		if (isRaw(x))
 		    btmp |= RAW(x)[8*i + k] & 0x1;
 		else if (isLogical(x) || isInteger(x)) {
-		    int j = INTEGER(x)[8*i+k];
+		    j = INTEGER(x)[8*i+k];
 		    if (j == NA_INTEGER)
 			error(_("argument 'x' must not contain NAs"));
 		    btmp |= j & 0x1;
@@ -170,13 +168,13 @@ SEXP attribute_hidden do_packBits(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    RAW(ans)[i] = btmp;
 	} else {
-	    unsigned int itmp = 0;
-	    for (int k = 31; k >= 0; k--) {
+	    itmp = 0;
+	    for (k = 31; k >= 0; k--) {
 		itmp <<= 1;
 		if (isRaw(x))
 		    itmp |= RAW(x)[32*i + k] & 0x1;
 		else if (isLogical(x) || isInteger(x)) {
-		    int j = INTEGER(x)[32*i+k];
+		    j = INTEGER(x)[32*i+k];
 		    if (j == NA_INTEGER)
 			error(_("argument 'x' must not contain NAs"));
 		    itmp |= j & 0x1;
@@ -264,9 +262,8 @@ static int mbrtoint(int *w, const char *s)
 SEXP attribute_hidden do_utf8ToInt(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args);
-    int tmp, used = 0; /* -Wall */
+    int i, j, nc, *ians, tmp, used = 0; /* -Wall */
     const char *s = CHAR(STRING_ELT(x, 0));
-    R_xlen_t i, j, nc;
 
     checkArity(op, args);
     if (!isString(x) || LENGTH(x) == 0)
@@ -274,8 +271,8 @@ SEXP attribute_hidden do_utf8ToInt(SEXP call, SEXP op, SEXP args, SEXP env)
     if (LENGTH(x) > 1)
 	warning(_("argument should be a character vector of length 1\nall but the first element will be ignored"));
     if (STRING_ELT(x, 0) == NA_STRING) return ScalarInteger(NA_INTEGER);
-    nc = XLENGTH(STRING_ELT(x, 0)); /* ints will be shorter */
-    int *ians = (int *) R_alloc(nc, sizeof(int));
+    nc = LENGTH(STRING_ELT(x, 0)); /* ints will be shorter */
+    ians = (int *) R_alloc(nc, sizeof(int));
     for (i = 0, j = 0; i < nc; i++) {
 	used = mbrtoint(&tmp, s);
 	if (used <= 0) break;
@@ -305,10 +302,10 @@ static size_t inttomb(char *s, const int wc)
 	if (cvalue <= utf8_table1[i]) break;
     b += i;
     for (j = i; j > 0; j--) {
-	*b-- = (char)(0x80 | (cvalue & 0x3f));
+	*b-- = 0x80 | (cvalue & 0x3f);
 	cvalue >>= 6;
     }
-    *b = (char)(utf8_table2[i] | cvalue);
+    *b = utf8_table2[i] | cvalue;
     return i + 1;
 }
 
@@ -317,19 +314,18 @@ static size_t inttomb(char *s, const int wc)
 SEXP attribute_hidden do_intToUtf8(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x;
-    int multiple;
-    size_t used, len;
+    int i, nc, multiple, len, used;
     char buf[10], *tmp;
 
     checkArity(op, args);
     PROTECT(x = coerceVector(CAR(args), INTSXP));
     if (!isInteger(x))
 	error(_("argument 'x' must be an integer vector"));
+    nc = LENGTH(x);
     multiple = asLogical(CADR(args));
     if (multiple == NA_LOGICAL)
 	error(_("argument 'multiple' must be TRUE or FALSE"));
     if (multiple) {
-	R_xlen_t i, nc = XLENGTH(x);
 	PROTECT(ans = allocVector(STRSXP, nc));
 	for (i = 0; i < nc; i++) {
 	    if (INTEGER(x)[i] == NA_INTEGER)
@@ -342,7 +338,6 @@ SEXP attribute_hidden do_intToUtf8(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	/* do we want to copy e.g. names here? */
     } else {
-	int i, nc = LENGTH(x);
 	Rboolean haveNA = FALSE;
 	/* Note that this gives zero length for input '0', so it is omitted */
 	for (i = 0, len = 0; i < nc; i++) {
@@ -358,8 +353,8 @@ SEXP attribute_hidden do_intToUtf8(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (len >= 10000) {
 	    tmp = Calloc(len+1, char);
 	} else {
-	    R_CheckStack2(len+1);
 	    tmp = alloca(len+1); tmp[len] = '\0';
+	    R_CheckStack();
 	}
 	for (i = 0, len = 0; i < nc; i++) {
 	    used = inttomb(buf, INTEGER(x)[i]);
@@ -367,7 +362,7 @@ SEXP attribute_hidden do_intToUtf8(SEXP call, SEXP op, SEXP args, SEXP env)
 	    len += used;
 	}
 	PROTECT(ans = allocVector(STRSXP, 1));
-	SET_STRING_ELT(ans, 0, mkCharLenCE(tmp, (int) len, CE_UTF8));
+	SET_STRING_ELT(ans, 0, mkCharLenCE(tmp, len, CE_UTF8));
 	if(len >= 10000) Free(tmp);
     }
     UNPROTECT(2);

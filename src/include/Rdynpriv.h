@@ -126,8 +126,6 @@ struct _DllInfo {
 
     int numExternalSymbols;
     Rf_DotExternalSymbol *ExternalSymbols;
-
-    Rboolean forceSymbols;
 };
 
 

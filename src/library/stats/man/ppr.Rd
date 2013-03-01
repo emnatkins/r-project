@@ -6,9 +6,7 @@
 % file stats/man/ppr.Rd
 % copyright (C) 1995-8 B. D. Ripley
 % copyright (C) 2000-3   The R Core Team
-
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
+%
 \name{ppr}
 \alias{ppr}
 \alias{ppr.default}
@@ -156,8 +154,7 @@ method functions.
 }
 \source{
   Friedman (1984): converted to double precision and added interface to
-  smoothing splines by B. D. Ripley, originally for the \CRANpkg{MASS}
-  package.
+  smoothing splines by B. D. Ripley, originally for the \pkg{MASS} package.
 }
 
 \references{

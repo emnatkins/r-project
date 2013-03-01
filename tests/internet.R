@@ -60,7 +60,8 @@ httpget <- function (url, port = 80)
     strsplit(data, "\n")[[1]]
 }
 
-if(nzchar(Sys.getenv("http_proxy")) || nzchar(Sys.getenv("HTTP_PROXY"))) {
+if(nchar(Sys.getenv("http_proxy")) > 0
+   || nchar(Sys.getenv("HTTP_PROXY")) > 0) {
     cat("http proxy is set, so skip test of http over sockets\n")
 } else {
     httpget("http://www.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")

@@ -96,9 +96,10 @@ vignette <-
         ## Now compute info on available PDFs ...
         title <- if(NROW(vDB)) {
             paste(vDB[, "Title"],
-                  paste0(rep.int("(source", NROW(vDB)),
+                  paste(rep.int("(source", NROW(vDB)),
                         ifelse(vDB[, "PDF"] != "", ", pdf", ""),
-                        ")"))
+                        ")",
+                        sep = ""))
         }
         else
             character()
@@ -108,10 +109,11 @@ vignette <-
                     Item = tools::file_path_sans_ext(basename(vDB[, "File"])),
                     Title = title)
 	footer <- if (all) NULL else
-		  paste0("Use ",
-                         sQuote("vignette(all = TRUE)"),
-                         "\n",
-                         "to list the vignettes in all *available* packages.")
+		  paste("Use ",
+	                sQuote("vignette(all = TRUE)"),
+	                "\n",
+	                "to list the vignettes in all *available* packages.",
+                  	sep = "")
 
         y <- list(type = "vignette", title = "Vignettes", header = NULL,
                   results = db, footer = footer)

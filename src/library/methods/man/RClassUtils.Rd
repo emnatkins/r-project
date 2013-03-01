@@ -40,7 +40,6 @@
 \alias{methodsPackageMetaName}
 \alias{metaNameUndo}
 \alias{requireMethods}
-\alias{checkAtAssignment}
 \alias{checkSlotAssignment}
 \alias{defaultPrototype}
 \alias{isClassDef}
@@ -113,7 +112,6 @@ metaNameUndo(strings, prefix, searchForm = FALSE)
 
 requireMethods(functions, signature, message, where)
 
-checkAtAssignment(cl, name, valueClass)
 checkSlotAssignment(obj, name, value)
 
 defaultPrototype()
@@ -345,7 +343,7 @@ setDataPart(object, value, check = TRUE)
       silently incorrect results.
     }
 
-    \item{\code{checkSlotAssignment}, \code{checkAtAssignment}:}{
+    \item{\code{checkSlotAssignment}:}{
       Check that the value provided is allowed for this slot, by
       consulting the definition of the class.  Called from the C code
       that assigns slots.

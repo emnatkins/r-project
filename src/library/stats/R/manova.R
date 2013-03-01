@@ -23,12 +23,12 @@ manova <- function(...)
     result <- eval(fcall, parent.frame())
     if(inherits(result, "aovlist")) {
         for(i in seq_along(result)) {
-            if(!inherits(result[[i]], "maov")) stop("need multiple responses")
+            if(!inherits(result[[i]], "maov")) stop("need multiple response")
             class(result[[i]]) <- c("manova", oldClass(result[[i]]))
         }
         attr(result, "call") <- Call
     } else {
-        if(!inherits(result, "maov")) stop("need multiple responses")
+        if(!inherits(result, "maov")) stop("need multiple response")
         class(result) <- c("manova", oldClass(result))
         result$call <- Call
     }
@@ -41,9 +41,7 @@ summary.manova <-
              intercept = FALSE, tol = 1e-7, ...)
 {
     if(!inherits(object, "maov"))
-        stop(gettextf("object must be of class %s or %s",
-                      dQuote("manova"), dQuote("maov")),
-             domain = NA)
+        stop("object must be of class \"manova\" or \"maov\"")
     test <- match.arg(test)
 
     asgn <- object$assign[object$qr$pivot[1L:object$rank]]

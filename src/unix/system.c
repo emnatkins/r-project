@@ -80,13 +80,9 @@ void R_ClearerrConsole(void) { ptr_R_ClearerrConsole(); }
 void R_Busy(int which) { ptr_R_Busy(which); }
 void R_CleanUp(SA_TYPE saveact, int status, int runLast)
 { ptr_R_CleanUp(saveact, status, runLast); }
-
-attribute_hidden
 int R_ShowFiles(int nfile, const char **file, const char **headers,
 		const char *wtitle, Rboolean del, const char *pager)
 { return ptr_R_ShowFiles(nfile, file, headers, wtitle, del, pager); }
-
-attribute_hidden
 int R_ChooseFile(int _new,  char *buf, int len)
 { return ptr_R_ChooseFile(_new, buf, len); }
 
@@ -95,7 +91,9 @@ void R_setStartTime(void); /* in sys-unix.c */
 
 
 #ifdef HAVE_AQUA
-/*  used here and in main/sysutils.c (for system). */
+/*  this should be a global variable as it used in unix/aqua.c
+    and main/sysutils.c (for system).
+*/
 Rboolean useaqua = FALSE;
 
 // This should have been fixed a long time ago ....
@@ -118,7 +116,7 @@ void R_setupHistory()
 	R_HistoryFile = ".Rhistory";
     R_HistorySize = 512;
     if ((p = getenv("R_HISTSIZE"))) {
-	value = (int) R_Decode2Long(p, &ierr);
+	value = R_Decode2Long(p, &ierr);
 	if (ierr != 0 || value < 0)
 	    R_ShowMessage("WARNING: invalid R_HISTSIZE ignored;");
 	else
@@ -144,8 +142,6 @@ extern void * __libc_stack_end;
 
 int R_running_as_main_program = 0;
 
-extern void BindDomain(char *R_Home);
-
 /* In src/main/main.c, to avoid inlining */
 extern uintptr_t dummy_ii(void);
 
@@ -158,6 +154,9 @@ int Rf_initialize_R(int ac, char **av)
     Rstart Rp = &rstart;
     Rboolean force_interactive = FALSE;
 
+#ifdef ENABLE_NLS
+    char localedir[PATH_MAX+20];
+#endif
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT)
 {
@@ -223,7 +222,21 @@ int Rf_initialize_R(int ac, char **av)
 
     if((R_Home = R_HomeDir()) == NULL)
 	R_Suicide("R home directory is not defined");
-    BindDomain(R_Home);
+#ifdef ENABLE_NLS
+    setlocale(LC_MESSAGES,"");
+    textdomain(PACKAGE);
+    {
+	char *p = getenv("R_SHARE_DIR");
+	if(p) {
+	    strcpy(localedir, p);
+	    strcat(localedir, "/locale");
+	} else {
+	    strcpy(localedir, R_Home);
+	    strcat(localedir, "/share/locale");
+	}
+    }
+    bindtextdomain(PACKAGE, localedir);
+#endif
 
     process_system_Renviron();
 
@@ -362,8 +375,9 @@ int Rf_initialize_R(int ac, char **av)
 		break;
 	    } else {
 #ifdef HAVE_AQUA
-		// r27492: in 2003 launching from 'Finder OSX' passed this
-		if(!strncmp(*av, "-psn", 4)) break; else
+		if(!strncmp(*av, "-psn", 4))
+		    break;
+		else
 #endif
 		snprintf(msg, 1024, _("WARNING: unknown option '%s'\n"), *av);
 		R_ShowMessage(msg);
@@ -454,15 +468,19 @@ int R_EditFiles(int nfile, const char **file, const char **title,
 		const char *editor)
 {
     char  buf[1024];
-
-    if (ptr_R_EditFiles) return(ptr_R_EditFiles(nfile, file, title, editor));
+#if defined(HAVE_AQUA)
+    if (useaqua) return(ptr_R_EditFiles(nfile, file, title, editor));
+#endif
 
     if (nfile > 0) {
 	if (nfile > 1)
 	    R_ShowMessage(_("WARNING: Only editing the first in the list of files"));
 
+#if defined(HAVE_AQUA)
 	if (ptr_R_EditFile) ptr_R_EditFile((char *) file[0]);
-	else {
+	else
+#endif
+	{
 	    /* Quote path if necessary */
 	    if (editor[0] != '"' && Rf_strchr(editor, ' '))
 		snprintf(buf, 1024, "\"%s\" \"%s\"", editor, file[0]);

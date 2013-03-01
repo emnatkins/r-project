@@ -16,6 +16,5 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-## Defunct 2009-08-19
-## Removed for 3.0.0
-## Rd_parse <-function(file, text = NULL) .Defunct("parse_Rd")
+Rd_parse <-
+function(file, text = NULL) .Defunct("parse_Rd")

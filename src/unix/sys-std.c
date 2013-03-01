@@ -34,7 +34,6 @@
 
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
 
 #ifdef HAVE_STRINGS_H
    /* may be needed to define bzero in FD_ZERO (eg AIX) */
@@ -45,7 +44,6 @@
 #include "Runix.h"
 #include "Startup.h"
 #include <R_ext/Riconv.h>
-#include <R_ext/Print.h> // for REprintf
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>		/* for unlink */
@@ -544,6 +542,7 @@ static void popReadline(void)
 
 static void readline_handler(char *line)
 {
+    int l;
     R_size_t buflen = rl_top->readline_len;
 
     popReadline();
@@ -560,7 +559,7 @@ static void readline_handler(char *line)
 	   the caller.
 	*/
 	strncpy((char *)rl_top->readline_buf, line, buflen);
-	size_t l = strlen(line);
+	l = strlen(line);
 	if(l < buflen - 1) {
 	    rl_top->readline_buf[l] = '\n';
 	    rl_top->readline_buf[l+1] = '\0';
@@ -833,8 +832,7 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 		 int addtohistory)
 {
     if(!R_Interactive) {
-	size_t ll;
-	int err = 0;
+	int ll, err = 0;
 	if (!R_Slave) {
 	    fputs(prompt, stdout);
 	    fflush(stdout); /* make sure prompt is output */
@@ -1181,14 +1179,14 @@ Rstd_ShowFiles(int nfile,		/* number of files */
 
 int attribute_hidden Rstd_ChooseFile(int _new, char *buf, int len)
 {
-    size_t namelen;
+    int namelen;
     char *bufp;
     R_ReadConsole("Enter file name: ", (unsigned char *)buf, len, 0);
     namelen = strlen(buf);
     bufp = &buf[namelen - 1];
     while (bufp >= buf && isspace((int)*bufp))
 	*bufp-- = '\0';
-    return (int) strlen(buf);
+    return strlen(buf);
 }
 
 

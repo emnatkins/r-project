@@ -36,7 +36,8 @@ httpd <- function(path, query, ...)
         if(!length(files))
             out <- c(out, gettext("No files in this directory"))
         else {
-            urls <- paste0('<a href="', base, '/', files, '">', files, '</a>')
+            urls <- paste('<a href="', base, '/', files, '">', files, '</a>',
+                          sep = "")
             out <- c(out, "<dl>",
                      paste0("<dd>", mono(iconv(urls, "", "UTF-8")), "</dd>"),
                      "</dl>")
@@ -90,9 +91,7 @@ httpd <- function(path, query, ...)
             		types = args$types <- strsplit(query[i], ";")[[1L]],
             		package = args$package <- strsplit(query[i], ";")[[1L]],
             		lib.loc = args$lib.loc <- strsplit(query[i], ";")[[1L]],
-            		warning("Unrecognized search field: ", names(query)[i],
-                                domain = NA)
-                       )
+            		warning("Unrecognized search field: ", names(query)[i]))
             args$fields <- fields
             args$use_UTF8 <- TRUE
             do.call(help.search, args)
@@ -179,7 +178,7 @@ httpd <- function(path, query, ...)
                "pdf" = "application/pdf",
                "eps" =,
                "ps" = "application/postscript", # in GLMMGibbs, mclust
-               "sgml" = "text/sgml", # in RGtk2
+               "sgml"= "text/sgml", # in RGtk2
                "xml" = "text/xml",  # in RCurl
                "text/plain")
     }
@@ -191,7 +190,10 @@ httpd <- function(path, query, ...)
 
     error_page <- function(msg)
         list(payload =
-             paste0(HTMLheader("httpd error"), msg, "\n</body></html>"))
+             paste(HTMLheader("httpd error"),
+                   msg,
+                   "\n</body></html>",
+                   sep = ""))
 
     cssRegexp <- "^/library/([^/]*)/html/R.css$"
     if (grepl("R\\.css$", path) && !grepl(cssRegexp, path))
@@ -239,17 +241,17 @@ httpd <- function(path, query, ...)
 	    return(list(payload = error_page(msg)))
 	} else if (length(file) == 1L) {
 	    path <- dirname(dirname(file))
-	    file <- paste0('../../', basename(path), '/html/',
-                           basename(file), '.html')
+	    file <- paste('../../', basename(path), '/html/',
+                          basename(file), '.html', sep='')
             ## cat("redirect to", file, "\n")
             ## We need to do this because there are static HTML pages
             ## with links to "<file>.html" for topics in the same
             ## package, and if we served one of such a page as a link from
             ## a different package those links on the page would not work.
-	    return(list(payload = paste0('Redirect to <a href="', file, '">"',
-                                         basename(file), '"</a>'),
+	    return(list(payload = paste('Redirect to <a href="', file, '">"',
+                        basename(file), '"</a>', sep=''),
 	    		"content-type" = 'text/html',
-	    		header = paste0('Location: ', file),
+	    		header = paste('Location: ', file, sep=''),
 	    		"status code" = 302L)) # temporary redirect
 	} else if (length(file) > 1L) {
             paths <- dirname(dirname(file))
@@ -268,17 +270,13 @@ httpd <- function(path, query, ...)
                               basename(paths),
                               '/html/00Index.html">', basename(paths),
                               '</a> in library ', dirname(paths), ")</dd>",
-                              sep = "", collapse = "\n")
+                              sep="", collapse="\n")
 
             return(list(payload =
                         paste("<p>",
-                              ## for languages with multiple plurals ....
-                              sprintf(ngettext(length(paths),
-                                               "Help on topic '%s' was found in the following package:",
-                                               "Help on topic '%s' was found in the following packages:"
-                                               ), topic),
+                              gettextf("Help on topic '%s' was found in the following packages:", topic),
                               "</p><dl>\n",
-                              packages, "</dl>", sep = "", collapse = "\n")
+                              packages, "</dl>", sep="", collapse="\n")
                         ))
         }
     } else if (grepl(fileRegexp, path)) {
@@ -327,16 +325,16 @@ httpd <- function(path, query, ...)
                               try.all.packages = TRUE)
                 if (length(files)) {
                     path <- dirname(dirname(files))
-                    files <- paste0('/library/', basename(path), '/html/',
-                                    basename(files), '.html')
+                    files <- paste('/library/', basename(path), '/html/',
+                                   basename(files), '.html', sep='')
                     msg <- c(msg, "<br>",
                              "However, you might be looking for one of",
                              "<p></p>",
-                             paste0('<p><a href="', files, '">',
-                                    mono(files), "</a></p>")
+                             paste('<p><a href="', files, '">',
+                                   mono(files), "</a></p>", sep="")
                              )
                 }
-                return(error_page(paste(msg, collapse = "\n")))
+                return(error_page(paste(msg, collapse ="\n")))
             }
             helpdoc <- tmp
         }
@@ -365,7 +363,8 @@ httpd <- function(path, query, ...)
             file <- paste0(docdir, rest)
             if(isTRUE(file.info(file)$isdir))
                 return(.HTMLdirListing(file,
-                                       paste0("/library/", pkg, "/doc", rest),
+                                       paste("/library/", pkg, "/doc", rest,
+                                             sep = ""),
                                        up))
             else
                 return(list(file = file, "content-type" = mime_type(rest)))
@@ -378,13 +377,13 @@ httpd <- function(path, query, ...)
     } else if (grepl(demoRegexp, path)) {
     	pkg <- sub(demoRegexp, "\\1", path)
 
-    	url <- paste0("http://127.0.0.1:", httpdPort,
+    	url <- paste("http://127.0.0.1:", httpdPort,
                       "/doc/html/Search?package=",
-                      pkg, "&agrep=FALSE&types=demo")
-    	return(list(payload = paste0('Redirect to <a href="', url,
-    				'">help.search()</a>'),
+                      pkg, "&agrep=FALSE&types=demo", sep="")
+    	return(list(payload = paste('Redirect to <a href="', url,
+    				'">help.search()</a>', sep=''),
 		    		"content-type" = 'text/html',
-		    		header = paste0('Location: ', url),
+		    		header = paste('Location: ', url, sep=''),
 	    		"status code" = 302L)) # temporary redirect
     } else if (grepl(demosRegexp, path)) {
 	    pkg <- sub(demosRegexp, "\\1", path)
@@ -396,11 +395,11 @@ httpd <- function(path, query, ...)
     	pkg <- sub(DemoRegexp, "\\1", path)
     	demo <- sub(DemoRegexp, "\\2", path)
     	demo(demo, package=pkg, character.only=TRUE, ask=FALSE)
-	return( list(payload = paste0("Demo '", pkg, "::", demo,
+	return( list(payload = paste("Demo '", pkg, "::", demo,
 				"' was run in the console.",
 				" To repeat, type 'demo(",
 				pkg, "::", demo,
-				")' in the console.")) )
+				")' in the console.", sep="")) )
     } else if (grepl(newsRegexp, path)) {
     	pkg <- sub(newsRegexp, "\\1", path)
     	formatted <- toHTML(news(package = pkg),
@@ -499,7 +498,7 @@ startDynamicHelp <- function(start=TRUE)
         for(i in seq_along(ports)) {
             ## the next can throw an R-level error,
             ## so do not assign port unless it succeeds.
-	    status <- .Call(startHTTPD, "127.0.0.1", ports[i])
+	    status <- .Internal(startHTTPD("127.0.0.1", ports[i]))
 	    if (status == 0L) {
                 OK <- TRUE
                 httpdPort <<- ports[i]
@@ -519,7 +518,7 @@ startDynamicHelp <- function(start=TRUE)
         }
     } else {
         ## Not really tested
-        .Call(stopHTTPD)
+        .Internal(stopHTTPD())
     	httpdPort <<- 0L
     }
     lockBinding("httpdPort", env)

@@ -36,7 +36,7 @@ RweaveLatexSetup <-
     dots <- list(...)
     if (is.null(output)) {
         prefix.string <- basename(sub(syntax$extension, "", file))
-        output <- paste(prefix.string, "tex", sep = ".")
+        output <- paste(prefix.string, "tex", sep=".")
     } else prefix.string <- basename(sub("\\.tex$", "", output))
 
     if (!quiet) cat("Writing to file ", output, "\n",
@@ -158,12 +158,8 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                     if (!is.null(options$grdevice)) cat("", options$grdevice)
                 }
             }
-            cat(" (")
             if (!is.null(options$label))
-                cat("label = ", options$label, ", ", sep = "")
-            filenum <- attr(chunk, "srcFilenum")[1]
-            filename <- attr(chunk, "srcFilenames")[filenum]
-            cat(basename(filename), ":", attr(chunk, "srclines")[1], ")", sep = "")
+                cat(" (label = ", options$label, ")", sep = "")
             cat("\n")
         }
 
@@ -386,7 +382,8 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
         if (is.null(options$label) && options$split) close(chunkout)
 
         if (options$split && options$include) {
-            cat("\\input{", chunkprefix, "}\n", sep = "", file = object$output)
+            cat("\\input{", chunkprefix, "}\n", sep = "",
+                file = object$output)
             linesout[thisline + 1L] <- srcline
             filenumout[thisline + 1L] <- srcfilenum
             thisline <- thisline + 1L
@@ -534,11 +531,11 @@ RweaveLatexFinish <- function(object, error = FALSE)
             vals <- rle(diff(linesout[offset + seq_len(len)]))
             vals <- c(linesout[offset + 1L], as.numeric(rbind(vals$lengths, vals$values)))
     	    concordance <- paste(strwrap(paste(vals, collapse = " ")), collapse = " %\n")
-    	    special <- paste0("\\Sconcordance{concordance:", outputname, ":",
+    	    special <- paste("\\Sconcordance{concordance:", outputname, ":",
                          inputname, ":",
                          if (offset) paste0("ofs ", offset, ":") else "",
                          "%\n",
-                         concordance,"}\n")
+                         concordance,"}\n", sep = "")
     	    cat(special, file = object$concordfile, append=offset > 0L)
     	    offset <- offset + len
     	}
@@ -608,12 +605,14 @@ RweaveChunkPrefix <- function(options)
 {
     if (!is.null(options$label)) {
         if (options$prefix)
-            chunkprefix <- paste0(options$prefix.string, "-", options$label)
+            chunkprefix <- paste(options$prefix.string, "-",
+                                 options$label, sep = "")
         else
             chunkprefix <- options$label
     } else
-        chunkprefix <- paste0(options$prefix.string, "-",
-                              formatC(options$chunknr, flag = "0", width = 3))
+        chunkprefix <- paste(options$prefix.string, "-",
+                             formatC(options$chunknr, flag = "0", width = 3),
+                             sep = "")
     chunkprefix
 }
 
@@ -729,7 +728,7 @@ RtangleRuncode <-  function(object, chunk, options)
             srclines <- attr(chunk, "srclines")
             srcfilenum <- attr(chunk, "srcFilenum")
             ## this currently includes the chunk header
-            lno <- if (length(srclines)) paste(min(srclines), max(srclines), sep = "-") else srclines
+            lno <- if (length(srclines)) paste(min(srclines), max(srclines), sep="-") else srclines
             fn <- sub('[^"]*"([^"]+).*', "\\1", lnos[1L])
         }
         cat("###################################################\n",

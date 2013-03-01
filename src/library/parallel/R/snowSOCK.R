@@ -37,12 +37,13 @@ newPSOCKnode <- function(machine = "localhost", ...,
     useXDR <- getClusterOption("useXDR", options)
 
     ## build the local command for starting the worker
-    env <- paste0("MASTER=", master,
+    env <- paste("MASTER=", master,
                  " PORT=", port,
                  " OUT=", outfile,
                  " TIMEOUT=", timeout,
                  " METHODS=", methods,
-                 " XDR=", useXDR)
+                 " XDR=", useXDR,
+                 sep="")
     arg <- "parallel:::.slaveRSOCK()"
     rscript <- if (getClusterOption("homogeneous", options)) {
         shQuote(getClusterOption("rscript", options))
@@ -127,10 +128,11 @@ print.SOCKcluster <- function(x, ...)
 {
     nc <- length(x)
     hosts <- unique(sapply(x, "[[", "host"))
-    msg <- sprintf(ngettext(length(hosts),
-                            "socket cluster with %d nodes on host %s",
-                            "socket cluster with %d nodes on hosts %s"),
-                   nc, paste(sQuote(hosts), collapse = ", "))
+    msg <- if (length(hosts) > 1L)
+        gettextf("socket cluster with %d nodes on hosts %s", nc,
+                 paste(sQuote(hosts), collapse = ", "))
+    else
+        gettextf("socket cluster with %d nodes on host %s", nc, sQuote(hosts))
     cat(msg, "\n", sep = "")
     invisible(x)
 }
@@ -160,7 +162,7 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
 
     ## set defaults in case run manually without args.
     master <- "localhost"
-    port <- NA_integer_ # no point in getting option on worker.
+    port <- 10187 # no point in getting option on worker.
     outfile <- Sys.getenv("R_SNOW_OUTFILE") # defaults to ""
     methods <- TRUE
     useXDR <- TRUE
@@ -178,7 +180,6 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
                METHODS = {methods <- value},
                XDR = {useXDR <- as.logical(value)})
     }
-    if (is.na(port)) stop("PORT must be specified")
 
     if(as.logical(methods)) library("methods") ## because Rscript does not load methods by default
     ## We should not need to attach parallel, as we are running in the namespace.

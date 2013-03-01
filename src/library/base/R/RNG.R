@@ -47,8 +47,7 @@ RNGkind <- function(kind = NULL, normal.kind = NULL)
 	    stop(gettextf("'%s' is not a valid choice", normal.kind),
                  domain = NA)
 	if (normal.kind == 0L)
-            warning("buggy version of Kinderman-Ramage generator used",
-                    domain = NA)
+            warning("Buggy version of Kinderman-Ramage generator used")
          if(normal.kind == length(n.kinds) - 1L) normal.kind <- -1L
     }
     r <- 1L + .Internal(RNGkind(i.knd, normal.kind))
@@ -81,8 +80,7 @@ set.seed <- function(seed, kind = NULL, normal.kind = NULL)
 	    stop(gettextf("'%s' is not a valid choice", normal.kind),
                  domain = NA)
 	if (normal.kind == 0L)
-            stop("buggy version of Kinderman-Ramage generator is not allowed",
-                 domain = NA)
+            stop("Buggy version of Kinderman-Ramage generator is not allowed")
          if(normal.kind == length(n.kinds) - 1L) normal.kind <- -1L
     }
     .Internal(set.seed(seed, i.knd, normal.kind))

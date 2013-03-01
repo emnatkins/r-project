@@ -17,18 +17,16 @@ S
 @acronym{HTML}
 @end macro
 
-@iftex
 @macro eqn {t, a}
+@iftex
 @tex
 $\t\$%
 @end tex
-@end macro
 @end iftex
 @ifnottex
-@macro eqn {t, a}
 \a\@c
-@end macro
 @end ifnottex
+@end macro
 
 @macro pkg {p}
 @strong{\p\}
@@ -44,7 +42,7 @@ $\t\$%
 
 @c -- edit these here alone -- in order keep consistency
 @macro Rcopyright{year}
-Copyright @copyright{} \year\--2013 R Core Team
+Copyright @copyright{} \year\--2012 R Core Team
 @end macro
 
 @macro permission{}

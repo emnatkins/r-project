@@ -73,8 +73,8 @@ hist(x, \dots)
     of bars, if not \code{FALSE}; see \code{\link{plot.histogram}}.}
   \item{nclass}{numeric (integer).  For S(-PLUS) compatibility only,
     \code{nclass} is equivalent to \code{breaks} for a scalar or
-    character argument.}
-  \item{warn.unused}{logical.  If \code{plot = FALSE} and
+    character argument.}  
+  \item{warn.unused}{logical.  If \code{plot = FALSE} and 
     \code{warn.unused = TRUE}, a warning will be issued when graphical
     parameters are passed to \code{hist.default()}.}
   \item{\dots}{further arguments and \link{graphical parameters} passed to
@@ -132,13 +132,12 @@ hist(x, \dots)
     relative frequencies \code{counts/n} and in general satisfy
     \eqn{\sum_i \hat f(x_i) (b_{i+1}-b_i) = 1}{sum[i; f^(x[i])
       (b[i+1]-b[i])] = 1}, where \eqn{b_i}{b[i]} = \code{breaks[i]}.}
+  \item{intensities}{same as \code{density}.  Deprecated, but retained
+    for compatibility until \R 3.0.0.}
   \item{mids}{the \eqn{n} cell midpoints.}
   \item{xname}{a character string with the actual \code{x} argument name.}
   \item{equidist}{logical, indicating if the distances between
     \code{breaks} are all the same.}
-
-  Prior to \R 3.0.0 there was a component \code{intensities}, the same
-  as \code{density}, for long-term back compatibility.
 }
 
 \references{

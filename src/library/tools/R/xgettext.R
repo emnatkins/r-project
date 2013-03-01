@@ -43,7 +43,8 @@ function(dir, verbose = FALSE, asCall = TRUE)
                 if(!suppress) strings <<- c(strings, e)
             } else if(is.call(e)) {
                 if(is.name(e[[1L]])
-                   && (as.character(e[[1L]]) %in% c("gettext", "gettextf"))) {
+                   && (as.character(e[[1L]])
+                       %in% c("gettext", "gettextf"))) {
                     domain <- e[["domain"]]
                     suppress <- !is.null(domain) && !is.name(domain) && is.na(domain)
                     if(as.character(e[[1L]]) == "gettextf") {
@@ -69,13 +70,7 @@ function(dir, verbose = FALSE, asCall = TRUE)
                  e <- e[!names(e) %in% c("call.", "immediate.", "domain")]
              if(asCall) {
                  if(!suppress) strings <<- c(strings, as.character(e)[-1L])
-             } else {
-                 if(as.character(e[[1L]]) == "gettextf") {
-                     e <- match.call(gettextf, e)
-                     e <- e["fmt"] # just look at fmt arg
-                 }
-                 for(i in seq_along(e)) find_strings2(e[[i]], suppress)
-             }
+             } else for(i in seq_along(e)) find_strings2(e[[i]], suppress)
         } else if(is.recursive(e))
             for(i in seq_along(e)) Recall(e[[i]])
     }
@@ -96,7 +91,7 @@ function(dir, verbose = FALSE, asCall = TRUE)
 print.xgettext <-
 function(x, ...)
 {
-    cat(x, sep = "\n")
+    cat(x, sep="\n")
     invisible(x)
 }
 
@@ -106,7 +101,7 @@ function(x, ...)
     lapply(x, function(x)
            cat("\nmsgid        = ", x[1L],
                "\nmsgid_plural = ", x[2L],
-               "\n", sep = ""))
+               "\n", sep=""))
     invisible(x)
 }
 
@@ -129,12 +124,9 @@ function(dir, verbose = FALSE)
         if(is.call(e) && is.name(e[[1L]])
            && as.character(e[[1L]]) %in% "ngettext") {
 	    e <- match.call(ngettext, e)
-            domain <- e[["domain"]]
-            suppress <- !is.null(domain) && !is.name(domain) && is.na(domain)
-	    if (!suppress &&
-                is.character(e[["msg1"]]) && is.character(e[["msg2"]]))
-	    	strings <<- c(strings, list(c(msg1 = e[["msg1"]],
-	    				      msg2 = e[["msg2"]])))
+	    if (is.character(e[["msg1"]]) && is.character(e[["msg2"]]))
+	    	strings <<- c(strings, list(c(msg1=e[["msg1"]],
+	    				      msg2=e[["msg2"]])))
         } else if(is.recursive(e))
             for(i in seq_along(e)) Recall(e[[i]])
     }
@@ -150,7 +142,7 @@ function(dir, verbose = FALSE)
 }
 
 xgettext2pot <-
-function(dir, potFile, name = "R", version, bugs)
+function(dir, potFile)
 {
     dir <- file_path_as_absolute(dir)
     if(missing(potFile))
@@ -161,14 +153,12 @@ function(dir, potFile, name = "R", version, bugs)
 	tmp <- shQuote(encodeString(tmp), type="cmd")  # need to quote \n, \t etc
     con <- file(potFile, "wt")
     on.exit(close(con))
-    if(missing(version))
-        version <- paste(R.version$major, R.version$minor, sep = ".")
-    if(missing(bugs)) bugs <- "bugs.r-project.org"
-    writeLines(con = con,
+    writeLines(con=con,
                c('msgid ""',
                  'msgstr ""',
-                 sprintf('"Project-Id-Version: %s %s\\n"', name, version),
-                 sprintf('"Report-Msgid-Bugs-To: %s\\n"', bugs),
+                 sprintf('"Project-Id-Version: R %s.%s\\n"',
+                         R.version$major, R.version$minor),
+                 '"Report-Msgid-Bugs-To: bugs.r-project.org\\n"',
                  paste0('"POT-Creation-Date: ',
                         format(Sys.time(), "%Y-%m-%d %H:%M"), # %z is not portable
                         '\\n"'),
@@ -196,11 +186,10 @@ function(dir, potFile, name = "R", version, bugs)
             }
 }
 
+getfmts <- function(s) .Internal(getfmts(s))
 
 checkPoFile <- function(f, strictPlural = FALSE)
 {
-    getfmts <- function(s) .Call(C_getfmts, s)
-
     lines <- readLines(f, encoding = "bytes")
     i <- 0
     noCformat <- FALSE
@@ -208,9 +197,9 @@ checkPoFile <- function(f, strictPlural = FALSE)
     ref <- NA
     fuzzy <- FALSE
 
-    result <- matrix(character(), ncol = 5L, nrow = 0L)
+    result <- matrix(character(0), ncol = 5, nrow = 0)
     while (i < length(lines)) {
-	i <- i + 1L
+	i <- i + 1
 
 	if (grepl("^#,", lines[i], useBytes = TRUE)) {
 	    noCformat <- noCformat || grepl("no-c-format", lines[i], useBytes = TRUE)
@@ -222,12 +211,12 @@ checkPoFile <- function(f, strictPlural = FALSE)
 		ref <- sub("^#:[[:blank:]]*", "", lines[i])
 	} else if (grepl("^msgid ", lines[i], useBytes = TRUE)) {
 	    s1 <- sub('^msgid[[:blank:]]+["](.*)["][[:blank:]]*$', "\\1", lines[i])
-	    while (grepl('^["]', lines[i+1L], useBytes = TRUE)) {
-		i <- i + 1L
+	    while (grepl('^["]', lines[i+1], useBytes = TRUE)) {
+		i <- i + 1
 		s1 <- paste0(s1, sub('^["](.*)["][[:blank:]]*$', "\\1", lines[i]))
 	    }
-	    f1 <- try(getfmts(s1), silent = TRUE)
-	    j <- i + 1L
+	    f1 <- try(.Internal(getfmts(s1)), silent = TRUE)
+	    j <- i + 1
 
 	    if (noCformat || inherits(f1, "try-error")) {
 		noCformat <- FALSE
@@ -246,8 +235,8 @@ checkPoFile <- function(f, strictPlural = FALSE)
 
 		s2 <- sub( paste0("^", statement, "[[:blank:]]+[\"](.*)[\"][[:blank:]]*$"),
 		                 "\\1", lines[j])
-		while (grepl('^["]', lines[j+1L], useBytes = TRUE)) {
-		    j <- j+1L
+		while (grepl('^["]', lines[j+1], useBytes = TRUE)) {
+		    j <- j + 1
 		    s2 <- paste0(s2, sub('^["](.*)["][[:blank:]]*$', "\\1", lines[j]))
 		}
 
@@ -257,12 +246,12 @@ checkPoFile <- function(f, strictPlural = FALSE)
 		    break
 		}
 
-		f2 <- try(getfmts(s2), silent = TRUE)
+		f2 <- try(.Internal(getfmts(s2)), silent = TRUE)
 
 		if (statement == "msgid_plural") {
 		    if (!strictPlural) {
 			f1_plural <- f2
-			j <- j+1L
+			j <- j+1
 			next
 		    }
 		}
@@ -302,9 +291,9 @@ checkPoFile <- function(f, strictPlural = FALSE)
                     if (!fuzzy)
                         result <- rbind(result, c(location, ref, diff, s1, s2))
 		}
-		j <- j+1L
+		j <- j+1
 	    }
-	    i <- j-1L
+	    i <- j-1
 	    noCformat <- FALSE
 	    f1_plural <- NULL
 	    ref <- NA
@@ -318,10 +307,10 @@ checkPoFiles <- function(language, dir=".")
 {
     files <- list.files(path = dir, pattern = paste0(language, "[.]po$"),
                         full.names = TRUE, recursive = TRUE)
-    result <- matrix(character(), ncol = 5L, nrow = 0L)
+    result <- matrix(character(0), ncol = 5, nrow = 0)
     for (f in files) {
 	errs <- checkPoFile(f, strictPlural = grepl("^R-", basename(f)))
-	if (nrow(errs)) result <- rbind(result, errs)
+	if (nrow(errs) > 0) result <- rbind(result, errs)
     }
     structure(result, class = "check_po_files")
 }
@@ -332,7 +321,7 @@ print.check_po_files <- function(x, ...)
 	cat("No errors\n")
     else
 	for (i in 1:nrow(x)) {
-	    if (is.na(x[i, 2L])) cols <- c(1L, 3:5)
+	    if (is.na(x[i, 2])) cols <- c(1, 3:5)
 	    else cols <- 1:5
 	    cat(x[i, cols], sep = "\n")
 	    cat("\n")

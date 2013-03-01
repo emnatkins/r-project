@@ -37,7 +37,7 @@ extern void R_ProcessEvents(void);
 #include <ctype.h>
 #include <wchar.h>
 #include <limits.h>
-#include <rlocale.h>
+#include <R_ext/rlocale.h>
 #include <R_ext/Memory.h>
 #include "graphapp/ga.h"
 #ifdef USE_MDI
@@ -1945,7 +1945,7 @@ int consoler = 25, consolec = 80, consolex = 0, consoley = 0;
 int pagerrow = 25, pagercol = 80;
 int pagerMultiple = 1, haveusedapager = 0;
 int consolebufb = DIMLBUF, consolebufl = MLBUF, consolebuffered = 1;
-static int consoleblink = 1;
+int consoleblink = 1;
 
 void
 setconsoleoptions(const char *fnname,int fnsty, int fnpoints,

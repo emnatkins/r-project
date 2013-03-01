@@ -54,7 +54,6 @@ smooth.spline <-
     if(!all(is.finite(c(x, y))))
         stop("missing or infinite values in inputs are not allowed")
     n <- length(x)
-    if(is.na(n)) stop("invalid number of points")
     w <-
 	if(is.null(w)) rep(1, n)
 	else {
@@ -95,7 +94,7 @@ smooth.spline <-
 	stop("'cv' must not be NA when 'df' is specified")
     CV <- !is.na(cv) && cv
     if(CV && nx < n)
-        warning("cross-validation with non-unique 'x' values seems doubtful")
+        warning("crossvalidation with non-unique 'x' values seems doubtful")
     r.ux <- ux[nx] - ux[1L]
     xbar <- (ux - ux[1L])/r.ux           # scaled to [0,1]
     if(all.knots) {
@@ -140,8 +139,8 @@ smooth.spline <-
 	    dofoff <- df
 	} else warning("you must supply 1 < df <= n,  n = #{unique x} = ", nx)
     }
-    iparms <- setNames(as.integer(c(icrit,ispar, contr.sp$maxit)),
-		       c("icrit", "ispar", "iter"))
+    iparms <- as.integer(c(icrit,ispar, contr.sp$maxit))
+    names(iparms) <- c("icrit", "ispar", "iter")
 
     keep.stuff <- FALSE ## << to become an argument in the future
     ans.names <- c("coef","ty","lev","spar","parms","crit","iparms","ier",
@@ -218,7 +217,7 @@ smooth.spline <-
 
 fitted.smooth.spline <- function(object, ...) {
     if(!is.list(dat <- object$data))
-        stop("need result of smooth.spline(keep.data = TRUE)")
+        stop("need result of smooth.spline(*, keep.data=TRUE)")
     ## note that object$x == unique(sort(object$data$x))
     object$y[match(dat$x, object$x)]
 }
@@ -229,7 +228,7 @@ residuals.smooth.spline <-
 {
     type <- match.arg(type)
     if(!is.list(dat <- object$data))
-        stop("need result of smooth.spline(keep.data = TRUE)")
+        stop("need result of smooth.spline(*, keep.data=TRUE)")
     r <- dat$y - object$y[match(dat$x, object$x)]
     ## this rest is `as' residuals.lm() :
     res <- switch(type,
@@ -257,15 +256,12 @@ print.smooth.spline <- function(x, digits = getOption("digits"), ...)
     if(is.null(cv)) cv <- FALSE else if(is.name(cv)) cv <- eval(cv)
     cat("\nSmoothing Parameter  spar=", format(x$spar, digits=digits),
         " lambda=", format(x$lambda, digits=digits),
-        if(ip["ispar"] != 1L) paste0("(", ip["iter"], " iterations)"))
-    cat("\n")
-    cat("Equivalent Degrees of Freedom (Df):", format(x$df,digits=digits))
-    cat("\n")
-    cat("Penalized Criterion:", format(x$pen.crit, digits=digits))
-    cat("\n")
+        if(ip["ispar"] != 1L) paste0("(", ip["iter"], " iterations)"),
+        "\n")
+    cat("Equivalent Degrees of Freedom (Df):", format(x$df,digits=digits),"\n")
+    cat("Penalized Criterion:", format(x$pen.crit, digits=digits), "\n")
     if(!is.na(cv))
-        cat(if(cv) "PRESS: " else "GCV: ",
-            format(x$cv.crit, digits = digits), "\n", sep = "")
+        cat(if(cv) "PRESS:" else "GCV:", format(x$cv.crit, digits=digits), "\n")
     invisible(x)
 }
 
@@ -295,12 +291,12 @@ predict.smooth.spline.fit <- function(object, x, deriv = 0, ...)
     if(any(interp))
 	y[interp] <- .Fortran(C_bvalus,
 			      n	  = as.integer(n),
-			      knot = as.double(object$knot),
-			      coef = as.double(object$coef),
-			      nk = as.integer(object$nk),
-			      x	= as.double(xs[interp]),
-			      s	= double(n),
-			      order = as.integer(deriv))$s
+			      knot= as.double(object$knot),
+			      coef= as.double(object$coef),
+			      nk  = as.integer(object$nk),
+			      x	  = as.double(xs[interp]),
+			      s	  = double(n),
+			      order= as.integer(deriv))$s
     if(any(extrap)) {
 	xrange <- c(object$min, object$min + object$range)
 	if(deriv == 0) {
@@ -348,10 +344,7 @@ supsmu <-
     if(leno == 0L)
         stop("no finite observations")
     if(diff <- n - leno)
-        warning(sprintf(ngettext(diff,
-                                 "%d observation with NA, NaN or Inf deleted",
-                                 "%d observations with NAs, NaNs and/or Infs deleted"),
-                        diff), domain = NA)
+	warning(diff, " observation(s) with NAs, NaNs and/or Infs deleted")
     .Fortran(C_setsmu)
     smo <- .Fortran(C_supsmu,
 		    as.integer(leno),

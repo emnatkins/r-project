@@ -17,9 +17,8 @@
 #  http://www.r-project.org/Licenses/
 
 ## findGeneric(fname) :  is 'fname' the name of an S3 generic ?
-##			[unexported function used only in this file]
-findGeneric <-
-function(fname, envir)
+##			[internal function used only in this file]
+findGeneric <- function(fname, envir)
 {
     if(!exists(fname, mode = "function", envir = envir)) return("")
     f <- get(fname, mode = "function", envir = envir)
@@ -65,12 +64,10 @@ function(fname, envir)
     isUME(body(f))
 }
 
-getKnownS3generics <-
-function()
+getKnownS3generics <- function()
     c(names(.knownS3Generics), tools:::.get_internal_S3_generics())
 
-methods <-
-function(generic.function, class)
+methods <- function (generic.function, class)
 {
     rbindSome <- function(df, nms, msg) {
         ## rbind.data.frame() -- dropping rows with duplicated names
@@ -194,22 +191,20 @@ function(generic.function, class)
     res
 }
 
-print.MethodsFunction <-
-function(x, ...)
+print.MethodsFunction <- function(x, ...)
 {
     visible <- attr(x, "info")[["visible"]]
     if(length(x)) {
 	print(paste0(x, ifelse(visible, "", "*")), quote=FALSE, ...)
         if(any(!visible))
             cat("\n", "   ",
-                "Non-visible functions are asterisked", "\n", sep = "")
+                "Non-visible functions are asterisked", "\n", sep="")
     } else cat("no methods were found\n")
     invisible(x)
 }
 
 
-getS3method <-
-function(f, class, optional = FALSE)
+getS3method <-  function(f, class, optional = FALSE)
 {
     if(!any(f == getKnownS3generics())) {
         truegf <- findGeneric(f, parent.frame())
@@ -240,8 +235,7 @@ function(f, class, optional = FALSE)
                                 domain = NA)
 }
 
-getFromNamespace <-
-function(x, ns, pos = -1, envir = as.environment(pos))
+getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos))
 {
     if(missing(ns)) {
         nm <- attr(envir, "name", exact = TRUE)
@@ -252,16 +246,9 @@ function(x, ns, pos = -1, envir = as.environment(pos))
     get(x, envir = ns, inherits = FALSE)
 }
 
-assignInMyNamespace <-
-function(x, value)
+assignInMyNamespace <- function(x, value)
 {
-    f <- sys.function(-1)
-    ns <- environment(f)
-    ## deal with subclasses of "function"
-    ## that may insert an environment in front of the namespace
-    if(isS4(f))
-        while(!isNamespace(ns))
-            ns <- parent.env(ns)
+    ns <- environment(sys.function(-1))
     if(bindingIsLocked(x, ns)) {
         unlockBinding(x, ns)
         assign(x, value, envir = ns, inherits = FALSE)
@@ -292,7 +279,7 @@ function(x, value)
 }
 
 assignInNamespace <-
-function(x, value, ns, pos = -1, envir = as.environment(pos))
+    function(x, value, ns, pos = -1, envir = as.environment(pos))
 {
     nf <- sys.nframe()
     if(missing(ns)) {
@@ -353,8 +340,7 @@ function(x, value, ns, pos = -1, envir = as.environment(pos))
     invisible(NULL)
 }
 
-fixInNamespace <-
-function(x, ns, pos = -1, envir = as.environment(pos), ...)
+fixInNamespace <- function (x, ns, pos = -1, envir = as.environment(pos), ...)
 {
     subx <- substitute(x)
     if (is.name(subx))
@@ -371,11 +357,9 @@ function(x, ns, pos = -1, envir = as.environment(pos), ...)
     assignInNamespace(subx, x, ns)
 }
 
-getAnywhere <-
-function(x)
+getAnywhere <- function(x)
 {
-    if(tryCatch(!is.character(x), error = function(e) TRUE))
-        x <- as.character(substitute(x))
+    x <- as.character(substitute(x))
     objs <- list(); where <- character(); visible <- logical()
     ## first look on search path
     if(length(pos <- find(x, numeric = TRUE))) {
@@ -421,11 +405,14 @@ function(x)
     # now check for duplicates
     ln <- length(objs)
     dups <- rep.int(FALSE, ln)
+    objs2 <- lapply(objs, function(x) {
+        if(is.function(x)) environment(x) <- baseenv()
+        x
+    })
     if(ln > 1L)
         for(i in 2L:ln)
             for(j in 1L:(i-1L))
-                if(identical(objs[[i]], objs[[j]],
-                             ignore.environment = TRUE)) {
+                if(identical(objs2[[i]], objs2[[j]])) {
                     dups[i] <- TRUE
                     break
                 }
@@ -434,8 +421,7 @@ function(x)
     res
 }
 
-print.getAnywhere <-
-function(x, ...)
+print.getAnywhere <- function(x, ...)
 {
     n <- sum(!x$dups)
     if(n == 0L) {
@@ -456,24 +442,20 @@ function(x, ...)
     invisible(x)
 }
 
-`[.getAnywhere` <-
-function(x, i)
+`[.getAnywhere` <- function(x, i)
 {
     if(!is.numeric(i)) stop("only numeric indices can be used")
     if(length(i) == 1L) x$objs[[i]]
     else x$objs[i]
 }
 
-argsAnywhere <-
-function(x)
-{
-    if(tryCatch(!is.character(x), error = function(e) TRUE))
-        x <- as.character(substitute(x))
-    fs <- getAnywhere(x)
-    if (sum(!fs$dups) == 0L)
-        return(NULL)
-    if (sum(!fs$dups) > 1L)
-        sapply(fs$objs[!fs$dups],
-               function(f) if (is.function(f)) args(f))
-    else args(fs$objs[[1L]])
+argsAnywhere <- function(x) {
+        name<-as.character(substitute(x))
+        fs<-do.call(getAnywhere, list(name))
+        if (sum(!fs$dups)==0)
+            return(NULL)
+        if (sum(!fs$dups)>1)
+            sapply(fs$objs[!fs$dups],
+                   function(f) if (is.function(f)) args(f))
+        else args(fs$objs[[1L]])
 }

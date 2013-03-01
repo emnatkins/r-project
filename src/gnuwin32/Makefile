@@ -73,7 +73,7 @@ endif
 R-DLLLIBS =$(OPENMP) -L. $(FLIBS) -lRblas -L../../$(IMPDIR) -lRzlib -lRgraphapp -lRiconv -lcomctl32 -lversion $(LIBEXTRAS)
 dllversion-RESFLAGS =-I../include
 CSOURCES = \
-  console.c dynload.c editor.c embeddedR.c extra.c \
+  console.c dataentry.c dynload.c edit.c editor.c embeddedR.c extra.c \
   opt.c pager.c preferences.c psignal.c rhome.c rt_complete.c \
   rui.c run.c shext.c sys-win32.c system.c dos_wglob.c
 OBJS = $(CSOURCES:.c=.o)
@@ -140,33 +140,21 @@ fixfiles:
 	@$(MK) -C ./fixed
 
 fixed/fixdesc:
-	@sh fixed/GETDESC $(R_PKGS_BASE) translations
+	@sh fixed/GETDESC $(R_PKGS_BASE)
 
 dllversion.o: ../include/Rversion.h
 
-## Rdll.hide has decoration which 64-bit builds lack
-ifeq "$(WIN)" "64"
 R.dll: $(OBJS) $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
 	@$(ECHO) EXPORTS > R.def
-	@$(NM) $^ | $(SED) -n  $(SYMPAT) | LC_COLLATE=C $(SORT) | uniq > R0.def
-	@$(SED) -e's/@.*//' Rdll.hide | LC_COLLATE=C $(SORT) > R1.def
-	@comm -23 R0.def R1.def >> R.def
+	@$(NM) $^ | $(SED) -n  $(SYMPAT)  | $(SORT) | uniq > R0.def
+	@comm -23 R0.def Rdll.hide >> R.def
 	$(DLL) -shared $(DLLFLAGS) $($*-DLLFLAGS) -o $@ R.def $^ $($*-DLLLIBS) $(DLLLIBS)
-	@$(RM) R.def R0.def R1.def
-else
-R.dll: $(OBJS) $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
-	@$(ECHO) EXPORTS > R.def
-	@$(NM) $^ | $(SED) -n  $(SYMPAT) | LC_COLLATE=C $(SORT) | uniq > R0.def
-	@LC_COLLATE=C $(SORT) Rdll.hide > R1.def
-	@comm -23 R0.def R1.def >> R.def
-	$(DLL) -shared $(DLLFLAGS) $($*-DLLFLAGS) -o $@ R.def $^ $($*-DLLLIBS) $(DLLLIBS)
-	@$(RM) R.def R0.def R1.def
-endif
+	@$(RM) R.def R0.def
 
 R.exp: $(OBJS) $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
 	@$(ECHO) LIBRARY R.dll > R.exp
 	@$(ECHO) EXPORTS >> R.exp
-	@$(NM) $^ | $(SED) -n $(SYMPAT) | LC_COLLATE=C $(SORT) | uniq > R0.def
+	@$(NM) $^ | $(SED) -n $(SYMPAT) | $(SORT) | uniq > R0.def
 	@comm -23 R0.def Rdll.hide >> R.exp
 	@$(RM) R0.def
 
@@ -274,11 +262,8 @@ distclean: clean
 	$(RM) ../library/*/src/*.o ../library/*/src/*.a
 	$(RM) ../library/*/src/*.d ../library/*/src/Makedeps
 	$(RM) ../library/*/src/*.dll
-	$(RM) ../library/*/src/windows/*.o ../library/*/src/windows/*.a
-	$(RM) ../library/*/src/windows/*.d ../library/*/src/windows/Makedeps
-	$(RM) ../library/*/src/windows/*.dll
 	$(RM) -r ../library/*/check
-	$(RM) ../library/*/tests/*.ps ../library/*/tests/*.pdf
+	$(RM) ../library/*/tests/*.ps
 	$(RM) ../library/tcltk/src/tcl$(TCL_VERSION).def \
 	../library/tcltk//src/tk$(TCL_VERSION).def
 	$(RM) R.exp COPYRIGHTS
@@ -295,14 +280,14 @@ distclean: clean
 	$(MAKE) -C fixed distclean
 	$(MAKE) -C ../include -f Makefile.win distclean
 	-$(MAKE) -C installer distclean
-	@for pkg in $(R_PKGS_BASE) translations; do \
+	@for pkg in $(R_PKGS_BASE); do \
 	  $(RM) ../library/$${pkg}/DESCRIPTION; \
 	done
 	$(RM) ../../SVN-REVISION.bak
-	$(RM) ../../doc/manual/rw-FAQ
+	$(RM) rw-FAQ fixed/html/rw-FAQ.html
 	$(MAKE) -C cran clean
 	$(RM) -r ../library/.vignettes # it gets left behind if there is an error
-	$(RM) -r ../../share/locale # relic of earlier versions
+	$(RM) -r ../../share/locale
 	$(RM) MkRules Rpwd.exe # do this last of all
 
 veryclean: distclean
@@ -372,7 +357,7 @@ bytecode-recommended:
 	  $(MK) -C ../library/Recommended -f Makefile.win
 
 docfiles:
-	@$(MK) -C ../../doc/manual -f Makefile.win FAQ
+	@$(MK) -f Makefile.docs
 
 bitmapdll:
 	@$(MAKE) -C bitmap

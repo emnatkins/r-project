@@ -28,9 +28,7 @@
 
 /* Private interface */
 
-typedef struct SrcRefState SrcRefState;
-
-struct SrcRefState {
+typedef struct {
 
     Rboolean keepSrcRefs;	/* Whether to attach srcrefs to objects as they are parsed */
     Rboolean didAttach;		/* Record of whether a srcref was attached */
@@ -38,24 +36,15 @@ struct SrcRefState {
     SEXP Original;		/* The underlying srcfile object */
     PROTECT_INDEX SrcFileProt;	/* The SrcFile may change */
     PROTECT_INDEX OriginalProt; /* ditto */
-    SEXP data;			/* Detailed info on parse */
-    SEXP text;
-    SEXP ids;
-    PROTECT_INDEX DATA_INDEX;
-    PROTECT_INDEX TEXT_INDEX;
-    PROTECT_INDEX ID_INDEX;
-    int data_count;
     				/* Position information about the current parse */
     int xxlineno;		/* Line number according to #line directives */
     int xxcolno;		/* Character number on line */
     int xxbyteno;		/* Byte number on line */
     int xxparseno;              /* Line number ignoring #line directives */
-    
-    SrcRefState* prevState;
-};
+} SrcRefState;
 
 void R_InitSrcRefState(SrcRefState *state);
-void R_FinalizeSrcRefState(void);
+void R_FinalizeSrcRefState(SrcRefState *state);
 
 SEXP R_Parse1Buffer(IoBuffer*, int, ParseStatus *); /* in ReplIteration,
 						       R_ReplDLLdo1 */

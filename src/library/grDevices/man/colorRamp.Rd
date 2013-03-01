@@ -3,8 +3,6 @@
 % Copyright 1995-2012 R Core Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{colorRamp}
 \alias{colorRamp}
 \alias{colorRampPalette}
@@ -52,8 +50,7 @@ colorRampPalette(colors, \dots)
 
 \seealso{
   Good starting points for interpolation are the \dQuote{sequential}
-  and \dQuote{diverging} ColorBrewer palettes in the
-  \CRANpkg{RColorBrewer} package.
+  and \dQuote{diverging} ColorBrewer palettes in the \pkg{RColorBrewer} package.
 
   \code{\link{splinefun}} or \code{\link{approxfun}} are used for
   interpolation.

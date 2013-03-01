@@ -189,8 +189,7 @@ arima0 <- function(x, order = c(0, 0, 0),
     res <- optim(init[mask], arma0f, method = "BFGS",
                  hessian = TRUE, control = optim.control)
     if((code <- res$convergence) > 0)
-        warning(gettextf("possible convergence problem: optim gave code = %d",
-                         code), domain = NA)
+        warning("possible convergence problem: optim gave code=", code)
     coef <- res$par
 
     if(transform.pars) {
@@ -240,7 +239,7 @@ arima0 <- function(x, order = c(0, 0, 0),
     res
 }
 
-print.arima0 <- function(x, digits = max(3L, getOption("digits") - 3L),
+print.arima0 <- function(x, digits = max(3, getOption("digits") - 3),
                          se = TRUE, ...)
 {
     cat("\nCall:", deparse(x$call, width.cutoff = 75L), "", sep = "\n")
@@ -259,17 +258,17 @@ print.arima0 <- function(x, digits = max(3L, getOption("digits") - 3L),
             format(x$sigma2, digits = digits),
             ":  log likelihood = ", format(round(x$loglik,2)),
             ",  aic = ", format(round(x$aic,2)),
-            "\n", sep = "")
+            "\n", sep="")
     else
         cat("\nsigma^2 estimated as ",
             format(x$sigma2, digits = digits),
             ":  part log likelihood = ", format(round(x$loglik,2)),
-            "\n", sep = "")
+            "\n", sep="")
     invisible(x)
 }
 
 predict.arima0 <-
-    function(object, n.ahead = 1L, newxreg = NULL, se.fit=TRUE, ...)
+    function(object, n.ahead = 1, newxreg = NULL, se.fit=TRUE, ...)
 {
     myNCOL <- function(x) if(is.null(x)) 0 else NCOL(x)
     data <- eval.parent(parse(text = object$series))
@@ -325,7 +324,7 @@ arima0.diag <- function(...) .Defunct()
 tsdiag.Arima <- tsdiag.arima0 <- function(object, gof.lag = 10, ...)
 {
     ## plot standardized residuals, acf of residuals, Ljung-Box p-values
-    oldpar <- par(mfrow = c(3, 1))
+    oldpar<- par(mfrow = c(3, 1))
     on.exit(par(oldpar))
     rs <- object$residuals
     stdres <- rs/sqrt(object$sigma2)

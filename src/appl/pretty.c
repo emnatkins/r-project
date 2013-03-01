@@ -1,6 +1,8 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-2013  The R Core Team
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998	      Robert Gentleman, Ross Ihaka and the
+ *                            R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,15 +62,8 @@
 # include <R_ext/Print.h>
 #endif
 
-#ifdef HAVE_VISIBILITY_ATTRIBUTE
-# define attribute_hidden __attribute__ ((visibility ("hidden")))
-#else
-# define attribute_hidden
-#endif
-
-attribute_hidden
-double R_pretty(double *lo, double *up, int *ndiv, int min_n,
-		double shrink_sml, double high_u_fact[],
+double R_pretty0(double *lo, double *up, int *ndiv, int min_n,
+	       double shrink_sml, double high_u_fact[],
 	       int eps_correction, int return_bounds)
 {
 /* From version 0.65 on, we had rounding_eps := 1e-5, before, r..eps = 0
@@ -191,4 +186,11 @@ double R_pretty(double *lo, double *up, int *ndiv, int min_n,
     return unit;
 #undef h
 #undef h5
+}
+
+void R_pretty(double *lo, double *up, int *ndiv, int *min_n,
+	      double *shrink_sml, double *high_u_fact, int *eps_correction)
+{
+    R_pretty0(lo, up, ndiv,
+	    *min_n, *shrink_sml, high_u_fact, *eps_correction, 1);
 }

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,8 +29,6 @@
 #endif
 
 #include "Defn.h"
-#include <Internal.h>
-
 #define imax2(x, y) ((x < y) ? y : x)
 
 #include "Print.h"
@@ -52,12 +50,11 @@ static R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
 SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, collapse, sep, x;
-    int sepw, u_sepw, ienc;
-    R_xlen_t i, j, k, maxlen, nx, pwidth;
+    int i, j, k, maxlen, nx, pwidth, sepw, u_sepw, ienc;
     const char *s, *cbuf, *csep=NULL, *u_csep=NULL;
     char *buf;
     Rboolean allKnown, anyKnown, use_UTF8, use_Bytes,
-	sepASCII = TRUE, sepUTF8 = FALSE, sepBytes = FALSE, sepKnown = FALSE,
+	sepASCII=TRUE, sepUTF8=FALSE, sepBytes=FALSE, sepKnown=FALSE,
 	use_sep = (PRIMVAL(op) == 0);
     const void *vmax;
 
@@ -72,7 +69,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
     x = CAR(args);
     if (!isVectorList(x))
 	error(_("invalid first argument"));
-    nx = xlength(x);
+    nx = length(x);
 
     if(use_sep) { /* paste(..., sep, .) */
 	sep = CADR(args);
@@ -80,7 +77,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	    error(_("invalid separator"));
 	sep = STRING_ELT(sep, 0);
 	csep = translateChar(sep);
-	u_sepw = sepw = (int) strlen(csep); // will be short
+	u_sepw = sepw = strlen(csep);
 	sepASCII = strIsASCII(csep);
 	sepKnown = ENC_KNOWN(sep) > 0;
 	sepUTF8 = IS_UTF8(sep);
@@ -115,10 +112,10 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 		SET_VECTOR_ELT(x, j, coerceVector(xj, STRSXP));
 
 	    if (!isString(VECTOR_ELT(x, j)))
-		error(_("non-string argument to internal 'paste'"));
+		error(_("non-string argument to Internal paste"));
 	}
-	if(xlength(VECTOR_ELT(x, j)) > maxlen)
-	    maxlen = xlength(VECTOR_ELT(x, j));
+	if(length(VECTOR_ELT(x, j)) > maxlen)
+	    maxlen = length(VECTOR_ELT(x, j));
     }
     if(maxlen == 0)
 	return (!isNull(collapse)) ? mkString("") : allocVector(STRSXP, 0);
@@ -142,7 +139,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 
 	pwidth = 0;
 	for (j = 0; j < nx; j++) {
-	    k = xlength(VECTOR_ELT(x, j));
+	    k = length(VECTOR_ELT(x, j));
 	    if (k > 0) {
 		SEXP cs = STRING_ELT(VECTOR_ELT(x, j), i % k);
 		if(IS_UTF8(cs)) use_UTF8 = TRUE;
@@ -152,7 +149,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (use_Bytes) use_UTF8 = FALSE;
 	vmax = vmaxget();
 	for (j = 0; j < nx; j++) {
-	    k = xlength(VECTOR_ELT(x, j));
+	    k = length(VECTOR_ELT(x, j));
 	    if (k > 0) {
 		if(use_Bytes)
 		    pwidth += strlen(CHAR(STRING_ELT(VECTOR_ELT(x, j), i % k)));
@@ -166,16 +163,14 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(use_sep) {
 	    if (use_UTF8 && !u_csep) {
 		u_csep = translateCharUTF8(sep);
-		u_sepw = (int) strlen(u_csep); // will be short
+		u_sepw = strlen(u_csep);
 	    }
 	    pwidth += (nx - 1) * (use_UTF8 ? u_sepw : sepw);
 	}
-	if (pwidth > INT_MAX)
-	    error(_("result would exceed 2^31-1 bytes"));
 	cbuf = buf = R_AllocStringBuffer(pwidth, &cbuff);
 	vmax = vmaxget();
 	for (j = 0; j < nx; j++) {
-	    k = xlength(VECTOR_ELT(x, j));
+	    k = length(VECTOR_ELT(x, j));
 	    if (k > 0) {
 		SEXP cs = STRING_ELT(VECTOR_ELT(x, j), i % k);
 		if (use_UTF8) {
@@ -213,7 +208,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* Now collapse, if required. */
 
-    if(collapse != R_NilValue && (nx = XLENGTH(ans)) > 0) {
+    if(collapse != R_NilValue && (nx = LENGTH(ans)) > 0) {
 	sep = STRING_ELT(collapse, 0);
 	use_UTF8 = IS_UTF8(sep);
 	use_Bytes = IS_BYTES(sep);
@@ -228,7 +223,7 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	    csep = translateCharUTF8(sep);
 	else
 	    csep = translateChar(sep);
-	sepw = (int) strlen(csep);
+	sepw = strlen(csep);
 	anyKnown = ENC_KNOWN(sep) > 0;
 	allKnown = anyKnown || strIsASCII(csep);
 	pwidth = 0;
@@ -240,8 +235,6 @@ SEXP attribute_hidden do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	    } else /* already translated */
 		pwidth += strlen(CHAR(STRING_ELT(ans, i)));
 	pwidth += (nx - 1) * sepw;
-	if (pwidth > INT_MAX)
-	    error(_("result would exceed 2^31-1 bytes"));
 	cbuf = buf = R_AllocStringBuffer(pwidth, &cbuff);
 	vmax = vmaxget();
 	for (i = 0; i < nx; i++) {
@@ -299,7 +292,7 @@ SEXP attribute_hidden do_filepath(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid separator"));
     sep = STRING_ELT(sep, 0);
     csep = CHAR(sep);
-    sepw = (int) strlen(csep); /* hopefully 1 */
+    sepw = strlen(csep); /* hopefully 1 */
 
     /* Any zero-length argument gives zero-length result */
     maxlen = 0; nzero = 0;
@@ -331,7 +324,7 @@ SEXP attribute_hidden do_filepath(SEXP call, SEXP op, SEXP args, SEXP env)
 	pwidth = 0;
 	for (j = 0; j < nx; j++) {
 	    k = length(VECTOR_ELT(x, j));
-	    pwidth += (int) strlen(translateChar(STRING_ELT(VECTOR_ELT(x, j), i % k)));
+	    pwidth += strlen(translateChar(STRING_ELT(VECTOR_ELT(x, j), i % k)));
 	}
 	pwidth += (nx - 1) * sepw;
 	cbuf = buf = R_AllocStringBuffer(pwidth, &cbuff);
@@ -359,11 +352,10 @@ SEXP attribute_hidden do_filepath(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP l, x, y, swd;
-    int il, digits, trim = 0, nsmall = 0, wd = 0, adj = -1, na, sci = 0;
+    int i, il, n, digits, trim = 0, nsmall = 0, wd = 0, adj = -1, na, sci = 0;
     int w, d, e;
     int wi, di, ei, scikeep;
     const char *strp;
-    R_xlen_t i, n;
 
     checkArity(op, args);
     PrintDefaults();
@@ -424,7 +416,7 @@ SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid '%s' argument"), "scientific");
     if(sci != NA_INTEGER) R_print.scipen = sci;
 
-    if ((n = XLENGTH(x)) <= 0) {
+    if ((n = LENGTH(x)) <= 0) {
 	PROTECT(y = allocVector(STRSXP, 0));
     } else {
 	switch (TYPEOF(x)) {
@@ -517,8 +509,8 @@ SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 		    il = Rstrlen(STRING_ELT(xx, i), 0);
 		    cnt = imax2(cnt, LENGTH(STRING_ELT(xx, i)) + imax2(0, w-il));
 		} else if (na) cnt  = imax2(cnt, R_print.na_width + imax2(0, w-R_print.na_width));
-	    R_CheckStack2(cnt+1);
 	    char buff[cnt+1];
+	    R_CheckStack();
 	    PROTECT(y = allocVector(STRSXP, n));
 	    for (i = 0; i < n; i++) {
 		if(!na && STRING_ELT(xx, i) == NA_STRING) {
@@ -575,11 +567,11 @@ SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP x;
-    int digits, nsmall, no = 1, w, d, e, wi, di, ei;
+    int n, digits, nsmall, no = 1, w, d, e, wi, di, ei;
 
     checkArity(op, args);
     x = CAR(args);
-    R_xlen_t n = XLENGTH(x);
+    n = LENGTH(x);
     PrintDefaults();
 
     digits = asInteger(CADR(args));
@@ -623,11 +615,14 @@ SEXP attribute_hidden do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 	break;
 
     case STRSXP:
-	for (R_xlen_t i = 0; i < n; i++)
+    {
+	int i, il;
+	for (i = 0; i < n; i++)
 	    if (STRING_ELT(x, i) != NA_STRING) {
-		int il = Rstrlen(STRING_ELT(x, i), 0);
+		il = Rstrlen(STRING_ELT(x, i), 0);
 		if (il > w) w = il;
 	    }
+    }
 	break;
 
     default:

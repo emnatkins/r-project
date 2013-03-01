@@ -18,7 +18,7 @@
 #  http://www.r-project.org/Licenses/
 
 ## based on code by Martyn Plummer, plus kernel code by Adrian Trapletti
-spectrum <- function (x, ..., method = c("pgram", "ar"))
+spectrum<- function (x, ..., method = c("pgram", "ar"))
 {
     switch(match.arg(method),
 	   pgram = spec.pgram(x, ...),
@@ -254,10 +254,9 @@ plot.spec <-
                 lines(rep(conf.x, 2), conf.y + conf.lim, col=ci.col)
                 lines(conf.x + c(-0.5, 0.5) * x$bandwidth, rep(conf.y, 2),
                       col=ci.col)
-                ci.text <- paste0(", ", round(100*ci, 2),  "% C.I. is (",
-                                  paste(format(conf.lim, digits = 3),
-                                        collapse = ","),
-                                  ")dB")
+                ci.text <- paste(", ", round(100*ci, 2),  "% C.I. is (",
+                                 paste(format(conf.lim, digits = 3),
+                                       collapse = ","), ")dB", sep="")
             } else {
                 ci.text <- ""
                 conf.y <- max(x$spec) / conf.lim[2L]
@@ -272,8 +271,8 @@ plot.spec <-
                           else "from specified model",
                           x$method, sep = "\n")
         if (is.null(sub) && is.numeric(x$bandwidth))
-             sub <- paste0("bandwidth = ", format(x$bandwidth, digits = 3),
-                           ci.text)
+             sub <- paste("bandwidth = ", format(x$bandwidth, digits = 3),
+                          ci.text, sep="")
         title(main = main, sub = sub)
     }
     invisible(x)

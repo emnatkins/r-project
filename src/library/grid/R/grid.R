@@ -25,7 +25,7 @@ push.vp <- function(vp, recording) {
 }
 
 push.vp.default <- function(vp, recording) {
-  stop("only valid to push viewports")
+  stop("Only valid to push viewports")
 }
 
 push.vp.viewport <- function(vp, recording) {
@@ -82,11 +82,6 @@ push.vp.vpTree <- function(vp, recording) {
   push.vp(vp$children, recording)
 }
 
-# "push"ing a vpPath is just a downViewport(..., strict=TRUE)
-push.vp.vpPath <- function(vp, recording) {
-    downViewport(vp, strict=TRUE, recording)
-}
-
 push.viewport <- function(..., recording=TRUE) {
   .Deprecated("pushViewport")
   pushViewport(..., recording=recording)
@@ -94,7 +89,7 @@ push.viewport <- function(..., recording=TRUE) {
 
 pushViewport <- function(..., recording=TRUE) {
   if (missing(...))
-    stop("must specify at least one viewport")
+    stop("Must specify at least one viewport")
   else {
     vps <- list(...)
     lapply(vps, push.vp, recording)
@@ -190,7 +185,7 @@ pop.viewport <- function(n=1, recording=TRUE) {
 
 popViewport <- function(n=1, recording=TRUE) {
   if (n < 0)
-    stop("must pop at least one viewport")
+    stop("Must pop at least one viewport")
   if (n == 0)
     n <- vpDepth()
   if (n > 0) {
@@ -208,7 +203,7 @@ popViewport <- function(n=1, recording=TRUE) {
 # simply navigate up, leaving pushed viewports in place.
 upViewport <- function(n=1, recording=TRUE) {
   if (n < 0)
-    stop("must navigate up at least one viewport")
+    stop("Must navigate up at least one viewport")
   if (n == 0) {
     n <- vpDepth()
     upPath <- current.vpPath()
@@ -247,7 +242,7 @@ current.viewport <- function(vp=NULL) {
     # ever see normal viewports, so convert.
     vpFromPushedvp(grid.Call(L_currentViewport))
   else {
-    warning("the 'vp' argument is deprecated")
+    warning("The vp argument is deprecated")
     vp
   }
 }
@@ -296,6 +291,16 @@ current.transform <- function() {
   grid.Call(L_currentViewport)$trans
 }
 
+# Control whether user is prompted before new page
+grid.prompt <- function(ask) {
+    .Deprecated("devAskNewPage")
+    if(!missing(ask)) {
+        if (!is.logical(ask))
+            stop("Invalid 'ask' value")
+        grDevices::devAskNewPage(ask)
+    } else grDevices::devAskNewPage()
+}
+
 # Call this function if you want the graphics device erased or moved
 # on to a new page.  High-level plotting functions should call this.
 # NOTE however, that if you write a function which calls grid.newpage,
@@ -316,7 +321,6 @@ grid.newpage <- function(recording=TRUE) {
     .Call(L_initViewportStack)
     if (recording) {
         .Call(L_initDisplayList)
-        grDevices:::recordPalette()
         for (fun in getHook("grid.newpage"))  {
             if(is.character(fun)) fun <- get(fun)
             try(fun())
@@ -371,7 +375,7 @@ record <- function(x) {
 # gets put on the display list
 record.default <- function(x) {
   if (!is.numeric(x))
-    stop("invalid object inserted on the display list")
+    stop("Invalid object inserted on the display list")
   grid.Call(L_setDLelt, x)
   inc.display.list()
 }
@@ -421,7 +425,7 @@ grid.DLapply <- function(FUN, ...) {
         elt <- grid.Call(L_getDLelt, i)
         newElt <- FUN(elt, ...)
         if (!(is.null(newElt) || inherits(newElt, class(elt))))
-            stop("invalid modification of the display list")
+            stop("Invalid modification of the display list")
         newDL[[i]] <- newElt
     }
     for (i in 1:(gridDLindex - 1)) {
@@ -480,30 +484,3 @@ recordGrob <- function(expr, list,
   grob(expr=substitute(expr), list=list,
        name=name, gp=gp, vp=vp, cl="recordedGrob")
 }
-
-# Must only generate a grob, not modify drawing context
-makeContent.delayedgrob <- function(x) {
-    grob <- eval(x$expr, x$list, getNamespace("grid"))
-    if (is.grob(grob)) {
-        children <- gList(grob)
-    } else if (is.gList(grob)) {
-        children <- grob
-    } else {
-        stop("'expr' must return a grob or gList")
-    }
-    x <- setChildren(x, children)
-    x
-}
-
-grid.delay <- function(expr, list,
-                       name=NULL, gp=NULL, vp=NULL) {
-    grid.draw(gTree(expr=substitute(expr), list=list,
-                    name=name, gp=gp, vp=vp, cl="delayedgrob"))
-}
-
-delayGrob <- function(expr, list,
-                      name=NULL, gp=NULL, vp=NULL) {
-    gTree(expr=substitute(expr), list=list,
-          name=name, gp=gp, vp=vp, cl="delayedgrob")
-}
-

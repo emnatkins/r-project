@@ -51,9 +51,8 @@ for(f in ls(.ArgsEnv, all.names=TRUE))
 ## and nothing else
 ff <- ls("package:base", all.names=TRUE)
 ff <- ff[sapply(ff, function(x) is.primitive(get(x, "package:base")))]
-## NB: there is a another version of this list in tools::undoc()
 lang_elements <-
-    c('$', '$<-', '&&', '(', ':', '<-', '<<-', '=', '@', '@<-',
+    c('$', '$<-', '&&', '(', ':', '<-', '<<-', '=', '@',
       '[', '[<-', '[[', '[[<-', 'break', 'for', 'function', 'if', 'next',
       'repeat', 'return', 'while', '{', '||', '~')
 
@@ -65,8 +64,8 @@ stopifnot(ff %in% known, known %in% ff)
 
 ## check which are not considered as possibles for S4 generic
 ff4 <- names(methods:::.BasicFunsList)
-# as.double is the same as as.numeric
-S4generic <- ff %in% c(ff4, "as.double")
+# as.double and as.real are the same as as.numeric
+S4generic <- ff %in% c(ff4, "as.double", "as.real")
 notS4 <- ff[!S4generic]
 if(length(notS4))
     cat("primitives not covered in methods:::.BasicFunsList:",
@@ -95,6 +94,7 @@ require(methods)
 setClass("foo", representation(x="numeric", y="numeric"))
 xx <- new("foo",  x=1, y=2)
 S4gen <- names(methods:::.BasicFunsList)[sapply(methods:::.BasicFunsList, function(x) is.function(x))]
+S4gen <- setdiff(S4gen, "as.real") # deprecated
 for(f in S4gen) {
     g <- get(f)
     if(is.primitive(g)) g <- getGeneric(f) # should error on non-Generics.
@@ -114,10 +114,9 @@ for(f in S4gen) {
 
 ## check that they do argument matching, or at least check names
 except <- c("call", "switch", ".C", ".Fortran", ".Call", ".External",
-            ".External2", ".Call.graphics", ".External.graphics",
-            ".subset", ".subset2", ".primTrace", ".primUntrace",
-            "lazyLoadDBfetch", ".Internal", ".Primitive", "^", "|",
-            "%*%", "rep", "seq.int",
+            ".Call.graphics", ".External.graphics", ".subset", ".subset2",
+            ".primTrace", ".primUntrace", "lazyLoadDBfetch",
+            ".Internal", ".Primitive", "^", "|", "%*%", "rep", "seq.int",
             ## these may not be enabled
             "tracemem", "retracemem", "untracemem")
 
@@ -149,6 +148,6 @@ for(f in ls(.ArgsEnv, all.names=TRUE))
     } else a <- list(zZ=NULL)
     res <- try(do.call(f, a), silent = TRUE)
     m <- geterrmessage()
-    if(!grepl('does not match|unused argument|requires 0|native symbol', m))
+    if(!grepl('does not match|unused argument|requires 0', m))
         stop("failure on ", f)
 }

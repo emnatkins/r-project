@@ -1,5 +1,4 @@
 /* Copyright (C) 1997-1999  Adrian Trapletti
-   Copyright (C) 2012 The R Core Team
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -17,41 +16,33 @@
 */
 
 #include <R.h>
+#include "ts.h"
 
-static double R_pp_sum (double *u, int n, int l)
+void R_pp_sum (double *u, int *n, int *l, double *sum)
 {
-    double tmp1, tmp2;
+  int i, j;
+  double tmp1, tmp2;
 
-    tmp1 = 0.0;
-    for (int i = 1; i <= l; i++) {
-	tmp2 = 0.0;
-	for (int j = i; j < n; j++) tmp2 += u[j] * u[j-i];
-	tmp2 *= 1.0 - i/(l + 1.0);
-	tmp1 += tmp2;
+  tmp1 = 0.0;
+  for (i=1; i<=(*l); i++)
+  {
+    tmp2 = 0.0;
+    for (j=i; j<(*n); j++)
+    {
+      tmp2 += u[j]*u[j-i];
     }
-    return 2.0 * tmp1 / n;
+    tmp2 *= 1.0-((double)i/((double)(*l)+1.0));
+    tmp1 += tmp2;
+  }
+  tmp1 /= (double)(*n);
+  tmp1 *= 2.0;
+  (*sum) += tmp1;
 }
 
-#include <Rinternals.h>
-
-SEXP pp_sum(SEXP u, SEXP sl)
+void R_intgrt_vec (double *x, double *y, int *lag, int *n)
 {
-    u = PROTECT(coerceVector(u, REALSXP));
-    int n = LENGTH(u), l = asInteger(sl);
-    double trm = R_pp_sum(REAL(u), n, l);
-    UNPROTECT(1);
-    return ScalarReal(trm);
-}
+  int i;
 
-SEXP intgrt_vec(SEXP x, SEXP xi, SEXP slag)
-{
-    x = PROTECT(coerceVector(x, REALSXP));
-    xi = PROTECT(coerceVector(xi, REALSXP));
-    int n = LENGTH(x), lag = asInteger(slag);
-    SEXP ans = PROTECT(allocVector(REALSXP, n + lag));
-    double *rx = REAL(x), *y = REAL(ans);
-    Memzero(y, n + lag); Memcpy(y, REAL(xi), lag);
-    for (int i = lag; i < lag + n; i++) y[i] = rx[i - lag] + y[i - lag];
-    UNPROTECT(3);
-    return ans;
+  for (i=*lag; i<*lag+*n; i++)
+    y[i] = x[i-*lag]+y[i-*lag];
 }

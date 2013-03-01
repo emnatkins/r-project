@@ -47,7 +47,7 @@ available.packages(contriburl = contrib.url(getOption("repos"), type),
   for the \R session in a per-repository file in \code{\link{tempdir}()}
   with a name like
 \preformatted{repos_http\%3a\%2f\%2fcran.r-project.org\%2fsrc\%2fcontrib.rds}
-
+ 
   By default, this includes only packages whose version and OS
   requirements are met by the running version of \R, and only gives
   information on the latest versions of packages.
@@ -81,13 +81,10 @@ available.packages(contriburl = contrib.url(getOption("repos"), type),
       \url{http://en.wikipedia.org/wiki/FOSS}) employing the available
       license specifications.  Thus both the package and any packages
       that it depends on to load need to be \emph{known to be} FOSS.
-
+  
       Note that this does depend on the repository supplying license
       information.
     }
-    \item{\code{"CRAN"}}{use CRAN versions in preference to versions
-      from other repositories (even if these have a higher version
-      number).}
   }
   If all the filters are from this set they can be specified as a
   character vector; otherwise \code{filters} should be a list with
@@ -113,7 +110,7 @@ available.packages(contriburl = contrib.url(getOption("repos"), type),
   \code{\link{install.packages}}, \code{\link{download.packages}},
   \code{\link{contrib.url}}.
 
-  The \sQuote{R Installation and Administration} manual for how to
+  The \sQuote{R Installation and Administration} manual for how to 
   set up a repository.
 }
 \examples{\dontrun{

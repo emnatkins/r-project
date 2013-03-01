@@ -19,7 +19,7 @@
 .proctime00 <- proc.time()
 library(stats)
 
-pdf("ts-test.pdf")
+postscript("ts-test.ps")
 
 ### ar
 ar(lh)

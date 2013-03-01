@@ -93,10 +93,8 @@ as.POSIXlt.default <- function(x, tz = "", ...)
     if(inherits(x, "POSIXlt")) return(x)
     if(is.logical(x) && all(is.na(x)))
         return(as.POSIXlt(as.POSIXct.default(x), tz=tz))
-    stop(gettextf("do not know how to convert '%s' to class %s",
-                  deparse(substitute(x)),
-                  dQuote("POSIXlt")),
-         domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class \"POSIXlt\"",
+                  deparse(substitute(x))))
 }
 
 as.POSIXct <- function(x, tz = "", ...) UseMethod("as.POSIXct")
@@ -152,10 +150,8 @@ as.POSIXct.default <- function(x, tz = "", ...)
 	return(as.POSIXct(as.POSIXlt(x, tz, ...), tz, ...))
     if(is.logical(x) && all(is.na(x)))
         return(.POSIXct(as.numeric(x)))
-    stop(gettextf("do not know how to convert '%s' to class %s",
-                  deparse(substitute(x)),
-                  dQuote("POSIXct")),
-         domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class \"POSIXct\"",
+                  deparse(substitute(x))))
 }
 
 as.double.POSIXlt <- function(x, ...) as.double(as.POSIXct(x))
@@ -238,7 +234,7 @@ print.POSIXlt <- function(x, ...)
     invisible(x)
 }
 
-summary.POSIXct <- function(object, digits = 15L, ...)
+summary.POSIXct <- function(object, digits = 15, ...)
 {
     x <- summary.default(unclass(object), digits = digits, ...)
     if(m <- match("NA's", names(x), 0)) {
@@ -282,12 +278,12 @@ summary.POSIXlt <- function(object, digits = 15, ...)
                          secs = x, mins = 60*x, hours = 60*60*x,
                          days = 60*60*24*x, weeks = 60*60*24*7*x))
     if(!inherits(e1, "POSIXt"))
-        stop("can only subtract from \"POSIXt\" objects")
+        stop("Can only subtract from POSIXt objects")
     if (nargs() == 1) stop("unary '-' is not defined for \"POSIXt\" objects")
     if(inherits(e2, "POSIXt")) return(difftime(e1, e2))
     if (inherits(e2, "difftime")) e2 <- coerceTimeUnit(e2)
     if(!is.null(attr(e2, "class")))
-        stop("can only subtract numbers from \"POSIXt\" objects")
+        stop("can only subtract numbers from POSIXt objects")
     e1 <- as.POSIXct(e1)
     .POSIXct(unclass(e1) - e2, attr(e1, "tzone"))
 }
@@ -413,10 +409,10 @@ c.POSIXlt <- function(..., recursive=FALSE)
     as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 ## force absolute comparisons
-all.equal.POSIXct <- function(target, current, ..., tolerance = 1e-3, scale=1)
+all.equal.POSIXct <- function(target, current, ..., scale=1)
 {
     check_tzones(target, current)
-    NextMethod("all.equal", tolerance = tolerance, scale = scale)
+    NextMethod("all.equal")
 }
 
 
@@ -425,7 +421,7 @@ ISOdatetime <- function(year, month, day, hour, min, sec, tz="")
     if(min(sapply(list(year, month, day, hour, min, sec), length)) == 0L)
         .POSIXct(numeric(), tz=tz)
     else {
-        x <- paste(year, month, day, hour, min, sec, sep = "-")
+        x <- paste(year, month, day, hour, min, sec, sep="-")
         as.POSIXct(strptime(x, "%Y-%m-%d-%H-%M-%OS", tz=tz), tz=tz)
     }
 }
@@ -473,7 +469,7 @@ difftime <-
     switch(units,
            "secs" = .difftime(z, units="secs"),
            "mins" = .difftime(z/60, units="mins"),
-           "hours" = .difftime(z/3600, units="hours"),
+           "hours"= .difftime(z/3600, units="hours"),
            "days" = .difftime(z/86400, units="days"),
            "weeks" = .difftime(z/(7*86400), units="weeks")
            )
@@ -530,13 +526,13 @@ format.difftime <- function(x,...) paste(format(unclass(x),...), units(x))
 print.difftime <- function(x, digits = getOption("digits"), ...)
 {
     if(is.array(x) || length(x) > 1L) {
-        cat("Time differences in ", attr(x, "units"), "\n", sep = "")
+        cat("Time differences in ", attr(x, "units"), "\n", sep="")
         y <- unclass(x); attr(y, "units") <- NULL
         print(y)
     }
     else
-        cat("Time difference of ", format(unclass(x), digits = digits), " ",
-            attr(x, "units"), "\n", sep = "")
+        cat("Time difference of ", format(unclass(x), digits=digits), " ",
+            attr(x, "units"), "\n", sep="")
 
     invisible(x)
 }
@@ -560,7 +556,7 @@ Ops.difftime <- function(e1, e2)
                days = 60*60*24*x, weeks = 60*60*24*7*x)
     }
     if (nargs() == 1) {
-        switch(.Generic, "+" = {}, "-" = {e1[] <- -unclass(e1)},
+        switch(.Generic, "+"= {}, "-" = {e1[] <- -unclass(e1)},
                stop(gettextf("unary '%s' not defined for \"difftime\" objects",
                              .Generic), domain = NA, call. = FALSE)
                )
@@ -618,8 +614,9 @@ Ops.difftime <- function(e1, e2)
 Math.difftime <- function (x, ...)
 {
     switch(.Generic,
-           "abs" =, "sign" =, "floor" =, "ceiling" =, "trunc" =,
-           "round" =, "signif" = {
+           'abs'=, 'sign'=,
+           'floor'=, 'ceiling'=, 'trunc'=,
+           'round'=, 'signif'= {
                units <- attr(x, "units")
                .difftime(NextMethod(), units)
            },
@@ -668,12 +665,12 @@ seq.POSIXt <-
     function(from, to, by, length.out = NULL, along.with = NULL, ...)
 {
     if (missing(from)) stop("'from' must be specified")
-    if (!inherits(from, "POSIXt")) stop("'from' must be a \"POSIXt\" object")
+    if (!inherits(from, "POSIXt")) stop("'from' must be a POSIXt object")
     cfrom <- as.POSIXct(from)
     if(length(cfrom) != 1L) stop("'from' must be of length 1")
     tz <- attr(cfrom , "tzone")
     if (!missing(to)) {
-        if (!inherits(to, "POSIXt")) stop("'to' must be a \"POSIXt\" object")
+        if (!inherits(to, "POSIXt")) stop("'to' must be a POSIXt object")
         if (length(as.POSIXct(to)) != 1) stop("'to' must be of length 1")
     }
     if (!missing(along.with)) {
@@ -719,7 +716,7 @@ seq.POSIXt <-
     if(valid <= 5L) { # secs, mins, hours, days, weeks
         from <- unclass(as.POSIXct(from))
         if(!is.null(length.out))
-            res <- seq.int(from, by = by, length.out = length.out)
+            res <- seq.int(from, by=by, length.out=length.out)
         else {
             to0 <- unclass(as.POSIXct(to))
             ## defeat test in seq.default
@@ -884,7 +881,7 @@ trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"), ...)
 	switch(units,
 	       "secs" = {x$sec <- trunc(x$sec)},
 	       "mins" = {x$sec[] <- 0},
-	       "hours" = {x$sec[] <- 0; x$min[] <- 0L},
+	       "hours"= {x$sec[] <- 0; x$min[] <- 0L},
                ## start of day need not be on the same DST.
 	       "days" = {x$sec[] <- 0; x$min[] <- 0L; x$hour[] <- 0L; x$isdst[] <- -1L}
 	       )
@@ -898,7 +895,7 @@ round.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
     units <- match.arg(units)
     x <- as.POSIXct(x)
     x <- x + switch(units,
-                    "secs" = 0.5, "mins" = 30, "hours" = 1800, "days" = 43200)
+                    "secs" = 0.5, "mins" = 30, "hours"= 1800, "days" = 43200)
     trunc.POSIXt(x, units = units)
 }
 

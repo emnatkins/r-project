@@ -24,11 +24,16 @@
 
 mc_pids <- new.env()
 assign("pids", integer(), envir = mc_pids)
-clean_pids <- function(e)
-    if(length(pids <- get("pids", envir = e))) tools::pskill(pids, tools::SIGKILL)
+clean_pids <- function(e) {
+    pids <- get("pids", envir = e)
+    if(length(pids)) {
+        library.dynam("tools", "tools", .Library)
+        .Call("ps_kill", pids, 9L, PACKAGE = "tools")
+    }
+}
 
 mcfork <- function() {
-    r <- .Call(C_mc_fork)
+    r <- .Call(C_mc_fork, PACKAGE = "parallel")
     assign("pids", c(get("pids",envir = mc_pids), r[1L]), envir = mc_pids)
     structure(list(pid = r[1L], fd = r[2:3]),
               class = c(if(r[1L]) "childProcess"
@@ -71,7 +76,7 @@ rmChild <- function(child)
 mckill <- function(process, signal = 2L)
 {
     process <- processID(process)
-    ## or simply tools::pskill(process, signal)
+    ## or simply parallel::pskill(process, signal)
     unlist(lapply(process, function(p)
                   .Call(C_mc_kill, as.integer(p), as.integer(signal))))
 }
@@ -87,8 +92,7 @@ sendMaster <- function(what)
 processID <- function(process) {
     if (inherits(process, "process")) process$pid
     else if (is.list(process)) unlist(lapply(process, processID))
-    else stop(gettextf("'process' must be of class %s", dQuote("process")),
-              domain = NA)
+    else stop("'process' must be of the class \"process\"")
 }
 
 # unused

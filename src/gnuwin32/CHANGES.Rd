@@ -1,5 +1,4 @@
 \newcommand{\PR}{\Sexpr[results=rd]{tools:::Rd_expr_PR(#1)}}
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 
 \name{CHANGES}
 \title{Windows-specific changes to R}
@@ -100,7 +99,7 @@
       \R 2.12.0 to 2.14.1: see the\sQuote{R Installation and
       Administration manual}.  Compiled code (except DLLs) may be
       incompatible with previous toolchains (and compiled C++ code
-      almost certainly will be: users of \CRANpkg{Rcpp} take care).
+      almost certainly will be: users of \pkg{Rcpp} take care).
 
       Ensure that the settings in \file{MkRules.local} are appropriate
       to the toolchain you use.

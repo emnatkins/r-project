@@ -416,11 +416,11 @@ loopback interface has been disabled.  See
 There is a set of manuals that can be built from the sources,
 
 @table @samp
+@item refman
+Printed versions of the help pages for selected base packages (over 1900 pages)
 @item fullrefman
 Printed versions of all the help pages for base and recommended packages
 (over 3300 pages).
-@item refman
-Printed versions of the help pages for selected base packages (over 1900 pages)
 @item R-FAQ
 R @acronym{FAQ}
 @item R-intro
@@ -436,7 +436,7 @@ R @acronym{FAQ}
 @end table
 
 @noindent
-To make these (with @samp{fullrefman} rather than @samp{refman}), use
+To make these (except @samp{fullrefman}), use
 
 @example
 make pdf      @r{to create PDF versions}
@@ -444,11 +444,11 @@ make info     @r{to create info files (not @samp{refman} nor @samp{fullrefman}).
 @end example
 
 You will not be able to build any of these unless you have
-@command{makeinfo} version 4.7 or later installed, and for PDF you must
-have @command{texi2dvi} and @file{texinfo.tex} installed (which are part
-of the @acronym{GNU} @pkg{texinfo} distribution but are, especially
-@file{texinfo.tex}, often made part of the @TeX{} package in
-re-distributions).
+@command{makeinfo} version 4.7 to 4.13 installed@footnote{version 5.0 is
+not supported.}, and for PDF you must have @command{texi2dvi} and
+@file{texinfo.tex} installed (which are part of the @acronym{GNU}
+@pkg{texinfo} distribution but are, especially @file{texinfo.tex}, often
+made part of the @TeX{} package in re-distributions).
 
 The PDF versions can be viewed using any recent PDF viewer: they have
 hyperlinks that can be followed.  The info files are suitable for
@@ -1461,14 +1461,10 @@ account used to install @R{}.
 @sc{R.app}
 @end macro
 
-@strong{NB:}  Information on OS X is likely to change before release of
-@R{} 3.0.0.
-
 The front package of a @acronym{CRAN} site has a link `Download R for OS
 X'. Click on that, then download the file @file{R-@value{VERSIONno}.pkg}
-and install it.  This runs on OS X 10.6 and later (Snow Leopard, Lion,
-Mountain Lion, @dots{}); it is a @cputype{x86_64} build which should run
-on all Macs from mid-2008 on.
+and install it. This runs on OS X 10.[5678] (Leopard, Snow Leopard,
+Lion, Mountain Lion) with Intel CPUs.
 
 To install, just double-click on the icon of the file you downloaded.
 Note that (X11-based) Tcl/Tk needs to be installed separately if needed,
@@ -1504,12 +1500,14 @@ If you want to get rid of @R{} more completely using a Terminal, simply
 run (prepend @code{sudo} if needed):
 
 @example
-rm -rf /Library/Frameworks/R.framework /usr/bin/R /usr/bin/Rscript
+rm -rf /Library/Frameworks/R.framework /Applications/R.app/Applications/R64.app
+rm -f /usr/bin/R /usr/bin/Rscript /usr/bin/R32 /usr/bin/R64
 @end example
 
 An alternative is to use Apple's @code{pkgutil} tool. The installation
-consisted of two packages: @code{org.r-project.R.Leopard.fw.pkg} and
-@code{org.r-project.R.Leopard.GUI.pkg}. You can use @code{pkgutil
+consisted of three packages: @code{org.r-project.R.Leopard.fw.pkg},
+@code{org.r-project.R.Leopard.GUI.pkg} and
+@code{org.r-project.R.Leopard.GUI64.pkg}. You can use @code{pkgutil
 --unlink} (not supported as of Lion) to remove their files or
 @code{pkgutil --forget} if you want the Apple Installer to forget about
 the package without deleting its files (useful for the @R{} framework
@@ -1521,8 +1519,7 @@ deleted the files.
 @chapter Running R
 
 How to start @R{} and what command-line options are available is discussed
-in @ref{Invoking R, , Invoking R, R-intro, An Introduction to R}.  (Note
-that command-line options do not apply to @Rapp{} on OS X.)
+in @ref{Invoking R, , Invoking R, R-intro, An Introduction to R}.
 
 You should ensure that the shell has set adequate resource limits: @R{}
 expects a stack size of at least 8MB and to be able to open at least 256
@@ -1773,7 +1770,7 @@ binary containing either or both architectures.
 
 A few of the binary packages need other software to be installed on your
 system: see for example
-@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/3.0/@/@@ReadMe}.
+@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/2.15/@/@@ReadMe}.
 For 64-bit builds, packages using Gtk+ (@CRANpkg{Cairo}, @CRANpkg{RGtk2},
 @CRANpkg{cairoDevice} and those that depend on them) need the @file{bin}
 directory of a bundled distribution from
@@ -1823,9 +1820,6 @@ the sources on Windows without any additional tools.
 @node OS X packages, Customizing package compilation, Windows packages, Installing packages
 @subsection OS X
 
-@strong{NB:}  Information on OS X is likely to change before release of
-@R{} 3.0.0.
-
 On OS X @code{install.packages} works as it does on other Unix-alike
 systems, but there are additional types @code{mac.binary*} (the default
 in the @acronym{CRAN} distribution) that can be passed to
@@ -1837,8 +1831,7 @@ installation of either binary or source packages, from @acronym{CRAN} or
 local files.
 
 Note that many binary packages including compiled code are tied to a
-particular series (@R{} 2.15.x or 3.0.x) of @R{}: in any case @R{} 3.0.x
-cannot use any binary packages built for @R{} 2.15.x.
+particular series (@R{} 2.15.x or 3.0.x) of @R{}.
 
 Installing source packages which do not contain compiled code should
 work with no additional tools. For others you will need
@@ -1895,8 +1888,8 @@ appropriate).  This is read immediately after @file{Makeconf}.
 
 When installing packages from their sources, there are some extra
 considerations on installations which use sub-architectures.  These are
-commonly used on Windows and were used on OS X, but can in principle be
-used on other platforms.
+commonly used on (Mac) OS X and Windows, but can in principle be used on
+other platforms.
 
 When a source package is installed by a build of @R{} which supports
 multiple sub-architectures, the normal installation process installs the
@@ -1930,10 +1923,6 @@ using the path to @command{R} or @command{R --arch} to select the
 additional sub-architecture.  On Windows there is also @command{R CMD
 INSTALL --merge-multiarch} to build and merge the two architectures,
 starting with a source tarball.
-
-On OS X multiple sub-architectures were commonly used prior to @R{}
-3.0.0: @cputype{x86_64} (the current default), @cputype{i386} and for
-Lion and Tiger @cputype{ppc} and @cputype{ppc64}.
 
 @node Byte-compilation,  , Multiple sub-architectures, Installing packages
 @subsection Byte-compilation
@@ -2424,8 +2413,11 @@ both and install them in the same place: @xref{Sub-architectures}.
 
 Even on 64-bit builds of @R{} there are limits on the size of @R{}
 objects (see @code{help("Memory-limits")}, some of which stem from the
-use of 32-bit integers (especially in FORTRAN code).  For example, the
-dimensions of an array are limited to @math{2^{31} - 1}.
+use of 32-bit integers (especially in FORTRAN code).  On all builds of
+@R{}, the maximum length (number of elements) of a vector is
+@math{2^{31}-1}, about 2 billion, and on 64-bit builds the size of a
+block of memory allocated is limited to @math{2^{35}-16} bytes (8GB).
+These will be raised in @R{} 3.0.0.
 
 @node The standalone Rmath library, Essential and useful other programs under a Unix-alike, Choosing between 32- and 64-bit builds, Top
 @chapter The standalone Rmath library
@@ -2748,7 +2740,7 @@ looking in @file{/usr/xpg4/bin} which is used on some commercial
 Unixes).
 
 You will not be able to build most of the manuals unless you have
-@command{makeinfo} version 4.7 or later installed, and if not some of
+@command{makeinfo} version 4.7 to 4.13 installed, and if not some of
 the @HTML{} manuals will be linked to @acronym{CRAN}. To make PDF
 versions of the manuals you will also need file @file{texinfo.tex}
 installed (which is part of the @acronym{GNU} @pkg{texinfo} distribution
@@ -2972,13 +2964,19 @@ where @samp{JAVA_LIBS} contains flags necessary to link JNI programs.
 Some of the above variables can be queried using @code{R CMD config}.
 
 @enindex R_JAVA_LD_LIBRARY_PATH
-Beware that on most OSes@footnote{on e.g.@: Linux and Solaris is
-prepended to the library path; as from @R{}@tie{}3.0.0 it is effectively
-appended on OS X.} setting @env{R_JAVA_LD_LIBRARY_PATH} changes the
-library path when @R{} and all its packages are loaded, not just for the
-Java libraries and JVM.  This can cause problems with conflicts between
-libraries supplied for use with Java and system libraries, and
-@env{JAVA_LD_LIBRARY_PATH} may need to be adjusted.
+Beware that setting @env{R_JAVA_LD_LIBRARY_PATH} changes the library
+path when @R{} and all its packages are loaded, not just for the Java
+libraries and JVM.  This can cause problems with conflicts between
+libraries supplied for use with Java and system libraries: it may be
+necessary to trim the auto-detected value to e.g.
+@smallexample
+R_JAVA_LD_LIBRARY_PATH=$@{JAVA_HOME@}/lib/amd64/server
+@end smallexample
+
+@noindent
+This is particularly prevalent when the Java installation is not part of
+the OS, e.g.@: has been installed from Oracle on Linux or OS X.
+
 
 
 @node Linear algebra,  , Useful libraries and programs, Essential and useful other programs under a Unix-alike
@@ -3382,10 +3380,6 @@ LAPACK routines assume that input matrices do not contain IEEE 754
 special values such as INF or NaN values. Using these special values may
 cause LAPACK to return unexpected results or become unstable.
 @end quotation
-
-As from @R{} 3.0.0 we rely on limited support in LAPACK for matrices
-with @math{2^{31}} or more elements: it is quite possible that an
-external LAPACK will not have that support.
 
 @node Caveats,  , LAPACK, Linear algebra
 @subsection Caveats
@@ -4203,9 +4197,6 @@ be recognized as alphabetic by @code{make.names}.
 @section (Mac) OS X
 @cindex OS X
 
-@strong{NB:}  Information on OS X is likely to change before release of
-@R{} 3.0.0.
-
 You can build @R{} as a Unix application on OS X using Apple's `Command
 Line Tools for Xcode' and and suitable compilers (including a version of
 @command{gfortran}). You will also need
@@ -4218,9 +4209,9 @@ installed.  For Mountain Lion, see
 @uref{http://xquartz.macosforge.org/}: some people prefer to use XQuartz
 on earlier versions of OS X instead of the Apple version.
 
-In principle @R{} can be built for 10.4.x, 10.5.x and for PowerPC Macs
-but this has not been tested recently: 10.6 (Snow Leopard) is the
-earliest version currently tested.
+In principle @R{} can be built for 10.4.x and for PowerPC Macs but this
+has not been tested recently: 10.5.8 (Leopard) is the earliest version
+currently tested.
 
 To use the @code{quartz()} graphics device you need to configure with
 @option{--with-aqua} (which is the default): @code{quartz()} then
@@ -4295,6 +4286,7 @@ architecture from the C compilers.
 
 
 @menu
+* Leopard::                     
 * Snow Leopard::                
 * Lion::                        
 * Mountain Lion::               
@@ -4304,7 +4296,18 @@ architecture from the C compilers.
 * Building R.app::              
 @end menu
 
-@node Snow Leopard, Lion, Mac OS X, Mac OS X
+
+@node Leopard, Snow Leopard, Mac OS X, Mac OS X
+@subsection Leopard
+
+The versions of Xcode (3.1.x) supplied for Leopard contained usable C and
+C++ compilers.  A matching @command{gfortran} can be installed from
+@uref{http://r.research.att.com/tools/} (it needs to match the version
+of Xcode in use).  Compilers targeted to Leopard generally default to
+32-bit.
+
+
+@node Snow Leopard, Lion, Leopard, Mac OS X
 @subsection Snow Leopard
 
 The versions of Xcode (3.2.x) supplied for Snow Leopard contained usable
@@ -4334,6 +4337,8 @@ F77=gfortran-4.2
 FC=gfortran-4.2
 OBJC=gcc-4.2
 @end example
+
+and for a 32-bit build add @option{-arch i386} as displayed above.
 
 It is also possible to build @R{} using Apple's C/C++ compilers supplied
 with Xcode, but these do need to be supplemented by a Fortran compiler
@@ -4389,8 +4394,8 @@ Configure @R{} with
 
 The situation with Java support on OS X is messy, with Apple essentially
 no longer supporting Java (and what it does support is Java 6, which has
-reached end-of-life).  Snow Leopard and Lion shipped with a Java runtime
-(JRE).
+reached end-of-life).  Leopaard@footnote{which has Java 5.}, Snow
+Leopard and Lion shipped with a Java runtime (JRE). 
 
 Mountain Lion does not come with an installed JRE, and an upgrade to
 Mountain Lion removes one if already installed.  It is intended to be
@@ -4405,17 +4410,18 @@ this is 64-bit only and for Lion and later.
 
 To see what versions of Java are currently installed, run
 @command{/usr/libexec/java_home -V}.  Set the environment variable
-@env{JAVA_HOME} to choose between these, both when @R{} is built from
-the sources and when @command{R CMD javareconf} is run.
+@env{JAVA_HOME} to choose between these, both when @R{} is configured
+and when @command{R CMD javareconf} is run.
 
-Configuring and building @R{} both looks for a JRE and for support for
-compiling JNI programs (used by packages @CRANpkg{rJava} and
-@CRANpkg{JavaGD}); the later requires a JDK (Java SDK) and not just a
-JRE.
+Configuring @R{} both looks for a JRE and for support for compiling JNI
+programs (used by packages @CRANpkg{rJava} and @CRANpkg{JavaGD}); the
+later requires a JDK (Java SDK) and not just a JRE.  (Use
+@command{/usr/libexec/java_home -a i386 -V} to list 32-bit versions,
+which are needed for JNI compilation with 32-bit @R{}.)
 
-The build process tries to fathom out what JRE/JDK to use, but it may
-need some help, e.g.@: by setting @env{JAVA_HOME}.  The Apple JDK can be
-specified explicitly by something like
+The configure process tries to fathom out what JRE/JDK to use, but it
+may need some help, e.g.@: by setting @env{JAVA_HOME}.  The Apple JDK
+can be specified explicitly by something like (depending on which Apple JDK)
 @example
 JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
 JAVA_CPPFLAGS="-I/System/Library/Frameworks/JavaVM.framework/Headers"
@@ -4433,11 +4439,8 @@ JAVA_CPPFLAGS="-I/$@{JAVA_HOME@}/include -I/$@{JAVA_HOME@}/include/darwin"
 JAVA_LD_LIBRARY_PATH="$@{JAVA_HOME@}/jre/lib/server"
 JAVA_LIBS="-L/$@{JAVA_HOME@}/jre/lib/server -ljvm" 
 @end example
-in @file{config.site}.  As from @R{} 3.0.0 @env{JAVA_LD_LIBRARY_PATH} is
-used as part of @env{DYLD_FALLBACK_LIBRARY_PATH} and so is less likely
-to cause conflicts, but @file{$@{JAVA_HOME@}/jre/lib} is still best
-avoided as in some JDKs it contains libraries which conflict with system
-libraries.
+in @file{config.site}. @file{$@{JAVA_HOME@}/jre/lib} is best avoided as
+in some JDKs it contains libraries which conflict with system libraries.
 
 Note that it is necessary to set the environment variable @env{NOAWT}
 e.g.@: to @code{1} to install some Java-using packages such as
@@ -4480,13 +4483,15 @@ The current sources can be checked out by
 @example
 svn co https://svn.r-project.org/R-packages/trunk/Mac-GUI
 @end example
-This can be built by loading @code{R.xcodeproj} project (select the
-@code{R} target and the @code{SnowLeopard64} or @code{Lion64}
-configuration), or from the command-line by
+This can be built by loading @code{R.xcodeproj} project (select
+the @code{R} target and a suitable configuration), or from the
+command-line by e.g.@:
 @example
 xcodebuild -target R -configuration Lion64
 @end example
 See also the @file{INSTALL} file in the checkout or directly at @uref{https://svn.r-project.org/R-packages/trunk/Mac-GUI/INSTALL}.
+
+For a 32-bit build, replace @code{Lion64} by @code{Lion}.
 
 @Rapp{} does not need to be installed in any specific way. Building
 @Rapp{} results in the @Rapp{} bundle which appears as one R icon. This
@@ -4533,13 +4538,6 @@ and without declaring it as @samp{SystemRequirements} in the
 Some people have reported that the Solaris @code{libintl} needs to be
 avoided, for example by using @option{--disable-nls} or
 @option{--with-included-gettext} or using @code{libintl} from OpenCSW.
-
-The support for the C99 @code{long double} type on Sparc hardware uses
-quad-precision arithmetic, and this is usually slow because it is done
-by software emulation.  On such systems @command{configure} option
-@option{--disable-long-double} can be used for faster but less accurate
-computations.
-
 
 When using the Oracle compilers@footnote{including @command{gcc} for
 Sparc from Oracle.} do @emph{not} specify @option{-fast}, as this
@@ -5122,7 +5120,7 @@ It is also possible to use the TeXLive distribution from
 @uref{http://www.tug.org/texlive/}.
 
 @enindex R_RD4PDF
-Please read @ref{Making the manuals} about how to make @file{fullrefman.pdf}
+Please read @ref{Making the manuals} about how to make @file{refman.pdf}
 and set the environment variable @env{R_RD4PDF} suitably; ensure you
 have the required fonts installed or that @samp{MiKTeX} is set up to
 install @LaTeX{} on first use.
@@ -5202,7 +5200,7 @@ Windows-style paths.
 Technically you need more than just a compiler so the set of tools is
 referred to as a `toolchain'.
 
-The preferred toolchain since @R{} 2.14.2 is part of
+The preferred toolchain is part of
 @code{Rtools30.exe}: this uses a beta version of @command{gcc 4.6.3}
 and version 2.0.1 of the MinGW-w64 project's runtime.
 

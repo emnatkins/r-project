@@ -685,24 +685,14 @@ esac
 
 ## Record name of environment variable which tells the dynamic linker
 ## where to find shlibs (typically, 'LD_LIBRARY_PATH').
-## Used in etc/ldpaths: override what libtool thinks on OS X
-## http://hublog.hubmed.org/archives/001192.html suggests this was in 10.4
-case "${host_os}" in
-  darwin*)
-    Rshlibpath_var=DYLD_FALLBACK_LIBRARY_PATH
-    ;;
-  *)
-    Rshlibpath_var=${shlibpath_var}
-esac
 AC_SUBST(shlibpath_var)
 ## Export LD_LIBRARY_PATH or equivalent.
-if eval "test -z \"\${${Rshlibpath_var}}\""; then
-  eval "${Rshlibpath_var}=\"${R_LD_LIBRARY_PATH}\""
+if eval "test -z \"\${${shlibpath_var}}\""; then
+  eval "${shlibpath_var}=\"${R_LD_LIBRARY_PATH}\""
 else
-  eval "${Rshlibpath_var}=\"${R_LD_LIBRARY_PATH}${PATH_SEPARATOR}\${${Rshlibpath_var}}\""
+  eval "${shlibpath_var}=\"${R_LD_LIBRARY_PATH}${PATH_SEPARATOR}\${${shlibpath_var}}\""
 fi
-eval "export ${Rshlibpath_var}"
-AC_SUBST(Rshlibpath_var)
+eval "export ${shlibpath_var}"
 
 ## record how to strip shared/dynamic libraries.
 AC_SUBST(striplib)
@@ -725,7 +715,7 @@ case "${host_os}" in
     ## SI says we want '-lcc_dynamic' on Darwin, although currently
     ## http://developer.apple.com/documentation/MacOSX/ has nothing
     ## official.  Bill Northcott <w.northcott@unsw.edu.au> points out
-    ## that it is only needed for GCC 3.x (and earlier) ...
+    ## that it is only needed to GCC 3.x (and earlier) ...
     if test "${GCC}" = yes; then
       case "${CC_VERSION}" in
         2.*|3.*)
@@ -792,9 +782,8 @@ AC_HEADER_SYS_WAIT
 ## (It is probably only used for fpsetmask on FreeBSD).
 ## fpu_control.h is only used on Linux, for the obsolete __setfpucw.
 ## sys/param.h is one way to get PATH_MAX.
-## sched.h is POSIX, but we use it for Linux-specific features (affinity)
 AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
-  fpu_control.h glob.h grp.h netdb.h netinet/in.h pwd.h sched.h strings.h \
+  fpu_control.h glob.h grp.h netdb.h netinet/in.h pwd.h strings.h \
   sys/param.h sys/resource.h sys/select.h sys/socket.h \
   sys/stat.h sys/time.h sys/times.h sys/utsname.h unistd.h utime.h)
 ## </NOTE>
@@ -854,23 +843,8 @@ esac
 AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long double)
 AC_CHECK_SIZEOF(size_t)
-AC_ARG_ENABLE([long-double],
-[AS_HELP_STRING([--enable-long-double],[use long double type @<:@yes@:>@])],
-[if test "${enableval}" = no; then
-  use_long_double=no
-else
-  use_long_double=yes
-fi],
-[use_long_double=yes])
-
-dnl also used in intl.
-if test "x${use_long_double}" = xyes; then 
-  AC_DEFINE(HAVE_LONG_DOUBLE, 1, [Define if you wish to use the 'long double' type.])
-  AC_CHECK_SIZEOF(long double)
-else
-  AC_MSG_WARN([Not using the 'long double' type])
-fi
 
 R_PROG_CC_MAKEFRAG
 R_PROG_CC_LO_MAKEFRAG
@@ -1793,13 +1767,12 @@ AC_CHECK_DECLS([alloca], , ,
 ## C99 functions: 
 ## not all C99 runtimes are complete,
 ## but we have substitutes for expm1 hypot log1p and (internally) nearbyint[l]
-## FreeBSD 10 still lacks log1pl
 ## FreeBSD 8.2 lacks log2
 ## FreeBSD 7.3 lacks nearbyintl/rintl (nearbyint appeared in 5.2)
 ## Apparently rint was once broken on HP-UX: undefine HAVE_RINT for such platforms
 ## Cygwin and FreeBSD lack powl
 ## Cygwin has rintl but not nearbyintl
-R_CHECK_FUNCS([expm1 hypot log1p log1pl log2 log10 nearbyint nearbyintl powl rint rintl], [#include <math.h>])
+R_CHECK_FUNCS([expm1 hypot log1p log2 log10 nearbyint nearbyintl powl rint rintl], [#include <math.h>])
 ## va_copy is C99: required as from R 2.13.0
 R_CHECK_FUNCS([va_copy], [#include <stdarg.h>])
 if test "${ac_cv_have_decl_va_copy}" = "no"; then
@@ -1834,8 +1807,6 @@ R_CHECK_FUNCS([access chdir execv ftruncate getcwd geteuid getuid link readlink 
 [#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif])
-## Linux-specific feature allowing us to fix CPU affinity for parallel
-R_CHECK_FUNCS([sched_setaffinity sched_getaffinity], [#include <sched.h>])
 ## utime was declared obsolescent in POSIX 2008 (use utimes instead)
 R_CHECK_FUNCS([utime], [#include <utime.h>])
 ## clock_gettime is POSIX 1993, but not on MacOS X
@@ -2165,18 +2136,15 @@ case "${host_os}" in
     ##	      above add -fobjc-exceptions where possible, but
     ##	      they don't check that the exceptions are available.
     R_AQUA
-    ## That sets HAVE_AQUA, which is used to enable support of R.app
-    ## and also in C headers and files related to quartz()
   ;;
   *)
     use_aqua=no
   ;;
 esac
-## Now used:
-## - to compile src/unix/aqua.c
-## - in etc/Renviron to set the personal library,
-## - in grDevices to select building quartz()
+## Now used only in etc/Renviron to set the personal library,
+## and in grDevices to select building quartz()
 AM_CONDITIONAL(BUILD_AQUA, [test "x${use_aqua}" = xyes])
+AC_SUBST(use_aqua)
 
 ## Tcl/Tk.
 R_TCLTK
@@ -2279,28 +2247,7 @@ AC_SUBST(R_PAPERSIZE)
 AC_SUBST(R_BATCHSAVE)
 
 ## Java support
-## R_JAVA
-custom_JAVA_HOME="${JAVA_HOME}"
-: ${JAVA_LIBS=~autodetect~}
-: ${JAVA_CPPFLAGS=~autodetect~}
-: ${JAVA_LD_LIBRARY_PATH=~autodetect~}
-custom_JAVA_LIBS="${JAVA_LIBS}"
-custom_JAVA_CPPFLAGS="${JAVA_CPPFLAGS}"
-custom_JAVA_LD_LIBRARY_PATH="${JAVA_LD_LIBRARY_PATH}"
-AC_SUBST(custom_JAVA_HOME)
-AC_SUBST(custom_JAVA_CPPFLAGS)
-AC_SUBST(custom_JAVA_LIBS)
-AC_SUBST(custom_JAVA_LD_LIBRARY_PATH)
-JAVA_LD_LIBRARY_PATH=
-AC_SUBST(JAVA)
-AC_SUBST(JAVAC)
-AC_SUBST(JAVAH)
-AC_SUBST(JAR)
-AC_SUBST(JAVA_LD_LIBRARY_PATH)
-AC_SUBST(JAVA_LIBS0)
-AC_SUBST(JAVA_CPPFLAGS0)
-AC_SUBST(R_JAVA_LD_LIBRARY_PATH)
-
+R_JAVA
 
 ## F90/F95 support
 AC_PROG_FC()
@@ -2479,7 +2426,39 @@ for arg in ${LDFLAGS} ${FLIBS} ${BLAS_LIBS} ${LAPACK_LIBS} ${X_LIBS} \
 done
 fi
 
+## Handle JAVA_LD_LIBRARY_PATH specially so that users can conveniently set just
+## R_JAVA_LD_LIBRARY_PATH in their environment.
+if test -n "${JAVA_LD_LIBRARY_PATH}"; then
+   args=`echo ${JAVA_LD_LIBRARY_PATH} | sed -e s:\$\(JAVA_HOME\):${JAVA_HOME}:g`
+   r_save_IFS="${IFS}"; IFS="${PATH_SEPARATOR}"
+   for lib in ${args}; do
+      r_want_lib=true
+      ## Do not add non-existent directories.
+      test -d "${lib}" || r_want_lib=false
+      if test x"${r_want_lib}" = xtrue; then
+        ## do NOT Canonicalize (/usr/lib/j2sdk1.5-sun/jre/../lib/i386).
+	## because we may lose the reference to ${JAVA_HOME} if it is a symlink (it often is)
+        ##lib=`cd "${lib}" && ${GETWD}`
+        ## Do not add something twice, or something already in
+        ## R_LD_LIBRARY_PATH or the defaults.
+        for dir in ${R_JAVA_LD_LIBRARY_PATH}${IFS}${R_LD_LIBRARY_PATH}${IFS}${r_ld_library_defaults}; do
+          if test x"${dir}" = x"${lib}"; then
+             r_want_lib=false
+             break
+          fi
+        done
+        if test x"${r_want_lib}" = xtrue; then
+	  lib=`echo ${lib}|sed -e s:${JAVA_HOME}:\$\{JAVA_HOME\}:g`
+          R_SH_VAR_ADD(R_JAVA_LD_LIBRARY_PATH, [${lib}], [${PATH_SEPARATOR}])
+        fi
+      fi
+   done
+   IFS="${r_save_IFS}"
+fi
+## </FIXME>
+
 AC_SUBST(R_LD_LIBRARY_PATH)
+AC_SUBST(R_JAVA_LD_LIBRARY_PATH)
 
 ## Recommended packages.
 if test "${use_recommended_packages}" = yes; then
@@ -2488,12 +2467,13 @@ fi
 AM_CONDITIONAL(USE_RECOMMENDED_PACKAGES,
                [test "x${use_recommended_packages}" = xyes])
 
-# i18n support.
+# i18n support.  To update to a new version of gettext, run (untested):
+# gettextize -f -c --intl
 AM_NLS
 if test "${USE_NLS}" = "yes"; then
   echo
   echo "Configuring src/extra/intl directory"
-  AM_GNU_GETTEXT_VERSION(0.16.1)
+  AM_GNU_GETTEXT_VERSION(0.14.5)
   AM_GNU_GETTEXT([no-libtool], [need-ngettext], [../extra/intl])
   if test -n "$INTL_MACOSX_LIBS"; then
     XTRA_INTL_CPPFLAGS=-I/System/Library/Frameworks/CoreFoundation.framework/Headers
@@ -2564,10 +2544,9 @@ AC_CONFIG_FILES(
   etc/Makefile
   etc/Makeconf
   etc/Renviron
-  etc/javaconf
   etc/ldpaths
   m4/Makefile
-  po/Makefile 
+  po/Makefile.in 
   share/Makefile
   src/Makefile
   src/appl/Makefile
@@ -2593,7 +2572,6 @@ AC_CONFIG_FILES(
   src/library/datasets/Makefile
   src/library/graphics/DESCRIPTION
   src/library/graphics/Makefile
-  src/library/graphics/src/Makefile
   src/library/grDevices/DESCRIPTION
   src/library/grDevices/Makefile
   src/library/grDevices/src/Makefile
@@ -2622,11 +2600,8 @@ AC_CONFIG_FILES(
   src/library/tools/DESCRIPTION
   src/library/tools/Makefile
   src/library/tools/src/Makefile
-  src/library/translations/DESCRIPTION
-  src/library/translations/Makefile
   src/library/utils/DESCRIPTION
   src/library/utils/Makefile
-  src/library/utils/src/Makefile
   src/main/Makefile
   src/modules/Makefile
   src/modules/X11/Makefile
@@ -2751,6 +2726,9 @@ if test "${use_strict_barrier}" = yes; then
 fi
 if test "${want_linux_lfs}" = yes; then
   R_SH_VAR_ADD(r_options, [Linux LFS], [, ])
+fi
+if test -n "${JAVA}"; then
+  R_SH_VAR_ADD(r_options, [Java], [, ])
 fi
 if test "${want_prebuilt_html}" = yes; then
   R_SH_VAR_ADD(r_options, [static HTML], [, ])

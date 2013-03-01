@@ -35,15 +35,15 @@ create.post <- function(instructions = character(),
 
     none_method <- function() {
         disclaimer <-
-            paste0("# Your mailer is set to \"none\",\n",
-                   "# hence we cannot send the, ", description, " directly from R.\n",
-                   "# Please copy the ", description, " (after finishing it) to\n",
-                   "# your favorite email program and send it to\n#\n",
-                   "#       ", address, "\n#\n",
-                   "######################################################\n",
-                   "\n\n")
+            paste("# Your mailer is set to \"none\",\n",
+                  "# hence we cannot send the, ", description, " directly from R.\n",
+                  "# Please copy the ", description, " (after finishing it) to\n",
+                  "# your favorite email program and send it to\n#\n",
+                  "#       ", address, "\n#\n",
+                  "######################################################\n",
+                  "\n\n", sep = "")
 
-        cat(c(disclaimer, body), file = filename, sep = "\n")
+        cat(c(disclaimer, body), file=filename, sep = "\n")
         cat("The", description, "is being opened for you to edit.\n")
         flush.console()
         file.edit(filename)
@@ -57,22 +57,24 @@ create.post <- function(instructions = character(),
 	cat(body, sep = "\n")
     else if(method == "gnudoit") {
         ## FIXME: insert subject and ccaddress
-	cmd <- paste0("gnudoit -q '",
+	cmd <- paste("gnudoit -q '",
 		     "(mail nil \"", address, "\")",
-		     "(insert \"", paste(body, collapse = "\\n"), "\")",
+		     "(insert \"", paste(body, collapse="\\n"), "\")",
 		     "(search-backward \"Subject:\")",
-		     "(end-of-line)'")
+		     "(end-of-line)'",
+		     sep="")
 	system(cmd)
     } else if (method == "mailto") {
         if (missing(address)) stop("must specify 'address'")
         if (!nzchar(subject)) subject <- "<<Enter Meaningful Subject>>"
         if(length(ccaddress) != 1L) stop("'ccaddress' must be of length 1")
         cat("The", description, "is being opened in your default mail program\nfor you to complete and send.\n")
-        uri <-  paste0("mailto:", address,
+        uri <-  paste("mailto:", address,
                      "?subject=", subject,
                      if(is.character(ccaddress) && nzchar(ccaddress))
-                         paste0("&cc=", ccaddress),
-                     "&body=", paste(body, collapse="\r\n"))
+                         paste("&cc=", ccaddress, sep=""),
+                     "&body=", paste(body, collapse="\r\n"),
+                     sep = "")
         tryCatch(shell.exec(URLencode(uri)), error = function(e) {
             cat("opening the mailer failed, so reverting to 'mailer=\"none\"'\n")
             flush.console()
@@ -84,3 +86,5 @@ create.post <- function(instructions = character(),
 
     invisible()
 }
+
+win.version <- function() .Internal(win.version())

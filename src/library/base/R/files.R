@@ -74,12 +74,11 @@ file.remove <- function(...)
 file.rename <- function(from, to)
     .Internal(file.rename(from, to))
 
-list.files <-
-    function(path = ".", pattern = NULL, all.files = FALSE,
-             full.names = FALSE, recursive = FALSE,
-             ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+list.files <- function(path = ".", pattern = NULL, all.files = FALSE,
+                       full.names = FALSE, recursive = FALSE,
+                       ignore.case = FALSE, include.dirs = FALSE)
     .Internal(list.files(path, pattern, all.files, full.names,
-			 recursive, ignore.case, include.dirs, no..))
+                         recursive, ignore.case, include.dirs))
 
 dir <- list.files
 
@@ -118,7 +117,7 @@ file.copy <- function(from, to,
     } else if (nf > nt) stop("more 'from' files than 'to' files")
     else if (recursive)
         warning("'recursive' will be ignored as 'to' is not a single existing directory")
-    if(nt > nf) from <- rep_len(from, length.out = nt)
+    if(nt > nf) from <- rep(from, length.out = nt)
     okay <- file.exists(from)
     if (!overwrite) okay[file.exists(to)] <- FALSE
     if (any(from[okay] %in% to[okay]))
@@ -210,7 +209,7 @@ Sys.glob <- function(paths, dirmark = FALSE)
 unlink <- function(x, recursive = FALSE, force = FALSE)
     .Internal(unlink(as.character(x), recursive, force))
 
-Sys.chmod <- function(paths, mode = "0777", use_umask = TRUE)
+Sys.chmod <- function(paths, mode = "0777", use_umask= TRUE)
     .Internal(Sys.chmod(paths, as.octmode(mode), use_umask))
 
 Sys.umask <- function(mode = NA)
@@ -231,5 +230,5 @@ Sys.setFileTime <- function(path, time)
         stop("invalid 'path' argument")
     time <- as.POSIXct(time)
     if (is.na(time))  stop("invalid 'time' argument")
-    .Internal(setFileTime(path, time))
+    invisible(.Call("R_setFileTime", path, time, PACKAGE = "base"))
 }

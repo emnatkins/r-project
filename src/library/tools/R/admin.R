@@ -1,7 +1,7 @@
 #  File src/library/tools/R/admin.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2013 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -86,10 +86,6 @@ function(dir, outDir)
             .expand_package_description_db_R_fields(db),
             Built = Built)
 
-    ## This cannot be done in a MBCS: write.dcf fails
-    ctype <- Sys.getlocale("LC_CTYPE")
-    Sys.setlocale("LC_CTYPE", "C")
-    on.exit(Sys.setlocale("LC_CTYPE", ctype))
     .write_description(db, file.path(outDir, "DESCRIPTION"))
 
     outMetaDir <- file.path(outDir, "Meta")
@@ -301,14 +297,11 @@ function(dir, outDir)
         for(f in codeFiles) {
             tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "")
             if(length(bad <- which(is.na(tmp)))) {
-                warning(sprintf(ngettext(length(bad),
-                                         "unable to re-encode %s line %s",
-                                         "unable to re-encode %s lines %s"),
-                                sQuote(basename(f)),
-                                paste(bad, collapse = ", ")),
-                        domain = NA, call. = FALSE)
-                tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "",
-                             sub = "byte")
+               warning(gettextf("unable to re-encode '%s' line(s) %s",
+                                basename(f), paste(bad, collapse=",")),
+                    domain = NA, call. = FALSE)
+               tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "",
+                            sub = "byte")
             }
             writeLines(paste0("#line 1 \"", f, "\""), con)
             writeLines(tmp, con)
@@ -507,29 +500,21 @@ function(dir, outDir, encoding = "")
         if (is.null(cwd))
             stop("current working directory cannot be ascertained")
         setwd(outVignetteDir)
-        HTMLout <- vignette_is_HTML(vignetteIndex$File)
-        vignetteOutfiles <- vignette_output(basename(vignetteIndex$File))
-        
-        ind <- file_test("-f", vignetteOutfiles)
-        vignetteIndex$PDF[ind] <- vignetteOutfiles[ind]
-        
-	loadVignetteBuilder(dir, mustwork = FALSE)
+        vignettePDFs <-
+            sub("$", ".pdf",
+                basename(file_path_sans_ext(vignetteIndex$File)))
+        ind <- file_test("-f", vignettePDFs)
+        vignetteIndex$PDF[ind] <- vignettePDFs[ind]
 
-        ## install tangled versions of Sweave vignettes.  FIXME:  Custom
-        ## engine vignettes should have been included when the package was built,
-        ## but in the interim before they are all built with the new code,
-        ## this is needed for all packages.
-        
+        ## install tangled versions of all vignettes
         for(srcfile in vignetteIndex$File) {
             enc <- getVignetteEncoding(srcfile, TRUE)
             if(enc %in% c("non-ASCII", "unknown")) enc <- encoding
             cat("  ", sQuote(basename(srcfile)),
                 if(nzchar(enc)) paste("using", sQuote(enc)), "\n")
-	    engine <- try(vignetteEngine(vignetteInfo(srcfile)$engine), silent = TRUE)
-	    if (!inherits(engine, "try-error"))
-            	engine[["tangle"]](srcfile, quiet = TRUE, encoding = enc)
-        }
-        Rfiles <- vignette_source(basename(vignetteIndex$File))
+            utils::Stangle(srcfile, quiet = TRUE, encoding = enc)
+       }
+        Rfiles <- sub("\\.[RrSs](nw|tex)$", ".R", basename(vignetteIndex$File))
         ## remove any files with no R code (they will have header comments).
         ## if not correctly declared they might not be in the current encoding
         for(f in Rfiles)
@@ -597,10 +582,11 @@ function(dir, outDir, keep.source = TRUE)
         stop(gettextf("cannot open directory '%s'", outVignetteDir),
              domain = NA)
 
-    vignetteOutfiles <- file.path(outVignetteDir,
-    	vignette_output(basename(vigns$docs)))
-    
-    upToDate <- file_test("-nt", vignetteOutfiles, vigns$docs)
+    vignettePDFs <-
+        file.path(outVignetteDir,
+                  sub("$", ".pdf",
+                      basename(file_path_sans_ext(vigns$docs))))
+    upToDate <- file_test("-nt", vignettePDFs, vigns$docs)
 
     ## The primary use of this function is to build and install PDF
     ## vignettes in base packages.
@@ -616,40 +602,32 @@ function(dir, outDir, keep.source = TRUE)
     on.exit(setwd(cwd))
     setwd(buildDir)
 
-    loadVignetteBuilder(vigns$pkgdir)
-    
-    srcfiles <- vigns$docs[!upToDate]
-    HTMLout <- vignette_is_HTML(srcfiles)
-    for(i in seq_along(srcfiles)) {
-        srcfile <- srcfiles[i]
+    for(srcfile in vigns$docs[!upToDate]) {
         base <- basename(file_path_sans_ext(srcfile))
-        message(gettextf("processing %s", sQuote(basename(srcfile))),
-                domain = NA)
-        engine <- vignetteEngine(vignetteInfo(srcfile)$engine)
-        tryCatch(engine[["weave"]](srcfile, pdf = TRUE, eps = FALSE,
+        message("processing ", sQuote(basename(srcfile)))
+        texfile <- paste0(base, ".tex")
+        tryCatch(utils::Sweave(srcfile, pdf = TRUE, eps = FALSE,
                                quiet = TRUE, keep.source = keep.source,
                                stylepath = FALSE),
                  error = function(e)
-                 stop(gettextf("running %s on vignette '%s' failed with message:\n%s",
-                               engine[["name"]], srcfile, conditionMessage(e)),
+                 stop(gettextf("running Sweave on vignette '%s' failed with message:\n%s",
+                               srcfile, conditionMessage(e)),
                       domain = NA, call. = FALSE))
         ## In case of an error, do not clean up: should we point to
         ## buildDir for possible inspection of results/problems?
         ## We need to ensure that vignetteDir is in TEXINPUTS and BIBINPUTS.
-        outfile <- vignette_output(basename(srcfile))
-        if (!HTMLout[i]) {
-	    ## <FIXME>
-	    ## What if this fails?
-	    texfile <- paste0(base, ".tex")
-	    texi2pdf(texfile, quiet = TRUE, texinputs = vigns$dir)
-	    ## </FIXME>
-	}
-        if(!file.exists(outfile))
-            stop(gettextf("file '%s' was not created", outfile),
+        ## <FIXME>
+        ## What if this fails?
+        texi2pdf(texfile, quiet = TRUE, texinputs = vigns$dir)
+        ## </FIXME>
+        pdffile <-
+	    paste0(basename(file_path_sans_ext(srcfile)), ".pdf")
+        if(!file.exists(pdffile))
+            stop(gettextf("file '%s' was not created", pdffile),
                  domain = NA)
-        if(!file.copy(outfile, outVignetteDir, overwrite = TRUE))
+        if(!file.copy(pdffile, outVignetteDir, overwrite = TRUE))
             stop(gettextf("cannot copy '%s' to '%s'",
-                          outfile,
+                          pdffile,
                           outVignetteDir),
                  domain = NA)
     }
@@ -983,6 +961,12 @@ format.compactPDF <- function(x, ratio = 0.9, diff = 1e4, ...)
     z[large, ] <- lapply(y[large, ], function(x) sprintf("%.1fMb", x/1024^2))
     paste('  compacted', sQuote(basename(row.names(y))),
           'from', z[, 1L], 'to', z[, 2L])
+}
+
+print.compactPDF <- function(x, ...)
+{
+    writeLines(format(x, ...))
+    x
 }
 
 ### * add_datalist

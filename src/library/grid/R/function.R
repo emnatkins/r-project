@@ -19,11 +19,11 @@
 
 validDetails.functiongrob <- function(x, ...) {
     if (x$n < 1)
-        stop("invalid 'n'")
+        stop("Invalid 'n'")
     if (!(is.character(x$range) && x$range %in% c("x", "y")))
         x$range <- as.numeric(x$range)
     if (!is.function(x$f))
-        stop("invalid 'f'")
+        stop("Invalid 'f'")
     x
 }
 
@@ -40,10 +40,9 @@ genXY <- function(x) {
     x$f(input)
 }
 
-makeContent.functiongrob <- function(x) {
+drawDetails.functiongrob <- function(x, ...) {
     xy <- genXY(x)
-    linesGrob(xy$x, xy$y, default.units=x$units,
-              name=x$name, gp=x$gp, vp=x$vp)
+    grid.lines(xy$x, xy$y, default.units=x$units)
 }
 
 xDetails.functiongrob <- function(x, theta) {

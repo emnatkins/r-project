@@ -24,11 +24,11 @@ help.start <-
         if (tools:::httpdPort == 0L) tools::startDynamicHelp()
         if (tools:::httpdPort > 0L) {
             if (update) make.packages.html(temp = TRUE)
-            paste0("http://127.0.0.1:", tools:::httpdPort)
+            paste("http://127.0.0.1:", tools:::httpdPort, sep = "")
         } else stop("help.start() requires the HTTP server to be running",
                     call. = FALSE)
     } else remote
-    url <- paste0(home, "/doc/html/index.html")
+    url <- paste(home, "/doc/html/index.html", sep = "")
     cat(gettextf("If nothing happens, you should open\n%s yourself\n",
                  sQuote(url)))
     browseURL(url, browser = browser)
@@ -47,8 +47,8 @@ browseURL <- function(url, browser = getOption("browser"), encodeIfNeeded=FALSE)
     else {
         if(!is.character(browser) || length(browser) != 1L || !nzchar(browser))
         stop("'browser' must be a non-empty character string")
-        cmd <- paste0('"', browser, '" ',
-                     if(encodeIfNeeded) URLencode(url) else url)
+        cmd <- paste('"', browser, '" ',
+                     if(encodeIfNeeded) URLencode(url) else url, sep="")
         system(cmd, wait=FALSE)
     }
 }

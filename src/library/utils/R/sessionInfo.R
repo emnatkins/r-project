@@ -22,8 +22,9 @@ sessionInfo <- function(package=NULL)
     z$R.version <- R.Version()
     z$platform <- z$R.version$platform
     if(nzchar(.Platform$r_arch))
-        z$platform <- paste(z$platform, .Platform$r_arch, sep = "/")
-    z$platform <- paste0(z$platform, " (", 8*.Machine$sizeof.pointer, "-bit)")
+        z$platform <- paste(z$platform, .Platform$r_arch, sep="/")
+    z$platform <- paste(z$platform, " (", 8*.Machine$sizeof.pointer, "-bit)",
+                        sep = "")
     z$locale <- Sys.getlocale()
 
     if(is.null(package)){
@@ -60,25 +61,25 @@ print.sessionInfo <- function(x, locale=TRUE, ...)
     mkLabel <- function(L, n) {
         vers <- sapply(L[[n]], function(x) x[["Version"]])
         pkg <-  sapply(L[[n]], function(x) x[["Package"]])
-        paste(pkg, vers, sep = "_")
+        paste(pkg, vers, sep="_")
     }
 
-    cat(x$R.version$version.string, "\n", sep = "")
-    cat("Platform: ", x$platform, "\n\n", sep = "")
+    cat(x$R.version$version.string, "\n", sep="")
+    cat("Platform: ", x$platform, "\n\n", sep="")
     if(locale){
         cat("locale:\n")
-	print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE, ...)
+        print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE)
         cat("\n")
     }
     cat("attached base packages:\n")
-    print(x$basePkgs, quote=FALSE, ...)
+    print(x$basePkgs, quote=FALSE)
     if(!is.null(x$otherPkgs)){
         cat("\nother attached packages:\n")
-	print(mkLabel(x, "otherPkgs"), quote=FALSE, ...)
+        print(mkLabel(x, "otherPkgs"), quote=FALSE)
     }
     if(!is.null(x$loadedOnly)){
         cat("\nloaded via a namespace (and not attached):\n")
-	print(mkLabel(x, "loadedOnly"), quote=FALSE, ...)
+        print(mkLabel(x, "loadedOnly"), quote=FALSE)
     }
     invisible(x)
 }
@@ -88,34 +89,35 @@ toLatex.sessionInfo <- function(object, locale=TRUE, ...)
     opkgver <- sapply(object$otherPkgs, function(x) x$Version)
     nspkgver <- sapply(object$loadedOnly, function(x) x$Version)
     z <- c("\\begin{itemize}\\raggedright",
-           paste0("  \\item ", object$R.version$version.string,
-                  ", \\verb|", object$R.version$platform, "|"))
+           paste("  \\item ", object$R.version$version.string,
+                 ", \\verb|", object$R.version$platform, "|", sep=""))
 
     if(locale){
         z <- c(z,
-               paste0("  \\item Locale: \\verb|",
-                      gsub(";","|, \\\\verb|", object$locale) , "|"))
+               paste("  \\item Locale: \\verb|",
+                     gsub(";","|, \\\\verb|", object$locale)
+                     , "|", sep=""))
     }
 
     z <- c(z, strwrap(paste("\\item Base packages: ",
-                         paste(sort(object$basePkgs), collapse = ", ")),
-                      indent = 2, exdent = 4))
+                         paste(sort(object$basePkgs), collapse=", ")),
+                   indent=2, exdent=4))
 
     if(length(opkgver)){
         opkgver <- opkgver[sort(names(opkgver))]
         z <- c(z,
                strwrap(paste("  \\item Other packages: ",
-                             paste(names(opkgver), opkgver, sep = "~",
-                                   collapse = ", ")),
-                       indent = 2, exdent = 4))
+                             paste(names(opkgver), opkgver, sep="~",
+                                   collapse=", ")),
+                       indent=2, exdent=4))
     }
     if(length(nspkgver)){
         nspkgver <- nspkgver[sort(names(nspkgver))]
         z <- c(z,
                strwrap(paste("  \\item Loaded via a namespace (and not attached): ",
-                             paste(names(nspkgver), nspkgver, sep = "~",
-                                   collapse = ", ")),
-                       indent = 2, exdent = 4))
+                             paste(names(nspkgver), nspkgver, sep="~",
+                                   collapse=", ")),
+                       indent=2, exdent=4))
     }
     z <- c(z, "\\end{itemize}")
     class(z) <- "Latex"

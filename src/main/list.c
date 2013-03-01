@@ -30,8 +30,7 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
-#include <Internal.h>
+#include "Defn.h"
 
 /* Utility functions moved to Rinlinedfuns.h */
 
@@ -78,7 +77,7 @@ static void namewalk(SEXP s, NameWalkData *d)
 	}
 	break;
     case EXPRSXP:
-	for(R_xlen_t i = 0 ; i < XLENGTH(s) ; i++)
+	for(int i = 0 ; i < LENGTH(s); i++)
 	    namewalk(VECTOR_ELT(s, i), d);
 	break;
     default:

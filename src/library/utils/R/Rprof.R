@@ -17,16 +17,14 @@
 #  http://www.r-project.org/Licenses/
 
 Rprof <- function(filename = "Rprof.out", append = FALSE, interval =  0.02,
-                  memory.profiling = FALSE, gc.profiling = FALSE,
-                  line.profiling = FALSE, numfiles = 100L, bufsize = 10000L)
+                  memory.profiling = FALSE)
 {
     if(is.null(filename)) filename <- ""
-    invisible(.External(C_Rprof, filename, append, interval, memory.profiling,
-                        gc.profiling, line.profiling, numfiles, bufsize))
+    .Internal(Rprof(filename, append, interval, memory.profiling))
 }
 
 Rprofmem <- function(filename = "Rprofmem.out", append = FALSE, threshold = 0)
 {
     if(is.null(filename)) filename <- ""
-    invisible(.External(C_Rprofmem, filename, append, as.double(threshold)))
+    .Internal(Rprofmem(filename, append, as.double(threshold)))
 }

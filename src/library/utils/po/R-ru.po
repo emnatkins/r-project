@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-02-19 07:12\n"
-"PO-Revision-Date: 2012-03-15 12:09-0500\n"
+"POT-Creation-Date: 2013-01-28 09:13\n"
+"PO-Revision-Date: 2012-09-30 15:21-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -36,8 +36,7 @@ msgstr "для функции %s из пакета %s нет документации"
 msgid "document not found"
 msgstr "документ не найден"
 
-#, fuzzy
-msgid "A search query has been submitted to %s"
+msgid "A search query has been submitted to"
 msgstr "Поисковый запрос должен быть послан в"
 
 msgid "The results page should open in your browser shortly"
@@ -49,8 +48,7 @@ msgstr "ссылка на неизвестный фрагмент %s"
 msgid "no Sweave file with name %s found"
 msgstr "Sweave-файл с именем %s не найден"
 
-#, fuzzy
-msgid "%d Sweave files for basename %s found"
+msgid "%d Sweave files for basename %s found:"
 msgstr "%d Sweave-файлов с базовым именем %s найдено:"
 
 msgid "more than one syntax specification found, using the first one"
@@ -62,8 +60,7 @@ msgstr "у объекта %s нет класса \"SweaveSyntax\""
 msgid "recursive Sweave input %s in stack"
 msgstr "рекурсивный Sweave-ввод %s в стек"
 
-#, fuzzy
-msgid "target syntax not of class %s"
+msgid "target syntax not of class \"SweaveSyntax\""
 msgstr "целевой синтаксис не имеет класса \"SweaveSyntax\""
 
 msgid "target syntax contains no translation table"
@@ -76,16 +73,10 @@ msgstr ""
 "ошибка разбора или пустая опция в\n"
 "%s"
 
-#, fuzzy
-msgid "Warning: unknown option %s"
+msgid "Warning: unknown option"
 msgstr "Предупреждение: неизвестная опция"
 
-#, fuzzy
-msgid "Created PDF document %s"
-msgstr "Созданный документ PDF"
-
-#, fuzzy
-msgid "Compacting PDF document"
+msgid "Created PDF document"
 msgstr "Созданный документ PDF"
 
 msgid "path to %s contains spaces,"
@@ -109,8 +100,10 @@ msgstr "значение опции 'strip.white' должно быть в нижнем регистре"
 msgid "elements of 'what' after the first will be ignored"
 msgstr "элементы 'what' после первого будут пропущены"
 
-#, fuzzy
-msgid "No suitable spell-checker program found"
+msgid "%d occurrences in %s"
+msgstr "%d вхождений в %s"
+
+msgid "No suitable spell check program found."
 msgstr "Не найдено подходящей программы проверки грамматики."
 
 msgid "Filter '%s' is not available."
@@ -118,11 +111,6 @@ msgstr "Фильтр '%s' недоступен."
 
 msgid "Invalid 'filter' argument."
 msgstr "Неправильный аргумент 'filter'"
-
-msgid ""
-"The following dictionaries were not found:\n"
-"%s"
-msgstr ""
 
 msgid "Processing file %s"
 msgstr "Обрабатываю файл %s"
@@ -134,9 +122,6 @@ msgstr ""
 "Запуск aspell не удался с причиной:\n"
 "%s"
 
-msgid "No suitable spell check program found."
-msgstr "Не найдено подходящей программы проверки грамматики."
-
 msgid ""
 "Use <code> %s </code> \n"
 " to list the vignettes in all <strong>available</strong> packages."
@@ -144,12 +129,13 @@ msgstr ""
 "Использую <code> %s </code> \n"
 " для перечисления миниатюр во всех <strong>доступных</strong> пакетах."
 
-#, fuzzy
-msgid "No vignettes found by %s"
+msgid "No vignettes found by"
 msgstr "Не найдено миниатюр в"
 
-#, fuzzy
-msgid "Package %s: DESCRIPTION file not found"
+msgid "call"
+msgstr "вызов"
+
+msgid "Package %s: DESCRIPTION not found"
 msgstr "Пакет %s: DESCRIPTION не найдено"
 
 msgid "'file' must be NULL, a character string or a connection"
@@ -163,6 +149,9 @@ msgid ""
 "%s"
 msgstr "Не все аргументы имеют одну длину, следующие надо зациклить: %s"
 
+msgid ","
+msgstr ","
+
 msgid "Use either %s or %s/%s but not both."
 msgstr "Используйте либо %s, либо %s/%s, но не оба сразу."
 
@@ -172,16 +161,20 @@ msgstr "Рекомендуется использовать %s вместо %s."
 msgid "Use either %s or %s but not both."
 msgstr "Используйте либо %s, либо %s, но не оба сразу."
 
+msgid "Invalid role specification(s): %s."
+msgstr "Неправильное указание роли: %s"
+
 msgid "It is recommended to use %s/%s instead of %s/%s/%s."
 msgstr "Рекомендуется использовать %s/%s вместо %s/%s/%s."
 
-#, fuzzy
-msgid "method is only applicable to %s objects"
+msgid "method is just applicable to %s objects"
 msgstr "метод не подходит для объектов %s"
 
-#, fuzzy
-msgid "all arguments must be of class %s"
+msgid "all arguments must be of class \"person\""
 msgstr "все аргументы должны быть класса \"person\""
+
+msgid "at least one field has to be specified"
+msgstr "по крайней мере одно поле надо определить"
 
 msgid "all fields have to be named"
 msgstr "все поля надо поименовать"
@@ -189,19 +182,15 @@ msgstr "все поля надо поименовать"
 msgid "%s has to be one of %s"
 msgstr "%s должен быть одним из %s"
 
-msgid "subscript out of bounds"
+msgid "A bibentry of bibtype %s has to correctly specify the field(s): %s"
 msgstr ""
+"Библиографическая запись типа %s имеет неправильно определенные пол(я): %s"
 
 msgid "%s should be one of %s"
 msgstr "%s должен быть одним из %s"
 
-msgid "A BibTeX entry for LaTeX users is"
-msgstr ""
-
-msgid ""
-"Dropping invalid entry %d:\n"
-"%s"
-msgstr ""
+msgid "A bibentry of bibtype %s has to specify the field(s): %s"
+msgstr "Библиографическая запись типа %s должна определять пол(я): %s"
 
 msgid "package %s not found"
 msgstr "пакет %s не найден"
@@ -215,19 +204,16 @@ msgstr "в файле DESCRIPTION пакета %s нет поля date"
 msgid "could not determine year for %s from package DESCRIPTION file"
 msgstr "не могу определить год для %s из файла DESCRIPTION пакета"
 
-msgid "To cite package %s in publications use:"
-msgstr ""
+msgid "m < 0"
+msgstr "m < 0"
 
-msgid ""
-"ATTENTION: This citation information has been auto-generated from the "
-"package DESCRIPTION file and may need manual editing, see %s."
-msgstr ""
+msgid "n < m"
+msgstr "n < m"
 
 msgid "'FUN' must be a function or NULL"
 msgstr "'FUN' должен быть функцией или NULL"
 
-#, fuzzy
-msgid "cannot handle S4 methods yet"
+msgid "Can't handle S4 methods yet"
 msgstr "Пока не могу работать с методами S4"
 
 msgid "'package' must be a character string or NULL"
@@ -263,11 +249,14 @@ msgstr "неправильный аргумент для 'dataentry'"
 msgid "could not restore type information"
 msgstr "не могу восстановить информацию о типе"
 
-msgid "'modes' argument ignored"
+msgid "modes argument ignored"
 msgstr "аргумент 'modes' пропущен"
 
 msgid "'names' argument ignored"
 msgstr "аргумент 'names' пропущен"
+
+msgid "'modes' argument ignored"
+msgstr "аргумент 'modes' пропущен"
 
 msgid "could not restore variables properly"
 msgstr "не могу полностью восстановить переменные"
@@ -278,8 +267,7 @@ msgstr "не могу ничего assign()"
 msgid "Browsing in the environment with call:"
 msgstr "Просмотр окружения с вызовом:"
 
-#, fuzzy
-msgid "'dump' is not an object of class %s"
+msgid "'dump' is not an object of class 'dump.frames'"
 msgstr "'dump' не является объектом класса 'dump.frames'"
 
 msgid "Message:"
@@ -333,8 +321,7 @@ msgstr "отредактированные имена строк имеют дубли и будут пропущены"
 msgid "invalid input matrix"
 msgstr "неправильная вводная матрица"
 
-#, fuzzy
-msgid "class of 'name' will be discarded"
+msgid "class(es) of 'name' will be discarded"
 msgstr "класс(ы) у \"name' будут пропущены"
 
 msgid "cannot edit NULL row names"
@@ -355,9 +342,11 @@ msgstr "Пропущен номер строки"
 msgid "'fix' requires a name"
 msgstr "для 'fix' нужно имя"
 
-#, fuzzy
-msgid "too many list items (at most up to %d)"
+msgid "too many list items (at most up to number 26)"
 msgstr "слишком много элементов в списке (самое большее 26)"
+
+msgid "too many list items (at most up to number 3899)"
+msgstr "слишком много элементов в списке (самое большее 3899)"
 
 msgid "no vector columns were selected"
 msgstr "нет выбранных векторных колонок"
@@ -388,6 +377,9 @@ msgstr "В указанных пакетах и библиотеках нет документации для %s:"
 
 msgid "you could try %s"
 msgstr "можете попробовать %s"
+
+msgid "??"
+msgstr "??"
 
 msgid ""
 "Help for topic %s is not in any loaded package but can be found in the "
@@ -430,8 +422,7 @@ msgstr ""
 msgid "creation of %s failed"
 msgstr "создание %s не удалось"
 
-#, fuzzy
-msgid "Saving help page to %s"
+msgid "Saving help page to"
 msgstr "Сохраняю страницу помощи в"
 
 msgid "argument %s must be a single character string"
@@ -449,20 +440,50 @@ msgstr "неправильное указание типа"
 msgid "argument 'help.db' is deprecated"
 msgstr "аргумент 'help.db' устарел"
 
+msgid "Rebuilding the help.search() database"
+msgstr "Перестройка базы данных help.search() "
+
+msgid "..."
+msgstr "..."
+
+msgid "Packages {readRDS() sequentially}:"
+msgstr "Пакеты {readRDS() последовательно}:"
+
+msgid "."
+msgstr "."
+
 msgid "could not find package %s"
 msgstr "не могу найти пакет %s"
 
 msgid "package %s has empty hsearch data - strangely"
 msgstr "пакет %s странным образом имеет пустые данные hsearch"
 
+msgid "no hsearch.rds meta data for package"
+msgstr "нет метаданных hsearch.rds к пакету"
+
+msgid "reencoding ..."
+msgstr "перекодировка..."
+
+msgid "done"
+msgstr "готово"
+
 msgid "removing all entries with invalid multi-byte character data"
 msgstr "удаляю все вхождения с неправильными многобайтными данными"
+
+msgid "saving the database ..."
+msgstr "Сохраняю базу данных..."
+
+msgid "... database rebuilt"
+msgstr "... база данных перестроена"
 
 msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
 msgstr "в базе данных нет информации о пакете %s: надо 'rebuild = TRUE'?"
 
 msgid "incorrect 'agrep' specification"
 msgstr "неправильное указание 'agrep'"
+
+msgid "matched %d objects."
+msgstr "соответствует %d объект(ам)."
 
 msgid "invalid browser name, check options(\"browser\")."
 msgstr "неправильное имя броузера, проверьте options(\"browser\")."
@@ -509,11 +530,17 @@ msgstr "у файла 'DESCRIPTION' есть поле 'Encoding' и перекодировка невозможна"
 msgid "DESCRIPTION file of package '%s' is missing or broken"
 msgstr "файл DESCRIPTION пакета '%s' пропущен или поврежден"
 
+msgid "package"
+msgstr "пакет"
+
+msgid "not found"
+msgstr "не найден"
+
 msgid "cannot update HTML package index"
 msgstr "не могу обновить HTML-индекс пакетов"
 
-msgid "done"
-msgstr "готово"
+msgid "Making packages.html  ..."
+msgstr "Делаю packages.html ..."
 
 msgid "menu() cannot be used non-interactively"
 msgstr "menu() нельзя использовать неинтерактивно"
@@ -576,10 +603,9 @@ msgstr "R-объекты не указаны или недоступны"
 msgid "directory '%s' already exists"
 msgstr "папка '%s' уже есть"
 
-#, fuzzy
 msgid ""
-"generic functions and other S4 objects (e.g., '%s') cannot be dumped; use "
-"the 'code_files' argument"
+"Generic functions and other S4 objects (e.g., '%s') cannot be dumped; use "
+"the code_files= argument"
 msgstr ""
 "Общие функции и другие объекты S4 (например, '%s') не могут быть сброшены; "
 "используйте аргумент code_files="
@@ -587,13 +613,11 @@ msgstr ""
 msgid "unable to access index for repository %s"
 msgstr "недоступен индекс для хранилища %s"
 
-#, fuzzy
-msgid "invalid 'filters' argument."
+msgid "Invalid 'filters' argument."
 msgstr "Неправильные аргументы 'filter'"
 
-#, fuzzy
 msgid "package '%s' in library '%s' will not be updated"
-msgstr "пакет '%s' сейчас используется и не будет установлен"
+msgstr "пакет '%s' в библиотеке '%s' не будет обновлен"
 
 msgid ""
 "invalid 'oldPkgs'; must be a character vector or a result from old.packages()"
@@ -601,8 +625,7 @@ msgstr ""
 "неверное значение oldPkgs; должна быть текстовая строка или результат old."
 "packages()"
 
-#, fuzzy
-msgid "ill-formed 'instPkgs' matrix"
+msgid "illformed 'instPkgs' matrix"
 msgstr "Неверная матрица 'instPkgs'"
 
 msgid "no installed packages for (invalid?) 'lib.loc=%s'"
@@ -619,6 +642,13 @@ msgstr "'priority' должен быть текстом или NULL"
 
 msgid "Updating HTML index of packages in '.Library'"
 msgstr "Обновляю HTML-список пакетов в '.Library'"
+
+msgid ""
+"Removing package(s) from %s\n"
+"(as %s is unspecified)"
+msgstr ""
+"Удаляю пакет(ы) из %s\n"
+"(потому что %s не определено)"
 
 msgid "'destdir' is not a directory"
 msgstr "'destdir' не является папкой"
@@ -670,14 +700,20 @@ msgstr ""
 msgid "no packages were specified"
 msgstr "не указаны пакеты"
 
+msgid ""
+"Installing package(s) into %s\n"
+"(as %s is unspecified)"
+msgstr ""
+"Устанавливаю пакеты в %s\n"
+"(потому что %s не определено)"
+
 msgid "'lib = \"%s\"' is not writable"
 msgstr "'lib = \"%s\"' не для записи"
 
 msgid "unable to install packages"
 msgstr "не могу установить пакеты"
 
-#, fuzzy
-msgid "unable to create %s"
+msgid "unable to create"
 msgstr "не удалось создать"
 
 msgid "inferring 'repos = NULL' from the file name"
@@ -697,8 +733,15 @@ msgstr ""
 msgid "type == \"both\" cannot be used with 'repos = NULL'"
 msgstr "type == \"both\" нельзя использовать вместе с 'repos = NULL'"
 
-msgid "Do you want to attempt to install these from sources?"
+msgid ""
+"Do you want to attempt to install from sources the package(s) which need "
+"compilation?"
 msgstr ""
+"Вы хотите попытаться установить из исходников пакет(ы), которые требуют "
+"компиляции?"
+
+msgid "Do you want to attempt to install these from sources?"
+msgstr "Вы хотите попытаться установить их из исходников?"
 
 msgid "source repository is unavailable to check versions"
 msgstr ""
@@ -719,20 +762,11 @@ msgstr ""
 "Эта версия R не подготовлена для инсталляции пакетов из исходников\n"
 "Если она была поставлена из RPM, Вам, возможно, потребуется R-devel RPM"
 
-msgid "system (cmd0): %s"
-msgstr ""
-
 msgid "installation of package %s had non-zero exit status"
 msgstr "установка пакета %s имеет ненулевой статус выхода"
 
 msgid "unable to create temporary directory %s"
 msgstr "не могу создать временную директорию %s"
-
-msgid "foundpkgs: %s"
-msgstr ""
-
-msgid "files: %s"
-msgstr ""
 
 msgid ""
 "installation of one of more packages failed,\n"
@@ -752,6 +786,8 @@ msgid ""
 "The namespace for package \"%s\" is locked; no changes in the global "
 "variables list may be made."
 msgstr ""
+"Пространство имен пакета \"%s\" блокировано; изменить глобальные переменные "
+"нельзя."
 
 msgid "no object named '%s' to show"
 msgstr "нет объекта с именем '%s' для показа"
@@ -759,12 +795,10 @@ msgstr "нет объекта с именем '%s' для показа"
 msgid "'file' must be \"\" or an open connection object"
 msgstr "'file' должен быть \"\" или открытым соединением"
 
-#, fuzzy
-msgid "must have 'max' > 'min'"
+msgid "must have max > min"
 msgstr "должен быть max > min"
 
-#, fuzzy
-msgid "'pb' is not from class %s"
+msgid "'pb' is not from class \"txtProgressBar\""
 msgstr "'pb' не из класса \"txtProgressBar\""
 
 msgid "cannot determine a usable name"
@@ -868,11 +902,16 @@ msgstr "в некоторых полях пропущены длины"
 msgid "invalid format"
 msgstr "неправильный формат"
 
+msgid "last record incomplete, %d lines discarded"
+msgstr "последняя запись неполная, %d строк не обработано"
+
 msgid "transfer failure"
 msgstr "передача не удалась"
 
-#, fuzzy
-msgid "%s option must be a length one character vector or NULL"
+msgid "HTTPUserAgent"
+msgstr "HTTPUserAgent"
+
+msgid "option must be a length one character vector or NULL"
 msgstr "'option' должна быть длиной с один текстовый вектор или NULL"
 
 msgid "'file' must be a character string or connection"
@@ -887,8 +926,7 @@ msgstr "первые пять строк пусты: завязываю с этим"
 msgid "relist() requires recursively unlisted objects."
 msgstr "relist() требует объектов, преобразованных из списка рекурсивно."
 
-#, fuzzy
-msgid "The 'flesh' argument does not contain a skeleton attribute."
+msgid "The flesh argument does not contain a skeleton attribute."
 msgstr "Аргумент 'flesh' не содержит атрибута 'skeleton'."
 
 msgid ""
@@ -900,6 +938,15 @@ msgstr ""
 
 msgid "cannot coerce 'x' to roman"
 msgstr "не могу перевести 'x' в римскую"
+
+msgid "Invalid roman numeral(s): %s"
+msgstr "Неправильные римские номер(а): %s"
+
+msgid "length mismatch: bug in code!"
+msgstr "несовпадение длин: ошибка в коде!"
+
+msgid "Processing file"
+msgstr "Обрабатываю файл"
 
 msgid "no valid packages were specified"
 msgstr "правильные пакеты не указаны"
@@ -922,20 +969,17 @@ msgstr "сокет не создан"
 msgid "str.data.frame() called with non-data.frame -- coercing to one."
 msgstr "str.data.frame() вызвана с не-data.frame -- соединяю в одно."
 
-#, fuzzy
-msgid "invalid options(\"str\") -- using defaults instead"
+msgid "invalid options('str') -- using defaults instead"
 msgstr "неправильная options('str') -- использую вместо нее умолчания"
 
-#, fuzzy
-msgid "invalid components in options(\"str\"): %s"
+msgid "invalid components in options('str'):"
 msgstr "неправильные компоненты в options('str'):"
-
-#, fuzzy
-msgid "'str.default': 'le' is NA, so taken as 0"
-msgstr "'str.default': 'le' -- это NA"
 
 msgid "'object' does not have valid levels()"
 msgstr "'object' не имеет правильных levels()"
+
+msgid "'str.default': 'le' is NA"
+msgstr "'str.default': 'le' -- это NA"
 
 msgid "'digits' and 'digits.d' are both specified and the latter is not used"
 msgstr "определены и 'digits', и 'digits.d', последняя не используется"
@@ -944,10 +988,6 @@ msgid "no lines found in %s"
 msgstr "в '%s' нет строк"
 
 msgid "profile does not contain memory information"
-msgstr "профиль не содержит информации о памяти"
-
-#, fuzzy
-msgid "profile does not contain line information"
 msgstr "профиль не содержит информации о памяти"
 
 msgid "no events were recorded"
@@ -986,7 +1026,10 @@ msgstr "неподдерживаемый тип записи"
 msgid "file '%s' not found"
 msgstr "файл '%s' не найден"
 
-msgid "file size is limited to 8GB"
+msgid "file path is too long"
+msgstr "путь к файлу слишком длинный"
+
+msgid "file size is limited to 2GB"
 msgstr ""
 
 msgid ""
@@ -1026,8 +1069,7 @@ msgstr "неправильные номера в 'quote'"
 msgid "invalid 'quote' specification"
 msgstr "неправильное указание 'quote'"
 
-#, fuzzy
-msgid "'col.names = NA' makes no sense when 'row.names = FALSE'"
+msgid "col.names = NA makes no sense when row.names = FALSE"
 msgstr "col.names = NA не имеет смысла если row.names = FALSE"
 
 msgid "invalid 'col.names' specification"
@@ -1075,19 +1117,22 @@ msgid "'tar' returned non-zero exit code %d"
 msgstr "'tar' вернул ненулевой код выхода %d"
 
 msgid "file %s is not an OS X binary package"
-msgstr ""
+msgstr "файл %s -- не бинарный пакет OS X"
 
 msgid "package %s successfully unpacked and MD5 sums checked"
 msgstr "пакет %s успешно распакован, MD5-суммы проверены"
 
-#, fuzzy
-msgid ""
-"ERROR: failed to lock directory %s for modifying\n"
-"Try removing %s"
+msgid "ERROR: failed to lock directory"
 msgstr "ОШИБКА: невозможно заблокировать каталог"
 
-#, fuzzy
-msgid "ERROR: failed to create lock directory %s"
+msgid ""
+"for modifying\n"
+"Try removing"
+msgstr ""
+"для модификации\n"
+"Попробуйте удалить"
+
+msgid "ERROR: failed to create lock directory"
 msgstr "ОШИБКА: не могу создать каталог для блокировок"
 
 msgid "restored %s"
@@ -1096,8 +1141,8 @@ msgstr "восстановлен %s"
 msgid "unable to move temporary installation %s to %s"
 msgstr "не могу перенести временную установку из %s в %s"
 
-msgid "cannot remove prior installation of package %s"
-msgstr "не могу удалить прежнюю установку пакета %s"
+msgid "cannot remove prior installation of package"
+msgstr "не могу удалить прежнюю установку пакета"
 
 msgid ""
 "The downloaded binary packages are in\n"
@@ -1122,8 +1167,7 @@ msgstr ""
 "Если ничего не произойдет, надо открыть\n"
 "%s самостоятельно"
 
-#, fuzzy
-msgid "zip file %s not found"
+msgid "zipfile %s not found"
 msgstr "zip-файл %s не найден"
 
 msgid "failed to create %s"
@@ -1132,32 +1176,17 @@ msgstr "не удалось создать %s"
 msgid "there is no 'libs' directory in package %s"
 msgstr "нет директории 'libs' в пакете %s"
 
+msgid "cannot remove prior installation of package %s"
+msgstr "не могу удалить прежнюю установку пакета %s"
+
 msgid "winDialog() cannot be used non-interactively"
 msgstr "winDialog() нельзя использовать неинтерактивно"
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString() нельзя использовать неинтерактивно"
 
-#, fuzzy
-msgid "%d occurrence in %s"
-msgid_plural "%d occurrences in %s"
-msgstr[0] "%d вхождений в %s"
-msgstr[1] "%d вхождений в %s"
-msgstr[2] "%d вхождений в %s"
-
-#, fuzzy
-msgid "Invalid role specification: %s."
-msgid_plural "Invalid role specifications: %s."
-msgstr[0] "Неправильное указание роли: %s"
-msgstr[1] "Неправильное указание роли: %s"
-msgstr[2] "Неправильное указание роли: %s"
-
-#, fuzzy
-msgid "A bibentry of bibtype %s has to specify the field: %s"
-msgid_plural "A bibentry of bibtype %s has to specify the fields: %s"
-msgstr[0] "Библиографическая запись типа %s должна определять пол(я): %s"
-msgstr[1] "Библиографическая запись типа %s должна определять пол(я): %s"
-msgstr[2] "Библиографическая запись типа %s должна определять пол(я): %s"
+msgid "'pb' is not from class \"winProgressBar\""
+msgstr "'pb' не из класса \"winProgressBar\""
 
 msgid "class discarded from column %s"
 msgid_plural "classes discarded from columns %s"
@@ -1165,35 +1194,11 @@ msgstr[0] "класс удален из колонки %s"
 msgstr[1] "классы удалены из колонок %s"
 msgstr[2] "классы удалены из колонок %s"
 
-#, fuzzy
-msgid "matched %d object."
-msgid_plural "matched %d objects."
-msgstr[0] "соответствует %d объект(ам)."
-msgstr[1] "соответствует %d объект(ам)."
-msgstr[2] "соответствует %d объект(ам)."
-
 msgid "object '%s' not found"
 msgid_plural "objects '%s' not found"
 msgstr[0] "объект '%s' не найден"
 msgstr[1] "объекты '%s' не найдены"
 msgstr[2] "объекты '%s' не найдены"
-
-#, fuzzy
-msgid ""
-"Removing package from %s\n"
-"(as %s is unspecified)"
-msgid_plural ""
-"Removing packages from %s\n"
-"(as %s is unspecified)"
-msgstr[0] ""
-"Удаляю пакет(ы) из %s\n"
-"(потому что %s не определено)"
-msgstr[1] ""
-"Удаляю пакет(ы) из %s\n"
-"(потому что %s не определено)"
-msgstr[2] ""
-"Удаляю пакет(ы) из %s\n"
-"(потому что %s не определено)"
 
 msgid "package %s is not available (for %s)"
 msgid_plural "packages %s are not available (for %s)"
@@ -1207,29 +1212,11 @@ msgstr[0] "зависимость '%s' недоступна"
 msgstr[1] "зависимости '%s' недоступны"
 msgstr[2] "зависимости '%s' недоступны"
 
-#, fuzzy
 msgid "also installing the dependency %s"
 msgid_plural "also installing the dependencies %s"
-msgstr[0] "устанавливаю также зависимость"
-msgstr[1] "устанавливаю также зависимости"
-msgstr[2] "устанавливаю также зависимости"
-
-#, fuzzy
-msgid ""
-"Installing package into %s\n"
-"(as %s is unspecified)"
-msgid_plural ""
-"Installing packages into %s\n"
-"(as %s is unspecified)"
-msgstr[0] ""
-"Устанавливаю пакеты в %s\n"
-"(потому что %s не определено)"
-msgstr[1] ""
-"Устанавливаю пакеты в %s\n"
-"(потому что %s не определено)"
-msgstr[2] ""
-"Устанавливаю пакеты в %s\n"
-"(потому что %s не определено)"
+msgstr[0] "устанавливаю также зависимость %s"
+msgstr[1] "устанавливаю также зависимости %s"
+msgstr[2] "устанавливаю также зависимости %s"
 
 msgid "'lib' element %s is not a writable directory"
 msgid_plural "'lib' elements %s are not writable directories"
@@ -1240,26 +1227,9 @@ msgstr[2] "'lib' элементы '%s' -- папки не для записи"
 msgid "There is a binary version available but the source version is later"
 msgid_plural ""
 "There are binary versions available but the source versions are later"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
-msgid "Do you want to install from sources the package which need compilation?"
-msgid_plural ""
-"Do you want to install from sources the packages which need compilation?"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
-msgid ""
-"Package which are only available in source form, and may need compilation of "
-"C/C++/Fortran"
-msgid_plural ""
-"Packages which are only available in source form, and may need compilation "
-"of C/C++/Fortran"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Доступна скомпилированная версия, но исходники -- более свежие"
+msgstr[1] "Доступна скомпилированные версии, но исходники -- более свежие"
+msgstr[2] "Доступна скомпилированные версии, но исходники -- более свежие"
 
 msgid "installing the source package %s"
 msgid_plural "installing the source packages %s"
@@ -1269,9 +1239,9 @@ msgstr[2] "устанавливаю пакеты %s из исходников"
 
 msgid "package %s is available as a source package but not as a binary"
 msgid_plural "packages %s are available as source packages but not as binaries"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "пакет %s доступен в виде исходников, но не в скомпилированном виде"
+msgstr[1] "пакеты %s доступны в виде исходников, но не в скомпилированном виде"
+msgstr[2] "пакеты %s доступны в виде исходников, но не в скомпилированном виде"
 
 msgid ""
 "There is a binary version available (and will be installed) but the source "
@@ -1280,22 +1250,14 @@ msgid_plural ""
 "There are binary versions available (and will be installed) but the source "
 "versions are later"
 msgstr[0] ""
+"Доступна скомпилированная версия (и она будет установлена), но исходники -- "
+"более свежие"
 msgstr[1] ""
+"Доступна скомпилированные версии (и они будут установлены), но исходники -- "
+"более свежие"
 msgstr[2] ""
-
-#, fuzzy
-msgid "last record incomplete, %d line discarded"
-msgid_plural "last record incomplete, %d lines discarded"
-msgstr[0] "последняя запись неполная, %d строк не обработано"
-msgstr[1] "последняя запись неполная, %d строк не обработано"
-msgstr[2] "последняя запись неполная, %d строк не обработано"
-
-#, fuzzy
-msgid "invalid roman numeral: %s"
-msgid_plural "invalid roman numerals: %s"
-msgstr[0] "Неправильные римские номер(а): %s"
-msgstr[1] "Неправильные римские номер(а): %s"
-msgstr[2] "Неправильные римские номер(а): %s"
+"Доступна скомпилированные версии (и они будут установлены), но исходники -- "
+"более свежие"
 
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
@@ -1303,98 +1265,8 @@ msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
 msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
 msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
 
-#~ msgid "file path is too long"
-#~ msgstr "путь к файлу слишком длинный"
-
 #~ msgid "linked path is too long"
 #~ msgstr "путь ссылки слишком длинный"
-
-#~ msgid "at least one field has to be specified"
-#~ msgstr "по крайней мере одно поле надо определить"
-
-#, fuzzy
-#~ msgid "classes of 'name' will be discarded"
-#~ msgstr "класс(ы) у \"name' будут пропущены"
-
-#~ msgid "m < 0"
-#~ msgstr "m < 0"
-
-#~ msgid "n < m"
-#~ msgstr "n < m"
-
-#~ msgid "modes argument ignored"
-#~ msgstr "аргумент 'modes' пропущен"
-
-#~ msgid "too many list items (at most up to number 3899)"
-#~ msgstr "слишком много элементов в списке (самое большее 3899)"
-
-#~ msgid "Packages {readRDS() sequentially}:"
-#~ msgstr "Пакеты {readRDS() последовательно}:"
-
-#~ msgid "."
-#~ msgstr "."
-
-#~ msgid "reencoding ..."
-#~ msgstr "перекодировка..."
-
-#~ msgid "saving the database ..."
-#~ msgstr "Сохраняю базу данных..."
-
-#~ msgid "... database rebuilt"
-#~ msgstr "... база данных перестроена"
-
-#~ msgid "Making packages.html  ..."
-#~ msgstr "Делаю packages.html ..."
-
-#~ msgid "length mismatch: bug in code!"
-#~ msgstr "несовпадение длин: ошибка в коде!"
-
-#~ msgid "??"
-#~ msgstr "??"
-
-#~ msgid "call"
-#~ msgstr "вызов"
-
-#~ msgid "Rebuilding the help.search() database"
-#~ msgstr "Перестройка базы данных help.search() "
-
-#~ msgid "..."
-#~ msgstr "..."
-
-#~ msgid "no hsearch.rds meta data for package"
-#~ msgstr "нет метаданных hsearch.rds к пакету"
-
-#~ msgid "package"
-#~ msgstr "пакет"
-
-#~ msgid "not found"
-#~ msgstr "не найден"
-
-#~ msgid ","
-#~ msgstr ","
-
-#~ msgid "HTTPUserAgent"
-#~ msgstr "HTTPUserAgent"
-
-#~ msgid "Processing file"
-#~ msgstr "Обрабатываю файл"
-
-#~ msgid ""
-#~ "for modifying\n"
-#~ "Try removing"
-#~ msgstr ""
-#~ "для модификации\n"
-#~ "Попробуйте удалить"
-
-#~ msgid "cannot remove prior installation of package"
-#~ msgstr "не могу удалить прежнюю установку пакета"
-
-#~ msgid "A bibentry of bibtype %s has to correctly specify the field(s): %s"
-#~ msgstr ""
-#~ "Библиографическая запись типа %s имеет неправильно определенные пол(я): %s"
-
-#~ msgid "'pb' is not from class \"winProgressBar\""
-#~ msgstr "'pb' не из класса \"winProgressBar\""
 
 #~ msgid "cannot turn off locale-specific chars via LC_CTYPE"
 #~ msgstr "не могу выключить специфичные для локали символы через LC_CTYPE"

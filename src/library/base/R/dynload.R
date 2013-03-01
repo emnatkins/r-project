@@ -46,19 +46,16 @@ getNativeSymbolInfo <- function(name, PACKAGE, unlist = TRUE,
     } else if(inherits(PACKAGE, "DLLInfoReference")) {
         pkgName <- character()
     } else
-        stop(gettextf("must pass a package name, %s or %s object",
-                      dQuote("DLLInfo"),
-                      dQuote("DllInfoReference")),
-             domain = NA)
+        stop("must pass a package name, DLLInfo or DllInfoReference object")
 
     syms <- lapply(name, function(id) {
-	v <- .Internal(getSymbolInfo(as.character(id), PACKAGE,
-                                     as.logical(withRegistrationInfo)))
+	v <- .Call("R_getSymbolInfo", as.character(id), PACKAGE,
+		   as.logical(withRegistrationInfo), PACKAGE = "base")
 	if(is.null(v)) {
 	    msg <- paste("no such symbol", id)
 	    if(length(pkgName) && nzchar(pkgName))
 		msg <- paste(msg, "in package", pkgName)
-	    stop(msg, domain = NA)
+	    stop(msg)
 	}
 	names(v) <- c("name", "address", "package", "numParameters")[seq_along(v)]
 	v
@@ -72,7 +69,12 @@ getNativeSymbolInfo <- function(name, PACKAGE, unlist = TRUE,
    syms
 }
 
-getLoadedDLLs <- function() .Internal(getLoadedDLLs())
+getLoadedDLLs <- function()
+{
+    els <- .Call("R_getDllTable", PACKAGE = "base")
+    names(els) <- vapply(els, function(x) x[["name"]], "")
+    els
+}
 
 
 getDLLRegisteredRoutines <- function(dll, addNames = TRUE)
@@ -85,8 +87,7 @@ getDLLRegisteredRoutines.character <- function(dll, addNames = TRUE)
     w <- vapply(dlls, function(x) x[["name"]] == dll || x[["path"]] == dll, NA)
 
     if(!any(w))
-        stop(gettextf("No DLL currently loaded with name or path %s", sQuote(dll)),
-             domain = NA)
+        stop("No DLL currently loaded with name or path ", dll)
 
     dll <- which(w)[1L]
     if(sum(w) > 1L)
@@ -101,12 +102,10 @@ getDLLRegisteredRoutines.DLLInfo <- function(dll, addNames = TRUE)
 {
     ## Provide methods for the different types.
     if(!inherits(dll, "DLLInfo"))
-        stop(gettextf("must specify DLL via a %s object. See getLoadedDLLs()",
-                      dQuote("DLLInfo")),
-             domain = NA)
+        stop("must specify DLL via a DLLInfo object. See getLoadedDLLs()")
 
     info <- dll[["info"]]
-    els <- .Internal(getRegisteredRoutines(info))
+    els <- .Call("R_getRegisteredRoutines", info, PACKAGE = "base")
     ## Put names on the elements by getting the names from each element.
     if(addNames) {
       els <- lapply(els, function(x) {

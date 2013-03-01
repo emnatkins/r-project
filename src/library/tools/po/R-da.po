@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 3.0.0\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-02-19 07:12\n"
+"POT-Creation-Date: 2013-01-28 09:13\n"
 "PO-Revision-Date: 2012-01-07 22:11+0200\n"
 "Last-Translator: Joe <joedalton2@yahoo.dk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,14 +49,12 @@ msgstr "mappe »%s« indeholder ikke R-kode"
 msgid "directory '%s' does not contain Rd objects"
 msgstr "mappe »%s« indeholder ikke Rd-objekter"
 
-#, fuzzy
 msgid ""
-"Functions or methods with usage in documentation object '%s' but not in code:"
+"Functions/methods with usage in documentation object '%s' but not in code:"
 msgstr ""
 "Funktioner/metoder med brug i dokumentationsobjekt »%s« men ikke i kode:"
 
-#, fuzzy
-msgid "Data with usage in documentation object '%s' but not in code:"
+msgid "Data sets with usage in documentation object '%s' but not in code:"
 msgstr "Datasæts med brug i dokumentationsobjekt »%s« men ikke i kode:"
 
 msgid "Argument names in code not in docs:"
@@ -92,11 +90,20 @@ msgstr "Forskellige S4-klassecodoc fra dokumentationsobjekt »%s«:"
 msgid "Slots for class '%s'"
 msgstr "Pladser for klasse »%s«"
 
+msgid "name"
+msgstr "navn"
+
 msgid "Data codoc mismatches from documentation object '%s':"
 msgstr "Forskellige datacodoc fra dokumentationsobjekt »%s«:"
 
 msgid "Variables in data frame '%s'"
 msgstr "Variabler i dataramme »%s«"
+
+msgid "code"
+msgstr "kode"
+
+msgid "docs"
+msgstr "dokumenter"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "Ikke dokumenterede argumenter i dokumentationsobjekt »%s«"
@@ -155,16 +162,24 @@ msgstr ""
 "pakkenavn »%s« ser ud til at være ugyldigt; bruger mappenavn »%s« i stedet "
 "for"
 
-#, fuzzy
 msgid ""
-"Vignette dependencies (%s entries) must be contained in the DESCRIPTION "
-"Depends/Suggests/Imports entries."
+"Vignette dependencies (\\VignetteDepends{} entries) must be contained in the "
+"DESCRIPTION Depends/Suggests/Imports entries."
 msgstr ""
 "Vignette afhængigheder (\\VignetteDepends{}-punkter) skal være indeholdt i "
 "BESKRIVELSE Afhænger/Foreslår/Importer-punkterne."
 
 msgid "Malformed package name"
 msgstr "Forkert udformet pakkenavn"
+
+msgid "Invalid package name."
+msgstr "Ugyldigt pakkenavn."
+
+msgid "This is the name of a base package."
+msgstr "Dette er navnet på en basispakke."
+
+msgid "This name was used for a base package and is remapped by library()."
+msgstr "Dette navn blev brugt for en basispakke og er genoversat af library()."
 
 msgid "Unknown encoding"
 msgstr "Ukendt kodning"
@@ -241,9 +256,6 @@ msgstr ""
 msgid "Authors@R field gives no person with author role."
 msgstr ""
 
-msgid "Authors@R field gives persons with no valid roles:"
-msgstr ""
-
 msgid "Cannot extract Maintainer field from Authors@R field:"
 msgstr ""
 
@@ -268,9 +280,6 @@ msgstr ""
 msgid "Invalid license file pointers: %s"
 msgstr ""
 
-msgid "Components with restrictions not permitted:"
-msgstr ""
-
 msgid "Non-portable flags in variable '%s':"
 msgstr ""
 
@@ -279,19 +288,33 @@ msgid ""
 "checked"
 msgstr ""
 
-#, fuzzy
-msgid "Missing link or links in documentation object '%s':"
-msgstr "Tildelinger i \\usage i dokumentationsobjekt »%s«:"
+msgid "Obsolete package(s) %s in Rd xrefs"
+msgstr ""
+
+msgid "Package(s) unavailable to check Rd xrefs: %s"
+msgstr ""
+
+msgid "Unknown package(s) %s in Rd xrefs"
+msgstr ""
+
+msgid "Missing link(s) in documentation object '%s':"
+msgstr ""
 
 msgid ""
 "See the information in section 'Cross-references' of the 'Writing R "
 "Extensions' manual."
 msgstr ""
 
+msgid "found %s"
+msgstr ""
+
 msgid "File %s:"
 msgstr ""
 
 msgid "%s has wrong argument list %s"
+msgstr ""
+
+msgid ","
 msgstr ""
 
 msgid "%s calls:"
@@ -302,24 +325,31 @@ msgid ""
 "%s and %s, respectively."
 msgstr ""
 
+msgid "lib"
+msgstr ""
+
+msgid "pkg"
+msgstr ""
+
 msgid "Package startup functions should not change the search path."
 msgstr ""
 
 msgid "Package startup functions should use %s to generate messages."
 msgstr ""
 
+msgid "packageStartupMessage"
+msgstr ""
+
 msgid "Package startup functions should not call %s."
 msgstr ""
 
-msgid "See section %s in '%s'."
+msgid "installed.packages"
 msgstr ""
 
-msgid ""
-"Package detach functions should have one arguments with names starting with "
-"%s."
+msgid "See section %s in ?.onAttach."
 msgstr ""
 
-msgid "Package detach functions should not call %s."
+msgid "Good practice"
 msgstr ""
 
 msgid "unable to create"
@@ -364,21 +394,37 @@ msgstr ""
 msgid "Auto-generated content requiring editing in Rd object '%s':"
 msgstr ""
 
-msgid ""
-"Generics 'g' in 'env' %s where '%s' errors: %s\n"
-"May need something like\n"
-"\n"
-"%s\n"
-"in NAMESPACE."
+msgid "Generics g in env ="
+msgstr ""
+
+msgid "where hasMethods(g, env) errors:"
+msgstr ""
+
+msgid "May need something like"
+msgstr ""
+
+msgid "importFrom("
+msgstr ""
+
+msgid ")"
+msgstr ""
+
+msgid "in NAMESPACE."
+msgstr ""
+
+msgid "Generics without methods in"
+msgstr ""
+
+msgid ":"
 msgstr ""
 
 msgid "argument 'file' must be a character string or connection"
 msgstr ""
 
-msgid "missing/empty %s field in '%s'"
+msgid "missing/empty \\name field in '%s'"
 msgstr ""
 
-msgid "Rd files must have a non-empty %s."
+msgid "Rd files must have a non-empty \\name."
 msgstr ""
 
 msgid "See chapter 'Writing R documentation' in manual 'Writing R Extensions'."
@@ -397,6 +443,9 @@ msgid "you must specify 'dir' or 'files'"
 msgstr ""
 
 msgid "cannot deal with Rd objects with missing/empty names"
+msgstr ""
+
+msgid "missing/empty \\name field in Rd file(s)"
 msgstr ""
 
 msgid "No help on %s found in RdDB %s"
@@ -432,18 +481,17 @@ msgstr ""
 msgid "no inputs"
 msgstr ""
 
-msgid "Error in running tools::texi2pdf()"
+msgid "Error in running tools::texi2pdf"
 msgstr ""
 
 msgid "invalid value for '%s' : %s"
 msgstr ""
 
-msgid "Only one Rd section per %s is supported."
+msgid "Only one Rd section per \\Sexpr is supported."
 msgstr ""
 
-#, fuzzy
-msgid "unable to create temp directory %s"
-msgstr "kan ikke oprette"
+msgid "unable to create temp directory"
+msgstr ""
 
 msgid ""
 "processing vignette '%s' failed with diagnostics:\n"
@@ -460,21 +508,6 @@ msgid "argument 'vignette' must be of length 1"
 msgstr ""
 
 msgid "file '%s' not found"
-msgstr ""
-
-msgid "vignette engine"
-msgstr ""
-
-msgid "not found"
-msgstr ""
-
-msgid "cannot change the"
-msgstr ""
-
-msgid "Sweave"
-msgstr ""
-
-msgid "engine"
 msgstr ""
 
 msgid "Invalid DESCRIPTION file"
@@ -505,17 +538,20 @@ msgstr ""
 msgid "unable to create '%s'"
 msgstr ""
 
+msgid "unable to re-encode '%s' line(s) %s"
+msgstr ""
+
 msgid "unable to copy INDEX to '%s'"
 msgstr ""
 
 msgid "cannot create directory '%s'"
 msgstr ""
 
-msgid "processing %s"
+msgid "processing"
 msgstr ""
 
 msgid ""
-"running %s on vignette '%s' failed with message:\n"
+"running Sweave on vignette '%s' failed with message:\n"
 "%s"
 msgstr ""
 
@@ -543,13 +579,13 @@ msgstr ""
 msgid "The default JSS style may not be modified."
 msgstr ""
 
-msgid "invalid value for '--compact-vignettes', assuming %s"
+msgid "invalid value for --compact-vignettes, assuming \"qpdf\""
 msgstr ""
 
-msgid "Error: cannot rename directory to %s"
+msgid "Error: cannot rename directory to"
 msgstr ""
 
-msgid "cannot link from %s"
+msgid "cannot link from"
 msgstr ""
 
 msgid "-l option without value"
@@ -561,7 +597,7 @@ msgstr ""
 msgid "'--multiarch' specified with only one usable sub-architecture"
 msgstr ""
 
-msgid "'--as-cran' turns off '--extra-arch'"
+msgid "--as-cran turns off --extra-arch"
 msgstr ""
 
 msgid "Error: no packages were specified"
@@ -570,14 +606,19 @@ msgstr ""
 msgid "ERROR: cannot create check dir %s"
 msgstr ""
 
-#, fuzzy
-msgid "package directory %s does not exist"
-msgstr "mappe »%s« findes ikke"
+msgid "package dir"
+msgstr ""
+
+msgid "does not exist"
+msgstr ""
 
 msgid "non-ASCII input in a CITATION file without a declared encoding"
 msgstr ""
 
 msgid "No files in this directory"
+msgstr ""
+
+msgid "Unrecognized search field:"
 msgstr ""
 
 msgid "No results found"
@@ -593,6 +634,9 @@ msgid "Help pages:"
 msgstr ""
 
 msgid "No help found for topic %s in any package."
+msgstr ""
+
+msgid "Help on topic '%s' was found in the following packages:"
 msgstr ""
 
 msgid "No package index found for package %s"
@@ -612,6 +656,18 @@ msgstr ""
 
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
+msgstr ""
+
+msgid "NEWS"
+msgstr ""
+
+msgid "DESCRIPTION"
+msgstr ""
+
+msgid "doc/"
+msgstr ""
+
+msgid "demo/"
 msgstr ""
 
 msgid "unsupported URL %s"
@@ -644,10 +700,22 @@ msgstr ""
 msgid "cannot read index information in file '%s'"
 msgstr ""
 
+msgid "ERROR:"
+msgstr ""
+
 msgid "error reading file '%s'"
 msgstr ""
 
 msgid "this seems to be a bundle -- and they are defunct"
+msgstr ""
+
+msgid "running 'zip' failed"
+msgstr ""
+
+msgid "packaged installation of"
+msgstr ""
+
+msgid "as"
 msgstr ""
 
 msgid ""
@@ -655,7 +723,13 @@ msgid ""
 "Administration Manual'"
 msgstr ""
 
-msgid "generating debug symbols (%s)"
+msgid "installing via 'install.libs.R' to"
+msgstr ""
+
+msgid "installing to"
+msgstr ""
+
+msgid "generating debug symbols (dSYM)"
 msgstr ""
 
 msgid "package %s successfully unpacked and MD5 sums checked"
@@ -664,6 +738,9 @@ msgstr ""
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
 "similar"
+msgstr ""
+
+msgid "running src/Makefile.win ..."
 msgstr ""
 
 msgid "no source files found"
@@ -675,7 +752,10 @@ msgstr ""
 msgid "cannot create temporary directory"
 msgstr ""
 
-msgid "ERROR: '--merge-multiarch' applies only to a single tarball"
+msgid "ERROR: --merge-multiarch applies only to a single tarball"
+msgstr ""
+
+msgid "only one architecture so ignoring '--merge-multiarch'"
 msgstr ""
 
 msgid "invalid package"
@@ -684,13 +764,30 @@ msgstr ""
 msgid "ERROR: no packages specified"
 msgstr ""
 
-msgid "ERROR: cannot cd to directory %s"
+msgid "ERROR: cannot cd to directory"
 msgstr ""
 
 msgid "ERROR: no permission to install to directory"
 msgstr ""
 
+msgid "ERROR: failed to lock directory"
+msgstr ""
+
+msgid ""
+"for modifying\n"
+"Try removing"
+msgstr ""
+
+msgid "ERROR: failed to create lock directory"
+msgstr ""
+
 msgid "building a fake installation is disallowed"
+msgstr ""
+
+msgid "finding HTML links ..."
+msgstr ""
+
+msgid "finding level-2 HTML links ..."
 msgstr ""
 
 msgid "there is no package called '%s'"
@@ -766,6 +863,36 @@ msgstr ""
 msgid "Processing packages:"
 msgstr ""
 
+msgid "Internal error, no tag"
+msgstr ""
+
+msgid "Argument for"
+msgstr ""
+
+msgid "not found."
+msgstr ""
+
+msgid "Internal error:  NULL tag"
+msgstr ""
+
+msgid "internal error"
+msgstr ""
+
+msgid "Inconsistent arg count for"
+msgstr ""
+
+msgid "Entry for"
+msgstr ""
+
+msgid "="
+msgstr ""
+
+msgid "already defined to be"
+msgstr ""
+
+msgid "found encoding"
+msgstr ""
+
 msgid "%s must be a character string or a file/raw connection"
 msgstr ""
 
@@ -775,7 +902,7 @@ msgstr ""
 msgid "EOF marker not found"
 msgstr ""
 
-msgid "cannot find 'startxref' keyword"
+msgid "cannot find startxref"
 msgstr ""
 
 msgid "cannot find xref table"
@@ -832,13 +959,16 @@ msgstr ""
 msgid "invalid index in object stream lookup"
 msgstr ""
 
+msgid "processing %s"
+msgstr ""
+
 msgid "expanding %s"
 msgstr ""
 
 msgid "unsupported filter %s"
 msgstr ""
 
-msgid "unsupported %s predictor %d"
+msgid "unsupported flatedecode predictor %d"
 msgstr ""
 
 msgid "unsupported PNG filter %d"
@@ -865,16 +995,37 @@ msgstr ""
 msgid "unimplemented encoding"
 msgstr ""
 
+msgid "file"
+msgstr ""
+
 msgid "Found %s, possibly from %s"
+msgstr ""
+
+msgid "%s (%s)"
+msgstr ""
+
+msgid "ssname"
+msgstr ""
+
+msgid "language"
+msgstr ""
+
+msgid "cannot be opened"
 msgstr ""
 
 msgid "testing '%s' failed"
 msgstr ""
 
-msgid "Testing examples for package %s"
+msgid "Testing examples for package"
 msgstr ""
 
-msgid "comparing %s to %s ..."
+msgid "comparing"
+msgstr ""
+
+msgid "to"
+msgstr ""
+
+msgid "..."
 msgstr ""
 
 msgid "OK"
@@ -886,28 +1037,70 @@ msgstr ""
 msgid "no examples found for package %s"
 msgstr ""
 
-msgid "Running specific tests for package %s"
+msgid "Running specific tests for package"
 msgstr ""
 
-msgid "Running %s"
+msgid "Running"
 msgstr ""
 
-msgid "Running vignettes for package %s"
+msgid "Running vignettes for package"
 msgstr ""
 
-msgid "Comparing %s to %s ..."
+msgid "Comparing"
+msgstr ""
+
+msgid "creation of"
+msgstr ""
+
+msgid "failed"
 msgstr ""
 
 msgid "no parsed files found"
 msgstr ""
 
+msgid "creating"
+msgstr ""
+
+msgid "running code in"
+msgstr ""
+
 msgid "FAILED"
+msgstr ""
+
+msgid "running strict specific tests"
+msgstr ""
+
+msgid "running sloppy specific tests"
+msgstr ""
+
+msgid "running regression tests"
+msgstr ""
+
+msgid "comparing 'reg-plot.ps' to 'reg-plot.ps.save' ..."
+msgstr ""
+
+msgid "running tests of plotting Latin-1"
+msgstr ""
+
+msgid "expect failure or some differences if not in a Latin or UTF-8 locale"
+msgstr ""
+
+msgid "comparing 'reg-plot-latin1.ps' to 'reg-plot-latin1.ps.save' ..."
+msgstr ""
+
+msgid "running tests of consistency of as/is.*"
 msgstr ""
 
 msgid "running tests of random deviate generation -- fails occasionally"
 msgstr ""
 
-msgid "R CMD build failed"
+msgid "running tests of primitives"
+msgstr ""
+
+msgid "running regexp regression tests"
+msgstr ""
+
+msgid "running tests to possibly trigger segfaults"
 msgstr ""
 
 msgid "'x' must be a single character string"
@@ -970,19 +1163,34 @@ msgstr ""
 msgid "parsing '%s'"
 msgstr ""
 
-msgid "Obsolete package %s in Rd xrefs"
-msgid_plural "Obsolete packages %s in Rd xrefs"
-msgstr[0] ""
-msgstr[1] ""
+#, fuzzy
+msgid "Foreign function call without 'PACKAGE' argument:"
+msgid_plural "Foreign function calls without 'PACKAGE' argument:"
+msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
+msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
 
 #, fuzzy
-msgid "Package unavailable to check Rd xrefs: %s"
-msgid_plural "Packages unavailable to check Rd xrefs: %s"
-msgstr[0] "Pakke foreslået men ikke tilgængelig for kontrol: %s"
-msgstr[1] "Pakke foreslået men ikke tilgængelig for kontrol: %s"
+msgid "Foreign function call with empty 'PACKAGE' argument:"
+msgid_plural "Foreign function calls with empty 'PACKAGE' argument:"
+msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
+msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
 
-msgid "Unknown package %s in Rd xrefs"
-msgid_plural "Unknown packages %s in Rd xrefs"
+#, fuzzy
+msgid "Foreign function call with 'PACKAGE' argument in a base package:"
+msgid_plural ""
+"Foreign function calls with 'PACKAGE' argument in a base package:"
+msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
+msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
+
+#, fuzzy
+msgid "Foreign function call with 'PACKAGE' argument in a different package:"
+msgid_plural ""
+"Foreign function calls with 'PACKAGE' argument in a different package:"
+msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
+msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
+
+msgid "Undeclared package in foreign function calls:"
+msgid_plural "Undeclared packages in foreign function calls:"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1001,88 +1209,24 @@ msgid_plural "Note: found %d strings marked as \"bytes\""
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-msgid "Warning in file %s:"
-msgid_plural "Warnings in file %s:"
-msgstr[0] "fortolkningsfejl i fil »%s«:"
-msgstr[1] "fortolkningsfejl i fil »%s«:"
+msgid "Warning in file '%s':"
+msgid_plural "Warnings in file '%s':"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Found possibly global 'T' or 'F' in the following function:"
 msgid_plural "Found possibly global 'T' or 'F' in the following functions:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid ""
-"Found possibly global 'T' or 'F' in the examples of the following Rd file:"
+msgid "Found possibly global 'T' or 'F' in the following Rd example file:"
 msgid_plural ""
-"Found possibly global 'T' or 'F' in the examples of the following Rd files:"
+"Found possibly global 'T' or 'F' in the following Rd example files:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Found a .Internal call in the following function:"
+msgid "Found .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found a.Internal call in methods for the following S4 generic:"
-msgid_plural "Found .Internal calls in methods for the following S4 generics:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found a .Internal call in methods for the following reference class:"
-msgid_plural ""
-"Found .Internal calls in methods for the following reference classes:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found an obsolete call in the following function:"
-msgid_plural "Found an obsolete call in the following functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found an obsolete call in methods for the following S4 generic:"
-msgid_plural "Found an obsolete call in methods for the following S4 generics:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found an obsolete call in methods for the following reference class:"
-msgid_plural ""
-"Found an obsolete call in methods for the following reference classes:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found the deprecated function:"
-msgid_plural "Found the deprecated functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found the defunct/removed function:"
-msgid_plural "Found the defunct/removed functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Generic without any methods in %s: %s"
-msgid_plural "Generics without any methods in %s: %s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid ""
-"missing/empty \\name field in Rd file\n"
-"%s"
-msgid_plural ""
-"missing/empty \\name field in Rd files\n"
-"%s"
-msgstr[0] ""
-msgstr[1] ""
-
-#, fuzzy
-msgid "unable to re-encode %s line %s"
-msgid_plural "unable to re-encode %s lines %s"
-msgstr[0] "kan ikke skrive kodefiler"
-msgstr[1] "kan ikke skrive kodefiler"
-
-msgid "Help on topic '%s' was found in the following package:"
-msgid_plural "Help on topic '%s' was found in the following packages:"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1090,56 +1234,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] ""
 msgstr[1] ""
-
-#, fuzzy
-#~ msgid "Foreign function call without 'PACKAGE' argument:"
-#~ msgid_plural "Foreign function calls without 'PACKAGE' argument:"
-#~ msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
-#~ msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
-
-#, fuzzy
-#~ msgid "Foreign function call with empty 'PACKAGE' argument:"
-#~ msgid_plural "Foreign function calls with empty 'PACKAGE' argument:"
-#~ msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
-#~ msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
-
-#, fuzzy
-#~ msgid "Foreign function call with 'PACKAGE' argument in a base package:"
-#~ msgid_plural ""
-#~ "Foreign function calls with 'PACKAGE' argument in a base package:"
-#~ msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
-#~ msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
-
-#, fuzzy
-#~ msgid ""
-#~ "Foreign function call with 'PACKAGE' argument in a different package:"
-#~ msgid_plural ""
-#~ "Foreign function calls with 'PACKAGE' argument in a different package:"
-#~ msgstr[0] "Fremmede funktionskald uden »PACKAGE«-argument"
-#~ msgstr[1] "Fremmede funktionskald uden »PACKAGE«-argument"
-
-#~ msgid "name"
-#~ msgstr "navn"
-
-#~ msgid "code"
-#~ msgstr "kode"
-
-#~ msgid "docs"
-#~ msgstr "dokumenter"
-
-#~ msgid "Invalid package name."
-#~ msgstr "Ugyldigt pakkenavn."
-
-#~ msgid "This is the name of a base package."
-#~ msgstr "Dette er navnet på en basispakke."
-
-#~ msgid "This name was used for a base package and is remapped by library()."
-#~ msgstr ""
-#~ "Dette navn blev brugt for en basispakke og er genoversat af library()."
-
-#, fuzzy
-#~ msgid "\\name"
-#~ msgstr "navn"
 
 #~ msgid "Packages required but not available:"
 #~ msgstr "Pakker krævet men ikke tilgængelige:"
@@ -1158,6 +1252,9 @@ msgstr[1] ""
 
 #~ msgid "Packages suggested but not available for checking:"
 #~ msgstr "Pakker foreslået men ikke tilgængelig for kontrol:"
+
+#~ msgid "Package suggested but not available for checking: %s"
+#~ msgstr "Pakke foreslået men ikke tilgængelig for kontrol: %s"
 
 #~ msgid "Packages which this enhances but not available for checking:"
 #~ msgstr "Pakker som dette forbedrer men ikke tilgængelige for kontrol:"

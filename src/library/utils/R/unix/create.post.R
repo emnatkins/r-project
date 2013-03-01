@@ -48,15 +48,15 @@ create.post <- function(instructions = character(),
 
     none_method <- function() {
         disclaimer <-
-            paste0("# Your mailer is set to \"none\",\n",
-                   "# hence we cannot send the, ", description, " directly from R.\n",
-                   "# Please copy the ", description, " (after finishing it) to\n",
-                   "# your favorite email program and send it to\n#\n",
-                   "#       ", address, "\n#\n",
-                   "######################################################\n",
-                   "\n\n")
+            paste("# Your mailer is set to \"none\",\n",
+                  "# hence we cannot send the, ", description, " directly from R.\n",
+                  "# Please copy the ", description, " (after finishing it) to\n",
+                  "# your favorite email program and send it to\n#\n",
+                  "#       ", address, "\n#\n",
+                  "######################################################\n",
+                  "\n\n", sep = "")
 
-        cat(c(disclaimer, body), file = filename, sep = "\n")
+        cat(c(disclaimer, body), file=filename, sep = "\n")
         cat("The", description, "is being opened for you to edit.\n")
         flush.console()
         file.edit(filename)
@@ -86,7 +86,8 @@ create.post <- function(instructions = character(),
                              shQuote(address), "<",
                              filename, "2>/dev/null")
         status <- 1L
-        answer <- readline(paste0("Email the ", description, " now? (yes/no) "))
+        answer <- readline(paste("Email the ", description, " now? (yes/no) ",
+                                 sep = ""))
         answer <- grep("yes", answer, ignore.case=TRUE)
         if(length(answer)) {
             cat("Sending email ...\n")
@@ -108,11 +109,12 @@ create.post <- function(instructions = character(),
 	cat(body, sep = "\n")
     } else  if(method == "gnudoit") {
         ## FIXME: insert subject and ccaddress
-	cmd <- paste0("gnudoit -q '",
+	cmd <- paste("gnudoit -q '",
 		     "(mail nil \"", address, "\")",
 		     "(insert \"", paste(body, collapse="\\n"), "\")",
 		     "(search-backward \"Subject:\")",
-		     "(end-of-line)'")
+		     "(end-of-line)'",
+		     sep="")
 	system(cmd)
     } else if(method == "mailto") {
         if (missing(address)) stop("must specify 'address'")
@@ -120,11 +122,11 @@ create.post <- function(instructions = character(),
         if(length(ccaddress) != 1L) stop("'ccaddress' must be of length 1")
         cat("The", description, "is being opened in your default mail program\nfor you to complete and send.\n")
         ## The mailto: standard (RFC2368) says \r\n for the body
-        arg <- paste0("mailto:", address,
+        arg <- paste("mailto:", address,
                      "?subject=", subject,
                      if(is.character(ccaddress) && nzchar(ccaddress))
-                         paste0("&cc=", ccaddress),
-                     "&body=", paste(body, collapse = "\r\n"))
+                         paste("&cc=", ccaddress, sep=""),
+                     "&body=", paste(body, collapse="\r\n"), sep = "")
         if(system2(open_prog, shQuote(URLencode(arg)), FALSE, FALSE)) {
             cat("opening the mailer failed, so reverting to 'mailer=\"none\"'\n")
             flush.console()

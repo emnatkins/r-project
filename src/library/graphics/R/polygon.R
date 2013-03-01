@@ -233,22 +233,22 @@ polygon <-
         ends <- c(seq_along(xy$x)[is.na(xy$x) | is.na(xy$y)], length(xy$x) + 1)
 
         num.polygons <- length(ends)
-        col <- rep_len(col, num.polygons)
+        col <- rep(col, length.out = num.polygons)
         if(length(border))
-            border <- rep_len(border, num.polygons)
+            border <- rep(border, length.out = num.polygons)
         if(length(lty))
-            lty <- rep_len(lty, num.polygons)
+            lty <- rep(lty, length.out = num.polygons)
         if(length(density))
-            density <- rep_len(density, num.polygons)
-        angle <- rep_len(angle, num.polygons)
+            density <- rep(density, length.out = num.polygons)
+        angle <- rep(angle, length.out = num.polygons)
 
         i <- 1L
         for (end in ends) {
             if (end > start) {
                 if(is.null(density) || is.na(density[i]) || density[i] < 0)
-                    .External.graphics(C_polygon, xy$x[start:(end - 1)],
-                                       xy$y[start:(end - 1)],
-                                       col[i], NA, lty[i], ...)
+                    .Internal(polygon(xy$x[start:(end - 1)],
+                                      xy$y[start:(end - 1)],
+                                      col[i], NA, lty[i], ...))
                 else if (density[i] > 0) {
 
                         ## note: if col[i]==NA, "segments" will fill with par("fg")
@@ -261,22 +261,21 @@ polygon <-
                                           ..debug.hatch = ..debug.hatch, ...)
                     }
 
-                ## compatible with C_polygon:
+                ## compatible with .Internal(polygon)
                 ## only cycle through col, lty, etc. on non-empty polygons
                 i <- i + 1
             }
             start <- end + 1
         }
-        .External.graphics(C_polygon, xy$x, xy$y, NA, border, lty, ...)
+        .Internal(polygon(xy$x, xy$y, NA, border, lty, ...))
     }
     else {
         if (is.logical(border)) {
             if (!is.na(border) && border) border <- par("fg")
             else border <- NA
         }
-        .External.graphics(C_polygon, xy$x, xy$y, col, border, lty, ...)
+        .Internal(polygon(xy$x, xy$y, col, border, lty, ...))
     }
-    invisible()
 }
 
 xspline <-
@@ -286,8 +285,7 @@ xspline <-
     xy <- xy.coords(x, y)
     s <- rep.int(shape, length(xy$x))
     if(open) s[1L] <- s[length(x)] <- 0
-    invisible(.External.graphics(C_xspline, xy$x, xy$y, s, open, repEnds,
-                                 draw, col, border, ...))
+    .Internal(xspline(xy$x, xy$y, s, open, repEnds, draw, col, border, ...))
 }
 
 polypath <-
@@ -306,18 +304,17 @@ polypath <-
     # Determine path components
     breaks <- which(is.na(xy$x) | is.na(xy$y))
     if (length(breaks) == 0) { # Only one path
-        .External.graphics(C_path, xy$x, xy$y,
-                           as.integer(length(xy$x)), as.integer(rule),
-                           col, border, lty, ...)
+        .Internal(path(xy$x, xy$y,
+                       as.integer(length(xy$x)), as.integer(rule),
+                       col, border, lty, ...))
     } else {
         nb <- length(breaks)
         lengths <- c(breaks[1] - 1,
                      diff(breaks) - 1,
                      length(xy$x) - breaks[nb])
-        .External.graphics(C_path, xy$x[-breaks], xy$y[-breaks],
-                           as.integer(lengths), as.integer(rule),
-                           col, border, lty, ...)
+        .Internal(path(xy$x[-breaks], xy$y[-breaks],
+                       as.integer(lengths), as.integer(rule),
+                       col, border, lty, ...))
     }
-    invisible()
 }
 

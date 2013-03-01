@@ -89,7 +89,7 @@ windows <-
     rescale <- match(d$rescale, c("R", "fit", "fixed"))
     if(is.na(rescale)) stop("invalid value for 'rescale'")
     antialias <- pmatch(d$antialias, aa.win)
-    invisible(.External(C_devga, "", d$width, d$height, d$pointsize,
+    invisible(.External(Cdevga, "", d$width, d$height, d$pointsize,
                         d$record, rescale, d$xpinch, d$ypinch,
                         d$canvas, d$gamma, d$xpos, d$ypos,
                         d$buffered, .PSenv, d$bg,
@@ -97,22 +97,29 @@ windows <-
                         d$fillOddEven, family, antialias))
 }
 
-## historical wrappers
 win.graph <- function(width, height, pointsize)
-    windows(width = width, height = height, pointsize = pointsize)
-
-x11 <- X11 <-
-     function(width, height, pointsize, bg, gamma, xpos, ypos, title)
-    windows(width = width, height = height, pointsize = pointsize,
-            bg = bg, gamma = gamma,
-            xpos = xpos, ypos = ypos, title = title)
+{
+    new <- list()
+    if(!missing(width)) new$width <- as.double(width)
+    if(!missing(height)) new$height <- as.double(height)
+    if(!missing(pointsize)) new$pointsize <- as.double(pointsize)
+    d <- check.options(new = new, envir = .WindowsEnv,
+                       name.opt = ".Windows.Options",
+                       reset = FALSE, assign.opt = FALSE)
+    invisible(.External(Cdevga, "", d$width, d$height, d$pointsize,
+                        FALSE, 1L, d$xpinch, d$ypinch, "white",
+                        d$gamma, NA_integer_, NA_integer_, d$buffered,
+                        .PSenv, NA, d$restoreConsole, "", TRUE,
+                        d$fillOddEven, "",
+                        pmatch(d$antialias, aa.win)))
+}
 
 win.print <-
     function(width = 7, height = 7, pointsize = 12, printer = "",
              family = "", antialias = "default", restoreConsole = TRUE)
 {
     antialias <- match(match.arg(antialias, aa.win), aa.win)
-    invisible(.External(C_devga, paste("win.print:", printer, sep=""),
+    invisible(.External(Cdevga, paste("win.print:", printer, sep=""),
                         width, height, pointsize, FALSE, 1L,
                         NA_real_, NA_real_, "white", 1,
                         NA_integer_, NA_integer_,
@@ -126,7 +133,7 @@ win.metafile <-
 {
     if(!checkIntFormat(filename)) stop("invalid 'filename'")
     filename <- path.expand(filename)
-    invisible(.External(C_devga, paste("win.metafile:", filename, sep=""),
+    invisible(.External(Cdevga, paste("win.metafile:", filename, sep=""),
                         width, height, pointsize, FALSE, 1L,
                         NA_real_, NA_real_, "white", 1,
                         NA_integer_, NA_integer_, FALSE, .PSenv, NA,
@@ -140,8 +147,7 @@ bringToTop <- function(which = dev.cur(), stay = FALSE)
     }
     if(which > 0 && .Devices[[which]] != "windows")
         stop("can only bring windows devices to the front")
-    .Call(C_bringToTop, as.integer(which), as.logical(stay))
-    invisible()
+    invisible(.Internal(bringToTop(as.integer(which), as.logical(stay))))
 }
 
 msgWindow <-
@@ -155,8 +161,7 @@ msgWindow <-
     if(!exists(".Devices")) .Devices <- list("null device")
     if(which > 0 && .Devices[[which]] != "windows")
         stop("can only manipulate windows devices")
-    .Call(C_msgWindow, as.integer(which), as.integer(itype))
-    invisible()
+    invisible(.Internal(msgWindow(as.integer(which), as.integer(itype))))
 }
 
 savePlot <- function(filename = "Rplot",
@@ -175,7 +180,7 @@ savePlot <- function(filename = "Rplot",
     else if(regexpr("\\.",filename) < 0)
         filename <- paste(filename, type, sep = ".")
     filename <- path.expand(filename)
-    invisible(.External(C_savePlot, device, filename, type, restoreConsole))
+    invisible(.External(CsavePlot, device, filename, type, restoreConsole))
 }
 
 print.SavedPlots <- function(x, ...)

@@ -3,8 +3,6 @@
 % Copyright 1995-2012 R Core Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{morley}
 \docType{data}
 \alias{morley}
@@ -16,9 +14,7 @@
   The response is the speed of light measurement, suitably coded
   (km/sec, with \code{299000} subtracted).
 }
-\usage{
-morley
-}
+\usage{morley}
 \format{
   A data frame contains the following components:
   \describe{
@@ -35,8 +31,7 @@ morley
   experiment.
 }
 \note{
-  This is the same dataset as \code{michelson} in package
-  \CRANpkg{MASS}.
+  This is the same dataset as \code{michelson} in package \pkg{MASS}.
 }
 \source{
   A. J. Weekes (1986)
@@ -55,12 +50,13 @@ morley
 }
 \examples{
 require(stats); require(graphics)
-michelson <- transform(morley,
-                       Expt = factor(Expt), Run = factor(Run))
-xtabs(~ Expt + Run, data = michelson)  # 5 x 20 balanced (two-way)
-plot(Speed ~ Expt, data = michelson,
+morley$Expt <- factor(morley$Expt)
+morley$Run <- factor(morley$Run)
+
+xtabs(~ Expt + Run, data = morley)  # 5 x 20 balanced (two-way)
+plot(Speed ~ Expt, data = morley,
      main = "Speed of Light Data", xlab = "Experiment No.")
-fm <- aov(Speed ~ Run + Expt, data = michelson)
+fm <- aov(Speed ~ Run + Expt, data = morley)
 summary(fm)
 fm0 <- update(fm, . ~ . - Run)
 anova(fm0, fm)

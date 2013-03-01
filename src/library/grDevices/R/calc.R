@@ -69,7 +69,9 @@ function (x = seq(0, 1, length.out = nrow(z)),
 	stop("increasing 'x' and 'y' values expected")
     if (!is.matrix(z) || nrow(z) <= 1 || ncol(z) <= 1)
 	stop("no proper 'z' matrix specified")
-    invisible(.External2(C_contourLines, x, y, z, levels))
+    ##- don't lose  dim(.)
+    if (!is.double(z)) storage.mode(z) <- "double"
+    .Internal(contourLines(as.double(x), as.double(y), z, as.double(levels)))
 }
 
 chull <- function(x, y = NULL)
@@ -78,7 +80,17 @@ chull <- function(x, y = NULL)
     x <- cbind(X$x, X$y)
     n <- nrow(x)
     if(n == 0) return(integer())
-    .Call(C_chull, x)
+    z <- .C(R_chull,
+	    n = as.integer(n),
+	    as.double(x),
+	    as.integer(n),
+	    as.integer(1L:n),
+	    integer(n),
+	    integer(n),
+	    ih = integer(n),
+	    nh = integer(1),
+	    il = integer(n))
+    rev(z$ih[1L:z$nh])
 }
 
 nclass.Sturges <- function(x) ceiling(log2(length(x)) + 1)
@@ -127,9 +139,9 @@ xyTable <- function(x, y = NULL, digits)
 axisTicks <- function(usr, log, axp = NULL, nint = 5) {
     if(is.null(axp))
 	axp <- unlist(.axisPars(usr, log=log, nintLog=nint), use.names=FALSE)
-    .Call(C_R_CreateAtVector, axp, if(log) 10^usr else usr, nint, log)
+    .Call(R_CreateAtVector, axp, if(log) 10^usr else usr, nint, log)
 }
 
 .axisPars <- function(usr, log = FALSE, nintLog = 5) {
-    .Call(C_R_GAxisPars, usr, log, nintLog)
+    .Call(R_GAxisPars, usr, log, nintLog)
 }

@@ -98,7 +98,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
     rhs.has.dot <- any(rvars == ".")
     lhs.has.dot <- any(cvars == ".")
     if(lhs.has.dot && rhs.has.dot)
-        stop("'formula' has '.' in both left and right hand sides")
+        stop("'formula' has '.' in both left and right hand side")
     m <- match.call(expand.dots = FALSE)
     edata <- eval(m$data, parent.frame())
     if(inherits(edata, "ftable")
@@ -168,94 +168,57 @@ as.table.ftable <- function(x, ...)
     x
 }
 
-format.ftable <-
-    function(x, quote=TRUE, digits=getOption("digits"),
-             method=c("non.compact", "row.compact", "col.compact", "compact"),
-             lsep=" \\ ", ...)
+format.ftable <- function(x, quote = TRUE, digits = getOption("digits"), ...)
 {
     if(!inherits(x, "ftable"))
-	stop("'x' must be an \"ftable\" object")
-    charQuote <- function(s) if(quote && length(s)) paste0("\"", s, "\"") else s
+        stop("'x' must be an \"ftable\" object")
+    charQuote <- function(s)
+        if(quote) paste0("\"", s, "\"") else s
     makeLabels <- function(lst) {
-	lens <- sapply(lst, length)
-	cplensU <- c(1, cumprod(lens))
-	cplensD <- rev(c(1, cumprod(rev(lens))))
-	y <- NULL
-	for (i in rev(seq_along(lst))) {
-	    ind <- 1 + seq.int(from = 0, to = lens[i] - 1) * cplensD[i + 1L]
-	    tmp <- character(length = cplensD[i])
-	    tmp[ind] <- charQuote(lst[[i]])
-	    y <- cbind(rep(tmp, times = cplensU[i]), y)
-	}
-	y
+        lens <- sapply(lst, length)
+        cplensU <- c(1, cumprod(lens))
+        cplensD <- rev(c(1, cumprod(rev(lens))))
+        y <- NULL
+        for (i in rev(seq_along(lst))) {
+            ind <- 1 + seq.int(from = 0, to = lens[i] - 1) * cplensD[i + 1]
+            tmp <- character(length = cplensD[i])
+            tmp[ind] <- charQuote(lst[[i]])
+            y <- cbind(rep(tmp, times = cplensU[i]), y)
+        }
+        y
     }
     makeNames <- function(x) {
-	nmx <- names(x)
-	if(is.null(nmx)) rep_len("", length(x)) else nmx
+        nmx <- names(x)
+        if(is.null(nmx))
+            nmx <- rep("", length.out = length(x))
+        nmx
     }
 
     xrv <- attr(x, "row.vars")
     xcv <- attr(x, "col.vars")
-    method <- match.arg(method)
-    LABS <-
-	switch(method,
-	       "non.compact" =		# current default
-	   {
-	       cbind(rbind(matrix("", nrow = length(xcv), ncol = length(xrv)),
-			   charQuote(makeNames(xrv)),
-			   makeLabels(xrv)),
-		     c(charQuote(makeNames(xcv)),
-		       rep("", times = nrow(x) + 1)))
-	   },
-	       "row.compact" =		# row-compact version
-	   {
-	       cbind(rbind(matrix("", nrow = length(xcv)-1, ncol = length(xrv)),
-			   charQuote(makeNames(xrv)),
-			   makeLabels(xrv)),
-		     c(charQuote(makeNames(xcv)),
-		       rep("", times = nrow(x))))
-	   },
-	       "col.compact" =		# column-compact version
-	   {
-	       cbind(rbind(cbind(matrix("", nrow = length(xcv), ncol = length(xrv)-1),
-				 charQuote(makeNames(xcv))),
-			   charQuote(makeNames(xrv)),
-			   makeLabels(xrv)))
-	   },
-	       "compact" =		# fully compact version
-	   {
-	       l.xcv <- length(xcv)
-	       l.xrv <- length(xrv)
-	       xrv.nms <- makeNames(xrv)
-	       xcv.nms <- makeNames(xcv)
-	       mat <- cbind(rbind(cbind(matrix("", nrow = l.xcv-1, ncol = l.xrv-1),
-					charQuote(makeNames(xcv[-l.xcv]))),
-				  charQuote(xrv.nms),
-				  makeLabels(xrv)))
-	       mat[l.xcv, l.xrv] <- paste(tail(xrv.nms, 1),
-					  tail(xcv.nms, 1), sep = lsep)
-	       mat
-	   },
-	       stop("wrong method"))
+    LABS <- cbind(rbind(matrix("", nrow = length(xcv), ncol = length(xrv)),
+                        charQuote(makeNames(xrv)),
+                        makeLabels(xrv)),
+                  c(charQuote(makeNames(xcv)),
+                    rep("", times = nrow(x) + 1)))
     DATA <- rbind(if(length(xcv)) t(makeLabels(xcv)),
-		  if(method %in% c("non.compact", "col.compact"))
-			rep("", times = ncol(x)),
-		  format(unclass(x), digits = digits, ...))
+                  rep("", times = ncol(x)),
+                  format(unclass(x), digits = digits))
     cbind(apply(LABS, 2L, format, justify = "left"),
 	  apply(DATA, 2L, format, justify = "right"))
 }
 
 write.ftable <- function(x, file = "", quote = TRUE, append = FALSE,
-			 digits = getOption("digits"), ...)
+			 digits = getOption("digits"))
 {
-    r <- format.ftable(x, quote = quote, digits = digits, ...)
+    r <- format.ftable(x, quote = quote, digits = digits)
     cat(t(r), file = file, append = append,
 	sep = c(rep(" ", ncol(r) - 1), "\n"))
     invisible(x)
 }
 
 print.ftable <- function(x, digits = getOption("digits"), ...)
-    write.ftable(x, quote = FALSE, digits = digits, ...)
+    write.ftable(x, quote = FALSE, digits = digits)
 
 read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
                         col.vars, skip = 0)
@@ -305,9 +268,9 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             col.vars[[k]] <- s[-1L]
             names(col.vars)[k] <- s[1L]
         }
-	row.vars <- setNames(vector("list", length = n.row.vars),
-			     scan(file, what = "", sep = sep, quote = quote,
-				  nlines = 1, quiet = TRUE))
+        row.vars <- vector("list", length = n.row.vars)
+        names(row.vars) <- scan(file, what = "", sep = sep, quote =
+                                quote, nlines = 1, quiet = TRUE)
         z <- z[-(1 : (n.col.vars + 1))]
     }
     else {
@@ -341,8 +304,8 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
                 stop("'row.var.names' missing")
             }
             n.row.vars <- length(row.var.names)
-	    row.vars <- setNames(vector("list", length = n.row.vars),
-				 as.character(row.var.names))
+            row.vars <- vector("list", length = n.row.vars)
+            names(row.vars) <- as.character(row.var.names)
             if(missing(col.vars) || !is.list(col.vars)) {
                 ## 'col.vars' should be a list.
                 stop("'col.vars' missing or incorrect")

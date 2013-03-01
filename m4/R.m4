@@ -1,6 +1,6 @@
 ### R.m4 -- extra macros for configuring R		-*- Autoconf -*-
 ###
-### Copyright (C) 1998-2013 R Core Team
+### Copyright (C) 1998-2010 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -210,8 +210,6 @@ makeinfo_version_min=`echo ${makeinfo_version} | \
 if test -z "${makeinfo_version_maj}" \
      || test -z "${makeinfo_version_min}"; then
   r_cv_prog_makeinfo_v4=no
-elif test ${makeinfo_version_maj} -ge 5; then
-  r_cv_prog_makeinfo_v4=yes
 elif test ${makeinfo_version_maj} -lt 4 \
      || test ${makeinfo_version_min} -lt 7; then
   r_cv_prog_makeinfo_v4=no
@@ -1790,8 +1788,7 @@ fi
 if test "${use_aqua}" = yes; then
   AC_DEFINE(HAVE_AQUA, 1,
             [Define if you have the Aqua headers and libraries,
-             and want to include support for R.app 
-	     and for the quartz() device to be built.])
+             and want the Aqua GUI components and quartz() device to be built.])
 fi
 ])# R_AQUA
 

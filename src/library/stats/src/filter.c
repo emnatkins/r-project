@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
 
- *  Copyright (C) 1999-12   The R Core Team
+ *  Copyright (C) 1999, 2001, 2   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,31 +32,24 @@
 #define max(a, b) ((a < b)?(b):(a))
 #endif
 
-// currently ISNAN includes NAs
 #define my_isok(x) (!ISNA(x) & !ISNAN(x))
 
-SEXP cfilter(SEXP sx, SEXP sfilter, SEXP ssides, SEXP scircular)
+void
+filter1(double *x, int *n, double *filter, int *nfilt, int *sides,
+	int *circular, double *out)
 {
-   if (TYPEOF(sx) != REALSXP || TYPEOF(sfilter) != REALSXP)
-       error("invalid input");
-    R_xlen_t nx = XLENGTH(sx), nf = XLENGTH(sfilter);
-    int sides = asInteger(ssides), circular = asLogical(scircular);
-    if(sides == NA_INTEGER || circular == NA_LOGICAL)  error("invalid input");
+    int i, ii, j, nf=*nfilt, nn = *n, nshift;
+    double z, tmp;
 
-    SEXP ans = allocVector(REALSXP, nx);
-
-    R_xlen_t i, j, nshift;
-    double z, tmp, *x = REAL(sx), *filter = REAL(sfilter), *out = REAL(ans);
-
-    if(sides == 2) nshift = nf /2; else nshift = 0;
-    if(!circular) {
-	for(i = 0; i < nx; i++) {
+    if(*sides == 2) nshift = nf /2; else nshift = 0;
+    if(!*circular) {
+	for(i = 0; i < nn; i++) {
 	    z = 0;
-	    if(i + nshift - (nf - 1) < 0 || i + nshift >= nx) {
+	    if(i + nshift - (nf - 1) < 0 || i + nshift >= nn) {
 		out[i] = NA_REAL;
 		continue;
 	    }
-	    for(j = max(0, nshift + i - nx); j < min(nf, i + nshift + 1) ; j++) {
+	    for(j = max(0, nshift + i - nn); j < min(nf, i + nshift + 1) ; j++) {
 		tmp = x[i + nshift - j];
 		if(my_isok(tmp)) z += filter[j] * tmp;
 		else { out[i] = NA_REAL; goto bad; }
@@ -66,13 +59,13 @@ SEXP cfilter(SEXP sx, SEXP sfilter, SEXP ssides, SEXP scircular)
 	    continue;
 	}
     } else { /* circular */
-	for(i = 0; i < nx; i++)
+	for(i = 0; i < nn; i++)
 	{
 	    z = 0;
 	    for(j = 0; j < nf; j++) {
-		R_xlen_t ii = i + nshift - j;
-		if(ii < 0) ii += nx;
-		if(ii >= nx) ii -= nx;
+		ii = i + nshift - j;
+		if(ii < 0) ii += nn;
+		if(ii >= nn) ii -= nn;
 		tmp = x[ii];
 		if(my_isok(tmp)) z += filter[j] * tmp;
 		else { out[i] = NA_REAL; goto bad2; }
@@ -82,76 +75,59 @@ SEXP cfilter(SEXP sx, SEXP sfilter, SEXP ssides, SEXP scircular)
 	    continue;
 	}
     }
-    return ans;
 }
 
 /* recursive filtering */
-SEXP rfilter(SEXP x, SEXP filter, SEXP out)
+void
+filter2(double *x, int *n, double *filter, int *nfilt, double *out)
 {
-   if (TYPEOF(x) != REALSXP || TYPEOF(filter) != REALSXP
-       || TYPEOF(out) != REALSXP) error("invalid input");
-    R_xlen_t nx = XLENGTH(x), nf = XLENGTH(filter);
-    double sum, tmp, *r = REAL(out), *rx = REAL(x), *rf = REAL(filter);
+    int i, j, nf = *nfilt;
+    double sum, tmp;
 
-    for(R_xlen_t i = 0; i < nx; i++) {
-	sum = rx[i];
-	for (R_xlen_t j = 0; j < nf; j++) {
-	    tmp = r[nf + i - j - 1];
-	    if(my_isok(tmp)) sum += tmp * rf[j];
-	    else { r[nf + i] = NA_REAL; goto bad3; }
+    for(i = 0; i < *n; i++) {
+	sum = x[i];
+	for (j = 0; j < nf; j++) {
+	    tmp = out[nf + i - j - 1];
+	    if(my_isok(tmp)) sum += tmp * filter[j];
+	    else { out[nf + i] = NA_REAL; goto bad3; }
 	}
-	r[nf + i] = sum;
+	out[nf + i] = sum;
     bad3:
 	continue;
     }
-    return out;
 }
 
 /* now allows missing values */
-static void
-acf0(double *x, int n, int ns, int nl, int correlation, double *acf)
+void
+acf(double *x, int *n, int *nser, int *nlag, int *correlation, double *acf)
 {
-    int d1 = nl+1, d2 = ns*d1, nu;
+    int i, u, v, lag, nl = *nlag, nn=*n, ns = *nser, d1 = nl+1, d2 = ns*d1,
+	nu;
     double sum, *se;
 
     se = (double *) R_alloc(ns, sizeof(double));
-    for(int u = 0; u < ns; u++)
-	for(int v = 0; v < ns; v++)
-	    for(int lag = 0; lag <= nl; lag++) {
+    for(u = 0; u < ns; u++)
+	for(v = 0; v < ns; v++)
+	    for(lag = 0; lag <= nl; lag++) {
 		sum = 0.0; nu = 0;
-		for(int i = 0; i < n-lag; i++)
-		    if(!ISNAN(x[i + lag + n*u]) && !ISNAN(x[i + n*v])) {
+		for(i = 0; i < nn-lag; i++)
+		    if(!ISNAN(x[i + lag + nn*u]) && !ISNAN(x[i + nn*v])) {
 			nu++;
-			sum += x[i + lag + n*u] * x[i + n*v];
+			sum += x[i + lag + nn*u] * x[i + nn*v];
 		    }
 		acf[lag + d1*u + d2*v] = (nu > 0) ? sum/(nu + lag) : NA_REAL;
 	    }
-    if(correlation) {
-	for(int u = 0; u < ns; u++)
+    if(*correlation) {
+	for(u = 0; u < ns; u++)
 	    se[u] = sqrt(acf[0 + d1*u + d2*u]);
-	if(n == 1) {
-	    for(int u = 0; u < ns; u++)
+	if(nn == 1) {
+	    for(u = 0; u < ns; u++)
 		acf[0 + d1*u + d2*u] = 1.0;
 	} else {
-	    for(int u = 0; u < ns; u++)
-		for(int v = 0; v < ns; v++)
-		    for(int lag = 0; lag <= nl; lag++)
+	    for(u = 0; u < ns; u++)
+		for(v = 0; v < ns; v++)
+		    for(lag = 0; lag <= nl; lag++)
 			acf[lag + d1*u + d2*v] /= se[u]*se[v];
 	}
     }
-}
-
-SEXP acf(SEXP x, SEXP lmax, SEXP sCor)
-{
-    int nx = nrows(x), ns = ncols(x), lagmax = asInteger(lmax),
-	cor = asLogical(sCor);
-    x = PROTECT(coerceVector(x, REALSXP));
-    SEXP ans = PROTECT(allocVector(REALSXP, (lagmax + 1)*ns*ns));
-    acf0(REAL(x), nx, ns, lagmax, cor, REAL(ans));
-    SEXP d = PROTECT(allocVector(INTSXP, 3));
-    INTEGER(d)[0] = lagmax + 1;
-    INTEGER(d)[1] = INTEGER(d)[2] = ns;
-    setAttrib(ans, R_DimSymbol, d);
-    UNPROTECT(3);
-    return ans;
 }

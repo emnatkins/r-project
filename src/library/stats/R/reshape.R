@@ -17,8 +17,7 @@
 #  http://www.r-project.org/Licenses/
 
 reshape <-
-    function(data, varying = NULL, v.names = NULL, timevar = "time",
-             idvar = "id",
+    function(data, varying= NULL, v.names= NULL, timevar = "time", idvar = "id",
              ids = 1L:NROW(data), times = seq_along(varying[[1L]]),
              drop = NULL, direction, new.row.names = NULL,
              sep = ".",
@@ -43,7 +42,7 @@ reshape <-
                         substr(nms, regexpr(re,nms) + 1L, 10000L))
 
         if (ncol(nn) != 2L)
-            stop("failed to guess time-varying variables from their names")
+            stop("Failed to guess time-varying variables from their names")
 
 
         vn <- unique(nn[,1])
@@ -103,7 +102,7 @@ reshape <-
             rval <- d
 
             if (length(times) == 1L) {
-                if (drop.idvar) rval[, idvar] <- NULL
+                if (drop.idvar) rval[, idvar]<-NULL
                 return(rval)
             }
             if (is.null(new.row.names))
@@ -124,7 +123,7 @@ reshape <-
             }
 
             ## if we created a temporary id variable, drop it
-            if (drop.idvar) rval[, idvar] <- NULL
+            if (drop.idvar) rval[, idvar]<-NULL
 
             attr(rval,"reshapeLong") <- undoInfo
             return(rval)
@@ -155,7 +154,7 @@ reshape <-
         times <- unique(data[, timevar])
         if (any(is.na(times)))
             warning("there are records with missing times, which will be dropped.")
-        undoInfo$times <- times
+        undoInfo$times<-times
 
         if (is.null(v.names))
             v.names <- names(data)[!(names(data) %in% c(timevar, idvar, orig.idvar))]
@@ -250,12 +249,12 @@ reshape <-
                    varying <- guess(varying)
                else {
                    if (length(varying) %% length(v.names))
-                       stop("length of 'v.names' does not evenly divide length of 'varying'")
+                       stop("length of v.names does not evenly divide length of varying")
                    ntimes <- length(varying) %/% length(v.names)
                    if (missing(times))
                        times <- seq_len(ntimes)
                    else if (length(times) != ntimes)
-                       stop("length of 'varying' must be the product of length of 'v.names' and length of 'times'")
+                       stop("length of varying must be the product of length of v.names and length of times")
                    varying <- split(varying, rep(v.names, ntimes))
                    attr(varying, "v.names") <- v.names
                    attr(varying, "times") <- times

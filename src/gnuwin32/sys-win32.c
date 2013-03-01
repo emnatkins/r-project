@@ -27,7 +27,6 @@
 #endif
 
 #include <Defn.h>
-#include <Internal.h>
 #include <Fileio.h>
 #include <Startup.h>
 

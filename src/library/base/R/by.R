@@ -33,10 +33,11 @@ by.default <- function(data, INDICES, FUN, ..., simplify = TRUE)
         } else IND <- INDICES
         FUNx <- function(x) FUN(dd[x,], ...)
         nd <- nrow(dd)
-	structure(eval(substitute(tapply(seq_len(nd), IND, FUNx,
-				      simplify = simplify)), dd),
-		  call = match.call(),
-		  class = "by")
+        ans <- eval(substitute(tapply(seq_len(nd), IND, FUNx,
+                                      simplify = simplify)), dd)
+        attr(ans, "call") <- match.call()
+        class(ans) <- "by"
+        ans
     }
 }
 
@@ -49,10 +50,11 @@ by.data.frame <- function(data, INDICES, FUN, ..., simplify = TRUE)
     } else IND <- INDICES
     FUNx <- function(x) FUN(data[x,, drop=FALSE], ...) # (PR#10506)
     nd <- nrow(data)
-    structure(eval(substitute(tapply(seq_len(nd), IND, FUNx,
-				     simplify = simplify)), data),
-	      call = match.call(),
-	      class = "by")
+    ans <- eval(substitute(tapply(seq_len(nd), IND, FUNx,
+                                  simplify = simplify)), data)
+    attr(ans, "call") <- match.call()
+    class(ans) <- "by"
+    ans
 }
 
 print.by <- function(x, ..., vsep)

@@ -58,13 +58,26 @@ lm.influence <- function (model, do.coef = TRUE)
         mqr <- qr.lm(model)
         n <- as.integer(nrow(mqr$qr))
         if (is.na(n)) stop("invalid model QR matrix")
+        k <- as.integer(mqr$rank)
+        if (is.na(k)) stop("invalid model QR matrix")
         ## in na.exclude case, omit NAs; also drop 0-weight cases
         if(NROW(e) != n)
             stop("non-NA residual length does not match cases used in fitting")
         do.coef <- as.logical(do.coef)
-        tol <- 10 * .Machine$double.eps;
-        ## This just returns e as res$wt.res
-        res <- .Call(C_influence, mqr, do.coef, e, tol);
+        res <- .Fortran(C_lminfl,
+                        mqr$qr,
+                        n,
+                        n,
+                        k,
+                        as.integer(do.coef),
+                        mqr$qraux,
+                        wt.res = e,
+                        hat = double(n),
+                        coefficients= if(do.coef) matrix(0, n, k) else double(),
+                        sigma = double(n),
+                        tol = 10 * .Machine$double.eps,
+                        DUP = FALSE
+                        )[c("hat", "coefficients", "sigma","wt.res")]
         if(!is.null(model$na.action)) {
             hat <- naresid(model$na.action, res$hat)
             hat[is.na(hat)] <- 0       # omitted cases have 0 leverage
@@ -82,7 +95,9 @@ lm.influence <- function (model, do.coef = TRUE)
     res$wt.res <- naresid(model$na.action, res$wt.res)
     res$hat[res$hat > 1 - 10*.Machine$double.eps] <- 1 # force 1
     names(res$hat) <- names(res$sigma) <- names(res$wt.res)
-    if(do.coef) {
+    if(!do.coef) ## drop it
+	res$coefficients <- NULL
+    else {
         rownames(res$coefficients) <- names(res$wt.res)
         colnames(res$coefficients) <- names(coef(model))[!is.na(coef(model))]
     }
@@ -104,7 +119,9 @@ influence.glm <- function(model, do.coef = TRUE, ...) {
 hatvalues <- function(model, ...) UseMethod("hatvalues")
 hatvalues.lm <- function(model, infl = lm.influence(model, do.coef=FALSE), ...)
 {
-    setNames(infl$hat, names(infl$wt.res))
+    hat <- infl$hat
+    names(hat) <- names(infl$wt.res)
+    hat
 }
 
 rstandard <- function(model, ...) UseMethod("rstandard")
@@ -265,7 +282,7 @@ influence.measures <- function(model)
     ans
 }
 
-print.infl <- function(x, digits = max(3L, getOption("digits") - 4L), ...)
+print.infl <- function(x, digits = max(3, getOption("digits") - 4), ...)
 {
     ## `x' : as the result of  influence.measures(.)
     cat("Influence measures of\n\t", deparse(x$call),":\n\n")
@@ -276,8 +293,7 @@ print.infl <- function(x, digits = max(3L, getOption("digits") - 4L), ...)
     invisible(x)
 }
 
-summary.infl <-
-    function(object, digits = max(2L, getOption("digits") - 5L), ...)
+summary.infl <- function(object, digits = max(2, getOption("digits") - 5), ...)
 {
     ## object must be as the result of	influence.measures(.)
     is.inf <- object$is.inf
@@ -294,8 +310,8 @@ summary.infl <-
 	dimnames(imat)[[1L]] <- rownam[is.star]
 	chmat <- format(round(imat, digits = digits))
 	cat("\n")
-	print(array(paste0(chmat, c("", "_*")[1L + is.inf]),
-		    dimnames = dimnames(imat), dim = dim(imat)),
+	print(array(paste0(chmat, c("","_*")[1+is.inf]),
+		    dimnames = dimnames(imat), dim=dim(imat)),
 	      quote = FALSE)
 	invisible(imat)
     } else {

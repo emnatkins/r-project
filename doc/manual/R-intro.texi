@@ -1136,6 +1136,10 @@ assignment, in which case the assignment operation is performed
 the form @code{vector[@var{index_vector}]} as having an arbitrary
 expression in place of the vector name does not make much sense here.
 
+The vector assigned must match the length of the index vector, and in
+the case of a logical index vector it must again be the same length as
+the vector it is indexing.
+
 For example
 
 @example
@@ -2041,17 +2045,13 @@ is the matrix product.  If @code{x} is a vector, then
 
 @noindent
 is a quadratic form.@footnote{Note that @code{x %*% x} is ambiguous, as
-it could mean either @xTx{} 
- or @xxT{}, 
- where @eqn{@strong{x},x} 
- is the column form.  In such cases the smaller matrix seems implicitly to be
-the interpretation adopted, so the scalar @xTx{} 
- is in this case the result.  The matrix @xxT{} 
- may be calculated either by @code{cbind(x)%*% x} or @code{x %*% rbind(x)} since the result of @code{rbind()} or
+it could mean either @xTx{} or @xxT{}, where @eqn{@strong{x},x} is the
+column form.  In such cases the smaller matrix seems implicitly to be
+the interpretation adopted, so the scalar @xTx{} is in this case the
+result.  The matrix @xxT{} may be calculated either by @code{cbind(x)
+%*% x} or @code{x %*% rbind(x)} since the result of @code{rbind()} or
 @code{cbind()} is always a matrix.  However, the best way to compute
-@xTx{}
- or @xxT{} 
- is @code{crossprod(x)} or @code{x %o% x}
+@xTx{} or @xxT{} is @code{crossprod(x)} or @code{x %o% x}
 respectively.}
 
 @findex crossprod
@@ -2107,16 +2107,12 @@ but rarely is needed.  Numerically, it is both inefficient and
 potentially unstable to compute @code{x <- solve(A) %*% b} instead of
 @code{solve(A,b)}.
 
-The quadratic form @eqn{@strong{x^T  A^{-1} x} ,@ @code{x %*% A^@{-1@} %*%x} @ } 
-, which is used in multivariate computations, should be computed by
+The quadratic form @eqn{@strong{x^T  A^{-1} x},@ @code{x %*% A^@{-1@} %*%
+x} @ } which is used in multivariate computations, should be computed by
 something like@footnote{Even better would be to form a matrix square
-root @eqn{B, B}
- with @eqn{A = BB^T, A = BB'}
- and find the squared length of the
-solution of @eqn{By = x, By = x},
-perhaps using the Cholesky or
-eigendecomposition of @eqn{A, A}.
-} @code{x %*% solve(A,x)}, rather than
+root @eqn{B, B} with @eqn{A = BB^T, A = BB'} and find the squared length of the
+solution of @eqn{By = x, By = x}, perhaps using the Cholesky or
+eigendecomposition of @eqn{A, A}.} @code{x %*% solve(A,x)}, rather than
 computing the inverse of @code{A}.
 
 @node Eigenvalues and eigenvectors, Singular value decomposition and determinants, Linear equations and inversion, Matrix facilities
@@ -2535,11 +2531,9 @@ factors, numeric matrices, lists, or other data frames.
 Matrices, lists, and data frames provide as many variables to the new
 data frame as they have columns, elements, or variables, respectively.
 @item
-Numeric vectors, logicals and factors are included as is, and by
-default@footnote{Conversion of character columns to factors is
-overridden using the @code{stringsAsFactors} argument to the
-@code{data.frame()} function.} character vectors are coerced to be
-factors, whose levels are the unique values appearing in the vector.
+Numeric vectors, logicals and factors are included as is, and character
+vectors are coerced to be factors, whose levels are the unique values
+appearing in the vector.
 @item
 Vector structures appearing as variables of the data frame must all have
 the @emph{same length}, and matrix structures must all have the same
@@ -3722,9 +3716,6 @@ to be constants as in our simple example here.
 @node The three dots argument, Assignment within functions, Named arguments and defaults, Writing your own functions
 @section The @samp{@dots{}} argument
 
-@c The ?Reserved topic links here, so please update it
-@c if changing the node name.
-
 Another frequent requirement is to allow one function to pass on
 argument settings to another.  For example many graphics functions use
 the function @code{par()} and functions like @code{plot()} allow the
@@ -3742,12 +3733,6 @@ fun1 <- function(data, data.frame, graph=TRUE, limit=20, ...) @{
   @r{[more omissions]}
 @}
 @end example
-
-Less frequently, a function will need to refer to components of
-@samp{@dots{}}.  The expression @code{list(...)} evaluates all such
-arguments and returns them in a named list, while @code{..1},
-@code{..2}, etc. evaluate them one at a time, with @samp{..n}
-returning the n'th unmatched argument.
 
 @node Assignment within functions, More advanced examples, The three dots argument, Writing your own functions
 @section Assignments within functions
@@ -6564,7 +6549,8 @@ disappear.
 @c need to adapt the discussion slightly.
 
 @table @code
-@item Start @R{} appropriately for your platform (@pxref{Invoking R}).
+@item
+Start @R{} appropriately for your platform (@pxref{Invoking R}).
 
 The @R{} program begins, with a banner.
 
@@ -6767,13 +6753,15 @@ parts @dots{}
 
 @item plot(w, xlim=c(-1,1), ylim=c(-1,1), pch="+",xlab="x", ylab="y")
 @itemx lines(z)
-@itemx All points are inside the unit circle, but the distribution is not
+@itemx
+All points are inside the unit circle, but the distribution is not
 uniform.
 
 @item w <- sqrt(runif(100))*exp(2*pi*runif(100)*1i)
 @itemx plot(w, xlim=c(-1,1), ylim=c(-1,1), pch="+", xlab="x", ylab="y")
 @itemx lines(z)
-@itemx The second method uses the uniform distribution.  The points should now
+@itemx
+The second method uses the uniform distribution.  The points should now
 look more evenly spaced over the disc.
 
 @item rm(th, w, z)
@@ -7078,7 +7066,7 @@ Post-process @R{} profiling files.
 Convert Rd format to various other formats, including @HTML{}, @LaTeX{},
 plain text, and extracting the examples.  @code{Rd2txt} can be used as
 shorthand for @code{Rd2conv -t txt}.
-@item Rd2pdf
+@itemx Rd2pdf
 Convert Rd format to PDF.
 @item Stangle
 Extract S/R code from Sweave documentation

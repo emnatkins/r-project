@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2013-02-13 r61942) -- "Unsuffered Consequences"
+R version 2.15.3 RC (2013-02-27 r62087) -- "Security Blanket"
 Copyright (C) 2013 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-apple-darwin12.2.0/x86_64 (64-bit)
@@ -30,7 +30,7 @@ Type 'q()' to quit R.
 > 
 > # test do_download.
 > nrow(available.packages(contrib.url("http://cran.r-project.org")))
-[1] 4316
+[1] 4359
 > 
 > # test url connections on http
 > zz <- url("http://cran.r-project.org/")
@@ -310,7 +310,8 @@ In url("http://foo.bar", "r") : unable to resolve 'foo.bar'
 +     strsplit(data, "\n")[[1]]
 + }
 > 
-> if(nzchar(Sys.getenv("http_proxy")) || nzchar(Sys.getenv("HTTP_PROXY"))) {
+> if(nchar(Sys.getenv("http_proxy")) > 0
++    || nchar(Sys.getenv("HTTP_PROXY")) > 0) {
 +     cat("http proxy is set, so skip test of http over sockets\n")
 + } else {
 +     httpget("http://www.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")
@@ -369,6 +370,5 @@ In url("http://foo.bar", "r") : unable to resolve 'foo.bar'
 +     invisible(output)
 + }
 > try(finger("root"))  ## only works if your site provides a finger daemon
-socket error: Connection refused
 Error in make.socket(host, port) : socket not established
 > 

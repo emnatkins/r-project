@@ -112,14 +112,12 @@ static char workspace_name[1000] = ".RData";
 #else
 static char workspace_name[PATH_MAX] = ".RData";
 
-attribute_hidden
 void set_workspace_name(const char *fn)
 {
     strncpy(workspace_name, fn, PATH_MAX);
 }
 #endif
 
-attribute_hidden
 const char* get_workspace_name()
 {
     return workspace_name;
@@ -196,7 +194,7 @@ static void SetSize(R_size_t vsize, R_size_t nsize)
     /* vsize >0 to catch long->int overflow */
     if (vsize < 1000 && vsize > 0) {
 	R_ShowMessage("WARNING: vsize ridiculously low, Megabytes assumed\n");
-	vsize *= (R_size_t) Mega;
+	vsize *= Mega;
     }
     if(vsize < Min_Vsize || vsize > Max_Vsize) {
 	sprintf(msg, "WARNING: invalid v(ector heap)size `%lu' ignored\n"

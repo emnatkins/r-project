@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-12   The R Core Team.
+ *  Copyright (C) 2000-10   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 #include <Rconnections.h>
 #include <R_ext/R-ftp-http.h>
 #include <errno.h>
-#include <R_ext/Print.h>
 
 static void *in_R_HTTPOpen(const char *url, const char *headers, const int cacheOK);
 static int   in_R_HTTPRead(void *ctx, char *dest, int len);
@@ -170,10 +169,10 @@ static size_t url_read(void *ptr, size_t size, size_t nitems,
     switch(type) {
     case HTTPSsh:
     case HTTPsh:
-	n = in_R_HTTPRead(ctxt, ptr, (int)(size*nitems));
+	n = in_R_HTTPRead(ctxt, ptr, size*nitems);
 	break;
     case FTPsh:
-	n = in_R_FTPRead(ctxt, ptr, (int)(size*nitems));
+	n = in_R_FTPRead(ctxt, ptr, size*nitems);
 	break;
     }
     return n/size;
@@ -269,7 +268,7 @@ static void doneprogressbar(void *data)
 
 #define CPBUFSIZE 65536
 #define IBUFSIZE 4096
-static SEXP in_do_download(SEXP args)
+static SEXP in_do_download(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP scmd, sfile, smode, sheaders, agentFun;
     const char *url, *file, *mode, *headers;
@@ -279,6 +278,7 @@ static SEXP in_do_download(SEXP args)
     int pc;
 #endif
 
+    checkArity(op, args);
     scmd = CAR(args); args = CDR(args);
     if(!isString(scmd) || length(scmd) < 1)
 	error(_("invalid '%s' argument"), "url");

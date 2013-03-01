@@ -20,8 +20,8 @@ addTaskCallback <- function(f, data = NULL, name = character())
 {
     if(!is.function(f))
         stop("handler must be a function")
-    val <- .Call(.C_R_addTaskCallback, f, data, !missing(data),
-                 as.character(name))
+    val <- .Call("R_addTaskCallback", f, data, !missing(data),
+                 as.character(name), PACKAGE="base")
     val + 1L
 }
 
@@ -30,10 +30,14 @@ removeTaskCallback <- function(id)
     if(!is.character(id))
         id <- as.integer(id)
 
-    .Call(.C_R_removeTaskCallback, id)
+    .Call("R_removeTaskCallback", id, PACKAGE="base")
 }
 
-getTaskCallbackNames <- function() .Call(.C_R_getTaskCallbackNames)
+getTaskCallbackNames <-
+function()
+{
+    .Call("R_getTaskCallbackNames", PACKAGE="base")
+}
 
 
 taskCallbackManager <-
@@ -136,7 +140,7 @@ function(handlers = list(), registered = FALSE, verbose = FALSE)
             }
             if(length(discard)) {
                 if(.verbose)
-                    cat(gettextf("Removing %s", paste(discard, collapse=", ")), "\n")
+                    cat(gettext("Removing"), paste(discard, collapse=", "), "\n")
                 idx <- is.na(match(names(handlers), discard))
                 if(length(idx))
                     handlers <<- handlers[idx]
@@ -155,7 +159,7 @@ function(handlers = list(), registered = FALSE, verbose = FALSE)
         function(name = "R-taskCallbackManager", verbose = .verbose)
         {
             if(verbose)
-                cat(gettext("Registering 'evaluate' as low-level callback\n"))
+                cat(gettext("Registering evaluate as low-level callback\n"))
             id <- addTaskCallback(evaluate, name = name)
             registered <<- TRUE
             id

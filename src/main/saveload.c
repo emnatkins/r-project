@@ -27,7 +27,6 @@
 #define NEED_CONNECTION_PSTREAMS
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
 #include <Rinterface.h>
 #include <Rmath.h>
 #include <Fileio.h>
@@ -815,7 +814,7 @@ static SEXP NewLoadSpecialHook (SEXPTYPE type)
 
 #define HASHSIZE 1099
 
-#define PTRHASH(obj) (((R_size_t) (obj)) >> 2)
+#define PTRHASH(obj) (((uintptr_t) (obj)) >> 2)
 
 #define HASH_TABLE_KEYS_LIST(ht) CAR(ht)
 #define SET_HASH_TABLE_KEYS_LIST(ht, v) SETCAR(ht, v)
@@ -847,7 +846,7 @@ static void FixHashEntries(SEXP ht)
 
 static void HashAdd(SEXP obj, SEXP ht)
 {
-    R_size_t pos = PTRHASH(obj) % HASH_TABLE_SIZE(ht);
+    int pos = PTRHASH(obj) % HASH_TABLE_SIZE(ht);
     int count = HASH_TABLE_COUNT(ht) + 1;
     SEXP val = ScalarInteger(count);
     SEXP cell = CONS(val, HASH_BUCKET(ht, pos));
@@ -861,7 +860,7 @@ static void HashAdd(SEXP obj, SEXP ht)
 
 static int HashGet(SEXP item, SEXP ht)
 {
-    R_size_t pos = PTRHASH(item) % HASH_TABLE_SIZE(ht);
+    int pos = PTRHASH(item) % HASH_TABLE_SIZE(ht);
     SEXP cell;
     for (cell = HASH_BUCKET(ht, pos); cell != R_NilValue; cell = CDR(cell))
 	if (item == TAG(cell))
@@ -1163,7 +1162,7 @@ static SEXP InCHARSXP (FILE *fp, InputRoutines *m, SaveLoadData *d)
 {
     SEXP s;
     char *tmp;
-    size_t len;
+    int len;
 
     /* FIXME: rather than use strlen, use actual length of string when
      * sized strings get implemented in R's save/load code.  */
@@ -1380,9 +1379,9 @@ static int InIntegerAscii(FILE *fp, SaveLoadData *unused)
 
 static void OutStringAscii(FILE *fp, const char *x, SaveLoadData *unused)
 {
-    size_t i, nbytes;
+    int i, nbytes;
     nbytes = strlen(x);
-    fprintf(fp, "%d ", (int) nbytes);
+    fprintf(fp, "%d ", nbytes);
     for (i = 0; i < nbytes; i++) {
 	switch(x[i]) {
 	case '\n': fprintf(fp, "\\n");  break;
@@ -1776,8 +1775,7 @@ static void R_WriteMagic(FILE *fp, int number)
 static int R_ReadMagic(FILE *fp)
 {
     unsigned char buf[6];
-    int d1, d2, d3, d4;
-    size_t count;
+    int d1, d2, d3, d4, count;
 
     count = fread((char*)buf, sizeof(char), 5, fp);
     if (count != 5) {
@@ -2280,7 +2278,7 @@ SEXP attribute_hidden do_saveToConn(SEXP call, SEXP op, SEXP args, SEXP env)
     if (con->text)
 	Rconn_printf(con, "%s", magic);
     else {
-	size_t len = strlen(magic);
+	int len = strlen(magic);
 	if (len != con->write(magic, 1, len, con))
 	    error(_("error writing to connection"));
     }
@@ -2321,7 +2319,7 @@ SEXP attribute_hidden do_loadFromConn2(SEXP call, SEXP op, SEXP args, SEXP env)
     Rconnection con;
     SEXP aenv, res = R_NilValue;
     unsigned char buf[6];
-    size_t count;
+    int count;
     Rboolean wasopen;
     RCNTXT cntxt;
 

@@ -60,8 +60,7 @@ print(x, \dots)
   \code{\link{ordered}} factors as well.
 
   \code{print.table} for printing \code{\link{table}}s allows other
-  customization. As of R 3.0.0, it only prints a description in case of a table 
-  with 0-extents (this can happen if a classifier has no valid data).
+  customization.
 
   See \code{\link{noquote}} as an example of a class whose main
   purpose is a specific \code{print} method.
@@ -77,8 +76,6 @@ print(x, \dots)
 
   For more customizable (but cumbersome) printing, see
   \code{\link{cat}}, \code{\link{format}} or also \code{\link{write}}.
-  For a simple prototypical print method, see
-  \code{\link[tools]{.print.via.format}} in package \pkg{tools}.
 }
 \examples{
 require(stats)
@@ -99,8 +96,5 @@ t1 <- round(abs(rt(200, df = 1.8)))
 t2 <- round(abs(rt(200, df = 1.4)))
 table(t1, t2) # simple
 print(table(t1, t2), zero.print = ".") # nicer to read
-
-## Corner cases with empty extents:
-table(1, NA) # < table of extent 1 x 0 >
 }
 \keyword{print}

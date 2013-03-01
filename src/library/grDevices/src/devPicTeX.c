@@ -25,12 +25,15 @@
 
 #include <Defn.h>
 
-# include <rlocale.h> /* includes wchar.h */
+# include <R_ext/rlocale.h> /* includes wchar.h */
 
 #define R_USE_PROTOTYPES 1
 #include <R_ext/GraphicsEngine.h>
 #include "Fileio.h"
 #include "grDevices.h"
+
+/* Formerly in headers, but only used in some devices */
+typedef unsigned int rcolor;
 
 	/* device-specific information per picTeX device */
 
