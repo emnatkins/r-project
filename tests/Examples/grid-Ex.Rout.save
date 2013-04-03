@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2013-03-30 r62438) -- "Unsuffered Consequences"
+R version 3.0.0 RC (2013-03-29 r62438) -- "Masked Marvel"
 Copyright (C) 2013 The R Foundation for Statistical Computing
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -1960,9 +1960,8 @@ vp1::vp2
 > 
 > ### * <FOOTER>
 > ###
-> options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  1.395 0.022 1.422 0 0 
+Time elapsed:  1.44 0.026 1.472 0 0 
 > grDevices::dev.off()
 null device 
           1 

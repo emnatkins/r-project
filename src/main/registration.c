@@ -84,6 +84,7 @@ static R_CallMethodDef callMethods [] = {
 #define FDEF(name, n)  {#name, (DL_FUNC) &F77_SYMBOL(name), n, NULL}
 static R_FortranMethodDef fortranMethods[] = {
     /* LINPACK */
+    FDEF(dchdc, 7), // chol, deprecated
     FDEF(dqrcf, 8), // qr and auxiliaries
     FDEF(dqrdc2, 9),
     FDEF(dqrqty, 7),

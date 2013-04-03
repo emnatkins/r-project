@@ -756,7 +756,7 @@ contrib.url <- function(repos, type = getOption("pkgType"))
 }
 
 
-getCRANmirrors <- function(all = FALSE, local.only = FALSE)
+getCRANmirrors <- function(all=FALSE, local.only=FALSE)
 {
     m <- NULL
     if(!local.only) {
@@ -774,13 +774,11 @@ getCRANmirrors <- function(all = FALSE, local.only = FALSE)
 }
 
 
-chooseCRANmirror <- function(graphics = getOption("menu.graphics"), ind = NULL)
+chooseCRANmirror <- function(graphics = getOption("menu.graphics"))
 {
-    if(is.null(ind) && !interactive())
-        stop("cannot choose a CRAN mirror non-interactively")
-    m <- getCRANmirrors(all = FALSE, local.only = FALSE)
-    res <- if (length(ind)) as.integer(ind)[1L] else
-    menu(m[, 1L], graphics, "CRAN mirror")
+    if(!interactive()) stop("cannot choose a CRAN mirror non-interactively")
+    m <- getCRANmirrors(all=FALSE, local.only=FALSE)
+    res <- menu(m[, 1L], graphics, "CRAN mirror")
     if(res > 0L) {
         URL <- m[res, "URL"]
         repos <- getOption("repos")
@@ -790,10 +788,9 @@ chooseCRANmirror <- function(graphics = getOption("menu.graphics"), ind = NULL)
     invisible()
 }
 
-chooseBioCmirror <- function(graphics = getOption("menu.graphics"), ind = NULL)
+chooseBioCmirror <- function(graphics = getOption("menu.graphics"))
 {
-    if(is.null(ind) && !interactive())
-        stop("cannot choose a BioC mirror non-interactively")
+    if(!interactive()) stop("cannot choose a BioC mirror non-interactively")
     m <- c("Seattle (USA)"="http://www.bioconductor.org"
 	   , "Bethesda (USA)"="http://watson.nci.nih.gov/bioc_mirror"
 	   , "Dortmund (Germany)"="http://bioconductor.statistik.tu-dortmund.de"
@@ -803,8 +800,7 @@ chooseBioCmirror <- function(graphics = getOption("menu.graphics"), ind = NULL)
 	   , "Canberra (Australia)" = "http://mirror.aarnet.edu.au/pub/bioconductor/"
 	   , "Sao Paulo (Brazil)" = "http://bioconductor.fmrp.usp.br/"
 	   )
-    res <- if (length(ind)) as.integer(ind)[1L] else
-    menu(names(m), graphics, "BioC mirror")
+    res <- menu(names(m), graphics, "BioC mirror")
     if(res > 0L) options("BioC_mirror" = m[res])
     invisible()
 }

@@ -26,7 +26,7 @@ gl <- function (n, k, length = n*k, labels=1:n, ordered=FALSE)
     ## That way, `levels<-` will pick up an invalid
     ## labels specification.
 
-    f <- rep_len(rep.int(1:n, rep.int(k,n)), length)
+    f <- rep(rep.int(1:n, rep.int(k,n)), length.out=length)
     levels(f) <- as.character(labels)
     class(f) <- c(if (ordered) "ordered", "factor")
     f
