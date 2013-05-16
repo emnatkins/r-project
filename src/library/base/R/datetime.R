@@ -402,7 +402,6 @@ as.list.POSIXct <- function(x, ...)
 }
 
 is.na.POSIXlt <- function(x) is.na(as.POSIXct(x))
-anyNA.POSIXlt <- function(x) anyNA(as.POSIXct(x))
 
 ## <FIXME> check the argument validity
 ## This is documented to remove the timezone

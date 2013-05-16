@@ -4530,19 +4530,17 @@ function(dir)
         ## (This may fail for conditionalized code not meant for R
         ## [e.g., argument 'where'].)
         mc <- tryCatch(match.call(base::assign, e), error = identity)
-        if(inherits(mc, "error") || mc$x == ".Random.seed")
-            return(FALSE)
-        if(!is.null(env <- mc$envir) &&
-           identical(tryCatch(eval(env),
-                              error = identity),
-                     globalenv()))
-            return(TRUE)
-        if(!is.null(pos <- mc$pos) &&
-           identical(tryCatch(eval(call("as.environment", pos)),
-                              error = identity),
-                     globalenv()))
-            return(TRUE)
-        FALSE
+        (!inherits(mc, "error") &&
+         (mc$x != ".Random.seed") &&
+         ((is.name(pos <- mc$pos) &&
+           as.character(pos) == ".GlobalEnv") ||
+          (is.call(pos) &&
+           as.character(pos) == "globalenv") ||
+          (is.numeric(pos) && pos == 1) ||
+          (is.name(env <- mc$envir) &&
+           as.character(env) == ".GlobalEnv") ||
+          (is.call(env) &&
+           as.character(env) == "globalenv")))
     }
 
     calls <- Filter(length,
@@ -5337,27 +5335,9 @@ function(dir)
 ### * .check_citation
 
 .check_citation <-
-function(cfile, dir = NULL)
+function(cfile)
 {
     cfile <- file_path_as_absolute(cfile)
-
-    if(!is.null(dir)) {
-        meta <- utils::packageDescription(basename(dir), dirname(dir))
-        db <- tryCatch(suppressMessages(utils::readCitationFile(cfile,
-                                                                meta)),
-                       error = identity)
-        if(inherits(db, "error")) {
-            msg <- conditionMessage(db)
-            call <- conditionCall(db)
-            if(is.null(call))
-                msg <- c("Error: ", msg)
-            else
-                msg <- c("Error in ", deparse(call), ": ", msg)
-            writeLines(paste(msg, collapse = ""))
-        }
-        return(invisible())
-    }
-    
     meta <- if(basename(dir <- dirname(cfile)) == "inst")
         as.list(.get_package_metadata(dirname(dir)))
     else
@@ -5443,7 +5423,7 @@ function(dir, silent = FALSE, def_enc = FALSE, minlevel = -1)
 .check_depdef <-
 function(package, dir, lib.loc = NULL)
 {
-    bad_depr <- character()
+    bad_depr <- c(".find.package", ".path.package")
 
     bad_def <- c("La.eigen", "tetragamma", "pentagamma",
                  "package.description", "gammaCody",
@@ -5454,8 +5434,7 @@ function(package, dir, lib.loc = NULL)
                  "tkfile.tail", "tkfile.dir", "tkopen", "tkclose",
                  "tkputs", "tkread", "Rd_parse", "CRAN.packages",
                  "zip.file.extract",
-                 "real", "as.real", "is.real",
-                 ".find.package", ".path.package")
+                 "real", "as.real", "is.real")
 
     bad <- c(bad_depr, bad_def)
     bad_closures <- character()
@@ -5870,13 +5849,6 @@ function(dir)
     if(!foss && analyze_license(l_d)$is_verified)
         out$new_license <- list(meta["License"], l_d)
 
-    uses <- character()
-    for (field in c("Depends", "Imports", "Suggests")) {
-        p <- strsplit(meta[field], " *, *")[[1L]]
-        p <- grep("^(multicore|snow)( |\\(|$)", p, value = TRUE)
-        uses <- c(uses, p)
-    }
-    if (length(uses)) out$uses <- sort(unique(uses))
     out
 }
 
@@ -5963,12 +5935,6 @@ function(x, ...)
                    "packages which may restrict use:",
                    "package which may restrict use:"),
             strwrap(paste(y, collapse = ", "), indent = 2L, exdent = 4L))
-      },
-      if (length(y <- x$uses)) {
-          paste(ifelse(length(y) > 1L,
-                       "Uses the superseded packages:",
-                       "Uses the superseded package:"),
-                paste(sQuote(y), collapse = ", "))
       }
       )
 }
@@ -6153,101 +6119,6 @@ function(x, ...)
 
     as.character(unlist(lapply(names(x), .fmt)))
 }
-
-### * .check_Rd_line_widths
-
-.check_Rd_line_widths <-
-function(dir, limit = c(usage = 95, examples = 105), installed = FALSE)
-{
-    db <- if(installed)
-        Rd_db(basename(dir), lib.loc = dirname(dir))
-    else
-        Rd_db(dir = dir)
-    out <- find_wide_Rd_lines_in_Rd_db(db, limit)
-    class(out) <- "check_Rd_line_widths"
-    attr(out, "limit") <- limit
-    out
-}
-
-format.check_Rd_line_widths <-
-function(x, ...)
-{
-    if(!length(x)) return(character())
-
-    .truncate <- function(s) {
-        ifelse(nchar(s) > 140L,
-               paste(substring(s, 1, 140L),
-                     "... [TRUNCATED]"),
-               s)
-    }
-    
-    limit <- attr(x, "limit")
-    ## Rd2txt() by default adds a section indent of 5 also incorporated
-    ## in the limits used for checking.  But users actually look at the
-    ## line widths in their source Rd file, so remove the indent when
-    ## formatting for reporting check results.
-    ## (This should reduce confusion as long as we only check the line
-    ## widths in verbatim type sections.)
-    limit <- limit - 5L
-    
-    sections <- names(limit)
-
-    .fmt <- function(nm) {
-        y <- x[[nm]]
-        c(sprintf("Rd file '%s':", nm),
-          unlist(lapply(sections,
-                        function(s) {
-                            lines <- y[[s]]
-                            if(!length(lines)) character() else {
-                                c(sprintf("  \\%s lines wider than %d characters:",
-                                          s, limit[s]),
-                                  .truncate(lines))
-                            }
-                        }),
-                 use.names = FALSE),
-          "")
-    }
-
-    as.character(unlist(lapply(names(x), .fmt)))
-}                
-
-find_wide_Rd_lines_in_Rd_db <-
-function(x, limit = NULL)
-{
-    y <- lapply(x, find_wide_Rd_lines_in_Rd_object, limit)
-    Filter(length, y)
-}
-
-find_wide_Rd_lines_in_Rd_object <-
-function(x, limit = NULL)
-{
-    if(is.null(limit))
-        limit <- list(usage = c(79, 95), examples = c(87, 105))
-    sections <- names(limit)
-    if(is.null(sections))
-        stop("no Rd sections specified")
-    y <- Map(function(s, l) {
-        out <- NULL
-        zz <- textConnection("out", "w", local = TRUE)
-        on.exit(close(zz))
-        pos <- which(RdTags(x) == s)
-        Rd2txt(x[pos[1L]], out = zz, fragment = TRUE)
-        nc <- nchar(out)
-        if(length(l) > 1L) {
-            ind_warn <- (nc > max(l))
-            ind_note <- (nc > min(l)) & !ind_warn
-            Filter(length,
-                   list(warn = out[ind_warn], note = out[ind_note]))
-        } else {
-            out[nc > l]
-        }
-    },
-             paste0("\\", sections),
-             limit)
-    names(y) <- sections
-    Filter(length, y)
-}
-
 
 ### * .find_charset
 

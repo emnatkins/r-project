@@ -38,4 +38,4 @@ all:
 
 
 clean:
-	$(RM) -R *.html *.htm ReadMe README* *.exe md5sum.txt NEWS.* CHANGES.* target.cmd
+	$(RM) -r *.html *.htm ReadMe README* *.exe md5sum.txt NEWS.* CHANGES.* target.cmd

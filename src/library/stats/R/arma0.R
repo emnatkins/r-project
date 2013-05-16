@@ -127,7 +127,7 @@ arima0 <- function(x, order = c(0, 0, 0),
         if(is.null(cn <- colnames(xreg)))
             cn <- paste0("xreg", 1L:ncxreg)
     }
-    if(anyNA(x) || (ncxreg && anyNA(xreg)))
+    if(any(is.na(x)) || (ncxreg && any(is.na(xreg))))
         ## only exact recursions handle NAs
         if(method == "ML" && delta >= 0) {
             warning("NAs present: setting 'delta' to -1")

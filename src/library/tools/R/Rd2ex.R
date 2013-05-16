@@ -26,7 +26,7 @@ Rd2ex <-
     WriteLines <- function(x, con, outputEncoding, ...) {
         if (outputEncoding != "UTF-8") {
             x <- iconv(x, "UTF-8", outputEncoding,  mark=FALSE)
-            if (anyNA(x)) {
+            if (any(is.na(x))) {
                 x <- iconv(x, "UTF-8", outputEncoding, sub="byte", mark=FALSE)
                 encode_warn <<- TRUE
             }

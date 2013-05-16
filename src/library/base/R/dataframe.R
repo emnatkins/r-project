@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 # Statlib code by John Chambers, Bell Labs, 1994
-# Changes Copyright (C) 1998-2013 The R Core Team
+# Changes Copyright (C) 1998-2012 The R Core Team
 
 
 ## As from R 2.4.0, row.names can be either character or integer.
@@ -74,7 +74,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
                 domain = NA, call. = FALSE)
 	stop("duplicate 'row.names' are not allowed")
     }
-    if (anyNA(value))
+    if (any(is.na(value)))
 	stop("missing values in 'row.names' are not allowed")
     attr(x, "row.names") <- value
     x
@@ -91,9 +91,6 @@ is.na.data.frame <- function (x)
     if(.row_names_info(x) > 0L) rownames(y) <- row.names(x)
     y
 }
-
-## not needed, as  anyNA() works recursively on list()s :
-## anyNA.data.frame <- function(x) any(vapply(x, anyNA, NA, USE.NAMES=FALSE))
 
 is.data.frame <- function(x) inherits(x, "data.frame")
 
@@ -399,7 +396,7 @@ data.frame <-
         if(!mrn) {
             if(is.object(row.names) || !is.integer(row.names))
                 row.names <- as.character(row.names)
-            if(anyNA(row.names))
+            if(any(is.na(row.names)))
                 stop("row names contain missing values")
             if(anyDuplicated(row.names))
                 stop(gettextf("duplicate row.names: %s",
@@ -515,7 +512,7 @@ data.frame <-
     else {
         if(is.object(row.names) || !is.integer(row.names))
             row.names <- as.character(row.names)
-        if(anyNA(row.names))
+        if(any(is.na(row.names)))
             stop("row names contain missing values")
         if(anyDuplicated(row.names))
             stop(gettextf("duplicate row.names: %s",
@@ -551,16 +548,16 @@ data.frame <-
         nm <- names(x); if(is.null(nm)) nm <- character()
         ## if we have NA names, character indexing should always fail
         ## (for positive index length)
-        if(!is.character(i) && anyNA(nm)) { # less efficient version
+        if(!is.character(i) && any(is.na(nm))) { # less efficient version
             names(nm) <- names(x) <- seq_along(x)
             y <- NextMethod("[")
             cols <- names(y)
-            if(anyNA(cols)) stop("undefined columns selected")
+            if(any(is.na(cols))) stop("undefined columns selected")
             cols <- names(y) <- nm[cols]
         } else {
             y <- NextMethod("[")
             cols <- names(y)
-            if(!is.null(cols) && anyNA(cols))
+            if(!is.null(cols) && any(is.na(cols)))
                 stop("undefined columns selected")
         }
         ## added in 1.8.0
@@ -574,17 +571,17 @@ data.frame <-
         ## not quite the same as the 1/2-arg case, as 'drop' is used.
         if(drop && !has.j && length(x) == 1L) return(.subset2(x, 1L))
         nm <- names(x); if(is.null(nm)) nm <- character()
-        if(has.j && !is.character(j) && anyNA(nm)) {
+        if(has.j && !is.character(j) && any(is.na(nm))) {
             ## less efficient version
             names(nm) <- names(x) <- seq_along(x)
             y <- .subset(x, j)
             cols <- names(y)
-            if(anyNA(cols)) stop("undefined columns selected")
+            if(any(is.na(cols))) stop("undefined columns selected")
             cols <- names(y) <- nm[cols]
         } else {
             y <- if(has.j) .subset(x, j) else x
             cols <- names(y)
-            if(anyNA(cols)) stop("undefined columns selected")
+            if(any(is.na(cols))) stop("undefined columns selected")
         }
         if(drop && length(y) == 1L) return(.subset2(y, 1L))
         if(anyDuplicated(cols)) names(y) <- make.unique(cols)
@@ -608,7 +605,7 @@ data.frame <-
 
     if(has.j) { # df[i, j]
         nm <- names(x); if(is.null(nm)) nm <- character()
-        if(!is.character(j) && anyNA(nm))
+        if(!is.character(j) && any(is.na(nm)))
             names(nm) <- names(x) <- seq_along(x)
         x <- x[j]
         cols <- names(x)  # needed for 'drop'
@@ -624,7 +621,7 @@ data.frame <-
             xj <- .subset2(.subset(xx, j), 1L)
             return(if(length(dim(xj)) != 2L) xj[i] else xj[i, , drop = FALSE])
         }
-        if(anyNA(cols)) stop("undefined columns selected")
+        if(any(is.na(cols))) stop("undefined columns selected")
         ## fix up names if we altered them.
         if(!is.null(names(nm))) cols <- names(x) <- nm[cols]
         ## sxx <- match(cols, names(xx)) fails with duplicate names
@@ -660,7 +657,7 @@ data.frame <-
         ## row names might have NAs.
         if(is.null(rows)) rows <- attr(xx, "row.names")
         rows <- rows[i]
-	if((ina <- anyNA(rows)) | (dup <- anyDuplicated(rows))) {
+	if((ina <- any(is.na(rows))) | (dup <- anyDuplicated(rows))) {
 	    ## both will coerce integer 'rows' to character:
 	    if (!dup && is.character(rows)) dup <- "NA" %in% rows
 	    if(ina)
@@ -725,7 +722,7 @@ data.frame <-
             ## except for two column numeric matrix or full-sized logical matrix
             if(is.numeric(i) && is.matrix(i) && ncol(i) == 2) {
                 # Rewrite i as a logical index
-                index <- rep.int(FALSE, prod(dim(x)))
+                index <- rep(FALSE, prod(dim(x)))
                 dim(index) <- dim(x)
                 tryCatch(index[i] <- TRUE,
                          error = function(e) stop(conditionMessage(e), call.=FALSE))
@@ -785,7 +782,7 @@ data.frame <-
     nrows <- .row_names_info(x, 2L)
     if(has.i) { # df[i, ] or df[i, j]
         rows <- NULL  # indicator that it is not yet set
-        if(anyNA(i))
+        if(any(is.na(i)))
             stop("missing values are not allowed in subscripted assignments of data frames")
 	if(char.i <- is.character(i)) {
             rows <- attr(x, "row.names")
@@ -815,12 +812,12 @@ data.frame <-
 	    nrows <- length(rows)
 	}
 	iseq <- seq_len(nrows)[i]
-	if(anyNA(iseq)) stop("non-existent rows not allowed")
+	if(any(is.na(iseq))) stop("non-existent rows not allowed")
     }
     else iseq <- NULL
 
     if(has.j) {
-        if(anyNA(j))
+        if(any(is.na(j)))
             stop("missing values are not allowed in subscripted assignments of data frames")
 	if(is.character(j)) {
             if("" %in% j) stop("column name \"\" cannot match any column")
@@ -845,7 +842,7 @@ data.frame <-
                 ## try to use the names of a list `value'
                 if(is.list(value) && !is.null(vnm <- names(value))) {
                     p <- length(jseq)
-                    if(length(vnm) < p) vnm <- rep_len(vnm, p)
+                    if(length(vnm) < p) vnm <- rep(vnm, length.out = p)
                     new.cols <- vnm[jseq > nvars]
                 }
 	    }
@@ -921,7 +918,7 @@ data.frame <-
     nrowv <- dimv[1L]
     if(nrowv < n && nrowv > 0L) {
 	if(n %% nrowv == 0L)
-	    value <- value[rep_len(seq_len(nrowv), n),,drop = FALSE]
+	    value <- value[rep(seq_len(nrowv), length.out = n),,drop = FALSE]
 	else
             stop(sprintf(ngettext(nrowv,
                                   "%d row in value to replace %d rows",
@@ -935,7 +932,7 @@ data.frame <-
                         nrowv, n), domain = NA)
     ncolv <- dimv[2L]
     jvseq <- seq_len(p)
-    if(ncolv < p) jvseq <- rep_len(seq_len(ncolv), p)
+    if(ncolv < p) jvseq <- rep(seq_len(ncolv), length.out = p)
     else if(ncolv > p) {
         warning(sprintf(ngettext(ncolv,
                                  "provided %d variable to replace %d variables",
@@ -1071,13 +1068,13 @@ data.frame <-
 
     ## FIXME: this is wasteful and probably unnecessary
     iseq <- seq_len(nrows)[i]
-    if(anyNA(iseq))
+    if(any(is.na(iseq)))
 	stop("non-existent rows not allowed")
 
     if(is.character(j)) {
         if("" %in% j) stop("column name \"\" cannot match any column")
 	jseq <- match(j, names(x))
-	if(anyNA(jseq))
+	if(any(is.na(jseq)))
             stop(gettextf("replacing element in non-existent column: %s",
                           j[is.na(jseq)]), domain = NA)
     }
@@ -1127,17 +1124,6 @@ data.frame <-
     class(x) <- cl
     return(x)
 }
-
-### Added for 3.1.0
-`$.data.frame` <- function(x,name) {
-  a <- x[[name]]
-  if (!is.null(a)) return(a)
-
-  a <- x[[name, exact=FALSE]]
-  if (!is.null(a)) warning("Name partially matched in data frame")
-  return(a)
-}
-
 
 xpdrows.data.frame <- function(x, old.rows, new.rows)
 {
@@ -1512,7 +1498,7 @@ Ops.data.frame <- function(e1, e2 = NULL)
                      domain = NA)
 	} else {
 	    if(!rscalar)
-		e2 <- split(rep_len(as.vector(e2), prod(dim(e1))),
+		e2 <- split(rep(as.vector(e2), length.out = prod(dim(e1))),
 			    rep.int(seq_len(ncol(e1)),
                                     rep.int(nrow(e1), ncol(e1))))
 	}
@@ -1529,7 +1515,7 @@ Ops.data.frame <- function(e1, e2 = NULL)
                      domain = NA)
 	} else {
 	    if(!lscalar)
-		e1 <- split(rep_len(as.vector(e1), prod(dim(e2))),
+		e1 <- split(rep(as.vector(e1), length.out = prod(dim(e2))),
 			    rep.int(seq_len(ncol(e2)),
                                     rep.int(nrow(e2), ncol(e2))))
 	}

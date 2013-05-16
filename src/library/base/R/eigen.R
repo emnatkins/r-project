@@ -35,6 +35,9 @@ isSymmetric.matrix <- function(object, tol = 100*.Machine$double.eps, ...)
 
 eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 {
+    if (EISPACK)
+        warning("EISPACK = TRUE is defunct and will be ignored", domain = NA)
+
     x <- as.matrix(x)
     n <- nrow(x)
     if (!n) stop("0 x 0 matrix")

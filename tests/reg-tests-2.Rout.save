@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2013-05-01 r62701) -- "Unsuffered Consequences"
+R version 3.0.0 Patched (2013-04-04 r62492) -- "Masked Marvel"
 Copyright (C) 2013 The R Foundation for Statistical Computing
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -1755,7 +1755,7 @@ Sep 1961  20  30
 > try(glm(y ~ x, family = poisson(identity)))
 Error : no valid set of coefficients has been found: please supply starting values
 In addition: Warning message:
-In log(y/mu) : NaNs produced
+In log(ifelse(y == 0, 1, y/mu)) : NaNs produced
 > ## failed because start = NULL in 1.4.1
 > ## now gives useful error message
 > glm(y ~ x, family = poisson(identity), start = c(1,0))
@@ -3262,16 +3262,16 @@ Error in `[.data.frame`(x, 1, c("a", "c")) : undefined columns selected
 > meth2gen <- function(cl)
 +     noquote(sub(paste("\\.",cl,"$",sep=""),"", c(methods(class = cl))))
 > meth2gen("data.frame")
- [1] $             $<-           Math          Ops           Summary      
- [6] [             [<-           [[            [[<-          aggregate    
-[11] anyDuplicated as.data.frame as.list       as.matrix     by           
-[16] cbind         dim           dimnames      dimnames<-    droplevels   
-[21] duplicated    edit          format        formula       head         
-[26] is.na         merge         na.exclude    na.omit       plot         
-[31] print         prompt        rbind         row.names     row.names<-  
-[36] rowsum        split         split<-       stack         str          
-[41] subset        summary       t             tail          transform    
-[46] unique        unstack       within       
+ [1] $<-           Math          Ops           Summary       [            
+ [6] [<-           [[            [[<-          aggregate     anyDuplicated
+[11] as.data.frame as.list       as.matrix     by            cbind        
+[16] dim           dimnames      dimnames<-    droplevels    duplicated   
+[21] edit          format        formula       head          is.na        
+[26] merge         na.exclude    na.omit       plot          print        
+[31] prompt        rbind         row.names     row.names<-   rowsum       
+[36] split         split<-       stack         str           subset       
+[41] summary       t             tail          transform     unique       
+[46] unstack       within       
 > meth2gen("dendrogram")
  [1] [[         as.hclust  cophenetic cut        labels     merge     
  [7] plot       print      reorder    rev        str       
@@ -6397,15 +6397,15 @@ function ()
 > print.function
 function (x, ...)  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 19 1 63 19 63 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x334b9f0> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3c66fe8> 
 > f
 function ()  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 17 1 28 17 28 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x33436d8> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3c46db0> 
  - attr(*, "note")= chr "just a note"
  - attr(*, "yada")=function ()  
   ..- attr(*, "srcref")=Class 'srcref'  atomic [1:8] 2 24 2 48 24 48 2 2
-  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x33436d8> 
+  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3c46db0> 
 > rm(print.function)
 > ## auto-printing and printing differed up to R 2.9.x
 > 
@@ -7066,12 +7066,4 @@ g(y)(x)
 1 2 
 2 3 
 > ## Printed the class attribute in R <= 3.0.0
-> 
-> ## PR#15311 : regmatches<- mishandled regexpr results.
->   x <- c('1', 'B', '3')
->   m <- regexpr('\\d', x)
->   regmatches(x, m) <- c('A', 'C')
->   print(x)
-[1] "A" "B" "C"
-> ## Gave a warning and a wrong result up to 3.0.1
 > 

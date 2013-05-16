@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-03-20 07:19+0000\n"
+"POT-Creation-Date: 2013-03-19 12:06+0000\n"
 "PO-Revision-Date: 2013-03-19 19:17-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -229,12 +229,12 @@ msgstr "проблема при отображении '%ls'"
 #: src/main/sysutils.c:600 src/main/sysutils.c:1611 src/main/sysutils.c:1615
 #: src/main/unique.c:966 src/main/unique.c:1289 src/main/unique.c:1349
 #: src/main/unique.c:1356 src/main/unique.c:1749 src/main/util.c:576
-#: src/main/util.c:579 src/main/util.c:1790 src/main/util.c:1958
-#: src/main/util.c:1959 src/main/util.c:1960 src/main/util.c:1977
-#: src/main/util.c:2001 src/main/util.c:2005 src/main/util.c:2007
-#: src/main/util.c:2032 src/main/util.c:2034 src/main/util.c:2036
-#: src/main/util.c:2039 src/main/util.c:2042 src/main/util.c:2046
-#: src/main/util.c:2048 src/modules/X11/devX11.c:3241
+#: src/main/util.c:579 src/main/util.c:1773 src/main/util.c:1941
+#: src/main/util.c:1942 src/main/util.c:1943 src/main/util.c:1960
+#: src/main/util.c:1984 src/main/util.c:1988 src/main/util.c:1990
+#: src/main/util.c:2015 src/main/util.c:2017 src/main/util.c:2019
+#: src/main/util.c:2022 src/main/util.c:2025 src/main/util.c:2029
+#: src/main/util.c:2031 src/modules/X11/devX11.c:3241
 #: src/modules/X11/devX11.c:3244 src/modules/X11/devX11.c:3247
 #: src/modules/X11/devX11.c:3271 src/modules/internet/internet.c:284
 #: src/modules/internet/internet.c:290 src/modules/internet/internet.c:296
@@ -6213,28 +6213,28 @@ msgstr "сообщение об ошибке сокращено до 255 сим�
 msgid "warning message truncated to 255 chars"
 msgstr "предупреждающее сообщение сокращено до 255 символов"
 
-#: src/main/util.c:1784
+#: src/main/util.c:1767
 msgid "all arguments must be named"
 msgstr "все аргументы должны быть именованы"
 
-#: src/main/util.c:1857
+#: src/main/util.c:1840
 msgid "ICU is not supported on this build"
 msgstr "ICU не поддерживается в этой сборке"
 
-#: src/main/util.c:1918
+#: src/main/util.c:1901
 msgid "'breaks' is not sorted"
 msgstr "'breaks' не сортированы"
 
-#: src/main/util.c:1952 src/main/util.c:1998
+#: src/main/util.c:1935 src/main/util.c:1981
 #, c-format
 msgid "long vector '%s' is not supported"
 msgstr "длинный вектор '%s' не поддерживается"
 
-#: src/main/util.c:2051
+#: src/main/util.c:2034
 msgid "'eps.correct' must be 0, 1, or 2"
 msgstr "'eps.correct' должен быть 0, 1, or 2"
 
-#: src/main/util.c:2079
+#: src/main/util.c:2062
 msgid "'x' must be a vector"
 msgstr "'x' должен быть вектором"
 

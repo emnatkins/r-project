@@ -7,123 +7,6 @@
 \title{ R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{type.convert()} (hence \code{read.table()}) returns
-      a character vector or factor when representing a numeric input
-      as a double would lose accuracy.  Similarly for complex inputs.
-
-      If a file contains numeric data with unrepresentable numbers of
-      decimal places that are intended to be read as numeric, specify
-      \code{colClasses} in \code{read.table()} to be \code{"numeric"}.
-
-      \item \code{sum()} for integer arguments now uses an integer
-      accumulator of at least 64 bits and so will be more accurate in
-      the very rare case that a cumulative sum exceeds
-      \eqn{2^{53}}{2^53} (necessarily summing more than 4 million
-      elements).
-
-      \item \code{tools::Rdiff(useDiff = FALSE)} is closer to the POSIX
-      definition of \command{diff -b} (as distinct from the description
-      in the \command{man} pages of most systems).
-
-      \item New function \code{anyNA()}, a fast version of
-      \code{any(is.na(.))}, \emph{where neither \code{is.na()} nor
-      \code{any()} has a relevant method}, based on a proposal by Tim
-      Hesterberg. (Wish of \PR{15239}.)
-
-      \item \code{arrayInd(*, useNames = TRUE)} and, analogously,
-      \code{which(*, arr.ind = TRUE)} now make use of
-      \code{names(.dimnames)} when available.
-
-      \item \code{is.unsorted()} now works for \code{raw} vectors as
-      well, and \code{is.unsorted(NA)} is false.
-    }
-  }
-
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item In the \file{DESCRIPTION} file, \preformatted{    License: X11}
-      is no longer recognized as valid.  Use \sQuote{MIT} or
-      \sQuote{BSD_2_clause} instead.
-
-      \item For consistency, entries in \file{.Rinstignore} are now matched
-      case-insensitively on all platforms.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item For consistency, \command{R CMD build} now matches entries
-      in \file{.Rbuildignore}  and \file{vignettes/.install_extras}
-      case-insensitively on all platforms (not just on Windows).
-
-      \item \command{R CMD check --as-cran} checks the line widths in
-      usage and examples sections of the package Rd files.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item \code{chol(pivot = TRUE, LINPACK = TRUE)} is defunct.
-
-      Arguments \code{EISPACK} for \code{eigen()} and \code{LINPACK} for
-      \code{chol()}, \code{chol2inv()}, \code{solve()} and \code{svd()}
-      are ignored: LAPACK is always used.
-
-      \item \code{.find.package()} and \code{.path.package()} are
-      defunct: only the versions without the initial dot introduced in
-      \R 2.13.0 have ever been in the API.
-
-      \item Partial matching when using the \code{$} operator \emph{on
-	data frames} now throws a warning and may become defunct in the
-      future. If partial matching is intended, replace \code{foo$bar}
-      by \code{foo[["bar", exact = FALSE]]}.
-
-      \item [Not later than May 10] The long-deprecated use of
-      \code{\\synopsis} in the \samp{Usage} section of \file{.Rd} files
-      has been removed.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Calling \code{lm.wfit()} with no non-zero weights gave an
-      array-overrun in the Fortran code and a not very sensible answer.
-      It is now special-cased with a simpler answer (no \code{qr}
-      component).
-
-      \item On system where \code{mktime()} does not set \code{ERRNO}, the
-      last second before the epoch could not be converted from \code{POSIXlt}
-      to \code{POSIXct}. (Reported by Bill Dunlap).
-
-      \item If \code{x} is a symbol, \code{is.vector(x, "name")} now returns
-      \code{TRUE}, since \code{"name"} and \code{"symbol"} should be synonyms.
-      (Reported by Hervé Pagès.)
-      
-      \item The parser now enforces C99 syntax for floating point
-      hexadecimal constants (e.g. \code{0x1.1p0}), rather than returning
-      unintended values for malformed constants. (\PR{15234})
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.0.1 patched}{
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{help.request()} could not determine the current version
-      of \R on CRAN.  (\PR{15241})
-      
-      \item On Windows, \code{file.info()} failed on root directories unless
-      the path was terminated with an explicit \code{"."}.  (\PR{15302})
-      
-      \item The \code{`regmatches<-`} assignment function mishandled
-      results coming from \code{regexpr}.  (\PR{15311})
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.0.1}{
   \subsection{NEW FEATURES}{
     \itemize{
@@ -203,6 +86,11 @@
       the \code{tz} argument and not \code{"GMT"} as documented
       (\PR{14973}).
 
+      \item The active binding to assign fields in reference classes
+      has been cleaned up to reduce dependence on the class' package
+      environment, also fixing bug in initializing read-only fields
+      (inspired by a report from Hadley Wickham).
+
       \item \code{str(d)} no longer gives an error when \code{names(d)}
       contain illegal multibyte strings (\PR{15247}).
 
@@ -254,33 +142,36 @@
       \item \code{as.dendrogram()}'s \code{hclust} method uses less
       memory and hence gets considerably faster for large (n ~ 1000)
       clusterings, thanks to Daniel Müllner. (\PR{15174})
-
+      
       \item The return value when all workers failed from
       \code{parallel::mclapply(mc.presechedule = TRUE)} was a list of
       strings and not of error objects.  (Spotted by Karl Forner and
-      Bernd Bischl.)
-
+      Bernd Bischl.) 
+      
       \item In \R 3.0.0, when \code{help()} found multiple pages with
       the same alias, the HTML display of all the selections was not
-      produced.  (\PR{15282})
-
+      produced.  (\PR{15282})  
+      
       \item \code{splinefun(method="monoH.FC")} now produces a
       function with first argument named \code{x} and allows
-      \code{deriv=3}, as documented. (\PR{15273})
-
-      \item \code{summaryRprof()} would only read the first
+      \code{deriv=3}, as documented. (\PR{15273})     
+      
+      \item \code{summaryRprof()} would only read the first 
       \code{chunksize} lines of an \code{Rprof} file produced with
       \code{line.profiling=TRUE}. By default, this is the first 100
       seconds.  (\PR{15288})
-
+      
       \item \code{lsfit()} produced an incorrect error message when
       argument \code{x} had more columns than rows or \code{x} had a
-      different number of rows than \code{y}. (Spotted by Renaud Gaujoux.)
+      different number of rows than \code{y}. (Spotted by Renaud Gaujoux.)      
 
       \item Binary operations on equal length vectors copied the
       class name from the second operand when the first had no
       class name, but did not set the object bit. (\PR{15299})
-      
+
+      \item The \code{trace()} method for reference generator objects
+      failed after those objects became function definitions.
+
       \item \code{write.table()} did not check that factors were
       constructed correctly, and so caused a segment fault when
       writing bad ones. (\PR{15300})

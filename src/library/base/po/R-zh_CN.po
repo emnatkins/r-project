@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-03-07 08:36\n"
+"POT-Creation-Date: 2013-01-22 09:52\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@normipaiva.com>\n"
 "Language-Team: Chinese\n"
@@ -145,6 +145,21 @@ msgstr "自动载入器在'%2$s'找不到'%1$s' "
 
 msgid "complex matrices not permitted at present"
 msgstr "复数矩阵现在不能用"
+
+msgid "non-square matrix in 'chol'"
+msgstr "'chol'的矩阵不是正方形的"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "'chol'的参数不是矩阵"
+
+msgid "invalid nrow(x)"
+msgstr "nrow(x)不对"
+
+msgid "too large a matrix for LINPACK"
+msgstr "矩阵对LINPACK来说太大了"
+
+msgid "matrix not positive definite"
+msgstr "非正定矩阵"
 
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x'必需是阵列，而且至少得有两个维度"
@@ -524,9 +539,6 @@ msgstr "零乘零的矩阵"
 
 msgid "non-square matrix in 'eigen'"
 msgstr "eigen里的矩阵不是正方形的"
-
-msgid "invalid nrow(x)"
-msgstr "nrow(x)不对"
 
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr "'labels'不对；长度%d应该是一或%d"
@@ -1113,9 +1125,6 @@ msgstr "参数将被数据略微回收"
 msgid "invalid ncol(x)"
 msgstr "ncol(x)不对"
 
-msgid "too large a matrix for LINPACK"
-msgstr "矩阵对LINPACK来说太大了"
-
 msgid "first argument must be a QR decomposition"
 msgstr "第一个参数必需是QR分解"
 
@@ -1604,15 +1613,6 @@ msgstr[0] "不是所有的%s都是TRUE"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "'chol'的矩阵不是正方形的"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "'chol'的参数不是矩阵"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "非正定矩阵"
 
 #~ msgid "'keep.source' is deprecated and will be ignored"
 #~ msgstr "'keep.source'已经不再有用，因此会略过不用"

@@ -158,8 +158,8 @@ arima <- function(x, order = c(0, 0, 0),
         ncxreg <- ncxreg + 1L
     }
     if(method == "CSS-ML") {
-        anyna <- anyNA(x)
-        if(ncxreg) anyna <- anyna || anyNA(xreg)
+        anyna <- any(is.na(x))
+        if(ncxreg) anyna <- anyna || any(is.na(xreg))
         if(anyna) method <- "ML"
     }
 

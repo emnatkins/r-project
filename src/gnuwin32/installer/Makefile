@@ -51,7 +51,7 @@ all: $(RPREFIX)-win.exe
 msi: $(RPREFIX)-$(SUFF).msi
 
 imagedir:
-	$(RM) -R $(RPREFIX)
+	$(RM) -r $(RPREFIX)
 	$(MKDIR) $(RPREFIX)
 	$(CP) -pR $(R_HOME)/bin $(R_HOME)/modules $(RPREFIX)
 # copy base and recommended packages
