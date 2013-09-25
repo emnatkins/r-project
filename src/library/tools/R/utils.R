@@ -350,8 +350,8 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         if(length(grep("MiKTeX", ver[1L]))) {
             ## AFAICS need separate -I for each element of texinputs.
             texinputs <- c(texinputs0, Rtexinputs, Rbstinputs)
-            texinputs <- gsub("\\", "/", texinputs, fixed = TRUE)
-            paths <- paste ("-I", shQuote(texinputs))
+	    texinputs <- gsub("\\", "/", texinputs, fixed = TRUE)
+	    paths <- paste ("-I", shQuote(texinputs))
             extra <- paste(extra, paste(paths, collapse = " "))
         }
         ## 'file' could be a file path
@@ -1106,7 +1106,7 @@ function(fname, envir, mustMatch = TRUE)
     ## If we use something like: a generic has to be
     ##      function(e) <UME>  # UME = UseMethod Expression
     ## with
-    ##      <UME> = UseMethod(...) |
+    ##	    <UME> = UseMethod(...) |
     ##             if (...) <UME> [else ...] |
     ##             if (...) ... else <UME>
     ##             { ... <UME> ... }
@@ -1168,10 +1168,6 @@ function(package, lib.loc)
 }
 
 ### ** .make_file_exts
-
-## <FIXME>
-## Remove support for type "vignette" eventually ...
-## </FIXME>
 
 .make_file_exts <-
 function(type = c("code", "data", "demo", "docs", "vignette"))
@@ -1434,7 +1430,7 @@ function(dfile)
                                   dfile),
                          domain = NA, call. = FALSE))
     if (nrow(out) != 1)
-        stop("contains a blank line", call. = FALSE)
+    	stop("contains a blank line", call. = FALSE)
     out <- out[1,]
     if(!is.na(encoding <- out["Encoding"])) {
         ## could convert everything to UTF-8

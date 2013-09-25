@@ -2609,9 +2609,9 @@ is.unsorted(data.frame(x=3:4, y=1:2))
 
 
 library("methods")# (not needed here)
-assertError <- tools::assertError
-assertError( getMethod(ls, "bar", fdef=ls), verbose=TRUE)
-assertError( getMethod(show, "bar"), verbose=TRUE)
+assertCondition <- tools::assertCondition
+assertCondition( getMethod(ls, "bar", fdef=ls), "error", verbose=TRUE)
+assertCondition( getMethod(show, "bar"),        "error", verbose=TRUE)
 ## R < 2.15.1 gave
 ##   cannot coerce type 'closure' to vector of type 'character'
 
@@ -2660,7 +2660,6 @@ lns <- capture.output(
 sub("^ +", '', lns[2* 1:3])
 ## *values* were cutoff when printed
 
-
 ## allows deparse limits to be set
 form <- reallylongnamey ~ reallylongnamex0 + reallylongnamex1 + reallylongnamex2 + reallylongnamex3
 form
@@ -2671,12 +2670,10 @@ form
 options(op)
 ## fixed to 60 in R 2.15.x
 
-
 ## PR#15179: user defined binary ops were not deparsed properly
 quote( `%^%`(x, `%^%`(y,z)) )
 quote( `%^%`(x) )
 ##
-
 
 ## Anonymous function calls were not deparsed properly
 substitute(f(x), list(f = function(x) x + 1))
@@ -2687,17 +2684,14 @@ substitute(f(x), list(f = quote(a[n])))
 substitute(f(x), list(f = quote(g(y))))
 ## The first three need parens, the last three don't.
 
-
 ## PR#15247 : str() on invalid data frame names (where print() works):
 d <- data.frame(1:3, "B", 4); names(d) <- c("A", "B\xba","C\xabcd")
 str(d)
 ## gave an error in R <= 3.0.0
 
-
 ## PR#15299 : adding a simple vector to a classed object produced a bad result:
 1:2 + table(1:2)
 ## Printed the class attribute in R <= 3.0.0
-
 
 ## PR#15311 : regmatches<- mishandled regexpr results.
   x <- c('1', 'B', '3')
@@ -2706,72 +2700,9 @@ str(d)
   print(x)
 ## Gave a warning and a wrong result up to 3.0.1
 
-
 ## Bad warning found by Radford Neal
   saveopt <- options(warnPartialMatchDollar=TRUE)
   pl <- pairlist(abc=1, def=2)
   pl$ab
   if (!is.null(saveopt[["warnPartialMatchDollar"]])) options(saveopt)
 ## 'abc' was just ''
-
-
-## seq() with NaN etc inputs now gives explicit error messages
-try(seq(NaN))
-try(seq(to = NaN))
-try(seq(NaN, NaN))
-try(seq.int(NaN))
-try(seq.int(to = NaN))
-try(seq.int(NaN, NaN))
-## R 3.0.1 gave messages from ':' or about negative-length vectors.
-
-
-## Some dimnames were lost from 1D arrays: PR#15301
-x <- array(0:2, dim=3, dimnames=list(d1=LETTERS[1:3]))
-x
-x[]
-x[3:1]
-x <- array(0, dimnames=list(d1="A"))
-x
-x[]
-x[drop = FALSE]
-## lost dimnames in 3.0.1
-
-
-## PR#15396
-load(file.path(Sys.getenv('SRCDIR'), 'arima.rda'))
-(f1 <- arima(x, xreg = xreg, order = c(1,1,1), seasonal = c(1,0,1)))
-(f2 <- arima(diff(x), xreg = diff(xreg), order = c(1,0,1), seasonal = c(1,0,1),
-             include.mean = FALSE))
-stopifnot(all.equal(coef(f1), coef(f2), tolerance = 1e-3, check.names = FALSE))
-## first gave local optim in 3.0.1
-
-## all.equal always checked the names
-x <- c(a=1, b=2)
-y <- c(a=1, d=2)
-all.equal(x, y, check.names = FALSE)
-## failed on mismatched attributes
-
-
-## PR#15411, plus digits change
-format(9992, digits = 3)
-format(9996, digits = 3)
-format(0.0002, digits = 0, nsmall = 2)
-format(pi*10, digits = 0, nsmall = 1)
-## second added an extra space; 3rd and 4th were not allowed.
-
-## and one branch of this was wrong:
-xx <- c(-86870268, 107833358, 302536985, 481015309, 675718935, 854197259,
-        1016450281, 1178703303, 1324731023, 1454533441)
-xx
-## dropped spaces without long doubles
-
-
-## PR#15468
-M <- matrix(11:14, ncol=2, dimnames=list(paste0("Row", 1:2), paste0("Col",
-1:2)))
-L <- list(elem1=1, elem2=2)
-rbind(M, L)
-rbind(L, M)
-cbind(M, L)
-cbind(L, M)
-## lost the dim of M, so returned NULL entries

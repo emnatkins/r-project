@@ -377,8 +377,13 @@ get_exclude_patterns <- function()
                 if (basename(vigns$dir) == "vignettes") {
                     ## inst may not yet exist
                     dir.create(doc_dir, recursive = TRUE, showWarnings = FALSE)
-                    file.copy(c(vigns$docs, vigns$outputs, unlist(vigns$sources)), doc_dir)
-                    unlink(c(vigns$outputs, unlist(vigns$sources)))
+		    # Copy vignette files from vignettes directory
+		    vign_files <- c(vigns$docs, vigns$outputs, unlist(vigns$sources))
+		    # not those already in inst/doc
+		    vign_files <- vign_files[substr(vign_files, 1, nchar(vigns$dir)) == vigns$dir]
+                    file.copy(vign_files, doc_dir)
+		    # Remove product files from vignettes
+		    unlink(setdiff(vign_files, vigns$docs))
                     extras_file <- file.path("vignettes", ".install_extras")
                     if (file.exists(extras_file)) {
                         extras <- readLines(extras_file, warn = FALSE)
@@ -389,7 +394,7 @@ get_exclude_patterns <- function()
                             inst <- rep(FALSE, length(allfiles))
                             for (e in extras)
                                 inst <- inst | grepl(e, allfiles, perl = TRUE,
-                                                     ignore.case = TRUE)
+                                                     ignore.case = WINDOWS)
                             file.copy(allfiles[inst], doc_dir, recursive = TRUE)
                         }
                     }
@@ -423,7 +428,7 @@ get_exclude_patterns <- function()
                                full.names = TRUE))) {
             messageLog(Log, "compacting vignettes and other PDF files")
             if(compact_vignettes %in% c("gs", "gs+qpdf", "both")) {
-                gs_cmd <- find_gs_cmd()
+                gs_cmd <- find_gs_cmd(Sys.getenv("R_GSCMD", ""))
                 gs_quality <- "ebook"
             } else {
                 gs_cmd <- ""
@@ -845,8 +850,9 @@ get_exclude_patterns <- function()
         } else if (a == "--no-build-vignettes") {
             vignettes <- FALSE
         } else if (a == "--no-vignettes") { # pre-3.0.0 version
-            stop("'--no-vignettes' is defunct:\n  use '--no-build-vignettes' instead",
-                 call. = FALSE, domain = NA)
+            warning("'--no-vignettes' is deprecated:\n  use '--no-build-vignettes' instead",
+                    immediate. = TRUE, call. = FALSE, domain = NA)
+            vignettes <- FALSE
         } else if (a == "--resave-data") {
             resave_data <- "best"
         } else if (a == "--no-resave-data") {
@@ -974,7 +980,7 @@ get_exclude_patterns <- function()
             ignore <- c(ignore, readLines(ignore_file, warn = FALSE))
         for(e in ignore[nzchar(ignore)])
             exclude <- exclude | grepl(e, allfiles, perl = TRUE,
-                                       ignore.case = TRUE)
+                                       ignore.case = WINDOWS)
 
         isdir <- file_test("-d", allfiles)
         ## old (pre-2.10.0) dirnames

@@ -57,15 +57,6 @@ X11 <- function(display = "", width, height, pointsize, gamma,
                 bg, canvas, fonts, family,
                 xpos, ypos, title, type, antialias)
 {
-    if(display != "XImage") { # used by tkrplot
-        check <- Sys.getenv("_R_CHECK_SCREEN_DEVICE_", "")
-        msg <- "screen devices should not be used in examples etc"
-        if (identical(check, "stop"))
-            stop(msg, domain = NA)
-        else if (identical(check, "warn"))
-            warning(msg, immediate. = TRUE, domain = NA)
-    }
-
     if(display == "" && .Platform$GUI == "AQUA" &&
        is.na(Sys.getenv("DISPLAY", NA))) Sys.setenv(DISPLAY = ":0")
 

@@ -197,7 +197,7 @@ Ops.factor <- function(e1, e2)
     class(y) <- oldClass(x)
     lev <- levels(x)
     if (drop)
-        factor(y, exclude = if(anyNA(levels(x))) NULL else NA ) else y
+        factor(y, exclude = if(any(is.na(levels(x)))) NULL else NA ) else y
 }
 
 `[<-.factor` <- function(x, ..., value)
@@ -330,8 +330,8 @@ Summary.ordered <- function(..., na.rm)
 addNA <- function(x, ifany=FALSE)
 {
     if (!is.factor(x)) x <- factor(x)
-    if (ifany & !anyNA(x)) return(x)
+    if (ifany & !any(is.na(x))) return(x)
     ll <- levels(x)
-    if (!anyNA(ll)) ll <- c(ll, NA)
+    if (!any(is.na(ll))) ll <- c(ll, NA)
     factor(x, levels=ll, exclude=NULL)
 }

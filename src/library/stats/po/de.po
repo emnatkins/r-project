@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-07-20 09:38+0100\n"
+"POT-Creation-Date: 2013-06-09 21:53+0100\n"
 "PO-Revision-Date: 2013-03-11 16:08+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
@@ -111,11 +111,11 @@ msgstr "nur das erste Element wird als Variablenname genutzt"
 msgid "invalid expression in '%s'"
 msgstr "ungültiger Ausdruck in '%s'"
 
-#: deriv.c:926 model.c:92
+#: deriv.c:924 model.c:91
 msgid "invalid variable names"
 msgstr "ungültige Variablennamen"
 
-#: deriv.c:935
+#: deriv.c:933
 msgid "invalid tag"
 msgstr "ungültiger tag"
 
@@ -178,21 +178,6 @@ msgstr "ungültige Faktoren"
 msgid "only 2500 rows are allowed for sm.method=\"spline\""
 msgstr "nur 2500 Zeilen erlaubt für sm.method=\\\"spline\\\""
 
-#: lm.c:57
-#, fuzzy
-msgid "'x' is not a matrix"
-msgstr "'tmax' ist keine ganze Zahl"
-
-#: lm.c:62
-#, c-format
-msgid "dimensions of 'x' (%d,%d) and 'y' (%d) do not match"
-msgstr ""
-
-#: lm.c:77 lm.c:81
-#, c-format
-msgid "NA/NaN/Inf in '%s'"
-msgstr ""
-
 #: loessc.c:233
 msgid "span is too small"
 msgstr "Spannbreite ist zu klein"
@@ -237,142 +222,142 @@ msgstr "unzulässige vmethod"
 msgid "Burg's algorithm failed to find partial correlation"
 msgstr "Burg's Algorithmus konnte keine partielle Korrelation finden"
 
-#: model.c:90
+#: model.c:89
 msgid "invalid variables"
 msgstr "ungültige Variablen"
 
-#: model.c:94 model.c:99
+#: model.c:93 model.c:98
 msgid "number of variables != number of variable names"
 msgstr "Anzahl Variablen und Anzahl Variablennamen sind unterschiedlich"
 
-#: model.c:97
+#: model.c:96
 msgid "invalid extra variables"
 msgstr "ungültige zusätzliche Variablen"
 
-#: model.c:101
+#: model.c:100
 msgid "invalid extra variable names"
 msgstr "ungültige zusätzliche Variablennamen"
 
-#: model.c:122
+#: model.c:121
 #, c-format
 msgid "overlong names in '%s'"
 msgstr "überlange Namen in '%s'"
 
-#: model.c:149
+#: model.c:148
 #, c-format
 msgid "invalid type (%s) for variable '%s'"
 msgstr "ungültiger Typ (%s) für die Variable '%s'"
 
-#: model.c:154
+#: model.c:153
 #, c-format
 msgid "variable lengths differ (found for '%s')"
 msgstr "Variablenlängen sind unterschiedlich (gefunden für '%s')"
 
-#: model.c:208
+#: model.c:207
 msgid "invalid result from na.action"
 msgstr "ungültiges Ergebnis aus na.action"
 
-#: model.c:365 model.c:373 optim.c:190
+#: model.c:363 model.c:371 optim.c:190
 #, c-format
 msgid "invalid '%s' argument"
 msgstr "ungültiges '%s' Argument"
 
-#: model.c:384
+#: model.c:382
 msgid "invalid model frame"
 msgstr "ungültiger model frame"
 
-#: model.c:386
+#: model.c:384
 msgid "do not know how many cases"
 msgstr "kenne nicht die Anzahl der Fälle"
 
-#: model.c:410
+#: model.c:408
 #, c-format
 msgid "variable lengths differ (found for variable %d)"
 msgstr "Variablenlängen sind unterschiedlich (gefunden für Variable %d)"
 
-#: model.c:414 model.c:421
+#: model.c:412 model.c:419
 #, c-format
 msgid "variable %d has no levels"
 msgstr "Variable %d hat keine Levels"
 
-#: model.c:533
+#: model.c:531
 msgid "the response appeared on the right-hand side and was dropped"
 msgstr "Antwortvariable erschien auf der rechten Seite und wurde verworfen"
 
-#: model.c:553
+#: model.c:551
 #, c-format
 msgid "term %d would require %.0g columns"
 msgstr "Term %d würde %.0g Spalten benötigen"
 
-#: model.c:557
+#: model.c:555
 #, c-format
 msgid "matrix would require %.0g columns"
 msgstr "Matrix würde %.0g Spalten benötigen"
 
-#: model.c:568
+#: model.c:566
 #, c-format
 msgid "problem with term %d in model.matrix: no columns are assigned"
 msgstr "Problem mit dem Term %d in model.matrix: keine Spalten zugewiesen"
 
-#: model.c:617 model.c:622 model.c:628 model.c:639 model.c:645 model.c:651
+#: model.c:615 model.c:620 model.c:626 model.c:637 model.c:643 model.c:649
 msgid "term names will be truncated"
 msgstr "Term-Namen werden abgeschnitten"
 
-#: model.c:631
+#: model.c:629
 msgid "complex variables are not currently allowed in model matrices"
 msgstr "Komplexe Variablen sind momentan in Modellmatrizen nicht erlaubt"
 
-#: model.c:655
+#: model.c:653
 #, c-format
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "Variablen des Typs '%s' sind in Modellmatrizen nicht erlaubt"
 
-#: model.c:877
+#: model.c:875
 msgid "invalid formula in 'update'"
 msgstr "ungültige Formel in 'update'"
 
-#: model.c:911
+#: model.c:909
 msgid "formula expected"
 msgstr "Formel wird erwartet"
 
-#: model.c:1042
+#: model.c:1040
 msgid "invalid term in model formula"
 msgstr "ungültiger Term in Modellformel"
 
-#: model.c:1117
+#: model.c:1115
 msgid "invalid model formula"
 msgstr "ungültige Modellformel"
 
-#: model.c:1143 model.c:1391
+#: model.c:1141 model.c:1389
 msgid "invalid power in formula"
 msgstr "ungültige Potenz in Formel"
 
-#: model.c:1179
+#: model.c:1177
 msgid "invalid model formula in ExtractVars"
 msgstr "ungültige Modellformel in ExtractVars"
 
-#: model.c:1514
+#: model.c:1511
 #, c-format
 msgid "duplicated name '%s' in data frame using '.'"
 msgstr "verdoppelter Name '%s' in Data Frame bei Benutzung von '.'"
 
-#: model.c:1572
+#: model.c:1568
 msgid "invalid model formula in EncodeVars"
 msgstr "ungültige Modellformel in EncodeVars"
 
-#: model.c:1658
+#: model.c:1654
 msgid "argument is not a valid model"
 msgstr "Argument ist kein gültiges Modell"
 
-#: model.c:1668
+#: model.c:1664
 msgid "'specials' must be NULL or a character vector"
 msgstr "'specials' muss NULL oder eine Charaktervektor sein"
 
-#: model.c:1680
+#: model.c:1676
 msgid "'data' argument is of the wrong type"
 msgstr "Argument 'data' hat falschen Typ"
 
-#: model.c:1948
+#: model.c:1942
 msgid "'.' in formula and no 'data' argument"
 msgstr "'.' erscheint in der Formel und 'data' Argument ist ungültig"
 
@@ -441,16 +426,16 @@ msgstr "'rho' sollte eine Umgebung sein"
 msgid "'dir' is not a numeric vector of the correct length"
 msgstr "'dir' ist kein numerischer Vektor der richtigen Länge"
 
-#: nls.c:311 nls.c:341
+#: nls.c:314 nls.c:342
 msgid "Missing value or an infinity produced when evaluating the model"
 msgstr "Fehlender Wert oder etwas Unendliches durch das Modell erzeugt"
 
-#: nls.c:318
+#: nls.c:320
 #, c-format
 msgid "variable '%s' is integer, not numeric"
 msgstr "Variable '%s' ist ganzzahlig, nicht numerisch"
 
-#: nls.c:320
+#: nls.c:322
 #, c-format
 msgid "variable '%s' is not numeric"
 msgstr "Variable '%s' ist nicht numerisch"

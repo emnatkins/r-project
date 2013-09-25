@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-07-20 09:38\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: 2012-01-09 20:51+0200\n"
 "Last-Translator: Joe <joedalton2@yahoo.dk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,8 +71,9 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr "Advarsel: Ukendt indstilling"
 
-msgid "Output file:"
-msgstr ""
+#, fuzzy
+msgid "Created PDF document %s"
+msgstr "Oprettet PDF-dokument"
 
 #, fuzzy
 msgid "Compacting PDF document"
@@ -846,9 +847,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr ""
 
-msgid "Could not create file %s, aborting"
-msgstr ""
-
 msgid "no valid packages were specified"
 msgstr ""
 
@@ -946,9 +944,6 @@ msgid "vignette %s not found"
 msgstr ""
 
 msgid "vignette %s has no PDF/HTML"
-msgstr ""
-
-msgid "vignette %s has no R code"
 msgstr ""
 
 msgid "select.list() cannot be used non-interactively"
@@ -1199,10 +1194,6 @@ msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] ""
 msgstr[1] ""
-
-#, fuzzy
-#~ msgid "Created PDF document %s"
-#~ msgstr "Oprettet PDF-dokument"
 
 #~ msgid "at least one field has to be specified"
 #~ msgstr "mindst et felt skal angives"

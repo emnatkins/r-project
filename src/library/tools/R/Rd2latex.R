@@ -1,7 +1,7 @@
 #  File src/library/tools/R/Rd2latex.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2013 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
         } else {
             function(x, con, outputEncoding, ...) {
                 x <- iconv(x, "UTF-8", outputEncoding,  mark=FALSE)
-                if (anyNA(x)) {
+                if (any(is.na(x))) {
                     x <- iconv(x, "UTF-8", outputEncoding,
                                sub="byte", mark=FALSE)
                     encode_warn <<- TRUE
@@ -102,7 +102,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
     }
 
     envTitles <- c("\\description"="Description", "\\usage"="Usage",
-        "\\arguments"="Arguments",
+        "\\synopsis"="Usage", "\\arguments"="Arguments",
         "\\format"="Format", "\\details"="Details", "\\note"="Note",
         "\\section"="", "\\author"="Author",
         "\\references"="References", "\\source"="Source",
@@ -111,6 +111,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
 
     sectionExtras <-
     c("\\usage"="verbatim",
+      "\\synopsis"="verbatim",
       "\\arguments"="ldescription",
       "\\examples"="ExampleCode")
 

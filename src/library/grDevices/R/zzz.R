@@ -18,10 +18,8 @@
 
 .noGenerics <- TRUE
 
-if (.Platform$OS.type == "windows") {
-    utils::globalVariables(c("C_cairoProps", "C_makeQuartzDefault"))
-    utils::suppressForeignCheck(c("C_cairoProps", "C_makeQuartzDefault"))
-}
+if (.Platform$OS.type == "windows")
+    utils::globalVariables(c("C_cairoProps", "C_makeQuartzDefault"), add = TRUE)
     
 .onLoad <- function(libname, pkgname)
 {

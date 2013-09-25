@@ -234,7 +234,7 @@ struct sxpinfo_struct @{
     unsigned int mark  :  1;  /* @r{mark object as `in use' in GC} */
     unsigned int debug :  1;
     unsigned int trace :  1;
-    unsigned int spare :  1;  /* @r{debug once} */
+    unsigned int spare :  1;  /* @r{unused} */
     unsigned int gcgen :  1;  /* @r{generation for GC} */
     unsigned int gccls :  3;  /* @r{class of node for GC} */
 @};  /*              Tot: 32 */
@@ -250,10 +250,6 @@ single-step mode.
 @findex trace bit
 The @code{trace} bit is used for functions for @code{trace()} and for
 other objects when tracing duplications (see @code{tracemem}).
-
-@findex spare bit
-The @code{spare} bit is used for closures to mark them for one
-time debugging.
 
 @findex named bit
 @findex NAMED
@@ -3820,10 +3816,7 @@ removed eventually.
 Control whether permissions of files should be checked.
 Default: true iff @code{.Platform$OS.type == "unix"}.
 @item _R_CHECK_FF_CALLS_
-Allows turning off @code{checkFF()} testing. If set to
-@samp{registration}, checks the registration information (number of
-arguments, correct choice of @code{.C/.Fortran/.Call/.External}) for
-such calls provided the package is installed.
+Allows turning off @code{checkFF()} testing.  Legacy mostly.
 Default: true.
 @item _R_CHECK_LICENSE_
 Control whether/how license checks are performed. A possible value is
@@ -4013,20 +4006,8 @@ Default: false (but true for CRAN submission checks).
 
 @item _R_CHECK_DEPRECATED_DEFUNCT_
 Should the package code be checked for the presence of recently deprecated
-or defunct functions (including completely removed functions).  Also for
-platform-specific graphics devices.
+or defunct functions (including completely removed functions). 
 Default: false (but true for CRAN submission checks).
-
-@item _R_CHECK_SCREEN_DEVICE_
-If set to @samp{warn}, give a warning if examples etc open a screen
-device.  If set to @samp{stop}, give an error.
-Default: empty (but @samp{stop} for CRAN submission checks).
-
-@item _R_CHECK_WINDOWS_DEVICE_
-If set to @samp{stop}, give an error if a Windows-only device is used in
-example etc.  This is only useful on Windows: the devices do not exist
-elsewhere.
-Default: empty (but @samp{stop} for CRAN submission checks on Windows).
 
 @item _R_CHECK_TOPLEVEL_FILES_
 Report on top-level files in the package sources that are not described
@@ -4054,7 +4035,6 @@ _R_CHECK_CODE_DATA_INTO_GLOBALENV_=TRUE
 _R_CHECK_DOT_FIRSTLIB_=TRUE
 _R_CHECK_DEPRECATED_DEFUNCT_=TRUE
 _R_CHECK_REPLACING_IMPORTS_=TRUE
-_R_CHECK_SCREEN_DEVICE_=stop
 _R_CHECK_TOPLEVEL_FILES_=TRUE
 @end example
 

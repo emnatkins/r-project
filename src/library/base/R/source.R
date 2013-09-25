@@ -259,6 +259,6 @@ function(file, envir = baseenv(), chdir = FALSE,
 	on.exit(setwd(owd), add = TRUE)
 	setwd(path)
     }
-    for (i in seq_along(exprs)) eval(exprs[i], envir)
+    for (i in exprs) eval(i, envir)
     invisible()
 }

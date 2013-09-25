@@ -39,7 +39,7 @@ ftable.default <- function(..., exclude = c(NA, NaN),
     if(!is.null(row.vars)) {
 	if(is.character(row.vars)) {
 	    i <- pmatch(row.vars, names(dn))
-	    if(anyNA(i))
+	    if(any(is.na(i)))
 		stop("incorrect specification for 'row.vars'")
 	    row.vars <- i
 	} else if(any((row.vars < 1) | (row.vars > n)))
@@ -48,7 +48,7 @@ ftable.default <- function(..., exclude = c(NA, NaN),
     if(!is.null(col.vars)) {
 	if(is.character(col.vars)) {
 	    i <- pmatch(col.vars, names(dn))
-	    if(anyNA(i))
+	    if(any(is.na(i)))
 	     stop("incorrect specification for 'col.vars'")
 	    col.vars <- i
 	} else if(any((col.vars < 1) | (col.vars > n)))
@@ -114,7 +114,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
             rvars <- NULL
         else {
             i <- pmatch(rvars, varnames)
-            if(anyNA(i))
+            if(any(is.na(i)))
                 stop("incorrect variable names in rhs of formula")
             rvars <- i
         }
@@ -122,7 +122,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
             cvars <- NULL
         else {
             i <- pmatch(cvars, varnames)
-            if(anyNA(i))
+            if(any(is.na(i)))
                 stop("incorrect variable names in lhs of formula")
             cvars <- i
         }

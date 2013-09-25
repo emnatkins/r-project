@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-08-28 07:45\n"
+"POT-Creation-Date: 2013-06-09 21:52\n"
 "PO-Revision-Date: 2013-02-02 14:20+0200\n"
 "Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
 "Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
@@ -149,6 +149,21 @@ msgstr "autoindlæser fandt ikke '%s' i '%s'"
 
 msgid "complex matrices not permitted at present"
 msgstr "kompleks matricer er ikke tilladt i øjeblikket"
+
+msgid "non-square matrix in 'chol'"
+msgstr "ikkekvadratisk matrix i 'chol'"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "ikke-matrix argument for 'chol'"
+
+msgid "invalid nrow(x)"
+msgstr "ugyldig nrow(x)"
+
+msgid "too large a matrix for LINPACK"
+msgstr "for stor en matrix for LINPACK"
+
+msgid "matrix not positive definite"
+msgstr "matrix er ikke positivt bestemt"
 
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x' skal være en array på mindst to dimensioner"
@@ -298,10 +313,6 @@ msgstr "erstatter element i ikkeeksisterende kolonne: %s"
 
 msgid "only a single element should be replaced"
 msgstr "kun et enkelt element skal erstattes"
-
-#, fuzzy
-msgid "Name partially matched in data frame"
-msgstr "variabel der ikke er numerisk i dataramme:"
 
 msgid "names do not match previous names"
 msgstr "navne matcher ikke tidligere navne"
@@ -536,9 +547,6 @@ msgstr "0 x 0 matrix"
 msgid "non-square matrix in 'eigen'"
 msgstr "ikkekvadratisk matrix i 'eigen'"
 
-msgid "invalid nrow(x)"
-msgstr "ugyldig nrow(x)"
-
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr "ugyldige 'labels'; længde %d skal være 1 eller %d"
 
@@ -612,9 +620,6 @@ msgstr "'vec' skal sorteres ikkefaldende"
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "bruger det første element for 'value' for type »expression«"
-
-msgid "class of 'x' was discarded"
-msgstr ""
 
 msgid "'mode' must be \"double\" (\"real\"), \"integer\" or \"character\""
 msgstr "'mode' skal være »dobbelt« (»reel«), »heltal« eller »tegn«"
@@ -1066,8 +1071,7 @@ msgstr "erstatter lokal værdi med import %s når %s indlæses"
 msgid "cannot import into a sealed namespace"
 msgstr "kan ikke importere til et forseglet navnerum"
 
-#, fuzzy
-msgid "replacing previous import by %s when loading %s"
+msgid "replacing previous import %s when loading %s"
 msgstr "erstatter tidligere import %s når %s indlæses"
 
 msgid "invalid import target"
@@ -1102,12 +1106,14 @@ msgstr "pakke %s har ikke en 'NAMESPACE'-fil"
 msgid "empty name in directive '%s' in 'NAMESPACE' file"
 msgstr "tomt navn i direktiv '%s' i 'NAMESPACE'-fil"
 
-#, fuzzy
-msgid "duplicate symbol names %s in useDynLib(\"%s\")"
+msgid "duplicated symbol names %s in useDynLib(\"%s\")"
 msgstr "duplikerede symbolnavne %s i useDynLib(\"%s\")"
 
 msgid "bad 'S3method' directive: %s"
 msgstr "ugyldig 'S3method'-direktiv: %s"
+
+msgid "too many 'S3method' directives"
+msgstr "for mange 'S3method'-direktiver"
 
 msgid "unknown namespace directive: %s"
 msgstr "ukendt navnerumsdirektiv: %s"
@@ -1144,9 +1150,6 @@ msgstr "et argument vil blive delvist genbrugt"
 
 msgid "invalid ncol(x)"
 msgstr "ugyldig ncol(x)"
-
-msgid "too large a matrix for LINPACK"
-msgstr "for stor en matrix for LINPACK"
 
 msgid "first argument must be a QR decomposition"
 msgstr "første argument skal være en QR-dekomposition"
@@ -1217,17 +1220,11 @@ msgstr "længde på 'scale' skal svare til antallet af kolonner for 'x'"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "angiv enten 'nmax' eller 'n', men ikke begge."
 
-msgid "'from' cannot be NA, NaN or infinite"
-msgstr ""
-
 msgid "argument 'length.out' must be of length 1"
 msgstr "argument 'length.out' skal have længden 1"
 
 msgid "first element used of 'length.out' argument"
 msgstr "første element brugt af 'length-out'-argument"
-
-msgid "'to' cannot be NA, NaN or infinite"
-msgstr ""
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "ugyldig (til - fra)/by i seq(.)"
@@ -1679,15 +1676,3 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Advarselsbesked:\n"
 msgstr[1] "Advarselsbeskeder:\n"
-
-#~ msgid "too many 'S3method' directives"
-#~ msgstr "for mange 'S3method'-direktiver"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "ikkekvadratisk matrix i 'chol'"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "ikke-matrix argument for 'chol'"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "matrix er ikke positivt bestemt"

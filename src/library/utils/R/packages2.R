@@ -723,14 +723,8 @@ install.packages <-
 }
 
 ## treat variables as global in a package, for codetools & check
-globalVariables <- function(names, package, add = TRUE) 
-    registerNames(names, package, ".__global__", add)
-
-## suppress foreign function checks, for check    
-suppressForeignCheck <- function(names, package, add = TRUE)
-    registerNames(names, package, ".__suppressForeign__", add)
-    
-registerNames <- function(names, package, .listFile, add = TRUE) {
+globalVariables <- function(names, package, add = TRUE) {
+    .listFile <- ".__global__"
     .simplePackageName <- function(env) {
         if(exists(".packageName", envir = env, inherits = FALSE))
            get(".packageName", envir = env)
@@ -738,7 +732,7 @@ registerNames <- function(names, package, .listFile, add = TRUE) {
             "(unknown package)"
     }
     if(missing(package)) {
-        env <- topenv(parent.frame(2L)) # We cannot be called directly!
+        env <- topenv(parent.frame())
         package <- .simplePackageName(env)
     }
     else if(is.environment(package)) {

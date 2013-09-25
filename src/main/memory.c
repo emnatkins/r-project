@@ -727,7 +727,7 @@ static R_size_t R_NodesInUse = 0;
 #ifdef DEBUG_GC
 static void CheckNodeGeneration(SEXP x, int g)
 {
-    if (x && NODE_GENERATION(x) < g) {
+    if (NODE_GENERATION(x) < g) {
 	REprintf("untraced old-to-new reference\n");
     }
 }
@@ -1528,10 +1528,6 @@ static void RunGenCollect(R_size_t size_needed)
 
     FORWARD_NODE(R_Srcref);                /* Current source reference */
 
-    FORWARD_NODE(R_TrueValue);
-    FORWARD_NODE(R_FalseValue);
-    FORWARD_NODE(R_LogicalNAValue);
-
     if (R_SymbolTable != NULL)             /* in case of GC during startup */
 	for (i = 0; i < HSIZE; i++)        /* Symbol table */
 	    FORWARD_NODE(R_SymbolTable[i]);
@@ -2009,15 +2005,6 @@ void attribute_hidden InitMemory()
     
     /*  The current source line */
     R_Srcref = R_NilValue;
-
-    /* R_TrueValue and R_FalseValue */
-    R_TrueValue = mkTrue();
-    SET_NAMED(R_TrueValue, 2);
-    R_FalseValue = mkFalse();
-    SET_NAMED(R_FalseValue, 2);
-    R_LogicalNAValue = allocVector(LGLSXP, 1);
-    LOGICAL(R_LogicalNAValue)[0] = NA_LOGICAL;
-    SET_NAMED(R_LogicalNAValue, 2);
 }
 
 /* Since memory allocated from the heap is non-moving, R_alloc just
@@ -2749,21 +2736,6 @@ static void R_gc_internal(R_size_t size_needed)
 	      first_bad_sexp_type_line);
 #endif
     }
-
-    /* sanity check on logical scalar values */
-    if (R_TrueValue != NULL && LOGICAL(R_TrueValue)[0] != TRUE) {
-	LOGICAL(R_TrueValue)[0] = TRUE;
-	warning("internal TRUE value has been modified");
-    }
-    if (R_FalseValue != NULL && LOGICAL(R_FalseValue)[0] != FALSE) {
-	LOGICAL(R_FalseValue)[0] = FALSE;
-	warning("internal FALSE value has been modified");
-    }
-    if (R_LogicalNAValue != NULL &&
-	LOGICAL(R_LogicalNAValue)[0] != NA_LOGICAL) {
-	LOGICAL(R_LogicalNAValue)[0] = NA_LOGICAL;
-	warning("internal logical NA value has been modified");
-    }
 }
 
 SEXP attribute_hidden do_memlimits(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -2847,33 +2819,23 @@ static void reset_pp_stack(void *data)
     R_PPStackSize =  *poldpps;
 }
 
-void R_signal_protect_error(void)
-{
-    RCNTXT cntxt;
-    int oldpps = R_PPStackSize;
-
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &reset_pp_stack;
-    cntxt.cenddata = &oldpps;
-
-    if (R_PPStackSize < R_RealPPStackSize)
-	R_PPStackSize = R_RealPPStackSize;
-    errorcall(R_NilValue, _("protect(): protection stack overflow"));
-
-    endcontext(&cntxt); /* not reached */
-}
-
-void R_signal_unprotect_error(void)
-{
-    error(_("unprotect(): only %d protected items"), R_PPStackTop);
-}
-
-#ifndef INLINE_PROTECT
 SEXP protect(SEXP s)
 {
-    if (R_PPStackTop >= R_PPStackSize)
-	R_signal_protect_error();
+    if (R_PPStackTop >= R_PPStackSize) {
+	RCNTXT cntxt;
+	int oldpps = R_PPStackSize;
+
+	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
+		     R_NilValue, R_NilValue);
+	cntxt.cend = &reset_pp_stack;
+	cntxt.cenddata = &oldpps;
+
+	if (R_PPStackSize < R_RealPPStackSize)
+	    R_PPStackSize = R_RealPPStackSize;
+	errorcall(R_NilValue, _("protect(): protection stack overflow"));
+
+	endcontext(&cntxt); /* not reached */
+    }
     R_PPStack[R_PPStackTop++] = CHK(s);
     return s;
 }
@@ -2885,9 +2847,10 @@ void unprotect(int l)
 {
     if (R_PPStackTop >=  l)
 	R_PPStackTop -= l;
-    else R_signal_unprotect_error();
+    else
+	error(_("unprotect(): only %d protected items"), R_PPStackTop);
 }
-#endif
+
 
 /* "unprotect_ptr" remove pointer from somewhere in R_PPStack */
 
@@ -2927,28 +2890,19 @@ int Rf_isProtected(SEXP s)
 }
 
 
-#ifndef INLINE_PROTECT
 void R_ProtectWithIndex(SEXP s, PROTECT_INDEX *pi)
 {
     protect(s);
     *pi = R_PPStackTop - 1;
 }
-#endif
 
-void R_signal_reprotect_error(PROTECT_INDEX i)
-{
-    error(_("R_Reprotect: only %d protected items, can't reprotect index %d"),
-	  R_PPStackTop, i);
-}
-    
-#ifndef INLINE_PROTECT
 void R_Reprotect(SEXP s, PROTECT_INDEX i)
 {
-    if (i >= R_PPStackTop || i < 0)
-	R_signal_reprotect_error(i);
+    if (i >= R_PPStackTop || i < 0) {
+      error(_("R_Reprotect: only %d protected items, can't reprotect index %d"), R_PPStackTop, i);
+    }
     R_PPStack[i] = s;
 }
-#endif
 
 #ifdef UNUSED
 /* remove all objects from the protection stack from index i upwards
@@ -3440,17 +3394,6 @@ void attribute_hidden
 (SET_ACTIVE_BINDING_BIT)(SEXP b) {SET_ACTIVE_BINDING_BIT(b);}
 void attribute_hidden (LOCK_BINDING)(SEXP b) {LOCK_BINDING(b);}
 void attribute_hidden (UNLOCK_BINDING)(SEXP b) {UNLOCK_BINDING(b);}
-
-void (SET_BASE_SYM_CACHED)(SEXP b) { SET_BASE_SYM_CACHED(b); }
-void (UNSET_BASE_SYM_CACHED)(SEXP b) { UNSET_BASE_SYM_CACHED(b); }
-Rboolean (BASE_SYM_CACHED)(SEXP b) { return BASE_SYM_CACHED(b); }
-
-void (SET_SPECIAL_SYMBOL)(SEXP b) { SET_SPECIAL_SYMBOL(b); }
-void (UNSET_SPECIAL_SYMBOL)(SEXP b) { UNSET_SPECIAL_SYMBOL(b); }
-Rboolean (IS_SPECIAL_SYMBOL)(SEXP b) { return IS_SPECIAL_SYMBOL(b); }
-void (SET_NO_SPECIAL_SYMBOLS)(SEXP b) { SET_NO_SPECIAL_SYMBOLS(b); }
-void (UNSET_NO_SPECIAL_SYMBOLS)(SEXP b) { UNSET_NO_SPECIAL_SYMBOLS(b); }
-Rboolean (NO_SPECIAL_SYMBOLS)(SEXP b) { return NO_SPECIAL_SYMBOLS(b); }
 
 /* R_FunTab accessors, only needed when write barrier is on */
 /* Not hidden to allow experimentaiton without rebuilding R - LT */

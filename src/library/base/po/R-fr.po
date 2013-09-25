@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-08-28 07:45\n"
+"POT-Creation-Date: 2013-06-09 21:52\n"
 "PO-Revision-Date: 2013-03-18 21:58+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -151,6 +151,21 @@ msgstr "le chargement automatique n'a pas trouvé '%s' dans '%s'"
 
 msgid "complex matrices not permitted at present"
 msgstr "les matrices complexes ne sont pas encore traitées"
+
+msgid "non-square matrix in 'chol'"
+msgstr "la matrice doit être carrée pour 'chol'"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "l'argument doit être une matrice pour 'chol'"
+
+msgid "invalid nrow(x)"
+msgstr "nrow(x) incorrect"
+
+msgid "too large a matrix for LINPACK"
+msgstr "matrice trop large pour LINPACK"
+
+msgid "matrix not positive definite"
+msgstr "la matrice n'est pas définie positive"
 
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x' doit être un tableau ayant au moins 2 dimensions"
@@ -311,10 +326,6 @@ msgstr "remplacement d'élément dans une colonne non existante : %s"
 
 msgid "only a single element should be replaced"
 msgstr "seulement un élement devrait être remplacé"
-
-#, fuzzy
-msgid "Name partially matched in data frame"
-msgstr "variable non numérique dans le tableau de données :"
 
 msgid "names do not match previous names"
 msgstr "les noms ne correspondent pas aux noms précédents"
@@ -563,9 +574,6 @@ msgstr "matrice 0 x 0"
 msgid "non-square matrix in 'eigen'"
 msgstr "la matrice n'est pas carrée dans 'eigen'"
 
-msgid "invalid nrow(x)"
-msgstr "nrow(x) incorrect"
-
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr "'labels' incorrect ; la longueur %d doit être 1 ou %d"
 
@@ -639,9 +647,6 @@ msgstr "'vec' doit être trié par ordre croissant"
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "utilisation du premier élément de 'value' de type \"expression\""
-
-msgid "class of 'x' was discarded"
-msgstr ""
 
 msgid "'mode' must be \"double\" (\"real\"), \"integer\" or \"character\""
 msgstr ""
@@ -1120,8 +1125,7 @@ msgstr ""
 msgid "cannot import into a sealed namespace"
 msgstr "impossible d'importer vers un espace de noms verrouillé"
 
-#, fuzzy
-msgid "replacing previous import by %s when loading %s"
+msgid "replacing previous import %s when loading %s"
 msgstr "remplacement de l'importation précédente %s lors du chargement de %s"
 
 msgid "invalid import target"
@@ -1159,12 +1163,14 @@ msgstr "le package %s n'a aucun fichier 'NAMESPACE'"
 msgid "empty name in directive '%s' in 'NAMESPACE' file"
 msgstr "nom vide dans la directive '%s' dans le fichier 'NAMESPACE'"
 
-#, fuzzy
-msgid "duplicate symbol names %s in useDynLib(\"%s\")"
+msgid "duplicated symbol names %s in useDynLib(\"%s\")"
 msgstr "noms de symboles dupliqués %s dans useDynlib(\"%s\")"
 
 msgid "bad 'S3method' directive: %s"
 msgstr "mauvaise directive 'S3method' : %s"
+
+msgid "too many 'S3method' directives"
+msgstr "trop de directives 'S3method'"
 
 msgid "unknown namespace directive: %s"
 msgstr "directive inconnue dans l'espace de noms : %s"
@@ -1202,9 +1208,6 @@ msgstr "un argument sera recyclé partiellement"
 
 msgid "invalid ncol(x)"
 msgstr "ncol(x) incorrect"
-
-msgid "too large a matrix for LINPACK"
-msgstr "matrice trop large pour LINPACK"
 
 msgid "first argument must be a QR decomposition"
 msgstr "le premier argument doit être une décomposition QR"
@@ -1277,17 +1280,11 @@ msgstr "la longueur de 'scale' doit être égale au nombre de colonnes de 'x'"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "spécifiez soit 'nmax', soit 'n', mais pas les deux à la fois"
 
-msgid "'from' cannot be NA, NaN or infinite"
-msgstr ""
-
 msgid "argument 'length.out' must be of length 1"
 msgstr "l'argument 'length.out' doit être de longueur 1"
 
 msgid "first element used of 'length.out' argument"
 msgstr "seul le premier élément de 'length.out' est utilisé"
-
-msgid "'to' cannot be NA, NaN or infinite"
-msgstr ""
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "(to - from) / by incorrect dans seq(.)"
@@ -1748,18 +1745,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid "too many 'S3method' directives"
-#~ msgstr "trop de directives 'S3method'"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "la matrice doit être carrée pour 'chol'"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "l'argument doit être une matrice pour 'chol'"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "la matrice n'est pas définie positive"
 
 #~ msgid "'keep.source' is deprecated and will be ignored"
 #~ msgstr "'keep.source' est obsolète et sera ignoré"

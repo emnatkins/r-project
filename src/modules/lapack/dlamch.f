@@ -69,7 +69,7 @@
 *     November 2011
 *
 *     .. Scalar Arguments ..
-      CHARACTER*1        CMACH
+      CHARACTER          CMACH
 *     ..
 *
 * =====================================================================

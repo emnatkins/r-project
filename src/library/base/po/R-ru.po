@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-08-28 07:45\n"
+"POT-Creation-Date: 2013-06-09 21:52\n"
 "PO-Revision-Date: 2013-03-19 17:45-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -149,6 +149,21 @@ msgstr "автозагрузчик не нашел '%s' в '%s'"
 
 msgid "complex matrices not permitted at present"
 msgstr "в настоящее время комплексные матрицы не разрешены"
+
+msgid "non-square matrix in 'chol'"
+msgstr "не квадратная матрица в 'chol'"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "нематричный аргумент для 'chol'"
+
+msgid "invalid nrow(x)"
+msgstr "неправильное nrow(x)"
+
+msgid "too large a matrix for LINPACK"
+msgstr "слишком большая для LINPACK матрица"
+
+msgid "matrix not positive definite"
+msgstr "матрица не является положительно определенной"
 
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x' должен быть матрицей по крайней мере с двумя измерениями"
@@ -299,10 +314,6 @@ msgstr "замена элемента в несуществующей колонке: %s"
 
 msgid "only a single element should be replaced"
 msgstr "только одиночный элемент можно заменить"
-
-#, fuzzy
-msgid "Name partially matched in data frame"
-msgstr "нечисловая переменная переменная в таблице данных:"
 
 msgid "names do not match previous names"
 msgstr "имена не соответствуют прежним именам"
@@ -537,9 +548,6 @@ msgstr "0 x 0 матрица"
 msgid "non-square matrix in 'eigen'"
 msgstr "неквадратная матрица в 'eigen'"
 
-msgid "invalid nrow(x)"
-msgstr "неправильное nrow(x)"
-
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr "неправильные метки; длина %d должна быть 1 или %d"
 
@@ -614,9 +622,6 @@ msgstr "'vec' должен быть сортирован не по уменьшению"
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "использую первый элемент 'value' типа \"expression\""
-
-msgid "class of 'x' was discarded"
-msgstr ""
 
 msgid "'mode' must be \"double\" (\"real\"), \"integer\" or \"character\""
 msgstr ""
@@ -1070,8 +1075,7 @@ msgstr "заменяю локальное значение на импортированное %s во время загрузки %s"
 msgid "cannot import into a sealed namespace"
 msgstr "не могу импортировать в запечатанное пространство имен"
 
-#, fuzzy
-msgid "replacing previous import by %s when loading %s"
+msgid "replacing previous import %s when loading %s"
 msgstr "заменяю предыдущий импорт %s во время загрузки %s"
 
 msgid "invalid import target"
@@ -1105,12 +1109,14 @@ msgstr "у пакета %s нет файла NAMESPACE"
 msgid "empty name in directive '%s' in 'NAMESPACE' file"
 msgstr "пустое имя в директиве '%s' из файла 'NAMESPACE'"
 
-#, fuzzy
-msgid "duplicate symbol names %s in useDynLib(\"%s\")"
+msgid "duplicated symbol names %s in useDynLib(\"%s\")"
 msgstr "повторяющиеся имена символов %s в useDynlib(\"%s\")"
 
 msgid "bad 'S3method' directive: %s"
 msgstr "неправильная директива 'S3method': %s"
+
+msgid "too many 'S3method' directives"
+msgstr "слишком много директив 'S3method'"
 
 msgid "unknown namespace directive: %s"
 msgstr "неизвестная директива пространства имен: %s"
@@ -1147,9 +1153,6 @@ msgstr "аргумент будет частично зациклен"
 
 msgid "invalid ncol(x)"
 msgstr "неправильное ncol(x)"
-
-msgid "too large a matrix for LINPACK"
-msgstr "слишком большая для LINPACK матрица"
 
 msgid "first argument must be a QR decomposition"
 msgstr "первый аргумент должен быть результатом QR разложения"
@@ -1221,17 +1224,11 @@ msgstr "длина 'scale' должна равняться числу колонок 'x'"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "укажите либо 'nmax', либо 'n', но не оба."
 
-msgid "'from' cannot be NA, NaN or infinite"
-msgstr ""
-
 msgid "argument 'length.out' must be of length 1"
 msgstr "аргумент 'length.out' должен быть длиной 1"
 
 msgid "first element used of 'length.out' argument"
 msgstr "только первый элемент аргумента 'length.out' использован"
-
-msgid "'to' cannot be NA, NaN or infinite"
-msgstr ""
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "неправильный (to - from)/by в seq(.)"
@@ -1712,18 +1709,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] "Предупреждение:\n"
 msgstr[1] "Предупреждения:\n"
 msgstr[2] "Предупреждения:\n"
-
-#~ msgid "too many 'S3method' directives"
-#~ msgstr "слишком много директив 'S3method'"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "не квадратная матрица в 'chol'"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "нематричный аргумент для 'chol'"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "матрица не является положительно определенной"
 
 #~ msgid "'keep.source' is deprecated and will be ignored"
 #~ msgstr "'keep.source' устарел и будет пропущен"

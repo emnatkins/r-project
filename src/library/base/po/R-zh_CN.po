@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-08-28 07:45\n"
+"POT-Creation-Date: 2013-06-09 21:52\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@normipaiva.com>\n"
 "Language-Team: Chinese\n"
@@ -145,6 +145,21 @@ msgstr "自动载入器在'%2$s'找不到'%1$s' "
 
 msgid "complex matrices not permitted at present"
 msgstr "复数矩阵现在不能用"
+
+msgid "non-square matrix in 'chol'"
+msgstr "'chol'的矩阵不是正方形的"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "'chol'的参数不是矩阵"
+
+msgid "invalid nrow(x)"
+msgstr "nrow(x)不对"
+
+msgid "too large a matrix for LINPACK"
+msgstr "矩阵对LINPACK来说太大了"
+
+msgid "matrix not positive definite"
+msgstr "非正定矩阵"
 
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x'必需是阵列，而且至少得有两个维度"
@@ -293,10 +308,6 @@ msgstr "在不存在的列里替换单元: %s"
 
 msgid "only a single element should be replaced"
 msgstr "只能替换一个单元"
-
-#, fuzzy
-msgid "Name partially matched in data frame"
-msgstr "数据框里有非数值的参数"
 
 msgid "names do not match previous names"
 msgstr "名字同原来已有的名字不相对"
@@ -529,9 +540,6 @@ msgstr "零乘零的矩阵"
 msgid "non-square matrix in 'eigen'"
 msgstr "eigen里的矩阵不是正方形的"
 
-msgid "invalid nrow(x)"
-msgstr "nrow(x)不对"
-
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr "'labels'不对；长度%d应该是一或%d"
 
@@ -602,9 +610,6 @@ msgstr "'vec'的顺序一定得从小到大"
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "用种类为\"expression\"的'value'的第一个元素"
-
-msgid "class of 'x' was discarded"
-msgstr ""
 
 msgid "'mode' must be \"double\" (\"real\"), \"integer\" or \"character\""
 msgstr ""
@@ -1046,8 +1051,7 @@ msgstr "在输入%2$s时局部值将被引进值%1$s代替"
 msgid "cannot import into a sealed namespace"
 msgstr "不能进口到已经封闭了的名字空间"
 
-#, fuzzy
-msgid "replacing previous import by %s when loading %s"
+msgid "replacing previous import %s when loading %s"
 msgstr "输入%2$s将代替前次引进%1$s"
 
 msgid "invalid import target"
@@ -1081,12 +1085,14 @@ msgstr "程辑包%s 没有'NAMESPACE'这一文件"
 msgid "empty name in directive '%s' in 'NAMESPACE' file"
 msgstr "'NAMESPACE'文件里'%s'指示中有空的名字"
 
-#, fuzzy
-msgid "duplicate symbol names %s in useDynLib(\"%s\")"
+msgid "duplicated symbol names %s in useDynLib(\"%s\")"
 msgstr "useDynlib(\"%s\")里有重复字符名字%s"
 
 msgid "bad 'S3method' directive: %s"
 msgstr "不是'S3method'指令：%s"
+
+msgid "too many 'S3method' directives"
+msgstr "'S3method'指令太多"
 
 msgid "unknown namespace directive: %s"
 msgstr "未知名字空间指令：%s"
@@ -1123,9 +1129,6 @@ msgstr "参数将被数据略微回收"
 
 msgid "invalid ncol(x)"
 msgstr "ncol(x)不对"
-
-msgid "too large a matrix for LINPACK"
-msgstr "矩阵对LINPACK来说太大了"
 
 msgid "first argument must be a QR decomposition"
 msgstr "第一个参数必需是QR分解"
@@ -1196,17 +1199,11 @@ msgstr "'scale'的长度必需和'x'列的数目相同"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "'nmax'和'n'两者只能有一个设定"
 
-msgid "'from' cannot be NA, NaN or infinite"
-msgstr ""
-
 msgid "argument 'length.out' must be of length 1"
 msgstr "'length.out'参数的长度必需为一"
 
 msgid "first element used of 'length.out' argument"
 msgstr "用了'length.out'参数里的第一个元素"
-
-msgid "'to' cannot be NA, NaN or infinite"
-msgstr ""
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "seq(.)里的(to - from)/by 有错"
@@ -1621,18 +1618,6 @@ msgstr[0] "不是所有的%s都是TRUE"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
-
-#~ msgid "too many 'S3method' directives"
-#~ msgstr "'S3method'指令太多"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "'chol'的矩阵不是正方形的"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "'chol'的参数不是矩阵"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "非正定矩阵"
 
 #~ msgid "'keep.source' is deprecated and will be ignored"
 #~ msgstr "'keep.source'已经不再有用，因此会略过不用"

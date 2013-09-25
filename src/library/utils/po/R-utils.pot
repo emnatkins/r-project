@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 3.1.0\n"
+"Project-Id-Version: R 3.0.1\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-07-20 09:38\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr ""
 
-msgid "Output file:"
+msgid "Created PDF document %s"
 msgstr ""
 
 msgid "Compacting PDF document"
@@ -773,9 +773,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr ""
 
-msgid "Could not create file %s, aborting"
-msgstr ""
-
 msgid "no valid packages were specified"
 msgstr ""
 
@@ -870,9 +867,6 @@ msgid "vignette %s not found"
 msgstr ""
 
 msgid "vignette %s has no PDF/HTML"
-msgstr ""
-
-msgid "vignette %s has no R code"
 msgstr ""
 
 msgid "select.list() cannot be used non-interactively"

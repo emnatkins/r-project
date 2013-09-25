@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-07-20 09:38+0100\n"
+"POT-Creation-Date: 2013-06-09 21:53+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -184,13 +184,13 @@ msgstr "niepoprawne wyrażenie w '%s'"
 # error(_("invalid variable names"))
 # stats/src/model.c: 91
 # error(_("invalid variable names"))
-#: deriv.c:926 model.c:92
+#: deriv.c:924 model.c:91
 msgid "invalid variable names"
 msgstr "niepoprawne nazwy zmiennych"
 
 # stats/src/deriv.c: 933
 # error(_("invalid tag"))
-#: deriv.c:935
+#: deriv.c:933
 msgid "invalid tag"
 msgstr "niepoprawny znacznik"
 
@@ -295,23 +295,6 @@ msgstr "niepoprawne czynniki"
 msgid "only 2500 rows are allowed for sm.method=\"spline\""
 msgstr "tylko 2500 wierszy jest dozwolonych dla 'sm.method=\"spline\"'"
 
-# stats/src/optim.c: 250
-# error(_("'tmax' is not an integer"))
-#: lm.c:57
-#, fuzzy
-msgid "'x' is not a matrix"
-msgstr "'tmax' nie jest liczbą całkowitą"
-
-#: lm.c:62
-#, c-format
-msgid "dimensions of 'x' (%d,%d) and 'y' (%d) do not match"
-msgstr ""
-
-#: lm.c:77 lm.c:81
-#, c-format
-msgid "NA/NaN/Inf in '%s'"
-msgstr ""
-
 # stats/src/loessc.c: 233
 # error(_("span is too small"))
 #: loessc.c:233
@@ -381,7 +364,7 @@ msgstr ""
 
 # stats/src/model.c: 89
 # error(_("invalid variables"))
-#: model.c:90
+#: model.c:89
 msgid "invalid variables"
 msgstr "niepoprawne zmienne"
 
@@ -389,25 +372,25 @@ msgstr "niepoprawne zmienne"
 # error(_("number of variables != number of variable names"))
 # stats/src/model.c: 98
 # error(_("number of variables != number of variable names"))
-#: model.c:94 model.c:99
+#: model.c:93 model.c:98
 msgid "number of variables != number of variable names"
 msgstr "liczba zmiennych != liczbie nazw zmiennych"
 
 # stats/src/model.c: 96
 # error(_("invalid extra variables"))
-#: model.c:97
+#: model.c:96
 msgid "invalid extra variables"
 msgstr "niepoprawne dodatkowe zmienne"
 
 # stats/src/model.c: 100
 # error(_("invalid extra variable names"))
-#: model.c:101
+#: model.c:100
 msgid "invalid extra variable names"
 msgstr "niepoprawne nazwy dodatkowych zmiennych"
 
 # stats/src/model.c: 121
 # error(_("overlong names in '%s'"), ss)
-#: model.c:122
+#: model.c:121
 #, c-format
 msgid "overlong names in '%s'"
 msgstr "zbyt długie nazwy w '%s'"
@@ -416,7 +399,7 @@ msgstr "zbyt długie nazwy w '%s'"
 # error(_("invalid type (%s) for variable '%s'"),
 # 		      type2char(TYPEOF(ans)),
 # 		      translateChar(STRING_ELT(names, i)))
-#: model.c:149
+#: model.c:148
 #, c-format
 msgid "invalid type (%s) for variable '%s'"
 msgstr "niepoprawny typ (%s) dla zmiennej '%s'"
@@ -424,14 +407,14 @@ msgstr "niepoprawny typ (%s) dla zmiennej '%s'"
 # stats/src/model.c: 153
 # error(_("variable lengths differ (found for '%s')"),
 # 		      translateChar(STRING_ELT(names, i)))
-#: model.c:154
+#: model.c:153
 #, c-format
 msgid "variable lengths differ (found for '%s')"
 msgstr "długości zmiennych różnią się (znaleziono dla '%s')"
 
 # stats/src/model.c: 207
 # error(_("invalid result from na.action"))
-#: model.c:208
+#: model.c:207
 msgid "invalid result from na.action"
 msgstr "niepoprawny wynik z 'na.action'"
 
@@ -443,26 +426,26 @@ msgstr "niepoprawny wynik z 'na.action'"
 # error(_("invalid '%s' argument"), "terms")
 # stats/src/optim.c: 189
 # error(_("invalid '%s' argument"), "method")
-#: model.c:365 model.c:373 optim.c:190
+#: model.c:363 model.c:371 optim.c:190
 #, c-format
 msgid "invalid '%s' argument"
 msgstr "niepoprawny argument '%s'"
 
 # stats/src/model.c: 382
 # error(_("invalid model frame"))
-#: model.c:384
+#: model.c:382
 msgid "invalid model frame"
 msgstr "niepoprawna ramka modelu"
 
 # stats/src/model.c: 384
 # error(_("do not know how many cases"))
-#: model.c:386
+#: model.c:384
 msgid "do not know how many cases"
 msgstr "nie wiadomo jak wiele przypadków"
 
 # stats/src/model.c: 408
 # error(_("variable lengths differ (found for variable %d)"), i)
-#: model.c:410
+#: model.c:408
 #, c-format
 msgid "variable lengths differ (found for variable %d)"
 msgstr "długości zmiennej różnią się (znaleziono dla zmiennej %d)"
@@ -471,14 +454,14 @@ msgstr "długości zmiennej różnią się (znaleziono dla zmiennej %d)"
 # error(_("variable %d has no levels"), i+1)
 # stats/src/model.c: 419
 # error(_("variable %d has no levels"), i+1)
-#: model.c:414 model.c:421
+#: model.c:412 model.c:419
 #, c-format
 msgid "variable %d has no levels"
 msgstr "zmienna %d nie posiada poziomów"
 
 # stats/src/model.c: 531
 # warning(_("the response appeared on the right-hand side and was dropped"))
-#: model.c:533
+#: model.c:531
 msgid "the response appeared on the right-hand side and was dropped"
 msgstr ""
 "zmienna zależna pojawiła się po prawej stronie równania więc została "
@@ -486,14 +469,14 @@ msgstr ""
 
 # stats/src/model.c: 551
 # error(_("term %d would require %.0g columns"), j+1, dk)
-#: model.c:553
+#: model.c:551
 #, c-format
 msgid "term %d would require %.0g columns"
 msgstr "człon %d wymaga %.0g kolumn"
 
 # stats/src/model.c: 555
 # error(_("matrix would require %.0g columns"), dnc)
-#: model.c:557
+#: model.c:555
 #, c-format
 msgid "matrix would require %.0g columns"
 msgstr "macierz wymaga %.0g kolumn"
@@ -501,7 +484,7 @@ msgstr "macierz wymaga %.0g kolumn"
 # stats/src/model.c: 566
 # warning(_("problem with term %d in model.matrix: no columns are assigned"),
 # 		      j+1)
-#: model.c:568
+#: model.c:566
 #, c-format
 msgid "problem with term %d in model.matrix: no columns are assigned"
 msgstr "problem z członem %d w 'model.matrix': brak przypisanych kolumn"
@@ -518,45 +501,45 @@ msgstr "problem z członem %d w 'model.matrix': brak przypisanych kolumn"
 # warning(_("term names will be truncated"))
 # stats/src/model.c: 649
 # warning(_("term names will be truncated"))
-#: model.c:617 model.c:622 model.c:628 model.c:639 model.c:645 model.c:651
+#: model.c:615 model.c:620 model.c:626 model.c:637 model.c:643 model.c:649
 msgid "term names will be truncated"
 msgstr "nazwy członów będą przycięte"
 
 # stats/src/model.c: 629
 # error(_("complex variables are not currently allowed in model matrices"))
-#: model.c:631
+#: model.c:629
 msgid "complex variables are not currently allowed in model matrices"
 msgstr "zmienne zespolone nie są aktualnie dozwolone w macierzach modelu"
 
 # stats/src/model.c: 653
 # error(_("variables of type '%s' are not allowed in model matrices"),
 # 			      type2char(TYPEOF(var_i)))
-#: model.c:655
+#: model.c:653
 #, c-format
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "zmienne typu '%s' nie są dozwolone w macierzach modelu"
 
 # stats/src/model.c: 875
 # error(_("invalid formula in 'update'"))
-#: model.c:877
+#: model.c:875
 msgid "invalid formula in 'update'"
 msgstr "niepoprawna formuła w 'update'"
 
 # stats/src/model.c: 909
 # error(_("formula expected"))
-#: model.c:911
+#: model.c:909
 msgid "formula expected"
 msgstr "oczekiwano formuły"
 
 # stats/src/model.c: 1040
 # error(_("invalid term in model formula"))
-#: model.c:1042
+#: model.c:1040
 msgid "invalid term in model formula"
 msgstr "niepoprawny człon w formule modelu"
 
 # stats/src/model.c: 1115
 # error(_("invalid model formula"))
-#: model.c:1117
+#: model.c:1115
 msgid "invalid model formula"
 msgstr "niepoprawna formuła modelu"
 
@@ -564,51 +547,51 @@ msgstr "niepoprawna formuła modelu"
 # error(_("invalid power in formula"))
 # stats/src/model.c: 1389
 # error(_("invalid power in formula"))
-#: model.c:1143 model.c:1391
+#: model.c:1141 model.c:1389
 msgid "invalid power in formula"
 msgstr "niepoprawna potęga w formule"
 
 # stats/src/model.c: 1177
 # error(_("invalid model formula in ExtractVars"))
-#: model.c:1179
+#: model.c:1177
 msgid "invalid model formula in ExtractVars"
 msgstr "niepoprawna formuła modelu w 'ExtractVars'"
 
 # stats/src/model.c: 1511
 # error(_("duplicated name '%s' in data frame using '.'"),
 # 			      c)
-#: model.c:1514
+#: model.c:1511
 #, c-format
 msgid "duplicated name '%s' in data frame using '.'"
 msgstr "powtórzona nazwa '%s' w ramce danych używając '.'"
 
 # stats/src/model.c: 1568
 # error(_("invalid model formula in EncodeVars"))
-#: model.c:1572
+#: model.c:1568
 msgid "invalid model formula in EncodeVars"
 msgstr "niepoprawna formuła modelu w 'EncodeVars'"
 
 # stats/src/model.c: 1654
 # error(_("argument is not a valid model"))
-#: model.c:1658
+#: model.c:1654
 msgid "argument is not a valid model"
 msgstr "argument nie jest poprawnym modelem"
 
 # stats/src/model.c: 1664
 # error(_("'specials' must be NULL or a character vector"))
-#: model.c:1668
+#: model.c:1664
 msgid "'specials' must be NULL or a character vector"
 msgstr "'specials' musi być wektorem tekstowym lub wartością 'NULL'"
 
 # stats/src/model.c: 1676
 # error(_("'data' argument is of the wrong type"))
-#: model.c:1680
+#: model.c:1676
 msgid "'data' argument is of the wrong type"
 msgstr "argument 'data' posiada niepoprawny typ"
 
 # stats/src/model.c: 1942
 # error(_("'.' in formula and no 'data' argument"))
-#: model.c:1948
+#: model.c:1942
 msgid "'.' in formula and no 'data' argument"
 msgstr "'.' w formule oraz brak argumentu 'data'"
 
@@ -732,7 +715,7 @@ msgstr "'dir' nie jest wektorem liczbowym o poprawnej długości"
 # error(_("Missing value or an infinity produced when evaluating the model"))
 # stats/src/nls.c: 342
 # error(_("Missing value or an infinity produced when evaluating the model"))
-#: nls.c:311 nls.c:341
+#: nls.c:314 nls.c:342
 msgid "Missing value or an infinity produced when evaluating the model"
 msgstr ""
 "Brakuje wartości lub wyprodukowano wartości nieskończone podczas wyliczania "
@@ -740,14 +723,14 @@ msgstr ""
 
 # stats/src/nls.c: 320
 # error(_("variable '%s' is integer, not numeric"), name)
-#: nls.c:318
+#: nls.c:320
 #, c-format
 msgid "variable '%s' is integer, not numeric"
 msgstr "zmienna '%s' jest liczbą całkowitą, a nie rzeczywistą"
 
 # stats/src/nls.c: 322
 # error(_("variable '%s' is not numeric"), name)
-#: nls.c:320
+#: nls.c:322
 #, c-format
 msgid "variable '%s' is not numeric"
 msgstr "zmienna '%s' nie jest liczbą rzeczywistą"

@@ -27,6 +27,7 @@
 
  *  makeSubscript()   -- for "[" and "[<-" in ./subset.c and ./subassign.c,
  *			 and "[[<-" with a scalar in ./subassign.c
+ *  vectorSubscript() -- for makeSubscript()   {currently unused externally}
  *  arraySubscript()  -- for "[i,j,..." and "[<-..." in ./subset.c, ./subassign.c
  */
 
@@ -851,43 +852,45 @@ arraySubscript(int dim, SEXP s, SEXP dims, AttrGetter dng,
    otherwise, stretch returns the new required length for x
 */
 
-SEXP attribute_hidden
+static SEXP 
+vectorSubscript(R_xlen_t nx, SEXP s, R_xlen_t *stretch, SEXP x, SEXP call);
+
+SEXP attribute_hidden 
 makeSubscript(SEXP x, SEXP s, R_xlen_t *stretch, SEXP call)
 {
-    if (! (isVector(x) || isList(x) || isLanguage(x))) {
+    SEXP ans;
+
+    ans = R_NilValue;
+    if (isVector(x) || isList(x) || isLanguage(x)) {
+	ans = vectorSubscript(xlength(x), s, stretch, x, call);
+    } else {
 	ECALL(call, _("subscripting on non-vector"));
     }
+    return ans;
 
-    R_xlen_t nx = xlength(x);
+}
+
+/* nx is the length of the object being subscripted,
+   s is the R subscript value.
+*/
+
+static SEXP
+vectorSubscript(R_xlen_t nx, SEXP s, R_xlen_t *stretch, SEXP x, SEXP call)
+{
+    SEXP ans = R_NilValue;
+
     R_xlen_t ns = xlength(s);
-
     /* special case for simple indices -- does not duplicate */
-    if (ns == 1) {
-	if (TYPEOF(s) == INTSXP) {
-	    int i = INTEGER(s)[0];
-	    if (0 < i && i <= nx) {
-		*stretch = 0;
-		return s;
-	    }
-	}
-	else if (TYPEOF(s) == REALSXP) {
-	    double di = REAL(s)[0];
-	    if (1 <= di && di <= nx) {
-		*stretch = 0;
-		/* We could only return a REALSXP if the value is too
-		   large for an INTSXP, but, as the calling code can
-		   handle REALSXP indices, returning the REALSXP
-		   avoids and allocation. */
-		return s;
-	    }
+    if (ns == 1 && TYPEOF(s) == INTSXP && ATTRIB(s) == R_NilValue) {
+	int i = INTEGER(s)[0];
+	if (0 < i && i <= nx) {
+	    *stretch = 0;
+	    return s;
 	}
     }
-
     PROTECT(s = duplicate(s));
     SET_ATTRIB(s, R_NilValue);
     SET_OBJECT(s, 0);
-
-    SEXP ans = R_NilValue;
     switch (TYPEOF(s)) {
     case NILSXP:
 	*stretch = 0;
@@ -907,8 +910,8 @@ makeSubscript(SEXP x, SEXP s, R_xlen_t *stretch, SEXP call)
 	SEXP names = getAttrib(x, R_NamesSymbol);
 	/* *stretch = 0; */
 	ans = stringSubscript(s, ns, nx, names, stretch, call);
-	break;
     }
+    break;
     case SYMSXP:
 	*stretch = 0;
 	if (s == R_MissingArg) {

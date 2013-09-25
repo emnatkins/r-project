@@ -42,8 +42,4 @@ replayPlot(x)
 
   \code{replayPlot} has no return value.
 }
-\seealso{
-  The displaylist can be turned on and off using \code{\link{dev.control}}.
-  Initially recording is on for screen devices, and off for print devices.
-}
 \keyword{iplot}

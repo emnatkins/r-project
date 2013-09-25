@@ -70,9 +70,6 @@ typedef int R_len_t;
 # define R_XLEN_T_MAX R_LEN_T_MAX
 #endif
 
-#ifndef TESTING_WRITE_BARRIER
-# define INLINE_PROTECT
-#endif
 
 /* Fundamental Data Types:  These are largely Lisp
  * influenced structures, with the exception of LGLSXP,
@@ -316,7 +313,6 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 	  SET_LONG_VEC_TRUELENGTH(sl__x__, sl__v__); \
       else SET_SHORT_VEC_TRUELENGTH(sl__x__, (R_len_t) sl__v__); \
   } while (0)
-# define IS_SCALAR(x, type) (TYPEOF(x) == (type) && SHORT_VEC_LENGTH(x) == 1)
 #else
 # define LENGTH(x)	(((VECSEXP) (x))->vecsxp.length)
 # define TRUELENGTH(x)	(((VECSEXP) (x))->vecsxp.truelength)
@@ -327,7 +323,6 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 # define SET_SHORT_VEC_LENGTH SETLENGTH
 # define SET_SHORT_VEC_TRUELENGTH SET_TRUELENGTH
 # define IS_LONG_VEC(x) 0
-# define IS_SCALAR(x, type) (TYPEOF(x) == (type) && LENGTH(x) == 1)
 #endif
 
 /* Under the generational allocator the data for vector nodes comes
@@ -411,14 +406,7 @@ Rboolean (Rf_isEnvironment)(SEXP s);
 Rboolean (Rf_isString)(SEXP s);
 Rboolean (Rf_isObject)(SEXP s);
 
-# define IS_SCALAR(x, type) (TYPEOF(x) == (type) && XLENGTH(x) == 1)
 #endif /* USE_RINTERNALS */
-
-#define INCREMENT_NAMED(x) do {				\
-	SEXP __x__ = (x);				\
-	if (NAMED(__x__) != 2)				\
-	    SET_NAMED(__x__, NAMED(__x__) ? 2 : 1);	\
-    } while (0)
 
 /* Accessor functions.  Many are declared using () to avoid the macro
    definitions in the USE_RINTERNALS section.
@@ -673,7 +661,6 @@ SEXP Rf_DropDims(SEXP);
 SEXP Rf_duplicate(SEXP);
 /* the next really should not be here and is also in Defn.h */
 SEXP Rf_duplicated(SEXP, Rboolean);
-Rboolean R_envHasNoSpecialSymbols(SEXP);
 SEXP Rf_eval(SEXP, SEXP);
 SEXP Rf_findFun(SEXP, SEXP);
 SEXP Rf_findVar(SEXP, SEXP);
@@ -710,9 +697,7 @@ SEXP Rf_nthcdr(SEXP, int);
 Rboolean Rf_pmatch(SEXP, SEXP, Rboolean);
 Rboolean Rf_psmatch(const char *, const char *, Rboolean);
 void Rf_PrintValue(SEXP);
-#ifndef INLINE_PROTECT
 SEXP Rf_protect(SEXP);
-#endif
 SEXP Rf_setAttrib(SEXP, SEXP, SEXP);
 void Rf_setSVector(SEXP*, int, SEXP);
 void Rf_setVar(SEXP, SEXP, SEXP);
@@ -724,19 +709,11 @@ const char * Rf_translateChar0(SEXP);
 const char * Rf_translateCharUTF8(SEXP);
 const char * Rf_type2char(SEXPTYPE);
 SEXP Rf_type2str(SEXPTYPE);
-#ifndef INLINE_PROTECT
 void Rf_unprotect(int);
-#endif
 void Rf_unprotect_ptr(SEXP);
 
-void R_signal_protect_error(void);
-void R_signal_unprotect_error(void);
-void R_signal_reprotect_error(PROTECT_INDEX i);
-
-#ifndef INLINE_PROTECT
 void R_ProtectWithIndex(SEXP, PROTECT_INDEX *);
 void R_Reprotect(SEXP, PROTECT_INDEX);
-#endif
 SEXP R_tryEval(SEXP, SEXP, int *);
 SEXP R_tryEvalSilent(SEXP, SEXP, int *);
 const char *R_curErrorBuf();
@@ -1165,12 +1142,6 @@ SEXP	 Rf_ScalarRaw(Rbyte);
 SEXP	 Rf_ScalarReal(double);
 SEXP	 Rf_ScalarString(SEXP);
 R_xlen_t  Rf_xlength(SEXP);
-# ifdef INLINE_PROTECT
-SEXP Rf_protect(SEXP);
-void Rf_unprotect(int);
-void R_ProtectWithIndex(SEXP, PROTECT_INDEX *);
-void R_Reprotect(SEXP, PROTECT_INDEX);
-# endif
 #endif
 
 #ifdef USE_RINTERNALS
@@ -1195,14 +1166,6 @@ void R_Reprotect(SEXP, PROTECT_INDEX);
 #undef isObject
 #define isObject(s)	(OBJECT(s) != 0)
 
-/* macro version of R_CheckStack */
-#define R_CheckStack() do {						\
-	void R_SignalCStackOverflow(intptr_t);				\
-	int dummy;							\
-	intptr_t usage = R_CStackDir * (R_CStackStart - (uintptr_t)&dummy); \
-	if(R_CStackLimit != -1 && usage > ((intptr_t) R_CStackLimit))	\
-	    R_SignalCStackOverflow(usage);					\
-    } while (FALSE)
 #endif
 
 

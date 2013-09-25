@@ -564,8 +564,7 @@ setRlibs <-
         dfile <- if (is_base_pkg) "DESCRIPTION.in" else "DESCRIPTION"
         ## FIXME: this does not need to be run in another process
         ## but that needs conversion to format().
-        Rcmd <- sprintf("tools:::.check_package_description(\"%s\", TRUE)",
-                        dfile)
+        Rcmd <- sprintf("tools:::.check_package_description(\"%s\")", dfile)
         out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (length(out)) {
             errorLog(Log)
@@ -625,43 +624,6 @@ setRlibs <-
                 any <- TRUE
                 out <- .format_check_package_description_authors_at_R_field_results(out)
                 printLog(Log, paste(out, collapse = "\n"), "\n")
-            }
-            ## and there might be stale Authors and Maintainer fields
-            yorig <- db[c("Author", "Maintainer")]
-            if(check_incoming &&any(!is.na(yorig))) {
-                enc <- db["Encoding"]
-                aar <- utils:::.read_authors_at_R_field(aar)
-                tmp <- utils:::.format_authors_at_R_field_for_author(aar)
-                ## uses strwrap, so will be in current locale
-                if(!is.na(enc)) tmp <- iconv(tmp, "", enc)
-                y <- c(Author = tmp,
-                       Maintainer =
-                       utils:::.format_authors_at_R_field_for_maintainer(aar))
-                ## ignore formatting as far as possible
-                clean_up <- function(x) {
-                    x <- gsub("[[:space:]]+", " ", x)
-                    x <- sub("^[[:space:]]+", " ", x)
-                    sub("^[[:space:]]+$", " ", x)
-                }
-                yorig <- sapply(yorig, clean_up)
-                y <- sapply(y, clean_up)
-                diff <- y != yorig
-                if(any(diff)) {
-                    if(!any) noteLog(Log)
-                    any <- TRUE
-                    if(diff[1L]) {
-                        printLog(Log, "Author field differs from that derived from Authors@R", "\n")
-                        printLog(Log, "  Author:    ", sQuote(yorig[1L]), "\n")
-                        printLog(Log, "  Authors@R: ", sQuote(y[1L]), "\n")
-                        printLog(Log, "\n")
-                    }
-                    if(diff[2L]) {
-                        printLog(Log, "Maintainer field differs from that derived from Authors@R", "\n")
-                        printLog(Log, "  Maintainer: ", sQuote(yorig[2L]), "\n")
-                        printLog(Log, "  Authors@R:  ", sQuote(y[2L]), "\n")
-                        printLog(Log, "\n")
-                    }
-                }
             }
         }
 
@@ -751,14 +713,13 @@ setRlibs <-
                        "BUGS", "Bugs",
                        "ChangeLog", "Changelog", "CHANGELOG", "CHANGES", "Changes",
                        "INSTALL", "README", "THANKS", "TODO", "ToDo",
-                       "README.md",   # seems popular
+                       "README.md", # seems popular
                        "configure", "configure.win", "cleanup", "cleanup.win",
                        "configure.ac", "configure.in",
                        "datafiles",
                        "R", "data", "demo", "exec", "inst", "man",
                        "po", "src", "tests", "vignettes",
-                       "build",       # used by R CMD build
-                       ".aspell",     # used for spell checking packages
+                       "build", # used by R CMD build
                        "java", "tools") # common dirs in packages.
             topfiles <- setdiff(topfiles, known)
             if (file.exists(file.path("inst", "AUTHORS")))
@@ -768,9 +729,9 @@ setRlibs <-
             if (lt <- length(topfiles)) {
                 if(!any) noteLog(Log)
                 any <- TRUE
-                printLog(Log, ## dirs are files, but maybe not on Windows
-                         if(lt > 1L) "Non-standard files/directories found at top level:\n"
-                         else "Non-standard file/directory found at top level:\n" )
+                printLog(Log,
+                         if(lt > 1L) "Non-standard files found at top level:\n"
+                         else "Non-standard file found at top level:\n" )
                 msg <- strwrap(paste(sQuote(topfiles), collapse = " "),
                                indent = 2L, exdent = 2L)
                 printLog(Log, paste(c(msg, ""), collapse="\n"))
@@ -1257,25 +1218,18 @@ setRlibs <-
         ## The neverending story ...
         ## For the time being, allow to turn this off by setting the environment
         ## variable _R_CHECK_FF_CALLS_ to an empty value.
-        if (nzchar(R_check_FF)) {
-            registration <-
-                identical(R_check_FF, "registration") && install != "fake"
+        if (nzchar(Sys.getenv("_R_CHECK_FF_CALLS_", "true"))) {
             checkingLog(Log, "foreign function calls")
-            if(as_cran) Sys.setenv("_R_CHECK_FF_AS_CRAN_" = "TRUE")
             Rcmd <- paste("options(warn=1)\n",
                           if (do_install)
-                          sprintf("tools::checkFF(package = \"%s\", registration = %s)\n",
-                                  pkgname, registration)
+                          sprintf("tools::checkFF(package = \"%s\")\n", pkgname)
                           else
-                          sprintf("tools::checkFF(dir = \"%s\", registration = %s)\n",
-                                  pkgdir, "FALSE"))
+                          sprintf("tools::checkFF(dir = \"%s\")\n", pkgdir))
             out <- R_runR2(Rcmd)
-            Sys.unsetenv("_R_CHECK_FF_AS_CRAN_")
             if (length(out)) {
                 if(any(grepl("^Foreign function calls? with(out| empty)", out)) ||
                    (!is_base_pkg && any(grepl("to a base package:", out))) ||
-                   any(grepl("^Undeclared packages? in", out)) ||
-                   any(grepl("parameter[s]*, expected ", out))
+                   any(grepl("^Undeclared packages? in", out))
                    ) warningLog(Log)
                 else noteLog(Log)
                 printLog(Log, paste(c(out, ""), collapse = "\n"))
@@ -1871,7 +1825,7 @@ setRlibs <-
             warningLog(Log)
             any <- TRUE
             msg <- c("Vignette sources in 'inst/doc' missing from the 'vignettes' directory:",
-                    strwrap(paste(sources, collapse = ", "),
+                    strwrap(paste(sQuote(sources), collapse = ", "),
                             indent = 2L, exdent = 4L),
                      "")
             printLog(Log, paste(msg, collapse = "\n"))
@@ -1947,10 +1901,10 @@ setRlibs <-
                          "  consider running tools::compactPDF() on these files\n")
             }
             if (R_check_doc_sizes2) {
-                gs_cmd <- find_gs_cmd()
+                gs_cmd <- find_gs_cmd(Sys.getenv("R_GSCMD", ""))
                 if (nzchar(gs_cmd)) {
                     res <- compactPDF(td, gs_cmd = gs_cmd, gs_quality = "ebook")
-                    res <- format(res, diff = 2.56e5) # 250 KB for now
+                    res <- format(res, diff = 2.5e5) # 250 KB for now
                     if(length(res)) {
                         if (!any) warningLog(Log)
                         any <- TRUE
@@ -2288,16 +2242,6 @@ setRlibs <-
                         "soon as of the next release of R.\n",
                         "See ?Deprecated.\n")
             }
-            bad_lines <- grep("^Warning.*screen devices should not be used in examples",
-                              lines, useBytes = TRUE, value = TRUE)
-
-            if(length(bad_lines)) {
-                any <- TRUE
-                warningLog(Log, "Found the following significant warnings:")
-                printLog(Log, .format_lines_with_indent(bad_lines), "\n")
-                wrapLog("dev.new() is the preferred way to open a new device,",
-                        "in the unlikely event one is needed.")
-            }
             if (!any) resultLog(Log, "OK")
 
             ## Try to compare results from running the examples to
@@ -2388,10 +2332,7 @@ setRlibs <-
                     Log$stars <<-  "*"
                     if (!res) do_exit(1L)
                 }
-            } else {
-                resultLog(Log, "NONE")
-                no_examples <<- TRUE
-            }
+            } else resultLog(Log, "NONE")
         }
     }
 
@@ -2656,6 +2597,7 @@ setRlibs <-
             t1 <- proc.time()
             for (i in seq_along(vigns$docs)) {
                 file <- vigns$docs[i]
+                if(dirname(file) != vigns$dir) next
                 name <- vigns$names[i]
                 enc <- getVignetteEncoding(file, TRUE)
                 if(enc %in% c("non-ASCII", "unknown")) enc <- def_enc
@@ -2948,6 +2890,10 @@ setRlibs <-
             excludes <- readLines("BinaryFiles")
             execs <- execs[!execs %in% excludes]
         }
+        if(use_install_timestamp) {
+            its <- file.path(pkgdir, ".install_timestamp")
+            execs <- execs[file_test("-ot", execs, its)]
+        }
         if (nb <- length(execs)) {
             msg <- ngettext(nb,
                             "Found the following executable file:",
@@ -2981,7 +2927,8 @@ setRlibs <-
                         recursive = TRUE, pattern = "^[.]")
         dots <- sub("^./","", dots)
         allowed <-
-            c(".Rbuildignore", ".Rinstignore", "vignettes/.install_extras")
+            c(".Rbuildignore", ".Rinstignore", "vignettes/.install_extras",
+              ".install_timestamp") # Kurt uses this
         dots <- dots[!dots %in% allowed]
         alldirs <- list.dirs(".", full.names = TRUE, recursive = TRUE)
         alldirs <- sub("^./","", alldirs)
@@ -3189,20 +3136,6 @@ setRlibs <-
                 }
                 ## (gfortran seems to use upper case.)
 
-                ## Warnings spotted by clang with
-                ##   '-Wsometimes-uninitialized'
-                ## which is implied by '-Wall'.
-                ## Currently only accessible via an internal environment
-                ## variable.
-                check_src_flag <-
-                    Sys.getenv("_R_CHECK_SRC_MINUS_W_SOMETIMES_UNINITIALIZED_",
-                               "FALSE")
-                if (!config_val_to_logical(check_src_flag)) {
-                    lines <- grep("warning: .* is used uninitialized whenever",
-                                  lines,
-                                  invert = TRUE, value = TRUE, useBytes
-                                  = TRUE)
-                }
 
                 ## Warnings spotted by gfortran >= 4.0 with '-Wall'.
                 ## Justified in principle, it seems.
@@ -3756,9 +3689,10 @@ setRlibs <-
         } else if (a == "--no-build-vignettes") {
             do_build_vignettes  <- FALSE
         } else if (a == "--no-rebuild-vignettes") { # pre-3.0.0 version
-            stop("'--no-rebuild-vignettes' is defunct: use '--no-build-vignettes' instead",
-                 call. = FALSE, domain = NA)
-      } else if (a == "--no-vignettes") {
+            warning("'--no-rebuild-vignettes' is deprecated:\n  use '--no-build-vignettes' instead",
+                    immediate. = TRUE, call. = FALSE, domain = NA)
+            do_build_vignettes  <- FALSE
+        } else if (a == "--no-vignettes") {
             do_vignettes  <- FALSE
         } else if (a == "--no-manual") {
             do_manual  <- FALSE
@@ -3915,7 +3849,6 @@ setRlibs <-
         config_val_to_logical(Sys.getenv("_R_CHECK_DEPENDS_ONLY_", "FALSE"))
     R_check_suggests_only <-
         config_val_to_logical(Sys.getenv("_R_CHECK_SUGGESTS_ONLY_", "FALSE"))
-    R_check_FF <- Sys.getenv("_R_CHECK_FF_CALLS_", "true")
     R_check_toplevel_files <-
         config_val_to_logical(Sys.getenv("_R_CHECK_TOPLEVEL_FILES_", "FALSE"))
 
@@ -3932,9 +3865,6 @@ setRlibs <-
         Sys.setenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_" = "TRUE")
         Sys.setenv("_R_CHECK_DOT_FIRSTLIB_" = "TRUE")
         Sys.setenv("_R_CHECK_REPLACING_IMPORTS_" = "TRUE")
-        Sys.setenv("_R_CHECK_PACKAGES_USED_CRAN_INCOMING_NOTES_" = "TRUE")
-        prev <- Sys.getenv("_R_CHECK_SCREEN_DEVICE_", NA)
-        if(is.na(prev))  Sys.setenv("_R_CHECK_SCREEN_DEVICE_" = "stop")
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE
@@ -3944,7 +3874,6 @@ setRlibs <-
         R_check_code_data_into_globalenv <- TRUE
         R_check_depr_def <- TRUE
         R_check_Rd_line_widths <- TRUE
-        R_check_FF <- "registration"
         do_timings <- TRUE
         R_check_toplevel_files <- TRUE
     } else {
@@ -4012,7 +3941,6 @@ setRlibs <-
 
         ## The previous package may have set do_install to FALSE
         do_install <- do_install_arg
-        no_examples <- FALSE
 
         ## $pkgdir is the corresponding absolute path.
         ## pkgname0 is the name of the top-level directory
@@ -4094,6 +4022,15 @@ setRlibs <-
         is_ascii <- charset == "ASCII"
 
         .unpack.time <- Sys.time()
+        ## Support two stage install/check operating on unpacked
+        ## sources.
+        use_install_timestamp <-
+            (grepl("^check", install) &&
+             file.exists(file.path(pkgdir, ".install_timestamp")))
+
+        if(use_install_timestamp)
+            .unpack.time <-
+                file.info(file.path(pkgdir, ".install_timestamp"))$mtime
 
         ## report options used
         if (!do_codoc) opts <- c(opts, "--no-codoc")
@@ -4173,7 +4110,8 @@ setRlibs <-
             ## we are not going to install and hence not run any code.
             ## </NOTE>
             if (do_install) {
-                topfiles0 <- dir(pkgdir)
+                topfiles0 <-
+                    if(!use_install_timestamp) dir(pkgdir) else NULL
                 check_dependencies()
             } else topfiles0 <- NULL
 
@@ -4201,7 +4139,6 @@ setRlibs <-
 
             ## we need to do this before installation
             if (R_check_executables) check_executables()
-            ## (Alternatively, could use .unpack.time.)
 
             check_dot_files(check_incoming)
 
@@ -4220,6 +4157,10 @@ setRlibs <-
             makevars <-
                 Sys.glob(file.path(pkgdir, "src",
                                    c("Makevars.in", "Makevars")))
+            if(use_install_timestamp) {
+                its <- file.path(pkgdir, ".install_timestamp")
+                makevars <- makevars[file_test("-ot", makevars, its)]
+            }
             makevars <- basename(makevars)
 
             if (do_install) {
@@ -4271,24 +4212,6 @@ setRlibs <-
                 check_pkg_manual(pkgdir, desc["Package"])
         }
 
-        if (!is_base_pkg && check_incoming && no_examples &&
-            dir.exists(file.path(pkgdir, "R"))) {
-           tests_dir <- file.path(pkgdir, "tests")
-            if (dir.exists(tests_dir) &&
-                length(dir(tests_dir, pattern = "\\.(R|Rin)$")))
-                no_examples <- FALSE
-            vigns <- pkgVignettes(dir = pkgdir)
-            if (!is.null(vigns) && length(vigns$docs)) no_examples <- FALSE
-            if (no_examples) {
-                ## figure out if the R code exercises anything
-                ns <- parseNamespaceFile(basename(pkgdir), dirname(pkgdir))
-                if(length(ns$exports) || length(ns$exportPatterns) ||
-                   length(ns$exportMethods) || length(ns$S3methods)) {
-                    checkingLog(Log, "for code which exercises the package")
-                    warningLog(Log, "No examples, no tests, no vignettes")
-                }
-            }
-        }
         if ((Log$warnings > 0L) || (Log$notes > 0L)) {
             message(""); summaryLog(Log)
         }

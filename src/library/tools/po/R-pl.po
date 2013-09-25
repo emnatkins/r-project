@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-09-03 07:44\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -534,6 +534,11 @@ msgstr "Pola z wartościami innymi niż ASCII:"
 msgid "These fields must have ASCII values."
 msgstr "Te pola muszą mieć wartości ASCII."
 
+# tools/R/QC.R: 2928
+# gettext("Required fields missing:")
+msgid "Required fields missing:"
+msgstr "Brakuje wymagalnych pól:"
+
 # tools/R/QC.R: 2937
 # gettext("Malformed package version.")
 msgid "Malformed package version."
@@ -671,9 +676,6 @@ msgstr "Standaryzowalne: %s"
 msgid "Standardized license specification:"
 msgstr "Ustandaryzowana specyfikacja licencji:"
 
-msgid "Deprecated license: %s"
-msgstr ""
-
 # tools/R/QC.R: 3190
 # gettextf("Invalid license file pointers: %s",
 #                      paste(y, collapse = " "))
@@ -682,21 +684,14 @@ msgstr "Niepoprawne wskaźniki pliku licencji: %s"
 
 # tools/R/QC.R: 3194
 # gettext("Components with restrictions not permitted:")
-#, fuzzy
-msgid "License components with restrictions not permitted:"
+msgid "Components with restrictions not permitted:"
 msgstr "Komponenty z ograniczeniami nie są dozwolone:"
-
-msgid "Licenses which are templates and need '+ file LICENSE':"
-msgstr ""
 
 # tools/R/QC.R: 3264
 # gettextf("Non-portable flags in variable '%s':",
 #                    names(x)[i])
 msgid "Non-portable flags in variable '%s':"
 msgstr "Nieprzenośne flagi w zmiennej '%s':"
-
-msgid "Variables overriding user/site settings:"
-msgstr ""
 
 # tools/R/QC.R: 3571
 # message(gettextf("package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be checked", sQuote(pkg)),
@@ -858,62 +853,6 @@ msgstr "wywołania 'library' lub 'require' nie zadeklarowane z:"
 msgid "'library' or 'require' call not declared from: %s"
 msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
 
-# tools/R/QC.R: 4803
-# gettext("'library' or 'require' calls not declared from:")
-#, fuzzy
-msgid "'library' or 'require' calls to packages already attached by Depends:"
-msgstr "wywołania 'library' lub 'require' nie zadeklarowane z:"
-
-# tools/R/QC.R: 4806
-# gettextf("'library' or 'require' call not declared from: %s",
-#                        sQuote(xx))
-#, fuzzy
-msgid ""
-"'library' or 'require' call to %s which was already attached by Depends."
-msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
-
-msgid "Namespaces in Imports field not imported from:"
-msgstr ""
-
-msgid "Namespace in Imports field not imported from: %s"
-msgstr ""
-
-msgid "Packages in Depends field not imported from:"
-msgstr ""
-
-msgid "Package in Depends field not imported from: %s"
-msgstr ""
-
-msgid "Missing or unexported objects:"
-msgstr ""
-
-msgid "Missing or unexported object: %s"
-msgstr ""
-
-msgid "':::' calls which should be '::':"
-msgstr ""
-
-msgid "':::' call which should be '::': %s"
-msgstr ""
-
-msgid "Missing objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Missing object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unexported objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Unexported object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unavailable namespaces imported from by ':::' calls:"
-msgstr ""
-
-msgid "Unavailable namespace imported from by a ':::' call: %s"
-msgstr ""
-
 # tools/R/QC.R: 4812
 # gettext("'data(package=)' calls not declared from:")
 msgid "'data(package=)' calls not declared from:"
@@ -924,9 +863,6 @@ msgstr "wywołania 'data(package=)' nie zostały zadeklarowane z:"
 #                        sQuote(xx))
 msgid "'data(package=)' call not declared from: %s"
 msgstr "wywołanie 'data(package=)' nie zostały zadeklarowane z: %s"
-
-msgid "Package has no 'Version' field"
-msgstr ""
 
 # tools/R/QC.R: 5671
 # message("NB: need Internet access to use CRAN incoming checks")
@@ -1442,15 +1378,6 @@ msgstr ""
 msgid "running 'make' failed"
 msgstr "uruchomienie 'make' nie powiodło się"
 
-# tools/R/Vignettes.R: 756
-# stop(gettextf("file '%s' not found", vignette),
-#              domain = NA)
-msgid "file '%s' not found"
-msgstr "nie znaleziono pliku '%s'"
-
-msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
-msgstr ""
-
 # tools/R/Vignettes.R: 637
 # stop(gettextf("In '%s' vignettes '%s' and '%s' have the same vignette name",
 #     		      basename(dirname(dir)), orig, dup),
@@ -1463,11 +1390,11 @@ msgstr "W ilustracjach '%s', '%s' oraz '%s' mają te same nazwy winiet"
 msgid "argument 'vignette' must be of length 1"
 msgstr "argument 'vignette' musi być długości 1"
 
-# tools/R/install.R: 1467
-# stop("ERROR: no packages specified", call.=FALSE)
-#, fuzzy
-msgid "Vignette engine package not specified."
-msgstr "BŁĄD: nie określono pakietów"
+# tools/R/Vignettes.R: 756
+# stop(gettextf("file '%s' not found", vignette),
+#              domain = NA)
+msgid "file '%s' not found"
+msgstr "nie znaleziono pliku '%s'"
 
 # tools/R/Vignettes.R: 854
 # stop("Unsupported engine name ", sQuote(name))
@@ -1727,30 +1654,6 @@ msgstr "BŁĄD: wersja tego programu to R %s, wymagana jest R %s %s"
 # stop("loading failed", call. = FALSE)
 msgid "loading failed"
 msgstr "ładowanie nie powiodło się"
-
-msgid "assertConditon: Successfully caught a condition"
-msgstr ""
-
-msgid "assertCondition: caught %s"
-msgstr ""
-
-msgid "Got %s in evaluating %s; wanted %s"
-msgstr ""
-
-msgid "Failed to get %s in evaluating %s"
-msgstr ""
-
-msgid "Failed to get error in evaluating %s"
-msgstr ""
-
-msgid "Asserted error: %s"
-msgstr ""
-
-msgid "Got warning in evaluating %s, but also an error"
-msgstr ""
-
-msgid "Asserted warning: %s"
-msgstr ""
 
 # tools/R/bibstyle.R: 339
 # stop("Changes require specified 'style'")
@@ -2031,9 +1934,6 @@ msgid ""
 msgstr ""
 "Katalog 'include' w R jest pusty -- być może trzeba zainstalować R-devel.rpm "
 "lub coś podobnego"
-
-msgid "package %s %s was found, but %s %s is required by %s"
-msgstr ""
 
 # tools/R/install.R: 795
 # warning("no source files found", call. = FALSE)
@@ -2457,6 +2357,11 @@ msgstr "Pakiet '%s' swoje zależności zredukował do najmniejszego zbioru."
 msgid "argument '%s' must be a character string or connection"
 msgstr "argument '%s' musi być łańcuchem tekstowym lub połączeniem"
 
+# tools/R/readNEWS.R: 157
+# stop("'file' must be a character string or connection")
+msgid "'file' must be a character string or connection"
+msgstr "'file' musi być łańcuchem tekstowym lub połączeniem"
+
 # tools/R/recode.R: 60
 # stop("unimplemented encoding")
 msgid "unimplemented encoding"
@@ -2476,9 +2381,6 @@ msgstr "Znaleziono %s, prawdopodobnie z %s"
 # gettextf("testing '%s' failed", pkg)
 msgid "testing '%s' failed"
 msgstr "testowanie '%s' nie powiodło się"
-
-msgid "%d of the package tests failed"
-msgstr ""
 
 # tools/R/testing.R: 239
 # message(gettextf("Testing examples for package %s", sQuote(pkg)),
@@ -2862,10 +2764,8 @@ msgstr[2] ""
 #                         "Found an obsolete call in the following function:",
 #                         "Found an obsolete call in the following functions:"
 #                         )
-#, fuzzy
-msgid "Found an obsolete/platform-specific call in the following function:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in the following functions:"
+msgid "Found an obsolete call in the following function:"
+msgid_plural "Found an obsolete call in the following functions:"
 msgstr[0] "Znaleziono przestarzałe wywołanie w następującej funkcji:"
 msgstr[1] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
 msgstr[2] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
@@ -2875,13 +2775,8 @@ msgstr[2] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
 #                         "Found an obsolete call in methods for the following S4 generic:",
 #                         "Found an obsolete call in methods for the following S4 generics:"
 #                         )
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generic:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generics:"
+msgid "Found an obsolete call in methods for the following S4 generic:"
+msgid_plural "Found an obsolete call in methods for the following S4 generics:"
 msgstr[0] ""
 "Znaleziono przestarzałe wywołanie w metodach w następującej funkcji ogólnej "
 "S4:"
@@ -2897,13 +2792,9 @@ msgstr[2] ""
 #                         "Found an obsolete call in methods for the following reference class:",
 #                         "Found an obsolete call in methods for the following reference classes:"
 #                         )
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference class:"
+msgid "Found an obsolete call in methods for the following reference class:"
 msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference classes:"
+"Found an obsolete call in methods for the following reference classes:"
 msgstr[0] ""
 "Znaleziono przestarzałe wywołanie w metodach w następującej klasie "
 "referencyjnej:"
@@ -2936,12 +2827,6 @@ msgstr[0] "Znaleziono zlikwidowaną/usuniętą funkcję:"
 msgstr[1] "Znaleziono zlikwidowane/usunięte funkcje:"
 msgstr[2] "Znaleziono zlikwidowane/usunięte funkcje:"
 
-msgid "Found the platform-specific device:"
-msgid_plural "Found the platform-specific devices:"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 # tools/R/QC.R: 6274
 # message(sprintf(ngettext(sum(!ok),
 #                                      "Generic without any methods in %s: %s",
@@ -2961,6 +2846,7 @@ msgstr[2] "Funkcje ogólne bez metod w %s: %s"
 #                                   "missing/empty \\name field in Rd files\n%s"),
 #                          paste(" ", Rd_paths[idx], collapse = "\n")),
 #                  call. = FALSE, domain = NA)
+#, fuzzy
 msgid ""
 "missing/empty \\name field in Rd file\n"
 "%s"
@@ -2990,15 +2876,6 @@ msgstr[0] "nie można przekodować %s linia %s"
 msgstr[1] "nie można przekodować %s linie %s"
 msgstr[2] "nie można przekodować %s linie %s"
 
-# tools/R/QC.R: 2928
-# gettext("Required fields missing:")
-#, fuzzy
-msgid "Required field missing or empty:"
-msgid_plural "Required fields missing or empty:"
-msgstr[0] "Brakuje wymagalnych pól:"
-msgstr[1] "Brakuje wymagalnych pól:"
-msgstr[2] "Brakuje wymagalnych pól:"
-
 # tools/R/dynamicHelp.R: 276
 # sprintf(ngettext(length(paths),
 #                                                "Help on topic '%s' was found in the following package:",
@@ -3021,11 +2898,6 @@ msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "obiekt %s jest utworzony przez więcej niż jedno wywołanie danych"
 msgstr[1] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
 msgstr[2] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
-
-# tools/R/readNEWS.R: 157
-# stop("'file' must be a character string or connection")
-#~ msgid "'file' must be a character string or connection"
-#~ msgstr "'file' musi być łańcuchem tekstowym lub połączeniem"
 
 #~ msgid "not found"
 #~ msgstr ": nie znaleziono."

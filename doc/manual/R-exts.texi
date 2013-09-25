@@ -881,8 +881,8 @@ place.
 Field @samp{Depends} should nowadays be used rarely, only for packages
 which are intended to be put on the search path to make their facilities
 available to the end user (and not to the package itself): for example
-it makes sense that a user of package @CRANpkg{latticeExtra} would want
-the functions of package @CRANpkg{lattice} made available.
+it makes sense that a user of package @pkg{latticeExtra} would want the
+functions of package @pkg{lattice} made available.
 
 Almost always packages mentioned in @samp{Depends} should also be
 imported from in the @file{NAMESPACE} file: this ensures that any needed
@@ -1130,9 +1130,9 @@ exclude files from being installed, one can specify a list of exclude
 patterns in file @file{.Rinstignore} in the top-level source directory.
 These patterns should be Perl-like regular expressions (see the help for
 @code{regexp} in @R{} for the precise details), one per line, to be
-matched case-insensitively@footnote{on all platforms from @R{} 3.1.0}
-against the file and directory paths, e.g.@: @file{doc/.*[.]png$} will
-exclude all PNG files in @file{inst/doc} based on the extension.
+matched@footnote{case-insensitively on Windows.} against the file and
+directory paths, e.g.@: @file{doc/.*[.]png$} will exclude all PNG files
+in @file{inst/doc} based on the (lower-case) extension.
 
 Note that with the exceptions of @file{INDEX},
 @file{LICENSE}/@file{LICENCE} and @file{NEWS}, information files at the
@@ -1473,11 +1473,11 @@ versions of Autoconf in fact allow an already set @code{FLIBS} to
 override the test for the FORTRAN linker flags.)
 
 
-@strong{N.B.}: If the @command{configure} script creates files, e.g.@:
-@file{src/Makevars}, you do need a @command{cleanup} script to remove
-them.  Otherwise if the package has vignettes, @command{R CMD build}
-will ship the files that are created.  For example, package
-@CRANpkg{RODBC} has
+@strong{Note bene:} If the @command{configure} script creates files,
+e.g.@: @file{src/Makevars}, you do need a @command{cleanup} script to
+remove them.  Otherwise if the package has vignettes, @command{R CMD
+build} will ship the files that are created.  For example, package
+@pkg{RODBC} has
 
 @example
 #!/bin/sh
@@ -1603,7 +1603,7 @@ preprocessor options (for example include paths) for C/C++ files
 @code{PKG_FCFLAGS}, for C, C++, FORTRAN or Fortran 9x respectively
 (@pxref{Creating shared objects}).
 
-@strong{N.B.}: Include paths are preprocessor options, not compiler
+@strong{NB:} Include paths are preprocessor options, not compiler
 options, and @strong{must} be set in @code{PKG_CPPFLAGS} as otherwise
 platform-specific paths (e.g.@: @samp{-I/usr/local/include}) will take
 precedence.
@@ -2553,12 +2553,12 @@ To exclude files from being put into the package, one can specify a list
 of exclude patterns in file @file{.Rbuildignore} in the top-level source
 directory.  These patterns should be Perl-like regular expressions (see
 the help for @code{regexp} in @R{} for the precise details), one per
-line, to be matched case-insensitively@footnote{on all platforms from
-@R{} 3.1.0.} against the file and directory names relative to the
-top-level package source directory.  In addition, directories from
-source control systems@footnote{called @file{CVS} or @file{.svn} or
-@file{.arch-ids} or @file{.bzr} or @file{.git} (but not files called
-@file{.git}) or @file{.hg}.} or from @command{eclipse}@footnote{called
+line, to be matched@footnote{case-insensitively on Windows.} against the
+file and directory names relative to the top-level package source
+directory.  In addition, directories from source control
+systems@footnote{called @file{CVS} or @file{.svn} or @file{.arch-ids} or
+@file{.bzr} or @file{.git} (but not files called @file{.git}) or
+@file{.hg}.} or from @command{eclipse}@footnote{called
 @file{.metadata}.}, directories with names ending @file{.Rcheck} or
 @file{Old} or @file{old} and files @file{GNUMakefile},
 @file{Read-and-delete-me} or with base names starting with @samp{.#}, or
@@ -2641,9 +2641,7 @@ build} ensures those two are recorded with execute permission.
 
 Directory @file{build} of the package sources is reserved for use by
 @command{R CMD build}: it contains information which may not easily be
-created when the package is installed, including index information on
-the vignettes and, rarely, information on the help pages and perhaps a
-copy of the PDF reference manual (see above).
+created when the package is installed.
 
 @node Building binary packages,  , Building package tarballs, Checking and building packages
 @subsection Building binary packages
@@ -2736,47 +2734,37 @@ provided), the file names should start with an @acronym{ASCII} letter
 and be comprised entirely of @acronym{ASCII} letters or digits or hyphen
 or underscore.
 
-A special case is @emph{package vignettes}.  Vignettes are documents in
-PDF or @HTML{} format obtained from plain text literate source files
-from which @R{} knows how to extract @R{} code and create output (in
-PDF/@HTML{} or intermediate (La)@TeX{}).  Vignette engines do this work,
-using ``tangle'' and ``weave'' functions respectively.  Sweave, provided
-by the R distribution, is the default engine.  Since @R{} version 3.0.0,
-other vignette engines besides Sweave are supported; see @ref{Non-Sweave
-vignettes}.
+A special case is PDF documents with sources in Sweave, which we call
+@emph{package vignettes}.  (Since @R{} 3.0.0, other vignette formats are
+supported; see @ref{Non-Sweave vignettes}.)  The preferred location for
+the sources is the subdirectory @file{vignettes} of the source package,
+but @emph{pro tem}@footnote{This is expected to be removed in @R{}
+3.1.0.} for compatibility with the layout before @R{} 2.14.0, vignette
+sources will be looked for in @file{inst/doc} if subdirectory
+@file{vignettes} does not exist.  Note that the location of the vignette
+sources only affects @command{R CMD build} and @command{R CMD check}:
+the tarball built by @command{R CMD build} includes in @file{inst/doc}
+the components@footnote{at least the PDF documents and the Sweave files
+so these can be tangled to produce the @R{} code.} intended to be
+installed.
 
-Package vignettes have their sources in subdirectory @file{vignettes} of
-the package sources (@emph{pro tem}@footnote{This is expected to be
-removed in @R{} 3.1.0.} for compatibility with the layout before @R{}
-2.14.0, vignette sources will be looked for in @file{inst/doc} if
-subdirectory @file{vignettes} does not exist), with code and output
-obtained from these in @file{inst/doc}.  Note that the location of the
-vignette sources only affects @command{R CMD build} and @command{R CMD
-check}:  the tarball built by @command{R CMD build} includes in
-@file{inst/doc} the components@footnote{at least the PDF documents and
-the Sweave files so these can be tangled to produce the @R{} code.}
-intended to be installed.
-
-Sweave vignette sources are normally given the file extension
-@file{.Rnw} or @file{.Rtex}, but for historical reasons
-extensions@footnote{and to avoid problems with case-insensitive file
-systems, lower-case versions of all these extensions.} @file{.Snw} and
-@file{.Stex} are also recognized.  Sweave allows the integration of
-@LaTeX{} documents: see the @code{Sweave} help page in @R{} and the
-@code{Sweave} vignette in package @pkg{utils} for details on the
-source document format.
-
+Vignette sources are normally given the file extension @file{.Rnw} or
+@file{.Rtex}, but for historical reasons extensions@footnote{and to
+avoid problems with case-insensitive file systems, lower-case versions
+of all these extensions.} @file{.Snw} and @file{.Stex} are also
+recognized as vignettes.  Sweave allows the integration of @LaTeX{}
+documents: see the @code{Sweave} help page in @R{} and the @code{Sweave}
+vignette in package @pkg{utils} for details on the document format.
 Package vignettes are tested by @code{R CMD check} by executing all @R{}
-code chunks they contain (except those marked for non-evaluation, e.g.,
-with option @code{eval=FALSE} for Sweave).  The @R{} working directory
-for all vignette tests in @code{R CMD check} is a @emph{copy} of the
-vignette source directory.  Make sure all files needed to run the @R{}
-code in the vignette (data sets, @dots{}) are accessible by either
-placing them in the @file{inst/doc} hierarchy of the source package or
-by using calls to @code{system.file()}.  All other files needed to
-re-make the vignettes (such as @LaTeX{} style files, Bib@TeX{} input
-files and files for any figures not created by running the code in the
-vignette) must be in the vignette source directory.
+code chunks they contain (except those with option @code{eval=FALSE}).
+The @R{} working directory for all vignette tests in @code{R CMD check}
+is a @emph{copy} of the vignette source directory.  Make sure all files
+needed to run the @R{} code in the vignette (data sets, @dots{}) are
+accessible by either placing them in the @file{inst/doc} hierarchy of
+the source package or by using calls to @code{system.file()}.  All other
+files needed to re-make the vignette PDFs (such as @LaTeX{} style files,
+BiBTeX input files and files for any figures not created by running the
+code in the vignette) must be in the vignette source directory.
 
 @code{R CMD build} will automatically@footnote{unless inhibited by using
 @samp{BuildVignettes: no} in the @file{DESCRIPTION} file.} create the
@@ -5803,9 +5791,8 @@ including the information in the @file{DESCRIPTION} files.
 
 @findex R CMD Sweave
 @findex R CMD Stangle
-@code{R CMD Sweave} and @code{R CMD Stangle} process vignette-like
-documentation files (e.g. Sweave vignettes with extension 
-@samp{.Snw} or @samp{.Rnw}, or other non-Sweave vignettes).
+@code{R CMD Sweave} and @code{R CMD Stangle} process @samp{Sweave}
+documentation files (usually with extension @samp{.Snw} or @samp{.Rnw}):
 @code{R CMD Stangle} is use to extract the @R{} code fragments.
 
 The exact usage and a detailed list of available options for all of
@@ -7962,7 +7949,6 @@ specify additional flags by setting some of the variables
 @vindex PKG_FFLAGS
 @vindex PKG_FCFLAGS
 @vindex PKG_OBJCFLAGS
-@vindex PKG_OBJCXXFLAGS
 @code{PKG_CFLAGS}, @code{PKG_CXXFLAGS}, @code{PKG_FFLAGS},
 @code{PKG_FCFLAGS}, @code{PKG_OBJCFLAGS}, and @code{PKG_OBJCXXFLAGS}
 (for the C, C++, FORTRAN 77, Fortran 9x, Objective C, and Objective C++
@@ -8651,7 +8637,7 @@ given in the table.
 
 @noindent
 Among the important internal @code{SEXPTYPE}s are @code{LANGSXP},
-@code{CHARSXP}, @code{PROMSXP}, etc.  (@strong{N.B.}: although it is
+@code{CHARSXP}, @code{PROMSXP}, etc.  (@strong{Note}: although it is
 possible to return objects of internal types, it is unsafe to do so as
 assumptions are made about how they are handled which may be violated at
 user-level evaluation.)  More details are given in @ref{R Internal
@@ -12077,9 +12063,9 @@ pkg-config --cflags libR
 pkg-config --libs --static libR
 @end example
 
-However, a more comprehensive way is to set up a @file{Makefile} to
-compile the front-end.  Suppose file @file{myfe.c} is to be compiled to
-@file{myfe}. A suitable @file{Makefile} might be
+However, these may not suffice and a more comprehensive way is to set up
+a @file{Makefile} to compile the front-end.  Suppose file @file{myfe.c}
+is to be compiled to @file{myfe}. A suitable @file{Makefile} might be
 
 @example
 include $@{R_HOME@}/etc$@{R_ARCH@}/Makeconf

@@ -23,7 +23,7 @@ findInterval <- function(x, vec, rightmost.closed = FALSE, all.inside = FALSE)
     ## ---------------------------------------------------------
     ## Author: Martin Maechler, Date:  4 Jan 2002, 10:16 (of very different .C version)
 
-    if(anyNA(vec))
+    if(any(is.na(vec)))
 	stop("'vec' contains NAs")
     if(is.unsorted(vec))
 	stop("'vec' must be sorted non-decreasingly")

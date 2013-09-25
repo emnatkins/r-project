@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-08-28 07:45\n"
+"POT-Creation-Date: 2013-06-09 21:52\n"
 "PO-Revision-Date: 2013-02-17 18:18-0600\n"
 "Last-Translator: Chel Hee Lee <gnustats@gmail.com>\n"
 "Language-Team: R Development Translation Teams (Korean) <gnustats@korea.gnu."
@@ -161,6 +161,21 @@ msgstr "오토로더는 '%s'를 '%s'에서 찾지 못했습니다"
 msgid "complex matrices not permitted at present"
 msgstr "복소수 행렬은 현재 허용되지 않습니다"
 
+msgid "non-square matrix in 'chol'"
+msgstr "'chol'에 비정방행렬이 존재합니다"
+
+msgid "non-matrix argument to 'chol'"
+msgstr "'chol'에 행렬이 아닌 인자가 전달되었습니다"
+
+msgid "invalid nrow(x)"
+msgstr "유효하지 않은 nrow(x)입니다"
+
+msgid "too large a matrix for LINPACK"
+msgstr "LINPACK에 너무 큰 행렬입니다"
+
+msgid "matrix not positive definite"
+msgstr "행렬이 positive definite가 아닙니다"
+
 msgid "'x' must be an array of at least two dimensions"
 msgstr "'x'는 반드시 최소 2차원 배열이어야 합니다"
 
@@ -309,10 +324,6 @@ msgstr ""
 
 msgid "only a single element should be replaced"
 msgstr "한개의 구성요소만이 교체되어져야 합니다"
-
-#, fuzzy
-msgid "Name partially matched in data frame"
-msgstr "데이터 프레임에 수치형이 아닌 변수가 있습니다"
 
 msgid "names do not match previous names"
 msgstr ""
@@ -542,9 +553,6 @@ msgstr "0 행 0 열 행렬입니다"
 msgid "non-square matrix in 'eigen'"
 msgstr ""
 
-msgid "invalid nrow(x)"
-msgstr "유효하지 않은 nrow(x)입니다"
-
 msgid "invalid 'labels'; length %d should be 1 or %d"
 msgstr ""
 "유효하지 않은 'labels'입니다; 길이 %d는 반드시 1 이거나 %d이어야 합니다"
@@ -616,9 +624,6 @@ msgstr ""
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "타입 \"expression\"을 가지는 'value'의 첫번째 요소를 사용합니다"
-
-msgid "class of 'x' was discarded"
-msgstr ""
 
 msgid "'mode' must be \"double\" (\"real\"), \"integer\" or \"character\""
 msgstr ""
@@ -1076,7 +1081,7 @@ msgstr ""
 msgid "cannot import into a sealed namespace"
 msgstr ""
 
-msgid "replacing previous import by %s when loading %s"
+msgid "replacing previous import %s when loading %s"
 msgstr ""
 
 msgid "invalid import target"
@@ -1108,11 +1113,13 @@ msgstr "패키지 %s는 'NAMESPACE' 파일을 가지고 있지 않습니다"
 msgid "empty name in directive '%s' in 'NAMESPACE' file"
 msgstr ""
 
-#, fuzzy
-msgid "duplicate symbol names %s in useDynLib(\"%s\")"
+msgid "duplicated symbol names %s in useDynLib(\"%s\")"
 msgstr "useDynLib(\"%s\")내에 중복된 심볼명 %s입니다"
 
 msgid "bad 'S3method' directive: %s"
+msgstr ""
+
+msgid "too many 'S3method' directives"
 msgstr ""
 
 msgid "unknown namespace directive: %s"
@@ -1150,9 +1157,6 @@ msgstr ""
 
 msgid "invalid ncol(x)"
 msgstr "유효하지 않은 ncol(x)입니다"
-
-msgid "too large a matrix for LINPACK"
-msgstr "LINPACK에 너무 큰 행렬입니다"
 
 msgid "first argument must be a QR decomposition"
 msgstr ""
@@ -1223,17 +1227,11 @@ msgstr "'scale'의 길이는 반드시 'x'의 열의 개수와 같아야 합니�
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "'nmax' 또는 'n' 중 하나는 지정되어야 하지만 모두는 아닙니다"
 
-msgid "'from' cannot be NA, NaN or infinite"
-msgstr ""
-
 msgid "argument 'length.out' must be of length 1"
 msgstr "인자 'length.out'은 반드시 길이가 1이어야 합니다"
 
 msgid "first element used of 'length.out' argument"
 msgstr "'length.out' 인자에 사용된 첫번째 요소입니다"
-
-msgid "'to' cannot be NA, NaN or infinite"
-msgstr ""
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "seq(.)내에 유효하지 않은 (to - from)/by 입니다"
@@ -1646,12 +1644,3 @@ msgstr[0] "%s는 TRUE가 아닙니다"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "경고 메시지:\n"
-
-#~ msgid "non-square matrix in 'chol'"
-#~ msgstr "'chol'에 비정방행렬이 존재합니다"
-
-#~ msgid "non-matrix argument to 'chol'"
-#~ msgstr "'chol'에 행렬이 아닌 인자가 전달되었습니다"
-
-#~ msgid "matrix not positive definite"
-#~ msgstr "행렬이 positive definite가 아닙니다"

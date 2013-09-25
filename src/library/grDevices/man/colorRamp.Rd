@@ -17,7 +17,7 @@
 }
 \usage{
 colorRamp(colors, bias = 1, space = c("rgb", "Lab"),
-          interpolate = c("linear", "spline"), alpha = FALSE)
+          interpolate = c("linear", "spline"))
 colorRampPalette(colors, \dots)
 }
 \arguments{
@@ -28,9 +28,6 @@ colorRampPalette(colors, \dots)
   \item{space}{a character string; interpolation in RGB or CIE Lab
     color spaces.}
   \item{interpolate}{use spline or linear interpolation.}
-  \item{alpha}{logical: should alpha channel (opacity) values should be
-    returned?   It is an error to give a true value if
-    \code{space} is specified.}
   \item{\dots}{arguments to pass to \code{colorRamp}.}
 }
 \details{
@@ -43,13 +40,11 @@ colorRampPalette(colors, \dots)
   completely accurate and the color ramp may not reach the extreme
   values in Lab space.  Future changes in the \R color model may change
   the colors produced with \code{space = "Lab"}.
-
-  Argument \code{alpha} has introduced in \R 3.1.0.
 }
 \value{
   \code{colorRamp} returns a \code{\link{function}} with argument a
   vector of values between 0 and 1 that are mapped to a numeric matrix
-  of RGB color values with one row per color and 3 or 4 columns.
+  of RGB color values with one row per color and 3 columns.
   
   \code{colorRampPalette} returns a function that takes an integer
   argument (the required number of colors) and returns a character
@@ -70,9 +65,10 @@ colorRampPalette(colors, \dots)
 ## Both return a *function* :
 colorRamp(c("red", "green"))( (0:4)/4 ) ## (x) , x in [0,1]
 colorRampPalette(c("blue", "red"))( 4 ) ## (n)
-## a ramp in opacity of blue values
-colorRampPalette(c(rgb(0,0,1,1), rgb(0,0,1,0)), alpha=TRUE)(6)
-
+\dontshow{## special case, invalid in R <= 2.15.0:
+bb <- colorRampPalette(2)(4)
+stopifnot(bb[1] == bb)
+}
 require(graphics)
 
 ## Here space="rgb" gives palettes that vary only in saturation,

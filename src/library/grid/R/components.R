@@ -17,7 +17,11 @@
 #  http://www.r-project.org/Licenses/
 
 grid.collection <- function(..., gp=gpar(), draw=TRUE, vp=NULL) {
-    .Defunct("gTree")
+  .Deprecated("gTree")
+  gc <- gTree(children=gList(...), gp=gp, vp=vp, cl="collection")
+  if (draw)
+    grid.draw(gc)
+  gc
 }
 
 ######################################

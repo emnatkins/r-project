@@ -331,9 +331,7 @@ make check-all
 @end example
 
 @noindent
-see file @file{tests/README} and @ref{Testing a Unix-alike Installation}
-for the possibilities of doing this in parallel.  Note that these checks
-need the recommended packages to be installed.
+see file @file{tests/README}.
 
 If the command @command{configure} and @command{make} commands execute
 successfully, a shell-script front-end called @file{R} will be created
@@ -550,7 +548,8 @@ make install
 
 @noindent
 A parallel make can be used (but run @command{make} before @command{make
-install}).
+install}): however it is not recommended for @command{make check} as the
+output from different checks will interleaved and hard to decipher.
 
 This will install to the following directories:
 
@@ -893,18 +892,6 @@ library.  This can occasionally be useful when the operating environment
 has been changed, for example by OS updates or by substituting the
 @acronym{BLAS} (@pxref{Shared BLAS}).
 
-Parallel checking of packages may be possible: set the environment
-variable @env{TEST_MC_CORES} to the maximum number of processes to be
-run in parallel.  This affects both checking the package examples (part
-of @command{make check}) and package sources (part of @command{make
-check-devel} and @command{make check-recommended}).  It does require a
-@command{make} command which supports the @command{make -j @var{n}}
-option: most do but on Solaris you need to select GNU @code{make} or
-@code{dmake}.  Where parallel checking of package sources is done, a log
-file @file{@var{pngname}.log} is left in the @code{tests} directory for
-inspection.
-
-
 Alternatively, the installed @R{} can be run, preferably with
 @option{--vanilla}.  Then
 @enindex LC_COLLATE
@@ -1239,11 +1226,6 @@ If a test fails, there will almost always be a @file{.Rout.fail} file in
 the directory being checked (often @file{tests/Examples} or
 @file{tests}): examine the file to help pinpoint the problem.
 
-Parallel checking of package sources (part of @command{make check-devel}
-and @command{make check-recommended}) is possible: see the environment
-variable @env{TEST_MC_CORES} to the maximum number of processes to be
-run in parallel.
-
 
 @node Building the manuals, Building the Inno Setup installer, Checking the build, Building from source
 @subsection Building the manuals
@@ -1528,7 +1510,7 @@ You can run command-line @R{} from a Terminal like any other Unix-alike:
 see the next chapter of this manual.  There are some small differences
 which may surprise users of @R{} on other platforms, notably the default
 personal library directory (under @file{~/Library/R},
-e.g. @file{~/Library/R/3.1/library}), and that warnings, messages and
+e.g. @file{~/Library/R/3.0/library}), and that warnings, messages and
 other output to @file{stderr} are highlighted in bold.
 
 
@@ -1579,13 +1561,13 @@ The installer will remove any previous version of the @R{} framework
 which it finds installed.  This can be avoided by using @command{pkgutil
 --forget} (see the previous section).  However, note that different
 versions are installed under
-@file{/Library/Frameworks/R.framework/Versions} as @file{3.0},
-@file{3.1} and so on, so it is not possible to have different
+@file{/Library/Frameworks/R.framework/Versions} as @file{2.15},
+@file{3.0} and so on, so it is not possible to have different
 @samp{3.x.y} versions installed for the same @samp{x}.
 
 A version of @R{} can be run directly from the command-line as e.g.@:
 @example
-/Library/Frameworks/R.framework/Versions/3.1/Resources/bin/R
+/Library/Frameworks/R.framework/Versions/3.0/Resources/bin/R
 @end example
 
 @noindent
@@ -1856,7 +1838,7 @@ containing either or both architectures.
 
 A few of the binary packages need other software to be installed on your
 system: see for example
-@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/3.1/@/@@ReadMe}.
+@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/3.0/@/@@ReadMe}.
 For 64-bit builds, packages using Gtk+ (@CRANpkg{Cairo},
 @CRANpkg{RGtk2}, @CRANpkg{cairoDevice} and those that depend on them)
 need the @file{bin} directory of a bundled distribution from
@@ -2573,7 +2555,7 @@ is the current working directory (in the build directory tree on a
 Unix-alike if that is separate from the sources).
 
 @file{Rmath.h} contains @samp{R_VERSION_STRING}, which is a character
-string containing the current @R{} version, for example @code{"3.1.0"}.
+string containing the current @R{} version, for example @code{"3.0.0"}.
 
 There is full access to @R{}'s handling of @code{NaN}, @code{Inf} and
 @code{-Inf} via special versions of the macros and functions
@@ -4400,10 +4382,8 @@ was used.
 The @TeX{} implementation used by the developers is MacTeX
 (@uref{http://www.tug.org/mactex/}): the full installation is several
 gigabytes, but a smaller version (ca 300MB) is available at
-@uref{http://www.tug.org/mactex/morepackages.html}: you will need to add
-some packages, e.g.@: @pkg{inconsolata}, @pkg{texinfo} and
-@pkg{upquote}.  @samp{TeX Live Utility} (available @emph{via} the MacTeX
-front page) provides a graphical means to manage @TeX{} packages.
+@uref{http://www.tug.org/mactex/morepackages.html}: you will want to add
+some packages, including @pkg{inconsolata}.
 
 @menu
 * Snow Leopard::                
@@ -5261,7 +5241,7 @@ For example for a 32-bit build, all on one line,
 
 @example
 PATH=c:\Rtools\bin;c:\Rtools\gcc-4.6.3\bin;c:\MiKTeX\miktex\bin;
-     c:\R\R-3.1\bin\i386;c:\windows;c:\windows\system32
+     c:\R\R-3.0\bin\i386;c:\windows;c:\windows\system32
 @end example
 
 @noindent

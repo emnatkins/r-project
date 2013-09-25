@@ -608,7 +608,7 @@ static void printList(SEXP s, SEXP env)
 		    else if( isValidName(CHAR(PRINTNAME(TAG(s)))) )
 			sprintf(ptag, "$%s", CHAR(PRINTNAME(TAG(s))));
 		    else
-			sprintf(ptag, "$`%s`", EncodeChar(PRINTNAME(TAG(s))));
+			sprintf(ptag, "$`%s`", CHAR(PRINTNAME(TAG(s))));
 		}
 	    }
 	    else {

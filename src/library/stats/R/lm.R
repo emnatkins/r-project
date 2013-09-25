@@ -1,7 +1,7 @@
 #  File src/library/stats/R/lm.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2013 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
     else if(length(dots) == 1L)
 	warning("extra argument ", sQuote(names(dots)),
                 " is disregarded.", domain = NA)
-    z <- .Call(C_Cdqrls, x, y, tol, FALSE)
+    z <- .Call(C_Cdqrls, x, y, tol)
     if(!singular.ok && z$rank < p) stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
@@ -147,8 +147,6 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
 	   qr = structure(qr, class="qr"),
 	   df.residual = n - z$rank))
 }
-
-.lm.fit <- function(x, y, tol = 1e-07) .Call(C_Cdqrls, x, y, tol, check=TRUE)
 
 lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
                      singular.ok = TRUE, ...)
@@ -197,13 +195,8 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
                     fitted.values = 0 * y, weights = w, rank = 0L,
                     df.residual = length(y)))
     }
-    if (n == 0) { # all cases have weight zero
-        return(list(coefficients = rep(NA_real_, p), residuals = y,
-                    fitted.values = 0 * y, weights = w, rank = 0L,
-                    df.residual = 0L))
-    }
     wts <- sqrt(w)
-    z <- .Call(C_Cdqrls, x * wts, y * wts, tol, FALSE)
+    z <- .Call(C_Cdqrls, x * wts, y * wts, tol)
     if(!singular.ok && z$rank < p) stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
@@ -558,10 +551,8 @@ case.names.lm <- function(object, full = FALSE, ...)
 
 anova.lm <- function(object, ...)
 {
-    ## Do not copy this: anova.lmlist is not an exported object.
-    ## See anova.glm for further comments.
-    if(length(list(object, ...)) > 1L) return(anova.lmlist(object, ...))
-
+    if(length(list(object, ...)) > 1L)
+	return(anova.lmlist(object, ...))
     if(!inherits(object, "lm"))
 	warning("calling anova.lm(<fake-lm-object>) ...")
     w <- object$weights

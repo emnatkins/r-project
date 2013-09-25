@@ -9,7 +9,6 @@
 \title{Check Foreign Function Calls}
 \usage{
 checkFF(package, dir, file, lib.loc = NULL,
-        registration = FALSE,
         verbose = getOption("verbose"))
 }
 \description{
@@ -31,8 +30,6 @@ checkFF(package, dir, file, lib.loc = NULL,
     or \code{NULL}.  The default value of \code{NULL} corresponds to all
     libraries currently known.  The specified library trees are used to
     search for \code{package}.}
-  \item{registration}{a logical.  If \code{TRUE}, checks
-    the registration information on the call (if available).}
   \item{verbose}{a logical.  If \code{TRUE}, additional diagnostics are
     printed (and the result is returned invisibly).}
 }

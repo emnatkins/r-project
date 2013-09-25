@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-09-03 07:44\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2012-01-07 22:11+0200\n"
 "Last-Translator: Joe <joedalton2@yahoo.dk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -181,6 +181,9 @@ msgstr "Felter med ikke-ASCII-værdier:"
 msgid "These fields must have ASCII values."
 msgstr "Disse felter skal have ASCII-værdier."
 
+msgid "Required fields missing:"
+msgstr "Krævede felter mangler:"
+
 msgid "Malformed package version."
 msgstr "Forkert udformet pakkeversion."
 
@@ -262,22 +265,13 @@ msgstr ""
 msgid "Standardized license specification:"
 msgstr ""
 
-msgid "Deprecated license: %s"
-msgstr ""
-
 msgid "Invalid license file pointers: %s"
 msgstr ""
 
-msgid "License components with restrictions not permitted:"
-msgstr ""
-
-msgid "Licenses which are templates and need '+ file LICENSE':"
+msgid "Components with restrictions not permitted:"
 msgstr ""
 
 msgid "Non-portable flags in variable '%s':"
-msgstr ""
-
-msgid "Variables overriding user/site settings:"
 msgstr ""
 
 msgid ""
@@ -349,63 +343,10 @@ msgstr ""
 msgid "'library' or 'require' call not declared from: %s"
 msgstr ""
 
-msgid "'library' or 'require' calls to packages already attached by Depends:"
-msgstr ""
-
-msgid ""
-"'library' or 'require' call to %s which was already attached by Depends."
-msgstr ""
-
-msgid "Namespaces in Imports field not imported from:"
-msgstr ""
-
-#, fuzzy
-msgid "Namespace in Imports field not imported from: %s"
-msgstr "Navnerumsafhængighed ikke krævet: %s"
-
-msgid "Packages in Depends field not imported from:"
-msgstr ""
-
-msgid "Package in Depends field not imported from: %s"
-msgstr ""
-
-msgid "Missing or unexported objects:"
-msgstr ""
-
-msgid "Missing or unexported object: %s"
-msgstr ""
-
-msgid "':::' calls which should be '::':"
-msgstr ""
-
-msgid "':::' call which should be '::': %s"
-msgstr ""
-
-msgid "Missing objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Missing object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unexported objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Unexported object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unavailable namespaces imported from by ':::' calls:"
-msgstr ""
-
-msgid "Unavailable namespace imported from by a ':::' call: %s"
-msgstr ""
-
 msgid "'data(package=)' calls not declared from:"
 msgstr ""
 
 msgid "'data(package=)' call not declared from: %s"
-msgstr ""
-
-msgid "Package has no 'Version' field"
 msgstr ""
 
 msgid "NB: need Internet access to use CRAN incoming checks"
@@ -575,21 +516,14 @@ msgstr ""
 msgid "running 'make' failed"
 msgstr ""
 
-msgid "file '%s' not found"
-msgstr ""
-
-msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
-msgstr ""
-
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr ""
 
 msgid "argument 'vignette' must be of length 1"
 msgstr ""
 
-#, fuzzy
-msgid "Vignette engine package not specified."
-msgstr "Vignette afhængigheder ikke krævet:"
+msgid "file '%s' not found"
+msgstr ""
 
 msgid "Unsupported engine name"
 msgstr ""
@@ -709,30 +643,6 @@ msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr ""
 
 msgid "loading failed"
-msgstr ""
-
-msgid "assertConditon: Successfully caught a condition"
-msgstr ""
-
-msgid "assertCondition: caught %s"
-msgstr ""
-
-msgid "Got %s in evaluating %s; wanted %s"
-msgstr ""
-
-msgid "Failed to get %s in evaluating %s"
-msgstr ""
-
-msgid "Failed to get error in evaluating %s"
-msgstr ""
-
-msgid "Asserted error: %s"
-msgstr ""
-
-msgid "Got warning in evaluating %s, but also an error"
-msgstr ""
-
-msgid "Asserted warning: %s"
 msgstr ""
 
 msgid "Changes require specified 'style'"
@@ -877,9 +787,6 @@ msgstr ""
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
 "similar"
-msgstr ""
-
-msgid "package %s %s was found, but %s %s is required by %s"
 msgstr ""
 
 msgid "no source files found"
@@ -1075,6 +982,9 @@ msgstr ""
 msgid "argument '%s' must be a character string or connection"
 msgstr ""
 
+msgid "'file' must be a character string or connection"
+msgstr ""
+
 msgid "unimplemented encoding"
 msgstr ""
 
@@ -1082,9 +992,6 @@ msgid "Found %s, possibly from %s"
 msgstr ""
 
 msgid "testing '%s' failed"
-msgstr ""
-
-msgid "%d of the package tests failed"
 msgstr ""
 
 msgid "Testing examples for package %s"
@@ -1254,27 +1161,19 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Found an obsolete/platform-specific call in the following function:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in the following functions:"
+msgid "Found an obsolete call in the following function:"
+msgid_plural "Found an obsolete call in the following functions:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generic:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generics:"
+msgid "Found an obsolete call in methods for the following S4 generic:"
+msgid_plural "Found an obsolete call in methods for the following S4 generics:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference class:"
+msgid "Found an obsolete call in methods for the following reference class:"
 msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference classes:"
+"Found an obsolete call in methods for the following reference classes:"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1285,11 +1184,6 @@ msgstr[1] ""
 
 msgid "Found the defunct/removed function:"
 msgid_plural "Found the defunct/removed functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found the platform-specific device:"
-msgid_plural "Found the platform-specific devices:"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1312,12 +1206,6 @@ msgid "unable to re-encode %s line %s"
 msgid_plural "unable to re-encode %s lines %s"
 msgstr[0] "kan ikke skrive kodefiler"
 msgstr[1] "kan ikke skrive kodefiler"
-
-#, fuzzy
-msgid "Required field missing or empty:"
-msgid_plural "Required fields missing or empty:"
-msgstr[0] "Krævede felter mangler:"
-msgstr[1] "Krævede felter mangler:"
 
 msgid "Help on topic '%s' was found in the following package:"
 msgid_plural "Help on topic '%s' was found in the following packages:"
@@ -1400,8 +1288,14 @@ msgstr[1] ""
 #~ msgid "Package which this enhances but not available for checking: %s"
 #~ msgstr "Pakker som dette forbedrer men ikke tilgængelige for kontrol: %s"
 
+#~ msgid "Vignette dependencies not required:"
+#~ msgstr "Vignette afhængigheder ikke krævet:"
+
 #~ msgid "Vignette dependencies not required: %s"
 #~ msgstr "Vignette afhængigheder ikke krævet: %s"
 
 #~ msgid "Namespace dependencies not required:"
 #~ msgstr "Navnerumsafhængigheder ikke krævet:"
+
+#~ msgid "Namespace dependency not required: %s"
+#~ msgstr "Navnerumsafhængighed ikke krævet: %s"

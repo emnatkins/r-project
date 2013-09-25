@@ -7,6 +7,7 @@
 \alias{drawDetails}
 \alias{preDrawDetails}
 \alias{postDrawDetails}
+\alias{draw.details}
 \title{ Customising grid Drawing }
 \description{
   These generic hook functions are called whenever a grid grob is drawn.
@@ -15,6 +16,7 @@
 }
 \usage{
 drawDetails(x, recording)
+draw.details(x, recording)
 preDrawDetails(x)
 postDrawDetails(x)
 }

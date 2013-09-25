@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-09-03 07:44\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2013-03-10 19:40-0600\n"
 "Last-Translator: Chel Hee Lee <gnustats@gmail.com>\n"
 "Language-Team: R Development Translation Teams (Korean) <gnustats@korea.gnu."
@@ -193,6 +193,9 @@ msgstr "ASCII가 아닌 값을 가지는 항목들:"
 msgid "These fields must have ASCII values."
 msgstr "반드시 ASCII 값들을 가져야만 하는 항목들입니다."
 
+msgid "Required fields missing:"
+msgstr ""
+
 msgid "Malformed package version."
 msgstr "잘못된 패키지 버전입니다."
 
@@ -279,22 +282,13 @@ msgstr ""
 msgid "Standardized license specification:"
 msgstr ""
 
-msgid "Deprecated license: %s"
-msgstr ""
-
 msgid "Invalid license file pointers: %s"
 msgstr ""
 
-msgid "License components with restrictions not permitted:"
-msgstr ""
-
-msgid "Licenses which are templates and need '+ file LICENSE':"
+msgid "Components with restrictions not permitted:"
 msgstr ""
 
 msgid "Non-portable flags in variable '%s':"
-msgstr ""
-
-msgid "Variables overriding user/site settings:"
 msgstr ""
 
 msgid ""
@@ -374,62 +368,10 @@ msgstr ""
 msgid "'library' or 'require' call not declared from: %s"
 msgstr ""
 
-msgid "'library' or 'require' calls to packages already attached by Depends:"
-msgstr ""
-
-msgid ""
-"'library' or 'require' call to %s which was already attached by Depends."
-msgstr ""
-
-msgid "Namespaces in Imports field not imported from:"
-msgstr ""
-
-msgid "Namespace in Imports field not imported from: %s"
-msgstr ""
-
-msgid "Packages in Depends field not imported from:"
-msgstr ""
-
-msgid "Package in Depends field not imported from: %s"
-msgstr ""
-
-msgid "Missing or unexported objects:"
-msgstr ""
-
-msgid "Missing or unexported object: %s"
-msgstr ""
-
-msgid "':::' calls which should be '::':"
-msgstr ""
-
-msgid "':::' call which should be '::': %s"
-msgstr ""
-
-msgid "Missing objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Missing object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unexported objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Unexported object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unavailable namespaces imported from by ':::' calls:"
-msgstr ""
-
-msgid "Unavailable namespace imported from by a ':::' call: %s"
-msgstr ""
-
 msgid "'data(package=)' calls not declared from:"
 msgstr ""
 
 msgid "'data(package=)' call not declared from: %s"
-msgstr ""
-
-msgid "Package has no 'Version' field"
 msgstr ""
 
 msgid "NB: need Internet access to use CRAN incoming checks"
@@ -603,21 +545,14 @@ msgstr ""
 msgid "running 'make' failed"
 msgstr "'make'를 실행하는데 실패했습니다"
 
-msgid "file '%s' not found"
-msgstr "파일 '%s'를 찾을 수 없습니다"
-
-msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
-msgstr ""
-
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr ""
 
 msgid "argument 'vignette' must be of length 1"
 msgstr "인자 'vignette'는 반드시 길이가 1 이어야 합니다"
 
-#, fuzzy
-msgid "Vignette engine package not specified."
-msgstr "에러: 지정된 패키지가 없습니다"
+msgid "file '%s' not found"
+msgstr "파일 '%s'를 찾을 수 없습니다"
 
 msgid "Unsupported engine name"
 msgstr ""
@@ -740,30 +675,6 @@ msgstr "에러: 현재 버전의 R은 %s인데 필요한 것은 R %s %s입니다
 
 msgid "loading failed"
 msgstr "로딩에 실패했습니다"
-
-msgid "assertConditon: Successfully caught a condition"
-msgstr ""
-
-msgid "assertCondition: caught %s"
-msgstr ""
-
-msgid "Got %s in evaluating %s; wanted %s"
-msgstr ""
-
-msgid "Failed to get %s in evaluating %s"
-msgstr ""
-
-msgid "Failed to get error in evaluating %s"
-msgstr ""
-
-msgid "Asserted error: %s"
-msgstr ""
-
-msgid "Got warning in evaluating %s, but also an error"
-msgstr ""
-
-msgid "Asserted warning: %s"
-msgstr ""
 
 msgid "Changes require specified 'style'"
 msgstr ""
@@ -911,9 +822,6 @@ msgstr "패키지 %s는 성공적으로 압축해제되었고, MD5 sums 이 확�
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
 "similar"
-msgstr ""
-
-msgid "package %s %s was found, but %s %s is required by %s"
 msgstr ""
 
 msgid "no source files found"
@@ -1111,6 +1019,9 @@ msgstr ""
 msgid "argument '%s' must be a character string or connection"
 msgstr "인자 '%s'는 반드시 문자열 또는 연결이어야 합니다"
 
+msgid "'file' must be a character string or connection"
+msgstr "'file'은 반드시 문자열 또는 연결이어야 합니다"
+
 msgid "unimplemented encoding"
 msgstr "구현되지 않은 인코딩입니다"
 
@@ -1119,9 +1030,6 @@ msgstr ""
 
 msgid "testing '%s' failed"
 msgstr "'%s'를 테스팅하는 것은 실패했습니다"
-
-msgid "%d of the package tests failed"
-msgstr ""
 
 msgid "Testing examples for package %s"
 msgstr "패키지 %s의 예제를 테스트합니다"
@@ -1285,26 +1193,21 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Found an obsolete/platform-specific call in the following function:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in the following functions:"
+msgid "Found an obsolete call in the following function:"
+msgid_plural "Found an obsolete call in the following functions:"
 msgstr[0] ""
+msgstr[1] ""
 
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generic:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generics:"
+msgid "Found an obsolete call in methods for the following S4 generic:"
+msgid_plural "Found an obsolete call in methods for the following S4 generics:"
 msgstr[0] ""
+msgstr[1] ""
 
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference class:"
+msgid "Found an obsolete call in methods for the following reference class:"
 msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference classes:"
+"Found an obsolete call in methods for the following reference classes:"
 msgstr[0] ""
+msgstr[1] ""
 
 msgid "Found the deprecated function:"
 msgid_plural "Found the deprecated functions:"
@@ -1313,10 +1216,6 @@ msgstr[1] ""
 
 msgid "Found the defunct/removed function:"
 msgid_plural "Found the defunct/removed functions:"
-msgstr[0] ""
-
-msgid "Found the platform-specific device:"
-msgid_plural "Found the platform-specific devices:"
 msgstr[0] ""
 
 msgid "Generic without any methods in %s: %s"
@@ -1338,10 +1237,6 @@ msgid_plural "unable to re-encode %s lines %s"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Required field missing or empty:"
-msgid_plural "Required fields missing or empty:"
-msgstr[0] ""
-
 msgid "Help on topic '%s' was found in the following package:"
 msgid_plural "Help on topic '%s' was found in the following packages:"
 msgstr[0] "'%s'와 관련된 주제를 다음의 패키지들로부터 찾았습니다:"
@@ -1350,9 +1245,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] ""
 msgstr[1] ""
-
-#~ msgid "'file' must be a character string or connection"
-#~ msgstr "'file'은 반드시 문자열 또는 연결이어야 합니다"
 
 #~ msgid "file '%s' was not created"
 #~ msgstr "파일 '%s'은 생성되지 않았습니다"

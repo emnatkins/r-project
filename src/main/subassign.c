@@ -448,7 +448,7 @@ static R_INLINE SEXP VECTOR_ELT_FIX_NAMED(SEXP y, R_xlen_t i) {
 
 static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 {
-    SEXP indx, newnames;
+    SEXP dim, indx, newnames;
     R_xlen_t i, ii, n, nx, ny;
     int iy, which;
     R_xlen_t stretch;
@@ -461,21 +461,19 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     /* Check to see if we have special matrix subscripting. */
     /* If so, we manufacture a real subscript vector. */
 
+    dim = getAttrib(x, R_DimSymbol);
     PROTECT(s);
-    if (ATTRIB(s) != R_NilValue) { /* pretest to speed up simple case */
-	SEXP dim = getAttrib(x, R_DimSymbol);
-	if (isMatrix(s) && isArray(x) && ncols(s) == length(dim)) {
-	    if (isString(s)) {
-		s = strmat2intmat(s, GetArrayDimnames(x), call);
-		UNPROTECT(1);
-		PROTECT(s);
-	    }
-	    if (isInteger(s) || isReal(s)) {
-		s = mat2indsub(dim, s, R_NilValue);
-		UNPROTECT(1);
-		PROTECT(s);
-	    }
-	}
+    if (isMatrix(s) && isArray(x) && ncols(s) == length(dim)) {
+        if (isString(s)) {
+            s = strmat2intmat(s, GetArrayDimnames(x), call);
+            UNPROTECT(1);
+            PROTECT(s);
+        }
+        if (isInteger(s) || isReal(s)) {
+            s = mat2indsub(dim, s, R_NilValue);
+            UNPROTECT(1);
+            PROTECT(s);
+        }
     }
 
     stretch = 1;
@@ -1332,53 +1330,23 @@ static SEXP listRemove(SEXP x, SEXP s, int ind)
 }
 
 
-static R_INLINE int SubAssignArgs(SEXP args, SEXP *x, SEXP *s, SEXP *y)
+static void SubAssignArgs(SEXP args, SEXP *x, SEXP *s, SEXP *y)
 {
-    if (CDR(args) == R_NilValue)
+    SEXP p;
+    if (length(args) < 2)
 	error(_("SubAssignArgs: invalid number of arguments"));
     *x = CAR(args);
-    if (CDDR(args) == R_NilValue) {
+    if(length(args) == 2) {
 	*s = R_NilValue;
 	*y = CADR(args);
-	return 0;
     }
     else {
-	int nsubs = 1;
-	SEXP p;
 	*s = p = CDR(args);
-	while (CDDR(p) != R_NilValue) {
+	while (CDDR(p) != R_NilValue)
 	    p = CDR(p);
-	    nsubs++;
-	}
 	*y = CADR(p);
 	SETCDR(p, R_NilValue);
-	return nsubs;
     }
-}
-
-/* Version of DispatchOrEval for "[" and friends that speeds up simple cases.
-   Also defined in subset.c */
-static R_INLINE
-int R_DispatchOrEvalSP(SEXP call, SEXP op, const char *generic, SEXP args,
-		    SEXP rho, SEXP *ans)
-{
-    if (args != R_NilValue && CAR(args) != R_DotsSymbol) {
-	SEXP x = eval(CAR(args), rho);
-	PROTECT(x);
-	if (! OBJECT(x)) {
-	    *ans = CONS(x, evalListKeepMissing(CDR(args), rho));
-	    UNPROTECT(1);
-	    return FALSE;
-	}
-	SEXP prom = mkPROMISE(CAR(args), R_GlobalEnv);
-	SET_PRVALUE(prom, x);
-	args = CONS(prom, CDR(args));
-	UNPROTECT(1);
-    }
-    PROTECT(args);
-    int disp = DispatchOrEval(call, op, generic, args, rho, ans, 0, 0);
-    UNPROTECT(1);
-    return disp;
 }
 
 
@@ -1397,7 +1365,7 @@ SEXP attribute_hidden do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* We evaluate the first argument and attempt to dispatch on it. */
     /* If the dispatch fails, we "drop through" to the default code below. */
 
-    if(R_DispatchOrEvalSP(call, op, "[<-", args, rho, &ans))
+    if(DispatchOrEval(call, op, "[<-", args, rho, &ans, 0, 0))
 /*     if(DispatchAnyOrEval(call, op, "[<-", args, rho, &ans, 0, 0)) */
       return(ans);
 
@@ -1420,8 +1388,9 @@ SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (NAMED(CAR(args)) == 2)
 	x = SETCAR(args, duplicate(CAR(args)));
 
-    nsubs = SubAssignArgs(args, &x, &subs, &y);
+    SubAssignArgs(args, &x, &subs, &y);
     S4 = IS_S4_OBJECT(x);
+    nsubs = length(subs);
 
     oldtype = 0;
     if (TYPEOF(x) == LISTSXP || TYPEOF(x) == LANGSXP) {
@@ -1530,7 +1499,7 @@ SEXP attribute_hidden do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans;
 
-    if(R_DispatchOrEvalSP(call, op, "[[<-", args, rho, &ans))
+    if(DispatchOrEval(call, op, "[[<-", args, rho, &ans, 0, 0))
 /*     if(DispatchAnyOrEval(call, op, "[[<-", args, rho, &ans, 0, 0)) */
       return(ans);
 
@@ -1547,7 +1516,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     PROTECT(args);
 
-    nsubs = SubAssignArgs(args, &x, &subs, &y);
+    SubAssignArgs(args, &x, &subs, &y);
     S4 = IS_S4_OBJECT(x);
 
     /* Handle NULL left-hand sides.  If the right-hand side */
@@ -1576,6 +1545,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     dims = getAttrib(x, R_DimSymbol);
     ndims = length(dims);
+    nsubs = length(subs);
 
     /* code to allow classes to extend ENVSXP */
     if(TYPEOF(x) == S4SXP) {
@@ -1885,7 +1855,7 @@ SEXP attribute_hidden do_subassign3(SEXP call, SEXP op, SEXP args, SEXP env)
     /* replace the second argument with a string */
     SETCADR(args, input);
 
-    if(R_DispatchOrEvalSP(call, op, "$<-", args, env, &ans))
+    if(DispatchOrEval(call, op, "$<-", args, env, &ans, 0, 0))
       return(ans);
 
     if (! iS)

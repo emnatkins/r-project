@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-09-03 07:44\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2013-03-19 13:39+0200 \n"
 "Last-Translator: Masafumi <mokada@mail.ne.jp> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -185,6 +185,9 @@ msgstr " ASCII 値でないフィールドです: "
 msgid "These fields must have ASCII values."
 msgstr " これらのフィールドは ASCII 値でなければなりません "
 
+msgid "Required fields missing:"
+msgstr " 必要なフィールドは見当たりません: "
+
 msgid "Malformed package version."
 msgstr " 不正なパッケージのバージョンです。 "
 
@@ -270,24 +273,14 @@ msgstr " 標準化可能: %s "
 msgid "Standardized license specification:"
 msgstr " 標準ではないライセンス指定: "
 
-msgid "Deprecated license: %s"
-msgstr ""
-
 msgid "Invalid license file pointers: %s"
 msgstr " 不正なライセンスファイルのポインタ: %s "
 
-#, fuzzy
-msgid "License components with restrictions not permitted:"
+msgid "Components with restrictions not permitted:"
 msgstr " 制約付きのコンポネントは許されていません: "
-
-msgid "Licenses which are templates and need '+ file LICENSE':"
-msgstr ""
 
 msgid "Non-portable flags in variable '%s':"
 msgstr " 変数 '%s' 中に non-portable フラグ: "
-
-msgid "Variables overriding user/site settings:"
-msgstr ""
 
 msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
@@ -368,69 +361,11 @@ msgid "'library' or 'require' call not declared from: %s"
 msgstr ""
 " 'library' もしくは 'requires' による呼出しが以下から宣言されていません: %s "
 
-#, fuzzy
-msgid "'library' or 'require' calls to packages already attached by Depends:"
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: "
-
-#, fuzzy
-msgid ""
-"'library' or 'require' call to %s which was already attached by Depends."
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: %s "
-
-msgid "Namespaces in Imports field not imported from:"
-msgstr ""
-
-#, fuzzy
-msgid "Namespace in Imports field not imported from: %s"
-msgstr " Namespaceの依存性は必要ありません： %s "
-
-msgid "Packages in Depends field not imported from:"
-msgstr ""
-
-msgid "Package in Depends field not imported from: %s"
-msgstr ""
-
-msgid "Missing or unexported objects:"
-msgstr ""
-
-msgid "Missing or unexported object: %s"
-msgstr ""
-
-msgid "':::' calls which should be '::':"
-msgstr ""
-
-msgid "':::' call which should be '::': %s"
-msgstr ""
-
-msgid "Missing objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Missing object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unexported objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Unexported object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unavailable namespaces imported from by ':::' calls:"
-msgstr ""
-
-msgid "Unavailable namespace imported from by a ':::' call: %s"
-msgstr ""
-
 msgid "'data(package=)' calls not declared from:"
 msgstr " 'data(package=)' コールは以下から宣言されていません: "
 
 msgid "'data(package=)' call not declared from: %s"
 msgstr " 'data(package=)' コールは以下から宣言されていません: %s "
-
-#, fuzzy
-msgid "Package has no 'Version' field"
-msgstr " パッケージ '%s' は .rda ファイルを含みません "
 
 msgid "NB: need Internet access to use CRAN incoming checks"
 msgstr ""
@@ -613,12 +548,6 @@ msgstr ""
 msgid "running 'make' failed"
 msgstr " 'make' の実行に失敗しました "
 
-msgid "file '%s' not found"
-msgstr " ファイル '%s' が見つかりません "
-
-msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
-msgstr ""
-
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr ""
 " '%s' において、ビニエット '%s' と '%s' は同じビニエット名になっています "
@@ -626,9 +555,8 @@ msgstr ""
 msgid "argument 'vignette' must be of length 1"
 msgstr " 引数 'vignette' は長さ1でなければなりません "
 
-#, fuzzy
-msgid "Vignette engine package not specified."
-msgstr " ビニエットの依存性は不要です: "
+msgid "file '%s' not found"
+msgstr " ファイル '%s' が見つかりません "
 
 msgid "Unsupported engine name"
 msgstr " 未サポートのエンジン名 "
@@ -756,30 +684,6 @@ msgstr " エラー: この R はバージョン %s です。 R %s %s を必要�
 
 msgid "loading failed"
 msgstr " ロードに失敗しました "
-
-msgid "assertConditon: Successfully caught a condition"
-msgstr ""
-
-msgid "assertCondition: caught %s"
-msgstr ""
-
-msgid "Got %s in evaluating %s; wanted %s"
-msgstr ""
-
-msgid "Failed to get %s in evaluating %s"
-msgstr ""
-
-msgid "Failed to get error in evaluating %s"
-msgstr ""
-
-msgid "Asserted error: %s"
-msgstr ""
-
-msgid "Got warning in evaluating %s, but also an error"
-msgstr ""
-
-msgid "Asserted warning: %s"
-msgstr ""
 
 msgid "Changes require specified 'style'"
 msgstr " 指定された 'style' の変更が必要です "
@@ -930,9 +834,6 @@ msgid ""
 msgstr ""
 " R の include ディレクトリが空です。恐らく R-devel.rpm か類似物をインストール"
 "する必要があります "
-
-msgid "package %s %s was found, but %s %s is required by %s"
-msgstr ""
 
 msgid "no source files found"
 msgstr " ソースファイルが見つかりません "
@@ -1147,6 +1048,9 @@ msgstr " パッケージ '%s' は最小のセットに縮小された依存関�
 msgid "argument '%s' must be a character string or connection"
 msgstr " 引数 '%s' は文字列かコネクションでなければなりません "
 
+msgid "'file' must be a character string or connection"
+msgstr " 'file' は文字列ベクトルかコネクションでなければなりません "
+
 msgid "unimplemented encoding"
 msgstr " 実装されていないエンコード "
 
@@ -1155,9 +1059,6 @@ msgstr " %s が見つかりました（おそらく %s から） "
 
 msgid "testing '%s' failed"
 msgstr " '%s' のテストに失敗しました "
-
-msgid "%d of the package tests failed"
-msgstr ""
 
 msgid "Testing examples for package %s"
 msgstr " %s パッケージに対する例をテストしています "
@@ -1316,30 +1217,19 @@ msgid_plural ""
 msgstr[0] ""
 " 以下の参照クラスに対するメソッド中に .Internal 呼び出しが見つかりました: "
 
-#, fuzzy
-msgid "Found an obsolete/platform-specific call in the following function:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in the following functions:"
+msgid "Found an obsolete call in the following function:"
+msgid_plural "Found an obsolete call in the following functions:"
 msgstr[0] " 以下の関数中にもはや使われていない呼び出しが見つかりました: "
 
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generic:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generics:"
+msgid "Found an obsolete call in methods for the following S4 generic:"
+msgid_plural "Found an obsolete call in methods for the following S4 generics:"
 msgstr[0] ""
 " 以下の S4 総称に対するメソッド中にもはや使われていない呼び出しが見つかりまし"
 "た: "
 
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference class:"
+msgid "Found an obsolete call in methods for the following reference class:"
 msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference classes:"
+"Found an obsolete call in methods for the following reference classes:"
 msgstr[0] ""
 " 以下の参照クラスに対するメソッド中にもはや使われていない呼び出しが見つかりま"
 "した: "
@@ -1351,10 +1241,6 @@ msgstr[0] " 使用が推奨されていない関数が見つかりました: "
 msgid "Found the defunct/removed function:"
 msgid_plural "Found the defunct/removed functions:"
 msgstr[0] " 廃止された関数が見つかりました: "
-
-msgid "Found the platform-specific device:"
-msgid_plural "Found the platform-specific devices:"
-msgstr[0] ""
 
 msgid "Generic without any methods in %s: %s"
 msgid_plural "Generics without any methods in %s: %s"
@@ -1375,11 +1261,6 @@ msgid "unable to re-encode %s line %s"
 msgid_plural "unable to re-encode %s lines %s"
 msgstr[0] " %s (%s行) を再エンコード出来ません "
 
-#, fuzzy
-msgid "Required field missing or empty:"
-msgid_plural "Required fields missing or empty:"
-msgstr[0] " 必要なフィールドは見当たりません: "
-
 msgid "Help on topic '%s' was found in the following package:"
 msgid_plural "Help on topic '%s' was found in the following packages:"
 msgstr[0] " トピック '%s' に関するヘルプが以下のパッケージに見つかりました: "
@@ -1387,9 +1268,6 @@ msgstr[0] " トピック '%s' に関するヘルプが以下のパッケージ�
 msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] " オブジェクト %s は 1 つ以上のデータ呼び出しにより生成されました "
-
-#~ msgid "'file' must be a character string or connection"
-#~ msgstr " 'file' は文字列ベクトルかコネクションでなければなりません "
 
 #~ msgid "not found"
 #~ msgstr " が見つかりません "
@@ -1727,11 +1605,17 @@ msgstr[0] " オブジェクト %s は 1 つ以上のデータ呼び出しによ�
 #~ msgid "Package which this enhances but not available for checking: %s"
 #~ msgstr " これが拡張するパッケージがチェック可能ではありません：%s "
 
+#~ msgid "Vignette dependencies not required:"
+#~ msgstr " ビニエットの依存性は不要です: "
+
 #~ msgid "Vignette dependencies not required: %s"
 #~ msgstr " ビニエットの依存性は不要です: %s "
 
 #~ msgid "Namespace dependencies not required:"
 #~ msgstr " Namespaceの依存性は必要ありません： "
+
+#~ msgid "Namespace dependency not required: %s"
+#~ msgstr " Namespaceの依存性は必要ありません： %s "
 
 #~ msgid "Package name and namespace differ."
 #~ msgstr " パッケージ名と namespace とが異なっています． "
@@ -1847,6 +1731,9 @@ msgstr[0] " オブジェクト %s は 1 つ以上のデータ呼び出しによ�
 
 #~ msgid "*** 'hhc.exe' not found: not building CHM help"
 #~ msgstr " *** 'hhc.exe' が見つかりません:  CHM ヘルプを構築しません "
+
+#~ msgid "package '%s' has no .rda file"
+#~ msgstr " パッケージ '%s' は .rda ファイルを含みません "
 
 #~ msgid "Rd files with syntax errors:"
 #~ msgstr " 構文エラーを含む Rd ファイル： "

@@ -105,7 +105,7 @@ rbind <- function(..., deparse.level = 1)
                      "keepInteger", "quoteExpressions", "showAttributes",
                      "useSource", "warnIncomplete", "delayPromises",
                      "keepNA", "S_compatible"))
-    if (anyNA(opts))
+    if (any(is.na(opts)))
         stop(sprintf(ngettext(as.integer(sum(is.na(opts))),
                               "deparse option %s is not recognized",
                               "deparse options %s are not recognized"),
@@ -155,7 +155,7 @@ gctorture2 <- function(step, wait = step, inhibit_release = FALSE)
 is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
 {
     if(length(x) <= 1L) return(FALSE)
-    if(!na.rm && anyNA(x))
+    if(!na.rm && any(is.na(x)))## "FIXME" is.na(<large>) is "too slow"
 	return(NA)
     ## else
     if(na.rm && any(ii <- is.na(x)))

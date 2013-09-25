@@ -1483,8 +1483,7 @@ int attribute_hidden Rf_AdobeSymbol2ucs2(int n)
     else return 0;
 }
 
-double R_strtod5(const char *str, char **endptr, char dec, 
-		 Rboolean NA, Rboolean exact)
+double R_strtod4(const char *str, char **endptr, char dec, Rboolean NA)
 {
     LDOUBLE ans = 0.0, p10 = 10.0, fac = 1.0;
     int n, expn = 0, sign = 1, ndigits = 0, exph = -1;
@@ -1531,11 +1530,6 @@ double R_strtod5(const char *str, char **endptr, char dec,
 	    else break;
 	    if (exph >= 0) exph += 4;
 	}
-	if (exact && ans > 9e15) { // lost accuracy
-	    ans = NA_REAL;
-	    p = str; /* back out */
-	    goto done;
-	}
 	if (*p == 'p' || *p == 'P') {
 	    int expsign = 1;
 	    double p2 = 2.0;
@@ -1569,12 +1563,7 @@ double R_strtod5(const char *str, char **endptr, char dec,
 	p = str; /* back out */
 	goto done;
     }
-    if (exact && ans > 9e15) { // lost accuracy
-//	error("lost accuracy in '%s'\n", str);
-	ans = NA_REAL;
-	p = str; /* back out */
-	goto done;
-    }
+
 
     if (*p == 'e' || *p == 'E') {
 	int expsign = 1;
@@ -1612,20 +1601,14 @@ done:
     return sign * (double) ans;
 }
 
-
-double R_strtod4(const char *str, char **endptr, char dec, Rboolean NA)
-{
-    return R_strtod5(str, endptr, dec, NA, FALSE);
-}
-
 double R_strtod(const char *str, char **endptr)
 {
-    return R_strtod5(str, endptr, '.', FALSE, FALSE);
+    return R_strtod4(str, endptr, '.', FALSE);
 }
 
 double R_atof(const char *str)
 {
-    return R_strtod5(str, NULL, '.', FALSE, FALSE);
+    return R_strtod4(str, NULL, '.', FALSE);
 }
 
 /* enc2native and enc2utf8, but they are the same in a UTF-8 locale */
