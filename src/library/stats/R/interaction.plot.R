@@ -38,7 +38,7 @@ interaction.plot <-
         options(warn=-1)
         xnm <- as.numeric(levels(x.factor))
         options(warn=wn)
-        if(!anyNA(xnm)) xvals <- xnm
+        if(!any(is.na(xnm))) xvals <- xnm
     }
     xlabs <- rownames(cells)
     ylabs <- colnames(cells)

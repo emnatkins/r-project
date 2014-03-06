@@ -30,7 +30,6 @@ extern Rboolean mbcslocale;
 
 #define USE_MDI 1
 extern void R_ProcessEvents(void);
-extern void R_WaitEvent(void);
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
@@ -1582,7 +1581,7 @@ static wchar_t consolegetc(control c)
     p = getdata(c);
     while((p->numkeys == 0) && (!p->clp))
     {
-	R_WaitEvent();
+	if (!peekevent()) WaitMessage();
 	R_ProcessEvents();
     }
     if (p->sel) {

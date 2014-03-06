@@ -62,7 +62,6 @@ utils::globalVariables(".addBasicGeneric")
 		 "log", "log10", "log2", "log1p",
 		 "cos", "cosh", "sin", "sinh", "tan", "tanh",
 		 "acos", "acosh", "asin", "asinh", "atan", "atanh",
-		 "cospi", "sinpi", "tanpi",
 		 "gamma", "lgamma", "digamma", "trigamma"
 		 )
     for(f in members) {

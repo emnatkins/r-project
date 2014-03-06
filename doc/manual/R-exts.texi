@@ -1147,9 +1147,9 @@ exclude files from being installed, one can specify a list of exclude
 patterns in file @file{.Rinstignore} in the top-level source directory.
 These patterns should be Perl-like regular expressions (see the help for
 @code{regexp} in @R{} for the precise details), one per line, to be
-matched case-insensitively@footnote{on all platforms from @R{} 3.1.0}
-against the file and directory paths, e.g.@: @file{doc/.*[.]png$} will
-exclude all PNG files in @file{inst/doc} based on the extension.
+matched@footnote{case-insensitively on Windows.} against the file and
+directory paths, e.g.@: @file{doc/.*[.]png$} will exclude all PNG files
+in @file{inst/doc} based on the (lower-case) extension.
 
 Note that with the exceptions of @file{INDEX},
 @file{LICENSE}/@file{LICENCE} and @file{NEWS}, information files at the
@@ -2277,30 +2277,6 @@ possible to select a different compiler @emph{via} personal
 @end ifset
 For example, on OS X 10.7 or later one could select @command{clang++}.
 
-As from @R{} 3.1.0 there is another way to do this.  If the package's
-@file{Makevars} (or @file{Makevars.win}) file defines the macro
-@samp{USE_CXX1X}, compilation and linking will be done with the compiler
-specified by the macro @samp{CXX1X} with flag @samp{CXX1XSTD}, which can
-be specified@footnote{For details of these and related macros, see file
-@file{config.site} in the @R{} sources.} when @R{} is configured or in a
-personal or site @file{Makevars} file.  This defaults to the C++
-compiler with flag @option{-std=c++11} or @option{-std=c++0x} (the
-latter on Windows), but allows an incompatible alternative to be
-specified just for C++11--using packages, e.g.@: @command{g++ 4.8.x} on
-Solaris.  (C++ compilers, even different versions, often differ in their
-ABI, so their outputs can rarely be mixed.)
-
-If the macro @samp{USE_CXX1X} is given a value this is used to set
-@samp{CXX1XSTD} to select a different standard, for example
-@option{-std=gnu++11} or @option{-std=c++1y}.
-
-To make this easier to use with @command{R CMD SHLIB}, the environment
-variable @env{USE_CXX1X} will be consulted if there is no
-@file{Makevars} file (nor @file{Makevars.win} on Windows). Packages without
-a @file{Makevars} file may specify that they require C++11 by
-including @samp{C++11} in the @samp{SystemRequirements} field of the
-@file{DESCRIPTION} file.
-
 @node Checking and building packages, Writing package vignettes, Configure and cleanup, Creating R packages
 @section Checking and building packages
 
@@ -2582,13 +2558,9 @@ a set of these customizations similar to those used by @acronym{CRAN}
 can be selected by the option @option{--as-cran} (which works best if
 Internet access is available@footnote{Windows users behind proxies may
 want to set environment variable @env{R_WIN_INTERNET2} to a non-empty
-value, e.g.@: in @file{~/.R/check_environ}.}).  Some Windows users may
-need to set environment variable @env{R_WIN_NO_JUNCTIONS} to a non-empty
-value.  The test of cyclic declarations@footnote{For example, in early
-2014 @pkg{gdata} declared @samp{Imports: gtools} and @pkg{gtools}
-declared @samp{Imports: gdata}.}in @file{DESCRIPTION} files needs
-repositories (including @acronym{CRAN}) set: do this in
-@file{~/.Rprofile}.
+value, e.g.@: in @file{~/.R/check_environ}.  Some Windows users may need
+to set environment variable @env{R_WIN_NO_JUNCTIONS} to a non-empty
+value.}).
 
 You do need to ensure that the package is checked in a suitable locale
 if it contains non-@acronym{ASCII} characters.  Such packages are likely
@@ -2658,19 +2630,20 @@ To exclude files from being put into the package, one can specify a list
 of exclude patterns in file @file{.Rbuildignore} in the top-level source
 directory.  These patterns should be Perl-like regular expressions (see
 the help for @code{regexp} in @R{} for the precise details), one per
-line, to be matched case-insensitively@footnote{on all platforms from
-@R{} 3.1.0.} against the file and directory names relative to the
-top-level package source directory.  In addition, directories from
-source control systems@footnote{called @file{CVS} or @file{.svn} or
-@file{.arch-ids} or @file{.bzr} or @file{.git} (but not files called
-@file{.git}) or @file{.hg}.} or from @command{eclipse}@footnote{called
-@file{.metadata}.}, directories with names ending @file{.Rcheck} or
-@file{Old} or @file{old} and files @file{GNUMakefile},
-@file{Read-and-delete-me} or with base names starting with @samp{.#}, or
-starting and ending with @samp{#}, or ending in @samp{~}, @samp{.bak} or
-@samp{.swp}, are excluded by default.  In addition, those files in the
-@file{R}, @file{demo} and @file{man} directories which are flagged by
-@command{R CMD check} as having invalid names will be excluded.
+line, to be matched@footnote{case-insensitively on Windows, and on all
+platforms from @R{} 3.1.0.} against the file and directory names
+relative to the top-level package source directory.  In addition,
+directories from source control systems@footnote{called @file{CVS} or
+@file{.svn} or @file{.arch-ids} or @file{.bzr} or @file{.git} (but not
+files called @file{.git}) or @file{.hg}.} or from
+@command{eclipse}@footnote{called @file{.metadata}.}, directories with
+names ending @file{.Rcheck} or @file{Old} or @file{old} and files
+@file{GNUMakefile}, @file{Read-and-delete-me} or with base names
+starting with @samp{.#}, or starting and ending with @samp{#}, or ending
+in @samp{~}, @samp{.bak} or @samp{.swp}, are excluded by default.  In
+addition, those files in the @file{R}, @file{demo} and @file{man}
+directories which are flagged by @command{R CMD check} as having invalid
+names will be excluded.
 
 Use @kbd{R CMD build --help} to obtain more information about the usage
 of the @R{} package builder.
@@ -2841,41 +2814,37 @@ provided), the file names should start with an @acronym{ASCII} letter
 and be comprised entirely of @acronym{ASCII} letters or digits or hyphen
 or underscore.
 
-A special case is @emph{package vignettes}.  Vignettes are documents in
-PDF or @HTML{} format obtained from plain text literate source files
-from which @R{} knows how to extract @R{} code and create output (in
-PDF/@HTML{} or intermediate (La)@TeX{}).  Vignette engines do this work,
-using ``tangle'' and ``weave'' functions respectively.  Sweave, provided
-by the R distribution, is the default engine.  Since @R{} version 3.0.0,
-other vignette engines besides Sweave are supported; see @ref{Non-Sweave
-vignettes}.
+A special case is PDF documents with sources in Sweave, which we call
+@emph{package vignettes}.  (Since @R{} 3.0.0, other vignette formats are
+supported; see @ref{Non-Sweave vignettes}.)  The preferred location for
+the sources is the subdirectory @file{vignettes} of the source package,
+but @emph{pro tem}@footnote{This is expected to be removed in @R{}
+3.1.0.} for compatibility with the layout before @R{} 2.14.0, vignette
+sources will be looked for in @file{inst/doc} if subdirectory
+@file{vignettes} does not exist.  Note that the location of the vignette
+sources only affects @command{R CMD build} and @command{R CMD check}:
+the tarball built by @command{R CMD build} includes in @file{inst/doc}
+the components@footnote{at least the PDF documents and the Sweave files
+so these can be tangled to produce the @R{} code.} intended to be
+installed.
 
-Package vignettes have their sources in subdirectory @file{vignettes} of
-the package sources.  Note that the location of the vignette sources
-only affects @command{R CMD build} and @command{R CMD check}: the
-tarball built by @command{R CMD build} includes in @file{inst/doc} the
-components intended to be installed.
-
-Sweave vignette sources are normally given the file extension
-@file{.Rnw} or @file{.Rtex}, but for historical reasons
-extensions@footnote{and to avoid problems with case-insensitive file
-systems, lower-case versions of all these extensions.} @file{.Snw} and
-@file{.Stex} are also recognized.  Sweave allows the integration of
-@LaTeX{} documents: see the @code{Sweave} help page in @R{} and the
-@code{Sweave} vignette in package @pkg{utils} for details on the
-source document format.
-
+Vignette sources are normally given the file extension @file{.Rnw} or
+@file{.Rtex}, but for historical reasons extensions@footnote{and to
+avoid problems with case-insensitive file systems, lower-case versions
+of all these extensions.} @file{.Snw} and @file{.Stex} are also
+recognized as vignettes.  Sweave allows the integration of @LaTeX{}
+documents: see the @code{Sweave} help page in @R{} and the @code{Sweave}
+vignette in package @pkg{utils} for details on the document format.
 Package vignettes are tested by @code{R CMD check} by executing all @R{}
-code chunks they contain (except those marked for non-evaluation, e.g.,
-with option @code{eval=FALSE} for Sweave).  The @R{} working directory
-for all vignette tests in @code{R CMD check} is a @emph{copy} of the
-vignette source directory.  Make sure all files needed to run the @R{}
-code in the vignette (data sets, @dots{}) are accessible by either
-placing them in the @file{inst/doc} hierarchy of the source package or
-by using calls to @code{system.file()}.  All other files needed to
-re-make the vignettes (such as @LaTeX{} style files, Bib@TeX{} input
-files and files for any figures not created by running the code in the
-vignette) must be in the vignette source directory.
+code chunks they contain (except those with option @code{eval=FALSE}).
+The @R{} working directory for all vignette tests in @code{R CMD check}
+is a @emph{copy} of the vignette source directory.  Make sure all files
+needed to run the @R{} code in the vignette (data sets, @dots{}) are
+accessible by either placing them in the @file{inst/doc} hierarchy of
+the source package or by using calls to @code{system.file()}.  All other
+files needed to re-make the vignette PDFs (such as @LaTeX{} style files,
+BiBTeX input files and files for any figures not created by running the
+code in the vignette) must be in the vignette source directory.
 
 @code{R CMD build} will automatically@footnote{unless inhibited by using
 @samp{BuildVignettes: no} in the @file{DESCRIPTION} file.} create the
@@ -2890,10 +2859,10 @@ omission of source components as incompatible with an Open Source
 license.}
 
 By default @code{R CMD build} will run @code{Sweave} on all Sweave
-vignette source files in @file{vignettes}.  If @file{Makefile} is found
-in the vignette source directory, then @code{R CMD build} will try to
-run @command{make} after the @code{Sweave} runs, otherwise
-@code{texi2pdf} is run on each @file{.tex} file produced.
+vignette source files in the vignettes source directory.  If
+@file{Makefile} is found in the vignette source directory, then @code{R
+CMD build} will try to run @command{make} after the @code{Sweave} runs,
+otherwise @code{texi2pdf} is run on each @file{.tex} file produced.
 
 The first target in the @file{Makefile} should take care of both
 creation of PDF/@HTML{} files and cleaning up afterwards (including
@@ -2992,27 +2961,18 @@ to the encoding of the current @R{} session.
 encoding: for a non-@acronym{ASCII} vignette what that is recorded in a
 comment at the top of the file.
 
-@code{Sweave()} will produce a @file{.tex} file in the current
-encoding, or in UTF-8 if that is declared.  Non-@acronym{ASCII} encodings
-need to be declared to @LaTeX{} via a line like
+@code{Sweave()} will produce a @file{.tex} file in the current locale's
+encoding.  That needs to be declared to @LaTeX{} via a line like
 @example
 \usepackage[utf8]@{inputenc@}
 @end example
 @noindent
 (It is also possible to use the more recent @samp{inputenx} @LaTeX{}
-package.)  If the encoding is UTF-8, this can also be declared using
-the declaration
-@example
-%!\SweaveUTF8
-@end example
-@noindent
-but be aware that @LaTeX{} may require the @samp{usepackage} declaration.
-@command{R CMD check} will warn about any non-@acronym{ASCII}
-vignettes it finds which do not have one of these declarations.
+package.)  @command{R CMD check} will warn about any non-@acronym{ASCII}
+vignettes it finds which do not have such a declaration.
 
 @code{Sweave()} will also parse and evaluate the @R{} code in each
-chunk.  The @R{} output will also be in the current locale (or @acronym{UTF-8}
-if so declared), and should
+chunk.  The @R{} output will also be in the current locale, and should
 be covered by the @samp{inputenc} declaration.  One thing people often
 forget is that the @R{} output may not be @acronym{ASCII} even for
 @acronym{ASCII} @R{} sources, for many possible reasons.  One common one
@@ -3915,10 +3875,9 @@ allow the use of extended precision.  In particular, ARM CPUs do not
 (currently) have extended precision nor long doubles.
 
 If you must try to establish a tolerance empirically, configure and
-build @R{} with @option{--disable-long-double} and use appropriate
-compiler flags (such as @option{-ffloat-store} and
-@option{-fexcess-precision=standard} for @command{gcc}) to mitigate the
-effects of extended-precision calculations.
+build @R{} with @option{--disable-long-doubles} and use appropriate
+compiler flags (such as @option{-ffloat-store} for @command{gcc}) to
+mitigate the effects of extended-precision calculations.
 
 @end itemize
 
@@ -5919,9 +5878,8 @@ including the information in the @file{DESCRIPTION} files.
 
 @findex R CMD Sweave
 @findex R CMD Stangle
-@code{R CMD Sweave} and @code{R CMD Stangle} process vignette-like
-documentation files (e.g. Sweave vignettes with extension
-@samp{.Snw} or @samp{.Rnw}, or other non-Sweave vignettes).
+@code{R CMD Sweave} and @code{R CMD Stangle} process @samp{Sweave}
+documentation files (usually with extension @samp{.Snw} or @samp{.Rnw}):
 @code{R CMD Stangle} is use to extract the @R{} code fragments.
 
 The exact usage and a detailed list of available options for all of
@@ -7056,11 +7014,6 @@ message.
 
 @end itemize
 
-@code{R CMD check --use-gct} can be set to use
-@code{gctorture2(@var{n})} rather than @code{gctorture(TRUE)} by
-environment variable @env{_R_CHECK_GCT_N_} to a positive integer value
-to be used as @code{@var{n}}.
-
 Used with a debugger and with @code{gctorture} or @code{gctorture2} this
 mechanism can be helpful in isolating memory protect problems.
 
@@ -7291,12 +7244,7 @@ return,shift,signed-integer-overflow,unreachable,vla-bound,vptr
 @end example
 
 @noindent
-a subset of which could be combined with @code{address}, or use something
-like
-
-@example
--fsanitize=undefined -fno-sanitize=float-divide-by-zero
-@end example
+a subset of which could be combined with @code{address}.
 
 There is also the compiler flag @option{-fcatch-undefined-behavior},
 said to be more reliable in @command{clang} than @command{gcc}.
@@ -8319,7 +8267,6 @@ specify additional flags by setting some of the variables
 @vindex PKG_FFLAGS
 @vindex PKG_FCFLAGS
 @vindex PKG_OBJCFLAGS
-@vindex PKG_OBJCXXFLAGS
 @code{PKG_CFLAGS}, @code{PKG_CXXFLAGS}, @code{PKG_FFLAGS},
 @code{PKG_FCFLAGS}, @code{PKG_OBJCFLAGS}, and @code{PKG_OBJCXXFLAGS}
 (for the C, C++, FORTRAN 77, Fortran 9x, Objective C, and Objective C++
@@ -11245,9 +11192,6 @@ functions available, and none of the non-central distributions have
 @code{qwilcox} the function @code{wilcox_free()} should be called, and
 similarly for the signed rank functions.
 
-(If remapping is suppressed, the Normal distribution names are
-@code{Rf_dnorm4}, @code{Rf_pnorm5} and @code{Rf_qnorm5}.)
-
 @node Mathematical functions, Numerical Utilities, Distribution functions, Numerical analysis subroutines
 @subsection Mathematical functions
 
@@ -11355,29 +11299,6 @@ in @file{Rmath.h}, but is (probably) in @file{math.h} which
 @deftypefun double lgamma1p (double @var{x})
 Computes @code{log(gamma(@var{x} + 1))} (@emph{log(gamma(1 @b{p}lus x))}),
 accurately even for small @var{x}, i.e., @eqn{0 < x < 0.5, 0 < x < 0.5}.
-@end deftypefun
-
-@deftypefun double cospi (double @var{x})
-Computes @code{cos(pi * x)} (where @code{pi} is 3.14159...),
-accurately, notably for half integer @var{x}.
-
-This might be provided by your platform@footnote{It is an optional C11
-extension.}, in which case it is not included in @file{Rmath.h}, but is
-in @file{math.h} which @file{Rmath.h} includes.
-@end deftypefun
-
-@deftypefun double sinpi (double @var{x})
-Computes @code{sin(pi * x)} accurately, notably for (half) integer @var{x}.
-
-This might be provided by your platform, in which case it is not included
-in @file{Rmath.h}, but is in @file{math.h} which @file{Rmath.h} includes.
-@end deftypefun
-
-@deftypefun double tanpi (double @var{x})
-Computes @code{tan(pi * x)} accurately, notably for (half) integer @var{x}.
-
-This might be provided by your platform, in which case it is not included
-in @file{Rmath.h}, but is in @file{math.h} which @file{Rmath.h} includes.
 @end deftypefun
 
 @deftypefun double logspace_add (double @var{logx}, double @var{logy})
@@ -12113,8 +12034,7 @@ use.
 Let us re-iterate the advice to include system headers before the @R{}
 header files, especially @file{Rinternals.h} (included by
 @file{Rdefines.h}) and @file{Rmath.h}, which redefine names which may be
-used in system headers (fewer if @samp{R_NO_REMAP} is defined, or
-@samp{R_NO_REMAP_RMATH} for @file{Rmath.h}, as from @R{} 3.1.0).
+used in system headers (fewer if @samp{R_NO_REMAP} is defined).
 
 @node Generic functions and methods, Linking GUIs and other front-ends to R, The R API, Top
 @chapter Generic functions and methods
@@ -12493,9 +12413,9 @@ pkg-config --cflags libR
 pkg-config --libs --static libR
 @end example
 
-However, a more comprehensive way is to set up a @file{Makefile} to
-compile the front-end.  Suppose file @file{myfe.c} is to be compiled to
-@file{myfe}. A suitable @file{Makefile} might be
+However, these may not suffice and a more comprehensive way is to set up
+a @file{Makefile} to compile the front-end.  Suppose file @file{myfe.c}
+is to be compiled to @file{myfe}. A suitable @file{Makefile} might be
 
 @example
 include $@{R_HOME@}/etc$@{R_ARCH@}/Makeconf

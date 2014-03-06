@@ -22,8 +22,12 @@
 # NOTE: make framevp separate slot (rather than combining with
 # normal vp slot) so that it can be edited (e.g., by grid.pack)
 frameGrob <- function(layout=NULL, name=NULL, gp=gpar(), vp=NULL) {
-  framevp <- if(!is.null(layout)) viewport(layout=layout) # else NULL
-  gTree(framevp=framevp, name=name, gp=gp, vp=vp, cl="frame")
+  if (!is.null(layout))
+    framevp <- viewport(layout=layout)
+  else
+    framevp <- NULL
+  gTree(framevp=framevp, name=name, gp=gp, vp=vp,
+        cl="frame")
 }
 
 # draw=TRUE will not draw anything, but will mean that
@@ -75,13 +79,13 @@ frameDim <- function(frame) {
 cellViewport <- function(col, row, border) {
   vp <- viewport(layout.pos.col=col, layout.pos.row=row)
   if (!is.null(border))
-    vpStack(vp,
-            viewport(x=border[2L],
-                     y=border[1L],
-                     width =unit(1, "npc") - sum(border[c(2,4)]),
-                     height=unit(1, "npc") - sum(border[c(1,3)]),
-                     just=c("left", "bottom")))
-  else vp
+    vp <- vpStack(vp,
+                  viewport(x=border[2L],
+                           y=border[1L],
+                           width=unit(1, "npc") - sum(border[c(2,4)]),
+                           height=unit(1, "npc") - sum(border[c(1,3)]),
+                           just=c("left", "bottom")))
+  vp
 }
 
 cellGrob <- function(col, row, border, grob, dynamic, vp) {

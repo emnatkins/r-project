@@ -8,12 +8,12 @@
 \alias{packGrob}
 \title{ Pack an Object within a Frame }
 \description{
-  these functions, together with \code{grid.frame} and \code{frameGrob}
+  This functions, together with \code{grid.frame} and \code{frameGrob}
   are part of a
   GUI-builder-like interface to constructing graphical images.
   The idea is that you create a frame with \code{grid.frame} or
   \code{frameGrob} then
-  use these functions to pack objects into the frame.
+  use this functions to pack objects into the frame.
 }
 \usage{
 grid.pack(gPath, grob, redraw = TRUE, side = NULL,

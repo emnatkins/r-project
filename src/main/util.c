@@ -28,7 +28,6 @@
 #include <Internal.h>
 #include <R_ext/Print.h>
 #include <ctype.h>		/* for isspace */
-#include <float.h>		/* for DBL_MAX */
 
 #undef COMPILING_R
 
@@ -422,7 +421,7 @@ SEXP attribute_hidden EnsureString(SEXP s)
     return s;
 }
 
-/* FIXME: ngettext reguires unsigned long, but %u would seem appropriate */
+
 void Rf_checkArityCall(SEXP op, SEXP args, SEXP call)
 {
     if (PRIMARITY(op) >= 0 && PRIMARITY(op) != length(args)) {
@@ -942,25 +941,7 @@ SEXP attribute_hidden do_normalizepath(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     return ans;
 }
-
-#ifdef USE_INTERNAL_MKTIME
-const char *getTZinfo(void)
-{
-    const char *p = getenv("TZ");
-    if(p) return p;
-#ifdef HAVE_REALPATH
-    // This works on Linux, OS X and *BSD: other known OSes set TZ.
-    static char abspath[PATH_MAX+1] = "";
-    if(abspath[0]) return abspath + 20;
-    if(realpath("/etc/localtime", abspath))
-	return abspath + 20; // strip prefix of /usr/share/zoneinfo/
 #endif
-    warning("system timezone name is unknown: set environment variable TZ");
-    return "unknown";
-}
-#endif
-
-#endif // not Win32
 
 
 /* encodeString(x, w, quote, justify) */
@@ -1062,7 +1043,7 @@ SEXP attribute_hidden do_setencoding(SEXP call, SEXP op, SEXP args, SEXP rho)
     m = LENGTH(enc);
     if(m == 0)
 	error(_("'value' must be of positive length"));
-    if(MAYBE_REFERENCED(x)) x = duplicate(x);
+    if(NAMED(x)) x = duplicate(x);
     PROTECT(x);
     n = XLENGTH(x);
     for(i = 0; i < n; i++) {
@@ -1502,8 +1483,7 @@ int attribute_hidden Rf_AdobeSymbol2ucs2(int n)
     else return 0;
 }
 
-double R_strtod5(const char *str, char **endptr, char dec, 
-		 Rboolean NA, Rboolean exact)
+double R_strtod4(const char *str, char **endptr, char dec, Rboolean NA)
 {
     LDOUBLE ans = 0.0, p10 = 10.0, fac = 1.0;
     int n, expn = 0, sign = 1, ndigits = 0, exph = -1;
@@ -1550,11 +1530,6 @@ double R_strtod5(const char *str, char **endptr, char dec,
 	    else break;
 	    if (exph >= 0) exph += 4;
 	}
-	if (exact && ans > 9e15) { // lost accuracy
-	    ans = NA_REAL;
-	    p = str; /* back out */
-	    goto done;
-	}
 	if (*p == 'p' || *p == 'P') {
 	    int expsign = 1;
 	    double p2 = 2.0;
@@ -1588,12 +1563,7 @@ double R_strtod5(const char *str, char **endptr, char dec,
 	p = str; /* back out */
 	goto done;
     }
-    if (exact && ans > 9e15) { // lost accuracy
-//	error("lost accuracy in '%s'\n", str);
-	ans = NA_REAL;
-	p = str; /* back out */
-	goto done;
-    }
+
 
     if (*p == 'e' || *p == 'E') {
 	int expsign = 1;
@@ -1625,31 +1595,20 @@ double R_strtod5(const char *str, char **endptr, char dec,
 	ans *= fac;
     }
 
-    /* explicit overflow to infinity */
-    if (ans > DBL_MAX) {
-	if (endptr) *endptr = (char *) p;
-	return (sign > 0) ? R_PosInf : R_NegInf;
-    }
 
 done:
     if (endptr) *endptr = (char *) p;
     return sign * (double) ans;
 }
 
-
-double R_strtod4(const char *str, char **endptr, char dec, Rboolean NA)
-{
-    return R_strtod5(str, endptr, dec, NA, FALSE);
-}
-
 double R_strtod(const char *str, char **endptr)
 {
-    return R_strtod5(str, endptr, '.', FALSE, FALSE);
+    return R_strtod4(str, endptr, '.', FALSE);
 }
 
 double R_atof(const char *str)
 {
-    return R_strtod5(str, NULL, '.', FALSE, FALSE);
+    return R_strtod4(str, NULL, '.', FALSE);
 }
 
 /* enc2native and enc2utf8, but they are the same in a UTF-8 locale */
@@ -2266,10 +2225,10 @@ void str_signif(void *x, R_xlen_t n, const char *type, int width, int digits,
 			*/
 			double xxx = fabs(xx), X;
 			iex = (int)floor(log10(xxx) + 1e-12);
-			X = fround(xxx/Rexp10((double)iex) + 1e-12,
+			X = fround(xxx/pow(10.0, (double)iex) + 1e-12,
 				   (double)(dig-1));
 			if(iex > 0 &&  X >= 10) {
-			    xx = X * Rexp10((double)iex);
+			    xx = X * pow(10.0, (double)iex);
 			    iex++;
 			}
 			if(iex == -4 && fabs(xx)< 1e-4) {/* VERY rare case */

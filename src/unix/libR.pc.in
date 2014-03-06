@@ -5,6 +5,6 @@ rincludedir=@rincludedir
 Name: libR
 Description: R as a library
 Version: @VERSION
-Libs: @others -L${rlibdir} -lR
+Libs: -L${rlibdir} -lR
 Cflags: -I${rincludedir} -I${rincludedir}@rarch
 Libs.private:@libsprivate

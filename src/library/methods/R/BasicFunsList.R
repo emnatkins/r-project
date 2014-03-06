@@ -46,22 +46,15 @@ list(
 , "%*%" = function(x, y) standardGeneric("%*%")
 , "xtfrm" = function(x) standardGeneric("xtfrm")
 ### these have a different arglist from the primitives
-, "c" = structure(function(x, ..., recursive = FALSE) standardGeneric("c"),
-                  signature="x")
-, "all" = structure(function(x, ..., na.rm = FALSE) standardGeneric("all"),
-                    signature="x")
-, "any" = structure(function(x, ..., na.rm = FALSE) standardGeneric("any"),
-                    signature="x")
-, "sum" = structure(function(x, ..., na.rm = FALSE) standardGeneric("sum"),
-                    signature="x")
-, "prod" = structure(function(x, ..., na.rm = FALSE) standardGeneric("prod"),
-                    signature="x")
-, "max" = structure(function(x, ..., na.rm = FALSE) standardGeneric("max"),
-                    signature="x")
-, "min" = structure(function(x, ..., na.rm = FALSE) standardGeneric("min"),
-                    signature="x")
-, "range" = structure(function(x, ..., na.rm = FALSE) standardGeneric("range"),
-                    signature="x")
+, "c" = function(x, ..., recursive = FALSE) standardGeneric("c")
+, "all" = function(x, ..., na.rm = FALSE) standardGeneric("all")
+, "any" = function(x, ..., na.rm = FALSE) standardGeneric("any")
+, "sum" = function(x, ..., na.rm = FALSE) standardGeneric("sum")
+, "prod" = function(x, ..., na.rm = FALSE) standardGeneric("prod")
+, "max" = function(x, ..., na.rm = FALSE) standardGeneric("max")
+, "min" = function(x, ..., na.rm = FALSE) standardGeneric("min")
+
+, "range" = function(x, ..., na.rm = FALSE) standardGeneric("range")
 ## , "!" = function(e1) standardGeneric("!")
 )
 

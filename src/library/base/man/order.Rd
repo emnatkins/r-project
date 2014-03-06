@@ -1,6 +1,6 @@
 % File src/library/base/man/order.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2014 R Core Team
+% Copyright 1995-2013 R Core Team
 % Distributed under GPL 2 or later
 
 \name{order}
@@ -57,8 +57,7 @@ sort.list(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
   for integer \code{x} with a range of less than 100,000.  For such
   \code{x} it is very fast (and stable), and hence is ideal for sorting
   factors---as from \R 3.0.0 it is the default method for factors with
-  less than 100,000 levels.  (This is also known as \emph{counting
-  sorting}.)
+  less than 100,000 levels.
 
   \code{partial = NULL} is supported for compatibility with other
   implementations of S, but no other values are accepted and ordering is
@@ -88,10 +87,7 @@ sort.list(x, partial = NULL, na.last = TRUE, decreasing = FALSE,
 \preformatted{   x[order(x, na.last = NA)]
    zz <- x[!is.na(x)]; zz[sort.list(x, na.last = NA)]
 }
-  both sort the non-\code{NA} values of \code{x}.
-
-  Prior to \R 3.1.0 \code{method = "radix"} was only supported for
-  non-negative integers.
+   both sort the non-\code{NA} values of \code{x}.
 }
 
 \references{

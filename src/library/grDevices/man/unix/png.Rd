@@ -31,7 +31,7 @@ png(filename = "Rplot\%03d.png",
 
 tiff(filename = "Rplot\%03d.tiff",
      width = 480, height = 480, units = "px", pointsize = 12,
-     compression = c("none", "rle", "lzw", "jpeg", "zip", "lzw+p", "zip+p"),
+     compression = c("none", "rle", "lzw", "jpeg", "zip"),
      bg = "white", res = NA,  \dots,
      type = c("cairo", "Xlib", "quartz"), antialias)
 }
@@ -105,11 +105,7 @@ tiff(filename = "Rplot\%03d.tiff",
   \code{tiff} with types \code{"cairo"} and \code{"quartz"} supports
   semi-transparent colours, including on a transparent or
   semi-transparent background.  Compression type \code{"zip"} is
-  \sQuote{deflate (Adobe-style)}.  Compression types \code{"lzw+p"} and
-  \code{"zip+p"} use horizontal differencing (\sQuote{differencing
-  predictor}, section 14 of the TIFF specification) in combination with
-  the compression method, which is effective for continuous-tone images,
-  especially colour ones.
+  \sQuote{deflate (Adobe-style)}.
 
   \R can be compiled without support for some or all of the types for
   each of these devices: this will be reported if you attempt to use
@@ -196,12 +192,6 @@ tiff(filename = "Rplot\%03d.tiff",
 
 \author{Guido Masarotto and Brian Ripley}
 
-\references{
-  The PNG specification, \url{http://www.w3.org/TR/PNG/}.
-  
-  The TIFF specification, including extensions, at
-  \url{http://partners.adobe.com/public/developer/tiff/}.
-}
 \seealso{
   \code{\link{Devices}}, \code{\link{dev.print}}
 

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-27 17:14\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: 2013-03-19 13:41+0200 \n"
 "Last-Translator: Masafumi <mokada@mail.ne.jp> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -64,8 +64,8 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr " 警告: 不明なオプション %s "
 
-msgid "Output file:"
-msgstr ""
+msgid "Created PDF document %s"
+msgstr " PDF 文書 %s を作成しました "
 
 msgid "Compacting PDF document"
 msgstr " PDF 文書を圧縮しています "
@@ -140,12 +140,6 @@ msgstr " 'file' は connection か文字列か NULL でなければなりませ�
 msgid "bad argument"
 msgstr " 誤った引数 "
 
-msgid "'full.names' must be TRUE for multiple paths."
-msgstr ""
-
-msgid "Timestamp file no longer exists."
-msgstr ""
-
 msgid ""
 "Not all arguments are of the same length, the following need to be recycled: "
 "%s"
@@ -194,6 +188,10 @@ msgstr ""
 
 msgid "package %s not found"
 msgstr " パッケージ %s が見付かりません "
+
+msgid "broken installation, no CITATION file in the base package."
+msgstr ""
+" インストールが不完全です、base パッケージに CITATION ファイルがありません "
 
 msgid "no date field in DESCRIPTION file of package %s"
 msgstr " パッケージ %s の DESCRIPTION ファイル中に date 欄がありません "
@@ -273,10 +271,6 @@ msgstr " 'dump' はクラス %s のオブジェクトではありません "
 
 msgid "Message:"
 msgstr " メッセージ: "
-
-#, fuzzy
-msgid "'dump' is empty"
-msgstr " 'dvipsscmd' が空です "
 
 msgid "Available environments had calls:"
 msgstr " 利用可能な環境は以下の呼び出しを含んでいました: "
@@ -730,9 +724,8 @@ msgstr " foundpkgs: %s "
 msgid "files: %s"
 msgstr " ファイル：%s "
 
-#, fuzzy
 msgid ""
-"installation of one or more packages failed,\n"
+"installation of one of more packages failed,\n"
 "  probably %s"
 msgstr ""
 " 一つもしくは複数のパッケージのインストールが失敗しました \n"
@@ -905,10 +898,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr " 'x' を roman に変換できません "
 
-#, fuzzy
-msgid "Could not create file %s, aborting"
-msgstr " 型情報を再構成出来ませんでした "
-
 msgid "no valid packages were specified"
 msgstr " 有効なパッケージが指定されませんでした "
 
@@ -999,12 +988,6 @@ msgstr ""
 msgid "file size is limited to 8GB"
 msgstr " ファイルサイズは 8GB に制限されています "
 
-msgid "invalid uid value replaced by that for user 'nobody'"
-msgstr ""
-
-msgid "invalid gid value replaced by that for user 'nobody'"
-msgstr ""
-
 msgid ""
 "vignette %s found more than once,\n"
 "using the one found in %s"
@@ -1018,10 +1001,6 @@ msgstr " ビニエット %s が見付かりません "
 #, fuzzy
 msgid "vignette %s has no PDF/HTML"
 msgstr " ビニエット %s は PDF ファイルを持ちません "
-
-#, fuzzy
-msgid "vignette %s has no R code"
-msgstr " ビニエット %s が見付かりません "
 
 msgid "select.list() cannot be used non-interactively"
 msgstr " select.list() は対話的にしか使えません "
@@ -1086,9 +1065,6 @@ msgstr " 'ccaddress' は長さ 1 の整数でなければなりません "
 
 msgid "no download method found"
 msgstr " ダウンロードの方法が見付かりません "
-
-msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-msgstr ""
 
 msgid "download had nonzero exit status"
 msgstr " ダウンロードはゼロ以外の終了状態を持ちました "
@@ -1268,14 +1244,6 @@ msgstr[0] " 不正なローマ数字です: %s "
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] " パッケージ %s は使用中のため、インストールされません "
-
-#~ msgid "broken installation, no CITATION file in the base package."
-#~ msgstr ""
-#~ " インストールが不完全です、base パッケージに CITATION ファイルがありませ"
-#~ "ん "
-
-#~ msgid "Created PDF document %s"
-#~ msgstr " PDF 文書 %s を作成しました "
 
 #~ msgid "%d): succeeded '%s'"
 #~ msgstr " %d): 成功 '%s' "
@@ -1557,6 +1525,9 @@ msgstr[0] " パッケージ %s は使用中のため、インストールされ�
 
 #~ msgid "'latexcmd' is empty"
 #~ msgstr " 'latexcmd' が空です "
+
+#~ msgid "'dvipscmd' is empty"
+#~ msgstr " 'dvipsscmd' が空です "
 
 #~ msgid ""
 #~ "Changing the default browser (as specified by the 'browser' option) to "

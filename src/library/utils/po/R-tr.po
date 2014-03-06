@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-27 17:14\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: 2011-04-02 \n"
 "Last-Translator: Murat Alkan <muratalk@gmail.com>\n"
 "Language-Team: Turkish <muratalk@gmail.com>\n"
@@ -67,7 +67,7 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr ""
 
-msgid "Output file:"
+msgid "Created PDF document %s"
 msgstr ""
 
 msgid "Compacting PDF document"
@@ -136,12 +136,6 @@ msgstr ""
 msgid "bad argument"
 msgstr ""
 
-msgid "'full.names' must be TRUE for multiple paths."
-msgstr ""
-
-msgid "Timestamp file no longer exists."
-msgstr ""
-
 msgid ""
 "Not all arguments are of the same length, the following need to be recycled: "
 "%s"
@@ -186,6 +180,9 @@ msgid ""
 msgstr ""
 
 msgid "package %s not found"
+msgstr ""
+
+msgid "broken installation, no CITATION file in the base package."
 msgstr ""
 
 msgid "no date field in DESCRIPTION file of package %s"
@@ -260,9 +257,6 @@ msgid "'dump' is not an object of class %s"
 msgstr ""
 
 msgid "Message:"
-msgstr ""
-
-msgid "'dump' is empty"
 msgstr ""
 
 msgid "Available environments had calls:"
@@ -681,7 +675,7 @@ msgid "files: %s"
 msgstr ""
 
 msgid ""
-"installation of one or more packages failed,\n"
+"installation of one of more packages failed,\n"
 "  probably %s"
 msgstr ""
 
@@ -834,9 +828,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr ""
 
-msgid "Could not create file %s, aborting"
-msgstr ""
-
 msgid "no valid packages were specified"
 msgstr ""
 
@@ -924,12 +915,6 @@ msgstr ""
 msgid "file size is limited to 8GB"
 msgstr ""
 
-msgid "invalid uid value replaced by that for user 'nobody'"
-msgstr ""
-
-msgid "invalid gid value replaced by that for user 'nobody'"
-msgstr ""
-
 msgid ""
 "vignette %s found more than once,\n"
 "using the one found in %s"
@@ -939,9 +924,6 @@ msgid "vignette %s not found"
 msgstr ""
 
 msgid "vignette %s has no PDF/HTML"
-msgstr ""
-
-msgid "vignette %s has no R code"
 msgstr ""
 
 msgid "select.list() cannot be used non-interactively"
@@ -1001,9 +983,6 @@ msgid "'ccaddress' must be of length 1"
 msgstr ""
 
 msgid "no download method found"
-msgstr ""
-
-msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
 msgstr ""
 
 msgid "download had nonzero exit status"

@@ -64,8 +64,8 @@
                 is_subdir(lp, lockdir)) {
                 starsmsg(stars, "restoring previous ", sQuote(pkgdir))
                 if (WINDOWS) {
-                    file.copy(lp, dirname(pkgdir), recursive = TRUE,
-                              copy.date = TRUE)
+                    file.copy(lp, dirname(pkgdir), recursive = TRUE)
+                    Sys.setFileTime(pkgdir, file.info(lp)$mtime)
                     unlink(lp, recursive = TRUE)
                 } else {
                     ## some shells require that they be run in a known dir
@@ -176,6 +176,8 @@
             "      --no-test-load	skip test of loading installed package",
             "      --no-clean-on-error	do not remove installed package on error",
             "      --merge-multiarch	multi-arch by merging (from a single tarball only)",
+	    ## "      --group-writable	set file permissions to group-writable,",
+	    ## "			such that group members can update.packages()",
            "\nfor Unix",
             "      --configure-args=ARGS",
             "			set arguments for the configure scripts (if any)",
@@ -291,19 +293,6 @@
         ## Figure out whether this is a source or binary package.
         is_source_package <- is.na(desc["Built"])
 
-        if (is_source_package) {
-            ## Find out if C++11 is requested in DESCRIPTION file
-            sys_requires <- desc["SystemRequirements"]
-            if (!is.na(sys_requires)) {
-                sys_requires <- unlist(strsplit(sys_requires, ","))
-                if(any(grepl("^[[:space:]]*C[+][+]11[[:space:]]*$",
-                             sys_requires, ignore.case=TRUE))) {
-                    Sys.setenv("PKG_CXX_STD"="CXX11")
-                    on.exit(Sys.unsetenv("PKG_CXX_STD"))
-                }
-            }
-        }
-
         if (!is_first_package) cat("\n")
 
         if (is_source_package)
@@ -317,25 +306,30 @@
         is_first_package <<- FALSE
 
         if (tar_up) { # Unix only
-            starsmsg(stars, "creating tarball")
             version <- desc["Version"]
-            filename <- if (!grepl("darwin", R.version$os)) {
-                paste0(pkg_name, "_", version, "_R_",
-                       Sys.getenv("R_PLATFORM"), ".tar.gz")
-            } else {
-                paste0(pkg_name, "_", version,".tgz")
-            }
-            filepath <- file.path(startdir, filename)
+            filename <- paste0(pkg_name, "_", version, "_R_",
+                               Sys.getenv("R_PLATFORM"), ".tar")
+            filepath <- shQuote(file.path(startdir, filename))
             owd <- setwd(lib)
-            res <- utils::tar(filepath, curPkg, compression = "gzip",
-                              compression_level = 9L,
-                              tar = Sys.getenv("R_INSTALL_TAR"))
-            if (res)
-                errmsg(sprintf("packaging into %s failed", sQuote(filename)))
-            message("packaged installation of ",
-                    sQuote(pkg_name), " as ",
-                    sQuote(paste0(filename, ".gz")),
-                    domain = NA)
+            TAR <- Sys.getenv("TAR", 'tar')
+            system(paste(shQuote(TAR), "-chf", filepath,
+                         paste(curPkg, collapse = " ")))
+            GZIP <- Sys.getenv("R_GZIPCMD", "gzip")
+            system(paste(shQuote(GZIP), "-9f", filepath))
+            if (grepl("darwin", R.version$os)) {
+                filename <- paste0(filename, ".gz")
+                nfilename <- paste0(pkg_name, "_", version,".tgz")
+                file.rename(file.path(startdir, filename),
+                            file.path(startdir, nfilename))
+                message("packaged installation of ",
+                        sQuote(pkg_name), " as ", sQuote(nfilename),
+                        domain = NA)
+            } else {
+                message("packaged installation of ",
+                        sQuote(pkg_name), " as ",
+                        sQuote(paste0(filename, ".gz")),
+                        domain = NA)
+            }
             setwd(owd)
         }
 
@@ -467,14 +461,16 @@
                 file.copy(files, dest, overwrite = TRUE)
                 ## not clear if this is still necessary, but sh version did so
 		if (!WINDOWS)
-		    Sys.chmod(file.path(dest, files), dmode)
+		    Sys.chmod(file.path(dest, files),
+			      if(group.writable) "775" else "755")
 		## OS X does not keep debugging symbols in binaries
 		## anymore so optionally we can create dSYMs. This is
 		## important since we will blow away .o files so there
 		## is no way to create it later.
 
 		if (dsym && length(grep("^darwin", R.version$os)) ) {
-		    message(gettextf("generating debug symbols (%s)", "dSYM"),
+		    message(gettextf("generating debug symbols (%s)",
+                                     "dSYM"),
                             domain = NA)
 		    dylib <- Sys.glob(paste0(dest, "/*", SHLIB_EXT))
                     for (file in dylib) system(paste0("dsymutil ", file))
@@ -500,10 +496,9 @@
                                "R CMD SHLIB ", paste(args, collapse = " "),
                                domain = NA)
             if (.shlib_internal(args) == 0L) {
-                if(WINDOWS && !file.exists("install.libs.R")
-                   && !length(Sys.glob("*.dll"))) {
-                    message("no DLL was created")
-                    return(TRUE)
+                if(WINDOWS && !file.exists("install.libs.R")) {
+                    files <- Sys.glob(paste0("*", SHLIB_EXT))
+                    if(!length(files)) return(TRUE)
                 }
                 shlib_install(instdir, arch)
                 return(FALSE)
@@ -603,15 +598,15 @@
             if (nzchar(lockdir)) {
                 if (debug) starsmsg(stars, "backing up earlier installation")
                 if(WINDOWS) {
-                    file.copy(instdir, lockdir, recursive = TRUE,
-                              copy.date = TRUE)
+                    file.copy(instdir, lockdir, recursive = TRUE)
+                    Sys.setFileTime(file.path(lockdir, pkg_name),
+                                    file.info(instdir)$mtime)
                     if (more_than_libs) unlink(instdir, recursive = TRUE)
                 } else if (more_than_libs)
                     system(paste("mv", shQuote(instdir),
                                  shQuote(file.path(lockdir, pkg_name))))
                 else
-                    file.copy(instdir, lockdir, recursive = TRUE,
-                              copy.date = TRUE)
+                    file.copy(instdir, lockdir, recursive = TRUE)
             } else if (more_than_libs) unlink(instdir, recursive = TRUE)
             dir.create(instdir, recursive = TRUE, showWarnings = FALSE)
         }
@@ -1042,7 +1037,7 @@
             } else character()
             for(e in ignore)
                 i_dirs <- grep(e, i_dirs, perl = TRUE, invert = TRUE,
-                               value = TRUE, ignore.case = TRUE)
+                               value = TRUE, ignore.case = WINDOWS)
             lapply(gsub("^inst", instdir, i_dirs),
                    function(p) dir.create(p, FALSE, TRUE)) # be paranoid
             i_files <- list.files("inst", all.files = TRUE,
@@ -1051,7 +1046,7 @@
                             invert = TRUE, value = TRUE)
             for(e in ignore)
                 i_files <- grep(e, i_files, perl = TRUE, invert = TRUE,
-                                value = TRUE, ignore.case = TRUE)
+                                value = TRUE, ignore.case = WINDOWS)
             i_files <- i_files[!i_files %in%
                                c("inst/doc/Rplots.pdf", "inst/doc/Rplots.ps")]
             i_files <- grep("inst/doc/.*[.](log|aux|bbl|blg|dvi)$",
@@ -1112,7 +1107,7 @@
             deps_only <-
                 config_val_to_logical(Sys.getenv("_R_CHECK_INSTALL_DEPENDS_", "FALSE"))
             if(deps_only) {
-                env <- setRlibs(LinkingTo = TRUE)
+                env <- setRlibs()
                 libs0 <- .libPaths()
 		env <- sub("^.*=", "", env[1L])
                 .libPaths(c(lib0, env))
@@ -1167,14 +1162,14 @@
 	    res <- try(.install_package_indices(".", instdir))
 	    if (inherits(res, "try-error"))
 		errmsg("installing package indices failed")
-            if(file_test("-d", "vignettes")) {
+            if(file_test("-d", "vignettes") || file_test("-d", "inst/doc")) {
                 starsmsg(stars, "installing vignettes")
                 enc <- desc["Encoding"]
                 if (is.na(enc)) enc <- ""
 		if (!fake &&
                     file_test("-f", file.path("build", "vignette.rds")))
 		    installer <- .install_package_vignettes3
-		## FIXME:  this handles pre-3.0.2 tarballs.  In the long run, delete the alternative.
+		# FIXME:  this handles pre-3.0.2 tarballs.  In the long run, delete the alternative.
 		else
 		    installer <- .install_package_vignettes2
                 res <- try(installer(".", instdir, enc))
@@ -1184,9 +1179,8 @@
 	}
 
 	## Install a dump of the parsed NAMESPACE file
-        ## For a fake install, use the modified NAMESPACE file we installed
-	if (install_R && file.exists("NAMESPACE")) {
-	    res <- try(.install_package_namespace_info(if(fake) instdir else ".", instdir))
+	if (install_R && file.exists("NAMESPACE") && !fake) {
+	    res <- try(.install_package_namespace_info(".", instdir))
 	    if (inherits(res, "try-error"))
 		errmsg("installing namespace metadata failed")
 	}
@@ -1495,8 +1489,8 @@
             of <- dir(tmpdir, full.names = TRUE)
             ## force the use of internal untar unless over-ridden
             ## so e.g. .tar.xz works everywhere
-            if (utils::untar(pkg, exdir = tmpdir,
-                             tar =  Sys.getenv("R_INSTALL_TAR", "internal")))
+            if (untar(pkg, exdir = tmpdir,
+                      tar =  Sys.getenv("R_INSTALL_TAR", "internal")))
                 errmsg("error unpacking tarball")
             ## Now see what we got
             nf <- dir(tmpdir, full.names = TRUE)
@@ -1571,8 +1565,8 @@
 
     group.writable <- if(WINDOWS) FALSE else {
 	## install package group-writable  iff  in group-writable lib
-        d <-  as.octmode("020")
-	(file.info(lib)$mode & d) == d ## TRUE  iff  g-bit is "w"
+	m <- file.info(lib)$mode
+	(m & "020") == as.octmode("020") ## TRUE  iff  g-bit is "w"
     }
 
     if (libs_only) {
@@ -1626,7 +1620,7 @@
 	install_libs <- FALSE
 	install_demo <- FALSE
 	install_exec <- FALSE
-#	install_inst <- FALSE
+	install_inst <- FALSE
     }
 
     build_help_types <- character()
@@ -1733,7 +1727,6 @@
     with_f77 <- FALSE
     with_f9x <- FALSE
     with_objc <- FALSE
-    use_cxx1x <- FALSE
     pkg_libs <- character()
     clean <- FALSE
     preclean <- FALSE
@@ -1833,38 +1826,13 @@
     if (WINDOWS && file.exists("Makevars.win")) {
         makefiles <- c("Makevars.win", makefiles)
         lines <- readLines("Makevars.win", warn = FALSE)
-        if (length(grep("^OBJECTS *=", lines, perl=TRUE, useBytes = TRUE)))
+        if (length(grep("^OBJECTS *=", lines, perl=TRUE, useBytes=TRUE)))
             makeobjs <- ""
-        if (length(ll <- grep("^USE_CXX1X *=", lines, perl = TRUE,
-                              value = TRUE, useBytes = TRUE))) {
-            use_cxx1x <- TRUE
-            cxx1xstd <- sub("^USE_CXX1X *= *", "", ll)
-            if(!nzchar(cxx1xstd)) cxx1xstd <- "$(CXX1XSTD)"
-        }
     } else if (file.exists("Makevars")) {
         makefiles <- c("Makevars", makefiles)
         lines <- readLines("Makevars", warn = FALSE)
-        if (length(grep("^OBJECTS *=", lines, perl = TRUE, useBytes = TRUE)))
+        if (length(grep("^OBJECTS *=", lines, perl=TRUE, useBytes=TRUE)))
             makeobjs <- ""
-        if (length(ll <- grep("^USE_CXX1X *=", lines, perl = TRUE,
-                              value = TRUE, useBytes = TRUE))) {
-            use_cxx1x <- TRUE
-            cxx1xstd <- sub("^USE_CXX1X *= *", "", ll)
-            if(!nzchar(cxx1xstd)) cxx1xstd <- "$(CXX1XSTD)"
-        }
-    } else if (!use_cxx1x) {
-        val <- Sys.getenv("USE_CXX1X", NA)
-        if(!is.na(val)) {
-            use_cxx1x <- TRUE
-            cxx1xstd <- if(nzchar(val)) val else "$(CXX1XSTD)"
-        }
-    }
-    if (!use_cxx1x) {
-        cxxstd <- Sys.getenv("PKG_CXX_STD")
-        if (cxxstd == "CXX11") {
-            use_cxx1x <- TRUE
-            cxx1xstd <- "$(CXX1XSTD)"
-        }
     }
 
     makeargs <- paste0("SHLIB=", shQuote(shlib))
@@ -1872,15 +1840,8 @@
         makeargs <- c("SHLIB_LDFLAGS='$(SHLIB_FCLDFLAGS)'",
                       "SHLIB_LD='$(SHLIB_FCLD)'", makeargs)
     } else if (with_cxx) {
-        makeargs <- if (use_cxx1x)
-            c(sprintf("CXX='$(CXX1X) %s'", cxx1xstd),
-              "CXXFLAGS='$(CXX1XFLAGS)'",
-              "CXXPICFLAGS='$(CXX1XPICFLAGS)'",
-              "SHLIB_LDFLAGS='$(SHLIB_CXX1XLDFLAGS)'",
-              "SHLIB_LD='$(SHLIB_CXX1XLD)'", makeargs)
-        else
-            c("SHLIB_LDFLAGS='$(SHLIB_CXXLDFLAGS)'",
-              "SHLIB_LD='$(SHLIB_CXXLD)'", makeargs)
+        makeargs <- c("SHLIB_LDFLAGS='$(SHLIB_CXXLDFLAGS)'",
+                      "SHLIB_LD='$(SHLIB_CXXLD)'", makeargs)
     }
     if (with_objc) shlib_libadd <- c(shlib_libadd, "$(OBJC_LIBS)")
     if (with_f77) shlib_libadd <- c(shlib_libadd, "$(FLIBS)")
@@ -2172,7 +2133,7 @@
     .convert <- function(expr)
         withCallingHandlers(tryCatch(expr, error = .ehandler),
                             warning = .whandler)
-
+    
     files <- names(db) # not full file names
     for(nf in files) {
         .messages <- character()

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-13 14:11\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2011-03-26 08:57-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -284,9 +284,6 @@ msgstr "'order.max' deve ser >= 1"
 msgid "'order.max' must be < 'n.used'"
 msgstr "'order.max' deve ser < 'n.used'"
 
-msgid "zero-variance series"
-msgstr ""
-
 msgid "'n.ahead' must be at least 1"
 msgstr "'lag.max' deve ser ao menos 1"
 
@@ -352,14 +349,6 @@ msgstr "Parte MA do modelo não é inversível"
 msgid "seasonal MA part of model is not invertible"
 msgstr "Parte MA sazonal do modelo não é inversível"
 
-#, fuzzy
-msgid "NAs in '%s'"
-msgstr "NAs em 'x'"
-
-#, fuzzy
-msgid "invalid 'SSinit'"
-msgstr "'x' inválido"
-
 msgid "converting non-invertible initial MA values"
 msgstr "convertendo valores MA iniciais não-inversíveis"
 
@@ -407,10 +396,6 @@ msgstr "todas as observações estão no mesmo grupo"
 
 msgid "there must be at least 2 observations in each group"
 msgstr "deve haver ao menos duas observações em cada grupo"
-
-#, fuzzy
-msgid "'formula' should be of the form response ~ group"
-msgstr "fórmula '%s' deve ser da forma '~expr'"
 
 msgid "'x' must be nonnegative and integer"
 msgstr "'x' deve ser inteiro e não negativo"
@@ -972,7 +957,7 @@ msgid "'x' has entries too large to be integer"
 msgstr "'x' tem entradas grandes demais para serem números inteiros"
 
 #, fuzzy
-msgid "'x' has been rounded to integer: %s"
+msgid "'x' has been rounded to integer: %d"
 msgstr "'x' tem sido arredondado para um número inteiro:"
 
 msgid "if 'x' is not a matrix, 'y' must be given"
@@ -1271,9 +1256,6 @@ msgstr "agrupamento vazio: experimente um jogo melhor de centros iniciais"
 msgid "number of cluster centres must lie between 1 and nrow(x)"
 msgstr "número de centros de agrupamento deve estar entre 1 e nrow(x)"
 
-msgid "Quick-TRANSfer stage steps exceeded maximum (= %d)"
-msgstr ""
-
 #, fuzzy
 msgid "invalid nrow(x)"
 msgstr "'x' inválido"
@@ -1489,9 +1471,6 @@ msgstr ""
 msgid "no 'nobs' method is available"
 msgstr ""
 
-msgid "'margin' must contain names or numbers corresponding to 'table'"
-msgstr ""
-
 msgid "'start' and 'table' must be same length"
 msgstr "'start' e 'table' devem ter o mesmo comprimento"
 
@@ -1679,24 +1658,8 @@ msgstr "f.lower = f(lower) é NA"
 msgid "f.upper = f(upper) is NA"
 msgstr "f.upper = f(upper) é NA"
 
-#, fuzzy
-msgid "invalid 'extendInt'; please report"
-msgstr "argumento 'method' inválido"
-
-#, fuzzy
-msgid "no sign change found in %d iterations"
-msgstr "não convergiu em %d iterações"
-
-msgid ""
-"did not succeed extending the interval endpoints for f(lower) * f(upper) <= 0"
-msgstr ""
-
 msgid "f() values at end points not of opposite sign"
 msgstr "valores f() nas extremidades não têm sinais opostos"
-
-#, fuzzy
-msgid "convergence problem in zero finding:"
-msgstr "possível problema na convergência: optim retornou código="
 
 #, fuzzy
 msgid "'control' argument must be a named list"

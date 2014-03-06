@@ -822,7 +822,7 @@ static void eventloop(editor c)
 {
     while (fix_editor_up) {
 	/* avoid consuming 100% CPU time here */
-	R_WaitEvent();
+	Sleep(10);
 	R_ProcessEvents();
     }
 }

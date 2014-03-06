@@ -129,7 +129,6 @@ colorspaces <-
 
          "Lab" =
          colorConverter(fromXYZ = function(XYZ, white) {
-             stopifnot(length(XYZ) == 3L)
              epsilon <- 216/24389
              kappa <- 24389/27
 
@@ -140,8 +139,7 @@ colorspaces <-
                a = 500*(fxyz[1L]-fxyz[2L]),
                b = 200*(fxyz[2L]-fxyz[3L]))
          },
-         toXYZ = function(Lab, white) {
-             stopifnot(length(Lab) == 3L)
+         toXYZ = function(Lab,white) {
 
              epsilon <- 216/24389
              kappa <- 24389/27

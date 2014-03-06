@@ -799,15 +799,11 @@ static double labelAngle(double x1, double y1, double x2, double y2) {
 	dy = y1 - y2;
     if (dx == 0) {
 	if (dy > 0)
-	    angle = 90.;
+	    angle = 90;
 	else
-	    angle = 270.;
+	    angle = 270;
     } else {
-#ifdef HAVE_ATAN2PI
-	angle = 180. * atan2(dy, dx);
-#else
-	angle = (180. / M_PI) * atan2(dy, dx);
-#endif
+	angle = (180 / M_PI) * atan2(dy, dx);
     }
     return angle;
 }

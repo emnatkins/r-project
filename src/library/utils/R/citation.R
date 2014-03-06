@@ -19,7 +19,7 @@
 ## What a silly name ...
 .is_not_nonempty_text <-
 function(x)
-    is.null(x) || anyNA(x) || all(grepl("^[[:space:]]*$", x))
+    is.null(x) || any(is.na(x)) || all(grepl("^[[:space:]]*$", x))
 
 person <-
 function(given = NULL, family = NULL, middle = NULL,
@@ -889,7 +889,7 @@ function(x, name, value)
         BibTeX_names <- names(tools:::BibTeX_entry_field_db)
         value <- unlist(value)
         pos <- match(tolower(value), tolower(BibTeX_names))
-        if(anyNA(pos))
+        if(any(is.na(pos)))
             stop(gettextf("%s has to be one of %s",
                           sQuote("bibtype"),
                           paste(BibTeX_names, collapse = ", ")),
@@ -1079,6 +1079,9 @@ function(package = "base", lib.loc = NULL, auto = NULL)
         ## if CITATION is available
         if(!auto) {
             return(readCitationFile(citfile, meta))
+        } else if(package == "base") {
+            ## Avoid infinite recursion for broken installation.
+            stop("broken installation, no CITATION file in the base package.")
         }
     }
 

@@ -140,11 +140,6 @@ void R_ProcessEvents(void)
     if(R_Tcl_do) R_Tcl_do();
 }
 
-void R_WaitEvent(void)
-{
-    if (!peekevent()) waitevent();
-}
-
 
 /*
  *  1) FATAL MESSAGES AT STARTUP
@@ -290,7 +285,7 @@ ThreadedReadConsole(const char *prompt, char *buf, int len, int addtohistory)
     thist = addtohistory;
     SetEvent(EhiWakeUp);
     while (1) {
-	R_WaitEvent();
+	if (!peekevent()) WaitMessage();
 	if (lineavailable) break;
 	doevent();
 	if(R_Tcl_do) R_Tcl_do();

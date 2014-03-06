@@ -132,10 +132,8 @@ merge.data.frame <-
             names(ya) <- nm.by
             ## this used to use a logical matrix, but that was not good
             ## enough as x could be zero-row.
-            ## workaround possibly duplicated names: PR#15618
-            xa <- x[rep.int(NA_integer_, nyy), nm.x, drop=FALSE ]
-            names(xa) <- nm.x
-            x <- rbind(x, cbind(ya, xa))
+            ya <- cbind(ya, x[rep.int(NA_integer_, nyy), nm.x, drop=FALSE ])
+            x <- rbind(x, ya)
         }
         ## y (w/o 'by'):
         if(has.common.nms && nzchar(suffixes[2L])) {

@@ -69,11 +69,8 @@ function(x, by, FUN, ..., simplify = TRUE)
            z <- gsub(" ", "0", format(y, scientific = FALSE)) # for right sort order
            return(z)
     }
-    if (ncol(y))
-	grp <- rank(do.call(paste, c(lapply(rev(y), ident), list(sep = "."))), 
+    grp <- rank(do.call(paste, c(lapply(rev(y), ident), list(sep = "."))), 
                 ties.method = "min")
-    else
-	grp <- integer(nrx)
 
     y <- y[match(sort(unique(grp)), grp, 0L), , drop = FALSE]
     nry <- NROW(y)

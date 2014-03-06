@@ -21,8 +21,8 @@
 # Clean up LaTeX accents and braces
 cleanupLatex <- function(x) {
     if (!length(x)) return(x)
-    latex <- tryCatch(parseLatex(x), error = function(e)e)
-    if (inherits(latex, "error")) {
+    latex <- try(parseLatex(x), silent=TRUE)
+    if (inherits(latex, "try-error")) {
     	x
     } else {
     	deparseLatex(latexToUtf8(latex), dropBraces=TRUE)

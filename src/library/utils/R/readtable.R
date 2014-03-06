@@ -1,7 +1,7 @@
 #  File src/library/utils/R/readtable.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -45,11 +45,10 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
          strip.white = FALSE, blank.lines.skip = TRUE,
          comment.char = "#", allowEscapes = FALSE, flush = FALSE,
          stringsAsFactors = default.stringsAsFactors(),
-         fileEncoding = "", encoding = "unknown", text, skipNul = FALSE)
+         fileEncoding = "", encoding = "unknown", text)
 {
     if (missing(file) && !missing(text)) {
-	file <- textConnection(text, encoding = "UTF-8")
-	encoding <- "UTF-8"
+	file <- textConnection(text)
 	on.exit(close(file))
     }
     if(is.character(file)) {
@@ -63,15 +62,13 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
         open(file, "rt")
         on.exit(close(file))
     }
-    pbEncoding <- if (encoding %in% c("", "bytes", "UTF-8")) encoding else "bytes"
 
     if(skip > 0L) readLines(file, skip)
     ## read a few lines to determine header, no of cols.
     nlines <- n0lines <- if (nrows < 0L) 5 else min(5L, (header + nrows))
 
     lines <- .External(C_readtablehead, file, nlines, comment.char,
-                       blank.lines.skip, quote, sep, skipNul)
-    if (encoding %in% c("UTF-8", "latin1")) Encoding(lines) <- encoding
+                       blank.lines.skip, quote, sep)
     nlines <- length(lines)
     if(!nlines) {
         if(missing(col.names)) stop("no lines available in input")
@@ -80,15 +77,15 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     } else {
         if(all(!nzchar(lines))) stop("empty beginning of file")
         if(nlines < n0lines && file == 0L)  { # stdin() has reached EOF
-            pushBack(c(lines, lines, ""), file, encoding = pbEncoding)
+            pushBack(c(lines, lines, ""), file)
             on.exit((clearPushBack(stdin())))
-        } else pushBack(c(lines, lines), file, encoding = pbEncoding)
+        } else pushBack(c(lines, lines), file)
         first <- scan(file, what = "", sep = sep, quote = quote,
                       nlines = 1, quiet = TRUE, skip = 0,
                       strip.white = TRUE,
                       blank.lines.skip = blank.lines.skip,
                       comment.char = comment.char, allowEscapes = allowEscapes,
-                      encoding = encoding, skipNul = skipNul)
+                      encoding = encoding)
         col1 <- if(missing(col.names)) length(first) else length(col.names)
         col <- numeric(nlines - 1L)
         if (nlines > 1L)
@@ -99,9 +96,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                                       strip.white = strip.white,
                                       blank.lines.skip = blank.lines.skip,
                                       comment.char = comment.char,
-                                      allowEscapes = allowEscapes,
-				      encoding = encoding,
-                                      skipNul = skipNul))
+                                      allowEscapes = allowEscapes))
         cols <- max(col1, col)
 
         ##	basic column counting and header determination;
@@ -115,7 +110,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
         if (header) {
             ## skip over header
            .External(C_readtablehead, file, 1L, comment.char,
-                     blank.lines.skip, quote, sep, skipNul)
+                     blank.lines.skip, quote, sep)
             if(missing(col.names)) col.names <- first
             else if(length(first) != length(col.names))
                 warning("header and 'col.names' are of different lengths")
@@ -168,7 +163,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                  strip.white = strip.white,
                  blank.lines.skip = blank.lines.skip, multi.line = FALSE,
                  comment.char = comment.char, allowEscapes = allowEscapes,
-                 flush = flush, encoding = encoding, skipNul = skipNul)
+                 flush = flush, encoding = encoding)
 
     nlines <- length(data[[ which.max(keep) ]])
 
@@ -253,7 +248,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
             stop("invalid 'row.names' length")
         if (anyDuplicated(row.names))
             stop("duplicate 'row.names' are not allowed")
-        if (anyNA(row.names))
+        if (any(is.na(row.names)))
             stop("missing values in 'row.names' are not allowed")
     }
 

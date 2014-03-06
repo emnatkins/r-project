@@ -57,7 +57,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
 
 setRlibs <-
     function(lib0 = "", pkgdir = ".", suggests = FALSE, libdir = NULL,
-             self = FALSE, self2 = TRUE, quote = FALSE, LinkingTo = FALSE)
+             self = FALSE, self2 = TRUE, quote = FALSE)
 {
     WINDOWS <- .Platform$OS.type == "windows"
     useJunctions <- WINDOWS && !nzchar(Sys.getenv("R_WIN_NO_JUNCTIONS"))
@@ -107,8 +107,7 @@ setRlibs <-
         }
     }
 
-    deps <- unique(c(names(pi$Depends), names(pi$Imports),
-                     if(LinkingTo) names(pi$LinkingTo),
+    deps <- unique(c(names(pi$Depends), names(pi$Imports), names(pi$LinkingTo),
                      if(suggests) names(pi$Suggests)))
     if(length(libdir) && self2) flink(file.path(libdir, thispkg), tmplib)
     ## .Library is not necessarily canonical, but the .libPaths version is.
@@ -341,9 +340,7 @@ setRlibs <-
                 msg <- c("Vignette sources only in 'inst/doc':",
                          strwrap(paste(sQuote(sources), collapse = ", "),
                                  indent = 2L, exdent = 2L),
-                         "A 'vignettes' directory is required as from R 3.1.0",
-                         "and these will not be indexed nor checked")
-                ## warning or error eventually
+                         "A 'vignettes' directory will be required as from R 3.1.0")
                 noteLog(Log, paste(msg, collapse = "\n"))
             }
         }
@@ -596,8 +593,7 @@ setRlibs <-
         dfile <- if (is_base_pkg) "DESCRIPTION.in" else "DESCRIPTION"
         ## FIXME: this does not need to be run in another process
         ## but that needs conversion to format().
-        Rcmd <- sprintf("tools:::.check_package_description(\"%s\", TRUE)",
-                        dfile)
+        Rcmd <- sprintf("tools:::.check_package_description(\"%s\")", dfile)
         out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (length(out)) {
             errorLog(Log)
@@ -657,43 +653,6 @@ setRlibs <-
                 any <- TRUE
                 out <- .format_check_package_description_authors_at_R_field_results(out)
                 printLog(Log, paste(out, collapse = "\n"), "\n")
-            }
-            ## and there might be stale Authors and Maintainer fields
-            yorig <- db[c("Author", "Maintainer")]
-            if(check_incoming &&any(!is.na(yorig))) {
-                enc <- db["Encoding"]
-                aar <- utils:::.read_authors_at_R_field(aar)
-                tmp <- utils:::.format_authors_at_R_field_for_author(aar)
-                ## uses strwrap, so will be in current locale
-                if(!is.na(enc)) tmp <- iconv(tmp, "", enc)
-                y <- c(Author = tmp,
-                       Maintainer =
-                       utils:::.format_authors_at_R_field_for_maintainer(aar))
-                ## ignore formatting as far as possible
-                clean_up <- function(x) {
-                    x <- gsub("[[:space:]]+", " ", x)
-                    x <- sub("^[[:space:]]+", " ", x)
-                    sub("^[[:space:]]+$", " ", x)
-                }
-                yorig <- sapply(yorig, clean_up)
-                y <- sapply(y, clean_up)
-                diff <- y != yorig
-                if(any(diff)) {
-                    if(!any) noteLog(Log)
-                    any <- TRUE
-                    if(diff[1L]) {
-                        printLog(Log, "Author field differs from that derived from Authors@R", "\n")
-                        printLog(Log, "  Author:    ", sQuote(yorig[1L]), "\n")
-                        printLog(Log, "  Authors@R: ", sQuote(y[1L]), "\n")
-                        printLog(Log, "\n")
-                    }
-                    if(diff[2L]) {
-                        printLog(Log, "Maintainer field differs from that derived from Authors@R", "\n")
-                        printLog(Log, "  Maintainer: ", sQuote(yorig[2L]), "\n")
-                        printLog(Log, "  Authors@R:  ", sQuote(y[2L]), "\n")
-                        printLog(Log, "\n")
-                    }
-                }
             }
         }
 
@@ -829,9 +788,9 @@ setRlibs <-
             if (lt <- length(topfiles)) {
                 if(!any) noteLog(Log)
                 any <- TRUE
-                printLog(Log, ## dirs are files, but maybe not on Windows
-                         if(lt > 1L) "Non-standard files/directories found at top level:\n"
-                         else "Non-standard file/directory found at top level:\n" )
+                printLog(Log,
+                         if(lt > 1L) "Non-standard files found at top level:\n"
+                         else "Non-standard file found at top level:\n" )
                 msg <- strwrap(paste(sQuote(topfiles), collapse = " "),
                                indent = 2L, exdent = 2L)
                 printLog(Log, paste(c(msg, ""), collapse="\n"))
@@ -1319,29 +1278,18 @@ setRlibs <-
         ## The neverending story ...
         ## For the time being, allow to turn this off by setting the environment
         ## variable _R_CHECK_FF_CALLS_ to an empty value.
-        if (nzchar(R_check_FF)) {
-            registration <-
-                identical(R_check_FF, "registration") && install != "fake"
+        if (nzchar(Sys.getenv("_R_CHECK_FF_CALLS_", "true"))) {
             checkingLog(Log, "foreign function calls")
-            DUP <- R_check_FF_DUP
-            if(as_cran) {
-                Sys.setenv("_R_CHECK_FF_AS_CRAN_" = "TRUE")
-                DUP <- TRUE
-            }
             Rcmd <- paste("options(warn=1)\n",
                           if (do_install)
-                          sprintf("tools::checkFF(package = \"%s\", registration = %s, check_DUP = %s)\n",
-                                  pkgname, registration, DUP)
+                          sprintf("tools::checkFF(package = \"%s\")\n", pkgname)
                           else
-                          sprintf("tools::checkFF(dir = \"%s\", registration = %s, check_DUP = %s)\n",
-                                  pkgdir, "FALSE", DUP))
+                          sprintf("tools::checkFF(dir = \"%s\")\n", pkgdir))
             out <- R_runR2(Rcmd)
-            Sys.unsetenv("_R_CHECK_FF_AS_CRAN_")
             if (length(out)) {
                 if(any(grepl("^Foreign function calls? with(out| empty)", out)) ||
                    (!is_base_pkg && any(grepl("to a base package:", out))) ||
-                   any(grepl("^Undeclared packages? in", out)) ||
-                   any(grepl("parameter[s]*, expected ", out))
+                   any(grepl("^Undeclared packages? in", out))
                    ) warningLog(Log)
                 else noteLog(Log)
                 printLog(Log, paste(c(out, ""), collapse = "\n"))
@@ -2013,7 +1961,7 @@ setRlibs <-
                          "  consider running tools::compactPDF() on these files\n")
             }
             if (R_check_doc_sizes2) {
-                gs_cmd <- find_gs_cmd()
+                gs_cmd <- find_gs_cmd(Sys.getenv("R_GSCMD", ""))
                 if (nzchar(gs_cmd)) {
                     res <- compactPDF(td, gs_cmd = gs_cmd, gs_quality = "ebook")
                     res <- format(res, diff = 2.56e5) # 250 KB for now
@@ -2298,14 +2246,6 @@ setRlibs <-
     {
         run_one_arch <- function(exfile, exout, arch = "")
         {
-            any <- FALSE
-            ## moved here to avoid WARNING + OK
-            if (nzchar(enc) && is_ascii) {
-                warningLog(Log,
-                           paste("checking a package with encoding ",
-                                 sQuote(e), " in an ASCII locale\n"))
-                any <- TRUE
-            }
             Ropts <- if (nzchar(arch)) R_opts3 else R_opts
             if (use_valgrind) Ropts <- paste(Ropts, "-d valgrind")
             t1 <- proc.time()
@@ -2350,44 +2290,18 @@ setRlibs <-
             ## the time being, report warnings about use of
             ## deprecated , as the next release will make
             ## them defunct and hence using them an error.
-            bad <- FALSE
+            any <- FALSE
             lines <- readLines(exout, warn = FALSE)
-            bad_lines <- grep("^Warning: .*is deprecated.$",
-                              lines, useBytes = TRUE, value = TRUE)
+            bad_lines <- grep("^Warning: .*is deprecated.$", lines,
+                              useBytes = TRUE, value = TRUE)
             if(length(bad_lines)) {
-                bad <- TRUE
+                any <- TRUE
                 warningLog(Log, "Found the following significant warnings:\n")
                 printLog(Log, .format_lines_with_indent(bad_lines), "\n")
                 wrapLog("Deprecated functions may be defunct as",
                         "soon as of the next release of R.\n",
                         "See ?Deprecated.\n")
             }
-            bad_lines <- grep("^Warning.*screen devices should not be used in examples",
-                              lines, useBytes = TRUE, value = TRUE)
-
-            if(length(bad_lines)) {
-                if(!bad) {
-                    warningLog(Log,
-                               "Found the following significant warnings:")
-                    bad <- TRUE
-                }
-                printLog(Log, .format_lines_with_indent(bad_lines), "\n")
-                wrapLog("dev.new() is the preferred way to open a new device,",
-                        "in the unlikely event one is needed.")
-            }
-            bad_lines <- grep("^Warning: .*simultaneous processes spawned$",
-                              lines, useBytes = TRUE, value = TRUE)
-            if(length(bad_lines)) {
-                if(!bad) {
-                    warningLog(Log,
-                               "Found the following significant warnings:")
-                    bad <- TRUE
-                }
-                printLog(Log, .format_lines_with_indent(bad_lines), "\n")
-                wrapLog("Note that CRAN packages must never use more than two",
-                        "cores simultaneously during their checks.")
-            }
-            any <- any || bad
             if (!any) resultLog(Log, "OK")
 
             ## Try to compare results from running the examples to
@@ -2441,6 +2355,10 @@ setRlibs <-
             exfile <- paste0(pkgname, "-Ex.R")
             if (file.exists(exfile)) {
                 enc <- if (!is.na(e <- desc["Encoding"])) {
+                    if (is_ascii)
+                        warningLog(Log,
+                                   paste("checking a package with encoding ",
+                                         sQuote(e), " in an ASCII locale\n"))
                     paste("--encoding", e, sep="=")
                 } else ""
                 if (!this_multiarch) {
@@ -2474,10 +2392,7 @@ setRlibs <-
                     Log$stars <<-  "*"
                     if (!res) do_exit(1L)
                 }
-            } else {
-                resultLog(Log, "NONE")
-                no_examples <<- TRUE
-            }
+            } else resultLog(Log, "NONE")
         }
     }
 
@@ -2573,8 +2488,7 @@ setRlibs <-
                 res <- TRUE
                 for (arch in inst_archs)
                     if (!(arch %in% R_check_skip_tests_arch)) {
-                        printLog(Log, "** running tests for arch ",
-                                 sQuote(arch), " ...")
+                        printLog(Log, "** running tests for arch ", sQuote(arch))
                         res <- res & run_one_arch(arch)
                     }
             }
@@ -2743,6 +2657,7 @@ setRlibs <-
             t1 <- proc.time()
             for (i in seq_along(vigns$docs)) {
                 file <- vigns$docs[i]
+                if(dirname(file) != vigns$dir) next
                 name <- vigns$names[i]
                 enc <- getVignetteEncoding(file, TRUE)
                 if(enc %in% c("non-ASCII", "unknown")) enc <- def_enc
@@ -3037,6 +2952,10 @@ setRlibs <-
             excludes <- readLines("BinaryFiles")
             execs <- execs[!execs %in% excludes]
         }
+        if(use_install_timestamp) {
+            its <- file.path(pkgdir, ".install_timestamp")
+            execs <- execs[file_test("-ot", execs, its)]
+        }
         if (nb <- length(execs)) {
             msg <- ngettext(nb,
                             "Found the following executable file:",
@@ -3070,7 +2989,8 @@ setRlibs <-
                         recursive = TRUE, pattern = "^[.]")
         dots <- sub("^./","", dots)
         allowed <-
-            c(".Rbuildignore", ".Rinstignore", "vignettes/.install_extras")
+            c(".Rbuildignore", ".Rinstignore", "vignettes/.install_extras",
+              ".install_timestamp") # Kurt used to use this
         dots <- dots[!dots %in% allowed]
         alldirs <- list.dirs(".", full.names = TRUE, recursive = TRUE)
         alldirs <- sub("^./","", alldirs)
@@ -3278,20 +3198,6 @@ setRlibs <-
                 }
                 ## (gfortran seems to use upper case.)
 
-                ## Warnings spotted by clang with
-                ##   '-Wsometimes-uninitialized'
-                ## which is implied by '-Wall'.
-                ## Currently only accessible via an internal environment
-                ## variable.
-                check_src_flag <-
-                    Sys.getenv("_R_CHECK_SRC_MINUS_W_SOMETIMES_UNINITIALIZED_",
-                               "FALSE")
-                if (!config_val_to_logical(check_src_flag)) {
-                    lines <- grep("warning: .* is used uninitialized whenever",
-                                  lines,
-                                  invert = TRUE, value = TRUE, useBytes
-                                  = TRUE)
-                }
 
                 ## Warnings spotted by gfortran >= 4.0 with '-Wall'.
                 ## Justified in principle, it seems.
@@ -3324,8 +3230,10 @@ setRlibs <-
                                   lines, invert = TRUE, value = TRUE)
                 }
 
+                ## Warnings about replacing imports are almost always
+                ## due to auto-generated namespaces
                 check_imports_flag <-
-                    Sys.getenv("_R_CHECK_REPLACING_IMPORTS_", "TRUE")
+                    Sys.getenv("_R_CHECK_REPLACING_IMPORTS_", "FALSE")
                 if (!config_val_to_logical(check_imports_flag))
                     lines <- grep("Warning: replacing previous import", lines,
                                   fixed = TRUE, invert = TRUE, value = TRUE)
@@ -3559,14 +3467,12 @@ setRlibs <-
         ## package vignette must require its own package, which OTOH is
         ## not required in the package DESCRIPTION file.
         ## Namespace imports must really be in Depends.
-        res <- .check_package_depends(pkgdir, R_check_force_suggests,
-                                      check_incoming)
+        res <- .check_package_depends(pkgdir, R_check_force_suggests)
         if(any(sapply(res, length) > 0L)) {
             out <- format(res)
             allowed <- c("suggests_but_not_installed",
                          "enhances_but_not_installed",
                          "many_depends",
-                         "skipped",
                          if(!check_incoming) "bad_engine")
             if(!all(names(res) %in% allowed)) {
                 errorLog(Log)
@@ -3870,9 +3776,10 @@ setRlibs <-
         } else if (a == "--no-build-vignettes") {
             do_build_vignettes  <- FALSE
         } else if (a == "--no-rebuild-vignettes") { # pre-3.0.0 version
-            stop("'--no-rebuild-vignettes' is defunct: use '--no-build-vignettes' instead",
-                 call. = FALSE, domain = NA)
-      } else if (a == "--no-vignettes") {
+            warning("'--no-rebuild-vignettes' is deprecated:\n  use '--no-build-vignettes' instead",
+                    immediate. = TRUE, call. = FALSE, domain = NA)
+            do_build_vignettes  <- FALSE
+        } else if (a == "--no-vignettes") {
             do_vignettes  <- FALSE
         } else if (a == "--no-manual") {
             do_manual  <- FALSE
@@ -4029,9 +3936,6 @@ setRlibs <-
         config_val_to_logical(Sys.getenv("_R_CHECK_DEPENDS_ONLY_", "FALSE"))
     R_check_suggests_only <-
         config_val_to_logical(Sys.getenv("_R_CHECK_SUGGESTS_ONLY_", "FALSE"))
-    R_check_FF <- Sys.getenv("_R_CHECK_FF_CALLS_", "true")
-    R_check_FF_DUP <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_FF_DUP_", "FALSE"))
     R_check_toplevel_files <-
         config_val_to_logical(Sys.getenv("_R_CHECK_TOPLEVEL_FILES_", "FALSE"))
 
@@ -4047,6 +3951,7 @@ setRlibs <-
         Sys.setenv("_R_CHECK_NO_RECOMMENDED_" = "TRUE")
         Sys.setenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_" = "TRUE")
         Sys.setenv("_R_CHECK_DOT_FIRSTLIB_" = "TRUE")
+        Sys.setenv("_R_CHECK_REPLACING_IMPORTS_" = "TRUE")
         Sys.setenv("_R_CHECK_PACKAGES_USED_CRAN_INCOMING_NOTES_" = "TRUE")
         prev <- Sys.getenv("_R_CHECK_LIMIT_CORES_", NA)
         if(is.na(prev)) Sys.setenv("_R_CHECK_LIMIT_CORES_" = "TRUE")
@@ -4061,7 +3966,6 @@ setRlibs <-
         R_check_code_data_into_globalenv <- TRUE
         R_check_depr_def <- TRUE
         R_check_Rd_line_widths <- TRUE
-        R_check_FF <- "registration"
         do_timings <- TRUE
         R_check_toplevel_files <- TRUE
     } else {
@@ -4129,7 +4033,6 @@ setRlibs <-
 
         ## The previous package may have set do_install to FALSE
         do_install <- do_install_arg
-        no_examples <- FALSE
 
         ## $pkgdir is the corresponding absolute path.
         ## pkgname0 is the name of the top-level directory
@@ -4211,6 +4114,15 @@ setRlibs <-
         is_ascii <- charset == "ASCII"
 
         .unpack.time <- Sys.time()
+        ## Support two stage install/check operating on unpacked
+        ## sources.
+        use_install_timestamp <-
+            (grepl("^check", install) &&
+             file.exists(file.path(pkgdir, ".install_timestamp")))
+
+        if(use_install_timestamp)
+            .unpack.time <-
+                file.info(file.path(pkgdir, ".install_timestamp"))$mtime
 
         ## report options used
         if (!do_codoc) opts <- c(opts, "--no-codoc")
@@ -4290,7 +4202,8 @@ setRlibs <-
             ## we are not going to install and hence not run any code.
             ## </NOTE>
             if (do_install) {
-                topfiles0 <- dir(pkgdir)
+                topfiles0 <-
+                    if(!use_install_timestamp) dir(pkgdir) else NULL
                 check_dependencies()
             } else topfiles0 <- NULL
 
@@ -4318,7 +4231,6 @@ setRlibs <-
 
             ## we need to do this before installation
             if (R_check_executables) check_executables()
-            ## (Alternatively, could use .unpack.time.)
 
             check_dot_files(check_incoming)
 
@@ -4337,6 +4249,10 @@ setRlibs <-
             makevars <-
                 Sys.glob(file.path(pkgdir, "src",
                                    c("Makevars.in", "Makevars")))
+            if(use_install_timestamp) {
+                its <- file.path(pkgdir, ".install_timestamp")
+                makevars <- makevars[file_test("-ot", makevars, its)]
+            }
             makevars <- basename(makevars)
 
             if (do_install) {
@@ -4388,34 +4304,8 @@ setRlibs <-
                 check_pkg_manual(pkgdir, desc["Package"])
         }
 
-        if (!is_base_pkg && check_incoming && no_examples &&
-            dir.exists(file.path(pkgdir, "R"))) {
-           tests_dir <- file.path(pkgdir, "tests")
-            if (dir.exists(tests_dir) &&
-                length(dir(tests_dir, pattern = "\\.(R|Rin)$")))
-                no_examples <- FALSE
-            vigns <- pkgVignettes(dir = pkgdir)
-            if (!is.null(vigns) && length(vigns$docs)) no_examples <- FALSE
-            if (no_examples) {
-                ## figure out if the R code exercises anything
-                ns <- parseNamespaceFile(basename(pkgdir), dirname(pkgdir))
-                if(length(ns$exports) || length(ns$exportPatterns) ||
-                   length(ns$exportMethods) || length(ns$S3methods)) {
-                    checkingLog(Log, "for code which exercises the package")
-                    warningLog(Log, "No examples, no tests, no vignettes")
-                }
-            }
-        }
         if ((Log$warnings > 0L) || (Log$notes > 0L)) {
             message(""); summaryLog(Log)
-        }
-
-        if(config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_STATUS_SUMMARY_",
-                                            "FALSE"))) {
-            s <- summarize_CRAN_check_status(pkgname)
-            if(nzchar(s)) {
-                writeLines(c("", s), Log$con)
-            }
         }
 
         closeLog(Log)
@@ -4429,205 +4319,6 @@ setRlibs <-
 function(x)
     paste0("  ", x, collapse = "\n")
     ## Hard-wire indent of 2 for now.
-
-
-summarize_CRAN_check_status <-
-function(package, results = NULL, details = NULL, mtnotes = NULL)
-{
-    if(is.null(results))
-        results <- CRAN_check_results()
-    results <-
-        results[!is.na(match(results$Package, package)) & !is.na(results$Status), ]
-
-    if(!NROW(results)) {
-        s <- character(length(package))
-        names(s) <- package
-        return(s)
-    }
-
-    if(any(results$Status != "OK")) {
-        if(is.null(details))
-            details <- CRAN_check_details()
-        details <- details[!is.na(match(details$Package, package)), ]
-        ## Remove trailing white space from outputs ... remove eventually
-        ## when this is done on CRAN.
-        details$Output <- sub("[[:space:]]+$", "", details$Output)
-
-    } else {
-        ## Create empty details directly to avoid the cost of reading
-        ## and subscripting the actual details db.
-        details <- as.data.frame(matrix(character(), ncol = 7L),
-                                 stringsAsFactors = FALSE)
-        names(details) <-
-            c("Package", "Version", "Flavor", "Check", "Status", "Output",
-              "Flags")
-    }
-
-    if(is.null(mtnotes))
-        mtnotes <- CRAN_memtest_notes()
-
-
-    summarize_results <- function(p, r) {
-        if(!NROW(r)) return(character())
-        tab <- table(r$Status)[c("ERROR", "WARN", "NOTE", "OK")]
-        tab <- tab[!is.na(tab)]
-        paste(c(sprintf("Current CRAN status: %s",
-                        paste(sprintf("%s: %s", names(tab), tab),
-                              collapse = ", ")),
-                sprintf("See: <http://CRAN.R-project.org/web/checks/check_results_%s.html>",
-                        p)),
-              collapse = "\n")
-    }
-
-    summarize_details <- function(p, d) {
-        if(!NROW(d)) return(character())
-        pos <- which(names(d) == "Flavor")
-        txt <- apply(d[-pos], 1L, paste, collapse = "\r")
-        ## Outputs from checking "installed package size" will vary
-        ## according to system.
-        ind <- d$Check == "installed package size"
-        if(any(ind)) {
-            pos <- c(pos, which(names(d) == "Output"))
-            txt[ind] <- apply(d[ind, -pos], 1L, paste, collapse = "\r")
-        }
-
-        ## Regularize fancy quotes.
-        ## Could also try using iconv(to = "ASCII//TRANSLIT"))
-        txt <- gsub("(\xe2\x80\x98|\xe2\x80\x99)", "'", txt,
-                    perl = TRUE, useBytes = TRUE)
-        txt <- gsub("(\xe2\x80\x9c|\xe2\x80\x9d)", '"', txt,
-                    perl = TRUE, useBytes = TRUE)
-        out <-
-            lapply(split(seq_len(NROW(d)), match(txt, unique(txt))),
-                   function(e) {
-                       tmp <- d[e[1L], ]
-                       flags <- tmp$Flags
-                       flavors <- d$Flavor[e]
-                       c(sprintf("Version: %s%s",
-                                 tmp$Version,
-                                 ifelse(nzchar(flags),
-                                        sprintf("Flags: %s", flags),
-                                        "")),
-                         sprintf("Check: %s, Result: %s", tmp$Check, tmp$Status),
-                         sprintf("  %s",
-                                 gsub("\n", "\n  ", tmp$Output,
-                                      perl = TRUE, useBytes = TRUE)),
-                         sprintf("See: %s",
-                                 paste(sprintf("<http://www.r-project.org/nosvn/R.check/%s/%s-00check.html>",
-                                               flavors,
-                                               p),
-                                       collapse = ",\n     ")))
-                   })
-        paste(unlist(lapply(out, paste, collapse = "\n")),
-              collapse = "\n\n")
-    }
-
-    summarize_mtnotes <- function(p, m) {
-        if(!length(m)) return(character())
-        tests <- m[, "Test"]
-        paths <- m[, "Path"]
-        isdir <- !grepl("-Ex.Rout$", paths)
-        if(any(isdir))
-            paths[isdir] <- sprintf("%s/", paths[isdir])
-        paste(c(paste("Memtest notes:",
-                      paste(unique(tests), collapse = " ")),
-                sprintf("See: %s",
-                        paste(sprintf("<http://www.stats.ox.ac.uk/pub/bdr/memtests/%s/%s>",
-                                      tests,
-                                      paths),
-                              collapse = ",\n     "))),
-              collapse = "\n")
-    }
-
-    summarize <- function(p, r, d, m) {
-        paste(c(summarize_results(p, r),
-                summarize_mtnotes(p, m),
-                summarize_details(p, d)),
-              collapse = "\n\n")
-    }
-
-    s <- if(length(package) == 1L) {
-        summarize(package, results, details, mtnotes[[package]])
-    } else {
-        results <- split(results, factor(results$Package, package))
-        details <- split(details, factor(details$Package, package))
-        unlist(lapply(package,
-                      function(p) {
-                          summarize(p,
-                                    results[[p]],
-                                    details[[p]],
-                                    mtnotes[[p]])
-                      }))
-    }
-
-    names(s) <- package
-    class(s) <- "summarize_CRAN_check_status"
-    s
-}
-
-format.summarize_CRAN_check_status <-
-function(x, header = NA, ...)
-{
-    if(is.na(header)) header <- (length(x) > 1L)
-    if(header) {
-        s <- sprintf("Package: %s", names(x))
-        x <- sprintf("%s\n%s\n\n%s", s, gsub(".", "*", s), x)
-    }
-    x
-}
-
-print.summarize_CRAN_check_status <-
-function(x, ...)
-{
-    writeLines(paste(format(x, ...), collapse = "\n\n"))
-    invisible(x)
-}
-
-
-CRAN_check_results <-
-function()
-{
-    rds <- gzcon(url(sprintf("%s/%s",
-                             getOption("repos")["CRAN"],
-                             "web/checks/check_results.rds"),
-                     open = "rb"))
-    ## We could make the location of the local CRAN web/checks rsync
-    ## settable via some env var.
-    results <- readRDS(rds)
-    close(rds)
-
-    results
-}
-
-CRAN_check_details <-
-function()
-{
-    rds <- gzcon(url(sprintf("%s/%s",
-                             getOption("repos")["CRAN"],
-                             "web/checks/check_details.rds"),
-                     open = "rb"))
-    ## We could make the location of the local CRAN web/checks rsync
-    ## settable via some env var.
-    details <- readRDS(rds)
-    close(rds)
-
-    details
-}
-
-CRAN_memtest_notes <-
-function()
-{
-    rds <- gzcon(url(sprintf("%s/%s",
-                             getOption("repos")["CRAN"],
-                             "web/checks/memtest_notes.rds"),
-                     open = "rb"))
-    ## We could make the location of the local CRAN web/checks rsync
-    ## settable via some env var.
-    mtnotes <- readRDS(rds)
-    close(rds)
-
-    mtnotes
-}
 
 ### Local variables:
 ### mode: R

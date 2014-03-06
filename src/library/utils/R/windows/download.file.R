@@ -58,15 +58,11 @@ download.file <-
                                paste(extra, collapse = " "),
                                shQuote(url),
                                " -o", shQuote(path.expand(destfile))))
-    } else if(method == "lynx") {
-        warning("method 'lynx' is untested and deprecated as from R 3.1.0")
-        if(!cacheOK) extra <- c(extra, "--reload")
-        ## if would be better to use system2().
+    } else if(method == "lynx")
         status <- shell(paste("lynx -dump",
                               paste(extra, collapse = " "),
                               shQuote(url), ">",
                               shQuote(path.expand(destfile))))
-    }
 
     if(status > 0L)
         warning("download had nonzero exit status")

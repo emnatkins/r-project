@@ -27,7 +27,7 @@ function(y, groups, blocks, ...)
         blocks <- factor(c(row(y)))
     }
     else {
-        if(anyNA(groups) || anyNA(blocks))
+        if(any(is.na(groups)) || any(is.na(blocks)))
             stop("NA's are not allowed in 'groups' or 'blocks'")
         if(any(diff(c(length(y), length(groups), length(blocks))) != 0L))
             stop("'y', 'groups' and 'blocks' must have the same length")

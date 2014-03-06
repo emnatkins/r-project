@@ -37,8 +37,9 @@ pkgVignettes(package, dir, subdirs = NULL, lib.loc = NULL,
     were copies there before.}
   \item{tangle}{logical.  Do tangling as well as weaving.}
   \item{subdirs}{a character vector of subdirectories of \code{dir} in which
-    to look for vignettes. The first which exists is used.  Defaults to
-    \code{"doc"} if \code{package} is supplied, otherwise \code{"vignettes"}.}
+    to look for vignettes.  The first which exists is used.  Defaults to
+    \code{"doc"} if \code{package} is supplied, otherwise
+    \code{c("vignettes", "inst/doc")}.} 
   \item{output}{logical.  If \code{TRUE}, the output filename
     for each vignette in the result.}
   \item{source}{logical.  If \code{TRUE}, include the tangled output filename
@@ -50,7 +51,7 @@ pkgVignettes(package, dir, subdirs = NULL, lib.loc = NULL,
 }
 \details{
   \code{buildVignettes} is used by \code{R CMD build} and \code{R CMD
-    check} to (re-)build vignette PDFs from their sources. 
+    check} to (re-)build vignette PDFs from their sources.
 }
 \value{
   \code{buildVignettes} is called for its side effect of creating the

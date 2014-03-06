@@ -24,7 +24,6 @@
 */
 
 /* Copyright (C) 2004--2008	The R Foundation
-   Copyright (C) 2013		The R Core Team
 
    Additions for R, Chris Jackson
    Find and replace dialog boxes and dialog handlers */
@@ -578,7 +577,7 @@ static int handle_message_dialog(window w)
 
     show(w);
     while (d->hit == NOT_CHOSEN_YET) {
-	waitevent();
+	if (!peekevent()) WaitMessage();
 	doevent();
     }
     hide(w);

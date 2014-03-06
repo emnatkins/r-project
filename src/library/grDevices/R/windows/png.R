@@ -1,7 +1,7 @@
 #  File src/library/grDevices/R/windows/png.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -139,8 +139,7 @@ jpeg <-
 tiff <-
     function(filename = "Rplot%03d.tif",
              width = 480, height = 480, units = "px", pointsize = 12,
-             compression = c("none", "rle", "lzw", "jpeg", "zip",
-                             "lzw+p", "zip+p"),
+             compression = c("none", "rle", "lzw", "jpeg", "zip"),
              bg = "white", res = NA, family = "sans",
              restoreConsole = TRUE, type = c("windows", "cairo"),
              antialias = c("default", "none", "cleartype", "grey", "subpixel"))
@@ -149,9 +148,8 @@ tiff <-
     g <- .geometry(width, height, units, res)
     comp <-
         switch(match.arg(compression),
-               "none" = 1L, "rle" = 2L, "lzw" = 5L, "jpeg" = 7L, "zip" = 8L,
-               "lzw+p" = 15L, "zip+p" = 18L)
-   if(match.arg(type) == "cairo") {
+               "none" = 1L, "rle" = 2L, "lzw" = 5L, "jpeg" = 7L, "zip" = 8L)
+    if(match.arg(type) == "cairo") {
         antialias <- match(match.arg(antialias), aa.cairo)
         invisible(.External(C_devCairo, filename, 8L,
                             g$width, g$height, pointsize,

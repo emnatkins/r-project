@@ -20,7 +20,7 @@ valid.origin <- function(origin) {
   origin <- as.integer(match(origin,
                              c("bottom.left", "top.left",
                                "bottom.right", "top.right")) - 1)
-  if (anyNA(origin))
+  if (any(is.na(origin)))
     stop("invalid 'origin'")
   origin
 }

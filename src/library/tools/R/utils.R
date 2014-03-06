@@ -350,8 +350,8 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         if(length(grep("MiKTeX", ver[1L]))) {
             ## AFAICS need separate -I for each element of texinputs.
             texinputs <- c(texinputs0, Rtexinputs, Rbstinputs)
-            texinputs <- gsub("\\", "/", texinputs, fixed = TRUE)
-            paths <- paste ("-I", shQuote(texinputs))
+	    texinputs <- gsub("\\", "/", texinputs, fixed = TRUE)
+	    paths <- paste ("-I", shQuote(texinputs))
             extra <- paste(extra, paste(paths, collapse = " "))
         }
         ## 'file' could be a file path
@@ -439,7 +439,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    numeric_version(Sys.getenv("R_BIOC_VERSION", "2.14"))
+    numeric_version(Sys.getenv("R_BIOC_VERSION", "2.13"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 
@@ -1107,7 +1107,7 @@ function(fname, envir, mustMatch = TRUE)
     ## If we use something like: a generic has to be
     ##      function(e) <UME>  # UME = UseMethod Expression
     ## with
-    ##      <UME> = UseMethod(...) |
+    ##	    <UME> = UseMethod(...) |
     ##             if (...) <UME> [else ...] |
     ##             if (...) ... else <UME>
     ##             { ... <UME> ... }
@@ -1169,10 +1169,6 @@ function(package, lib.loc)
 }
 
 ### ** .make_file_exts
-
-## <FIXME>
-## Remove support for type "vignette" eventually ...
-## </FIXME>
 
 .make_file_exts <-
 function(type = c("code", "data", "demo", "docs", "vignette"))
@@ -1435,7 +1431,7 @@ function(dfile)
                                   dfile),
                          domain = NA, call. = FALSE))
     if (nrow(out) != 1)
-        stop("contains a blank line", call. = FALSE)
+    	stop("contains a blank line", call. = FALSE)
     out <- out[1,]
     if(!is.na(encoding <- out["Encoding"])) {
         ## could convert everything to UTF-8

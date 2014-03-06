@@ -88,7 +88,7 @@ getDLLRegisteredRoutines.character <- function(dll, addNames = TRUE)
         stop(gettextf("No DLL currently loaded with name or path %s", sQuote(dll)),
              domain = NA)
 
-    dll <- which.max(w)
+    dll <- which(w)[1L]
     if(sum(w) > 1L)
         warning(gettextf("multiple DLLs match '%s'. Using '%s'",
                          dll, dll[["path"]]), domain = NA)

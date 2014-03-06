@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-01-26 09:09\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -534,6 +534,11 @@ msgstr "Pola z wartościami innymi niż ASCII:"
 msgid "These fields must have ASCII values."
 msgstr "Te pola muszą mieć wartości ASCII."
 
+# tools/R/QC.R: 2928
+# gettext("Required fields missing:")
+msgid "Required fields missing:"
+msgstr "Brakuje wymagalnych pól:"
+
 # tools/R/QC.R: 2937
 # gettext("Malformed package version.")
 msgid "Malformed package version."
@@ -588,16 +593,6 @@ msgid ""
 msgstr ""
 "Numery wersji muszą być ciągiem co najmniej dwóch nieujemnych liczb "
 "całkowitych, oddzielonych pojedynczym znakiem '.' lub '-'."
-
-# tools/R/QC.R: 2968
-# gettext("Invalid Priority field.")
-#, fuzzy
-msgid "Invalid VignetteBuilder field."
-msgstr "Niepoprawne pole priorytetu."
-
-msgid ""
-"This field must contain one or more packages (and no version requirement)."
-msgstr ""
 
 # tools/R/QC.R: 2968
 # gettext("Invalid Priority field.")
@@ -681,9 +676,6 @@ msgstr "Standaryzowalne: %s"
 msgid "Standardized license specification:"
 msgstr "Ustandaryzowana specyfikacja licencji:"
 
-msgid "Deprecated license: %s"
-msgstr ""
-
 # tools/R/QC.R: 3190
 # gettextf("Invalid license file pointers: %s",
 #                      paste(y, collapse = " "))
@@ -692,14 +684,7 @@ msgstr "Niepoprawne wskaźniki pliku licencji: %s"
 
 # tools/R/QC.R: 3194
 # gettext("Components with restrictions not permitted:")
-#, fuzzy
-msgid "License components with restrictions not permitted:"
-msgstr "Komponenty z ograniczeniami nie są dozwolone:"
-
-# tools/R/QC.R: 3194
-# gettext("Components with restrictions not permitted:")
-#, fuzzy
-msgid "License components which are templates and need '+ file LICENSE':"
+msgid "Components with restrictions not permitted:"
 msgstr "Komponenty z ograniczeniami nie są dozwolone:"
 
 # tools/R/QC.R: 3264
@@ -707,9 +692,6 @@ msgstr "Komponenty z ograniczeniami nie są dozwolone:"
 #                    names(x)[i])
 msgid "Non-portable flags in variable '%s':"
 msgstr "Nieprzenośne flagi w zmiennej '%s':"
-
-msgid "Variables overriding user/site settings:"
-msgstr ""
 
 # tools/R/QC.R: 3571
 # message(gettextf("package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be checked", sQuote(pkg)),
@@ -871,62 +853,6 @@ msgstr "wywołania 'library' lub 'require' nie zadeklarowane z:"
 msgid "'library' or 'require' call not declared from: %s"
 msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
 
-# tools/R/QC.R: 4803
-# gettext("'library' or 'require' calls not declared from:")
-#, fuzzy
-msgid "'library' or 'require' calls to packages already attached by Depends:"
-msgstr "wywołania 'library' lub 'require' nie zadeklarowane z:"
-
-# tools/R/QC.R: 4806
-# gettextf("'library' or 'require' call not declared from: %s",
-#                        sQuote(xx))
-#, fuzzy
-msgid ""
-"'library' or 'require' call to %s which was already attached by Depends."
-msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
-
-msgid "Namespaces in Imports field not imported from:"
-msgstr ""
-
-msgid "Namespace in Imports field not imported from: %s"
-msgstr ""
-
-msgid "Packages in Depends field not imported from:"
-msgstr ""
-
-msgid "Package in Depends field not imported from: %s"
-msgstr ""
-
-msgid "Missing or unexported objects:"
-msgstr ""
-
-msgid "Missing or unexported object: %s"
-msgstr ""
-
-msgid "':::' calls which should be '::':"
-msgstr ""
-
-msgid "':::' call which should be '::': %s"
-msgstr ""
-
-msgid "Missing objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Missing object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unexported objects imported by ':::' calls:"
-msgstr ""
-
-msgid "Unexported object imported by a ':::' call: %s"
-msgstr ""
-
-msgid "Unavailable namespaces imported from by ':::' calls:"
-msgstr ""
-
-msgid "Unavailable namespace imported from by a ':::' call: %s"
-msgstr ""
-
 # tools/R/QC.R: 4812
 # gettext("'data(package=)' calls not declared from:")
 msgid "'data(package=)' calls not declared from:"
@@ -937,9 +863,6 @@ msgstr "wywołania 'data(package=)' nie zostały zadeklarowane z:"
 #                        sQuote(xx))
 msgid "'data(package=)' call not declared from: %s"
 msgstr "wywołanie 'data(package=)' nie zostały zadeklarowane z: %s"
-
-msgid "Package has no 'Version' field"
-msgstr ""
 
 # tools/R/QC.R: 5671
 # message("NB: need Internet access to use CRAN incoming checks")
@@ -1169,19 +1092,220 @@ msgstr "Tylko jedna sekcja Rd na %s jest wspierana."
 
 # tools/R/Vignettes.R: 29
 # stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
-#, fuzzy
-msgid "Vignette product %s does not have a known filename extension (%s)"
+msgid "Vignette product"
+msgstr "Produkt ilustracji"
+
+# tools/R/Vignettes.R: 29
+# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
+msgid "does not have a known filename extension ("
 msgstr "nie posiada znanego rozszerzenia ("
 
-msgid ""
-"Failed to locate the %s output file (by engine %s) for vignette with name "
-"%s. The following files exist in directory %s: %s"
-msgstr ""
+# tools/R/admin.R: 304
+# warning(sprintf(ngettext(length(bad),
+#                                          "unable to re-encode %s line %s",
+#                                          "unable to re-encode %s lines %s"),
+#                                 sQuote(basename(f)),
+#                                 paste(bad, collapse = ", ")),
+#                         domain = NA, call. = FALSE)
+# tools/R/checktools.R: 194
+# message(paste(strwrap(sprintf("installing dependencies %s",
+#                                       paste(sQuote(depends),
+#                                             collapse = ", ")),
+#                               exdent = 2L),
+#                       collapse = "\n"))
+# tools/R/install.R: 554
+# sprintf("dependencies %s are not available",
+#                                    paste(sQuote(miss), collapse = ", "))
+# tools/R/makeLazyLoad.R: 132
+# warning(sprintf(ngettext(sum(dup),
+#                                          "object %s is created by more than one data call",
+#                                          "objects %s are created by more than one data call"),
+#                                 paste(sQuote(loaded[dup]), collapse=", ")),
+#                         call. = FALSE, domain = NA)
+# tools/R/pdftools.R: 998
+# sprintf("PDF_Dictionary(<<%s>>)",
+#             paste(names(x), collapse = ","))
+# tools/R/pdftools.R: 1005
+# sprintf("PDF_Stream(<<%s>>)",
+#             paste(names(x), collapse = ","))
+# tools/R/QC.R: 3615
+# message(sprintf(ngettext(sum(obsolete),
+#                                  "Obsolete package %s in Rd xrefs",
+#                                  "Obsolete packages %s in Rd xrefs"),
+#                         paste(sQuote(unknown[obsolete]), collapse = ", ")),
+#                 domain = NA)
+# tools/R/QC.R: 3631
+# message(sprintf(ngettext(sum(miss),
+#                                      "Package unavailable to check Rd xrefs: %s",
+#                                      "Packages unavailable to check Rd xrefs: %s"),
+#                              paste(sQuote(unknown[miss]), collapse = ", ")),
+#                     domain = NA)
+# tools/R/QC.R: 3637
+# message(sprintf(ngettext(sum(!miss),
+#                                      "Unknown package %s in Rd xrefs",
+#                                      "Unknown packages %s in Rd xrefs"),
+#                              paste(sQuote(unknown[!miss]), collapse = ", ")),
+#                     domain = NA)
+# tools/R/QC.R: 4278
+# gettextf("  %s has wrong argument list %s",
+#                          f, sQuote(paste(bad, collapse = ", ")))
+# tools/R/QC.R: 4424
+# gettextf("  %s has wrong argument list %s",
+#                          f, sQuote(paste(bad, collapse = ", ")))
+# tools/R/QC.R: 5369
+# sprintf("entry %d (%s): missing required field(s) %s",
+#                                    pos,
+#                                    db$Entry[pos],
+#                                    sapply(bad[pos],
+#                                           function(s)
+#                                           paste(sQuote(s),
+#                                                 collapse = ", ")))
+# tools/R/QC.R: 5896
+# sprintf("  %s (%s)",
+#                     names(s),
+#                     lapply(s, paste, collapse = ", "))
+# tools/R/QC.R: 6260
+# warning(gettextf("Generics 'g' in 'env' %s where '%s' errors: %s\nMay need something like\n\n%s\nin NAMESPACE.",
+#                              format(env),
+#                              "hasMethods(g, env)",
+#                              paste(sQuote(rErr), collapse = ", "),
+#                              paste0("  importFrom(",
+#                                     paste(dq(pkgs), dq(rErr), sep =", "),
+#                                     ")\n")
+#                              ),
+#                     domain = NA)
+# tools/R/QC.R: 6274
+# message(sprintf(ngettext(sum(!ok),
+#                                      "Generic without any methods in %s: %s",
+#                                      "Generics without any methods in %s: %s"),
+#                             format(env),
+#                             paste(sQuote(r[!ok]), collapse = ", ")),
+#                     domain = NA)
+# tools/R/sotools.R: 381
+# gettextf("Found %s, possibly from %s",
+#                                     sQuote(v),
+#                                     paste(sprintf("%s (%s)",
+#                                                   sQuote(u[, "ssname"]),
+#                                                   u[, "language"]),
+#                                           collapse = ", "))
+# tools/R/sotools.R: 389
+# sprintf("Objects: %s",
+#                                        paste(sQuote(w), collapse =
+#                                              ", "))
+# tools/R/Vignettes.R: 29
+# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 183
+# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
+# tools/R/Vignettes.R: 402
+# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
+# tools/R/Vignettes.R: 867
+# stop("None of packages ", paste(sQuote(package), collapse = ", "), " have registered vignette engines")
+# tools/R/Vignettes.R: 896
+# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
+# tools/R/Vignettes.R: 900
+# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
+msgid ","
+msgstr ","
 
-msgid ""
-"Located more than one %s output file (by engine %s) for vignette with name "
-"%s: %s"
-msgstr ""
+# tools/R/QC.R: 6260
+# warning(gettextf("Generics 'g' in 'env' %s where '%s' errors: %s\nMay need something like\n\n%s\nin NAMESPACE.",
+#                              format(env),
+#                              "hasMethods(g, env)",
+#                              paste(sQuote(rErr), collapse = ", "),
+#                              paste0("  importFrom(",
+#                                     paste(dq(pkgs), dq(rErr), sep =", "),
+#                                     ")\n")
+#                              ),
+#                     domain = NA)
+# tools/R/Vignettes.R: 29
+# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
+msgid ")"
+msgstr ")"
+
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+msgid "Failed to locate the"
+msgstr "Nie udało się znaleźć"
+
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+msgid "output file (by engine"
+msgstr "pliku wyjściowego (silnika"
+
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+msgid "%s::%s"
+msgstr "%s::%s"
+
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+msgid ") for vignette with name"
+msgstr ") dla ilustracji o nazwie"
+
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+msgid ". The following files exists in directory"
+msgstr ". Następujące pliki istnieją w katalogu"
+
+# tools/R/translations.R: 125
+# message("  R-", lang, ":", appendLF = FALSE, domain = NA)
+# tools/R/translations.R: 151
+# message("  R-", lang, ":", domain = NA)
+# tools/R/translations.R: 200
+# message("  ", lang, ":", appendLF = FALSE, domain = NA)
+# tools/R/translations.R: 224
+# message("  ", lang, ":", domain = NA)
+# tools/R/translations.R: 279
+# message("  ", lang2, ":", appendLF = FALSE, domain = NA)
+# tools/R/Vignettes.R: 66
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 81
+# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 183
+# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
+msgid ":"
+msgstr ":"
+
+# tools/R/Vignettes.R: 69
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+# tools/R/Vignettes.R: 83
+# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
+msgid "Located more than one"
+msgstr "Znaleziono więcej niż jeden"
 
 # tools/R/Vignettes.R: 120
 # stop(gettextf("unable to create temp directory %s ", sQuote(tmpd)),
@@ -1198,15 +1322,34 @@ msgstr "nie można utworzyć katalogu tymczasowego %s"
 msgid "Running"
 msgstr "Uruchamianie %s"
 
-msgid "Vignette %s overwrites the following %s output by vignette %s: %s"
-msgstr ""
+# tools/R/Vignettes.R: 183
+# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
+msgid "Vignette"
+msgstr "Ilustracja"
+
+# tools/R/Vignettes.R: 183
+# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
+msgid "overwrites the following"
+msgstr "nadpisuje następujące"
+
+# tools/R/Vignettes.R: 183
+# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
+msgid "output by vignette"
+msgstr "wyjście ilustracji"
 
 # tools/R/Vignettes.R: 402
 # stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
-#, fuzzy
-msgid ""
-"Detected vignette source files (%s) with shared names (%s) and therefore "
-"risking overwriting each others output files"
+msgid "Detected vignette source files ("
+msgstr "Wykryto pliki źródłowe ilustracji ("
+
+# tools/R/Vignettes.R: 402
+# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
+msgid ") with shared names ("
+msgstr ") ze wspólnymi nazwami ("
+
+# tools/R/Vignettes.R: 402
+# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
+msgid ") and therefore risking overwriting each others output files"
 msgstr ""
 ") w efekcie czego istnieje ryzyko nadpisania każdego z ich plików wyjściowych"
 
@@ -1235,24 +1378,6 @@ msgstr ""
 msgid "running 'make' failed"
 msgstr "uruchomienie 'make' nie powiodło się"
 
-# tools/R/Vignettes.R: 756
-# stop(gettextf("file '%s' not found", vignette),
-#              domain = NA)
-msgid "file '%s' not found"
-msgstr "nie znaleziono pliku '%s'"
-
-msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
-msgstr ""
-
-# tools/R/QC.R: 3181
-# gettext("Non-standard license specification:")
-#, fuzzy
-msgid "Inconsistent encoding specifications:"
-msgstr "Specyfikacja niestandardowej licencji:"
-
-msgid "with %\\SweaveUTF8"
-msgstr ""
-
 # tools/R/Vignettes.R: 637
 # stop(gettextf("In '%s' vignettes '%s' and '%s' have the same vignette name",
 #     		      basename(dirname(dir)), orig, dup),
@@ -1265,11 +1390,11 @@ msgstr "W ilustracjach '%s', '%s' oraz '%s' mają te same nazwy winiet"
 msgid "argument 'vignette' must be of length 1"
 msgstr "argument 'vignette' musi być długości 1"
 
-# tools/R/install.R: 1467
-# stop("ERROR: no packages specified", call.=FALSE)
-#, fuzzy
-msgid "Vignette engine package not specified"
-msgstr "BŁĄD: nie określono pakietów"
+# tools/R/Vignettes.R: 756
+# stop(gettextf("file '%s' not found", vignette),
+#              domain = NA)
+msgid "file '%s' not found"
+msgstr "nie znaleziono pliku '%s'"
 
 # tools/R/Vignettes.R: 854
 # stop("Unsupported engine name ", sQuote(name))
@@ -1278,49 +1403,99 @@ msgstr "Niewspierana nazwa silnika"
 
 # tools/R/Vignettes.R: 867
 # stop("None of packages ", paste(sQuote(package), collapse = ", "), " have registered vignette engines")
-#, fuzzy
-msgid "None of packages %s have registered vignette engines"
+msgid "None of packages"
+msgstr "Żaden z pakietów"
+
+# tools/R/Vignettes.R: 867
+# stop("None of packages ", paste(sQuote(package), collapse = ", "), " have registered vignette engines")
+msgid "have registered vignette engines"
 msgstr "nie ma zarejestrowanych silników ilustracji"
 
-# tools/R/install.R: 1467
-# stop("ERROR: no packages specified", call.=FALSE)
-#, fuzzy
-msgid "Vignette engine %s is not registered"
-msgstr "BŁĄD: nie określono pakietów"
+# tools/R/Vignettes.R: 886
+# stop("Vignette engine ", sQuote(name), " is not registered")
+# tools/R/Vignettes.R: 896
+# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
+# tools/R/Vignettes.R: 900
+# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
+msgid "Vignette engine"
+msgstr "Silnik ilustracji"
+
+# tools/R/Vignettes.R: 886
+# stop("Vignette engine ", sQuote(name), " is not registered")
+msgid "is not registered"
+msgstr "nie jest zarejestrowany"
 
 # tools/R/Vignettes.R: 896
 # stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
 # tools/R/Vignettes.R: 900
 # stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
-#, fuzzy
-msgid "Vignette engine %s is not registered by any of the packages %s"
+msgid "is not registered by any of the packages"
 msgstr "nie jest zarejestrowany przez jakekolwiek pakiety"
 
-# tools/R/dynamicHelp.R: 324
-# gettextf("Link %s in package %s could not be located",
-#                                 mono(helpdoc), mono(pkg))
-#, fuzzy
-msgid "Engine name %s and package %s do not match"
-msgstr "Linki %s w pakiecie '%s' nie mogły zostać zlokalizowane"
+# tools/R/Vignettes.R: 908
+# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
+msgid "Engine name"
+msgstr "Nazwa silnika"
+
+# tools/R/Vignettes.R: 908
+# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
+msgid "and package"
+msgstr "oraz pakiet"
+
+# tools/R/Vignettes.R: 908
+# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
+msgid "do not match"
+msgstr "nie zgadzają się"
 
 # tools/R/Vignettes.R: 922
 # stop("Argument ", sQuote("weave"), " must be a function and not ", sQuote(class(weave)[1L]))
 # tools/R/Vignettes.R: 924
 # stop("Argument ", sQuote("tangle"), " must be a function and not ", sQuote(class(tangle)[1L]))
-#, fuzzy
-msgid "Argument %s must be a function and not %s"
+# tools/R/Vignettes.R: 929
+# stop("Argument ", sQuote("pattern"), " must be a character vector or NULL and not ", sQuote(class(pattern)[1L]))
+msgid "Argument"
+msgstr "Argument"
+
+# tools/R/Vignettes.R: 922
+# stop("Argument ", sQuote("weave"), " must be a function and not ", sQuote(class(weave)[1L]))
+msgid "weave"
+msgstr "weave"
+
+# tools/R/Vignettes.R: 922
+# stop("Argument ", sQuote("weave"), " must be a function and not ", sQuote(class(weave)[1L]))
+# tools/R/Vignettes.R: 924
+# stop("Argument ", sQuote("tangle"), " must be a function and not ", sQuote(class(tangle)[1L]))
+msgid "must be a function and not"
 msgstr "musi być funkcją a nie"
+
+# tools/R/Vignettes.R: 924
+# stop("Argument ", sQuote("tangle"), " must be a function and not ", sQuote(class(tangle)[1L]))
+msgid "tangle"
+msgstr "tangle"
 
 # tools/R/Vignettes.R: 929
 # stop("Argument ", sQuote("pattern"), " must be a character vector or NULL and not ", sQuote(class(pattern)[1L]))
-#, fuzzy
-msgid "Argument %s must be a character vector or NULL and not %s"
+msgid "pattern"
+msgstr "pattern"
+
+# tools/R/Vignettes.R: 929
+# stop("Argument ", sQuote("pattern"), " must be a character vector or NULL and not ", sQuote(class(pattern)[1L]))
+msgid "must be a character vector or NULL and not"
 msgstr "musi być łańcuchem tekstowym lub wartością NULL, a nie"
 
 # tools/R/Vignettes.R: 948
 # stop("Cannot change the ", sQuote("Sweave"), " engine or use an engine of that name")
-#, fuzzy
-msgid "Cannot change the %s engine or use an engine of that name"
+msgid "Cannot change the"
+msgstr "Nie można zmienić silnika"
+
+# tools/R/Vignettes.R: 948
+# stop("Cannot change the ", sQuote("Sweave"), " engine or use an engine of that name")
+msgid "Sweave"
+msgstr "Sweave"
+
+# tools/R/Vignettes.R: 948
+# stop("Cannot change the ", sQuote("Sweave"), " engine or use an engine of that name")
+msgid "engine or use an engine of that name"
 msgstr "lub użyć silnika o tej nazwie"
 
 # tools/R/Vignettes.R: 973
@@ -1479,145 +1654,6 @@ msgstr "BŁĄD: wersja tego programu to R %s, wymagana jest R %s %s"
 # stop("loading failed", call. = FALSE)
 msgid "loading failed"
 msgstr "ładowanie nie powiodło się"
-
-msgid "assertConditon: Successfully caught a condition"
-msgstr ""
-
-msgid "assertCondition: caught %s"
-msgstr ""
-
-# tools/R/admin.R: 304
-# warning(sprintf(ngettext(length(bad),
-#                                          "unable to re-encode %s line %s",
-#                                          "unable to re-encode %s lines %s"),
-#                                 sQuote(basename(f)),
-#                                 paste(bad, collapse = ", ")),
-#                         domain = NA, call. = FALSE)
-# tools/R/checktools.R: 194
-# message(paste(strwrap(sprintf("installing dependencies %s",
-#                                       paste(sQuote(depends),
-#                                             collapse = ", ")),
-#                               exdent = 2L),
-#                       collapse = "\n"))
-# tools/R/install.R: 554
-# sprintf("dependencies %s are not available",
-#                                    paste(sQuote(miss), collapse = ", "))
-# tools/R/makeLazyLoad.R: 132
-# warning(sprintf(ngettext(sum(dup),
-#                                          "object %s is created by more than one data call",
-#                                          "objects %s are created by more than one data call"),
-#                                 paste(sQuote(loaded[dup]), collapse=", ")),
-#                         call. = FALSE, domain = NA)
-# tools/R/pdftools.R: 998
-# sprintf("PDF_Dictionary(<<%s>>)",
-#             paste(names(x), collapse = ","))
-# tools/R/pdftools.R: 1005
-# sprintf("PDF_Stream(<<%s>>)",
-#             paste(names(x), collapse = ","))
-# tools/R/QC.R: 3615
-# message(sprintf(ngettext(sum(obsolete),
-#                                  "Obsolete package %s in Rd xrefs",
-#                                  "Obsolete packages %s in Rd xrefs"),
-#                         paste(sQuote(unknown[obsolete]), collapse = ", ")),
-#                 domain = NA)
-# tools/R/QC.R: 3631
-# message(sprintf(ngettext(sum(miss),
-#                                      "Package unavailable to check Rd xrefs: %s",
-#                                      "Packages unavailable to check Rd xrefs: %s"),
-#                              paste(sQuote(unknown[miss]), collapse = ", ")),
-#                     domain = NA)
-# tools/R/QC.R: 3637
-# message(sprintf(ngettext(sum(!miss),
-#                                      "Unknown package %s in Rd xrefs",
-#                                      "Unknown packages %s in Rd xrefs"),
-#                              paste(sQuote(unknown[!miss]), collapse = ", ")),
-#                     domain = NA)
-# tools/R/QC.R: 4278
-# gettextf("  %s has wrong argument list %s",
-#                          f, sQuote(paste(bad, collapse = ", ")))
-# tools/R/QC.R: 4424
-# gettextf("  %s has wrong argument list %s",
-#                          f, sQuote(paste(bad, collapse = ", ")))
-# tools/R/QC.R: 5369
-# sprintf("entry %d (%s): missing required field(s) %s",
-#                                    pos,
-#                                    db$Entry[pos],
-#                                    sapply(bad[pos],
-#                                           function(s)
-#                                           paste(sQuote(s),
-#                                                 collapse = ", ")))
-# tools/R/QC.R: 5896
-# sprintf("  %s (%s)",
-#                     names(s),
-#                     lapply(s, paste, collapse = ", "))
-# tools/R/QC.R: 6260
-# warning(gettextf("Generics 'g' in 'env' %s where '%s' errors: %s\nMay need something like\n\n%s\nin NAMESPACE.",
-#                              format(env),
-#                              "hasMethods(g, env)",
-#                              paste(sQuote(rErr), collapse = ", "),
-#                              paste0("  importFrom(",
-#                                     paste(dq(pkgs), dq(rErr), sep =", "),
-#                                     ")\n")
-#                              ),
-#                     domain = NA)
-# tools/R/QC.R: 6274
-# message(sprintf(ngettext(sum(!ok),
-#                                      "Generic without any methods in %s: %s",
-#                                      "Generics without any methods in %s: %s"),
-#                             format(env),
-#                             paste(sQuote(r[!ok]), collapse = ", ")),
-#                     domain = NA)
-# tools/R/sotools.R: 381
-# gettextf("Found %s, possibly from %s",
-#                                     sQuote(v),
-#                                     paste(sprintf("%s (%s)",
-#                                                   sQuote(u[, "ssname"]),
-#                                                   u[, "language"]),
-#                                           collapse = ", "))
-# tools/R/sotools.R: 389
-# sprintf("Objects: %s",
-#                                        paste(sQuote(w), collapse =
-#                                              ", "))
-# tools/R/Vignettes.R: 29
-# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 183
-# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
-# tools/R/Vignettes.R: 402
-# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
-# tools/R/Vignettes.R: 867
-# stop("None of packages ", paste(sQuote(package), collapse = ", "), " have registered vignette engines")
-# tools/R/Vignettes.R: 896
-# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
-# tools/R/Vignettes.R: 900
-# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
-msgid ","
-msgstr ","
-
-msgid "Got %s in evaluating %s; wanted %s"
-msgstr ""
-
-msgid "Failed to get %s in evaluating %s"
-msgstr ""
-
-msgid "Failed to get error in evaluating %s"
-msgstr ""
-
-msgid "Asserted error: %s"
-msgstr ""
-
-msgid "Got warning in evaluating %s, but also an error"
-msgstr ""
-
-msgid "Asserted warning: %s"
-msgstr ""
 
 # tools/R/bibstyle.R: 339
 # stop("Changes require specified 'style'")
@@ -1883,10 +1919,6 @@ msgstr ""
 msgid "generating debug symbols (%s)"
 msgstr "tworzenie symboli debugowania (%s)"
 
-#, fuzzy
-msgid "no DLL was created"
-msgstr "plik '%s' nie został utworzony"
-
 # tools/R/install.R: 570
 # gettextf("package %s successfully unpacked and MD5 sums checked",
 #                               sQuote(pkg_name))
@@ -1902,9 +1934,6 @@ msgid ""
 msgstr ""
 "Katalog 'include' w R jest pusty -- być może trzeba zainstalować R-devel.rpm "
 "lub coś podobnego"
-
-msgid "package %s %s was found, but %s %s is required by %s"
-msgstr ""
 
 # tools/R/install.R: 795
 # warning("no source files found", call. = FALSE)
@@ -2328,6 +2357,11 @@ msgstr "Pakiet '%s' swoje zależności zredukował do najmniejszego zbioru."
 msgid "argument '%s' must be a character string or connection"
 msgstr "argument '%s' musi być łańcuchem tekstowym lub połączeniem"
 
+# tools/R/readNEWS.R: 157
+# stop("'file' must be a character string or connection")
+msgid "'file' must be a character string or connection"
+msgstr "'file' musi być łańcuchem tekstowym lub połączeniem"
+
 # tools/R/recode.R: 60
 # stop("unimplemented encoding")
 msgid "unimplemented encoding"
@@ -2347,9 +2381,6 @@ msgstr "Znaleziono %s, prawdopodobnie z %s"
 # gettextf("testing '%s' failed", pkg)
 msgid "testing '%s' failed"
 msgstr "testowanie '%s' nie powiodło się"
-
-msgid "%d of the package tests failed"
-msgstr ""
 
 # tools/R/testing.R: 239
 # message(gettextf("Testing examples for package %s", sQuote(pkg)),
@@ -2733,10 +2764,8 @@ msgstr[2] ""
 #                         "Found an obsolete call in the following function:",
 #                         "Found an obsolete call in the following functions:"
 #                         )
-#, fuzzy
-msgid "Found an obsolete/platform-specific call in the following function:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in the following functions:"
+msgid "Found an obsolete call in the following function:"
+msgid_plural "Found an obsolete call in the following functions:"
 msgstr[0] "Znaleziono przestarzałe wywołanie w następującej funkcji:"
 msgstr[1] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
 msgstr[2] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
@@ -2746,13 +2775,8 @@ msgstr[2] "Znaleziono przestarzałe wywołanie w następujących funkcjach:"
 #                         "Found an obsolete call in methods for the following S4 generic:",
 #                         "Found an obsolete call in methods for the following S4 generics:"
 #                         )
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generic:"
-msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following S4 "
-"generics:"
+msgid "Found an obsolete call in methods for the following S4 generic:"
+msgid_plural "Found an obsolete call in methods for the following S4 generics:"
 msgstr[0] ""
 "Znaleziono przestarzałe wywołanie w metodach w następującej funkcji ogólnej "
 "S4:"
@@ -2768,13 +2792,9 @@ msgstr[2] ""
 #                         "Found an obsolete call in methods for the following reference class:",
 #                         "Found an obsolete call in methods for the following reference classes:"
 #                         )
-#, fuzzy
-msgid ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference class:"
+msgid "Found an obsolete call in methods for the following reference class:"
 msgid_plural ""
-"Found an obsolete/platform-specific call in methods for the following "
-"reference classes:"
+"Found an obsolete call in methods for the following reference classes:"
 msgstr[0] ""
 "Znaleziono przestarzałe wywołanie w metodach w następującej klasie "
 "referencyjnej:"
@@ -2807,12 +2827,6 @@ msgstr[0] "Znaleziono zlikwidowaną/usuniętą funkcję:"
 msgstr[1] "Znaleziono zlikwidowane/usunięte funkcje:"
 msgstr[2] "Znaleziono zlikwidowane/usunięte funkcje:"
 
-msgid "Found the platform-specific device:"
-msgid_plural "Found the platform-specific devices:"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 # tools/R/QC.R: 6274
 # message(sprintf(ngettext(sum(!ok),
 #                                      "Generic without any methods in %s: %s",
@@ -2832,6 +2846,7 @@ msgstr[2] "Funkcje ogólne bez metod w %s: %s"
 #                                   "missing/empty \\name field in Rd files\n%s"),
 #                          paste(" ", Rd_paths[idx], collapse = "\n")),
 #                  call. = FALSE, domain = NA)
+#, fuzzy
 msgid ""
 "missing/empty \\name field in Rd file\n"
 "%s"
@@ -2861,15 +2876,6 @@ msgstr[0] "nie można przekodować %s linia %s"
 msgstr[1] "nie można przekodować %s linie %s"
 msgstr[2] "nie można przekodować %s linie %s"
 
-# tools/R/QC.R: 2928
-# gettext("Required fields missing:")
-#, fuzzy
-msgid "Required field missing or empty:"
-msgid_plural "Required fields missing or empty:"
-msgstr[0] "Brakuje wymagalnych pól:"
-msgstr[1] "Brakuje wymagalnych pól:"
-msgstr[2] "Brakuje wymagalnych pól:"
-
 # tools/R/dynamicHelp.R: 276
 # sprintf(ngettext(length(paths),
 #                                                "Help on topic '%s' was found in the following package:",
@@ -2893,206 +2899,14 @@ msgstr[0] "obiekt %s jest utworzony przez więcej niż jedno wywołanie danych"
 msgstr[1] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
 msgstr[2] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
 
-# tools/R/Vignettes.R: 29
-# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
-#~ msgid "Vignette product"
-#~ msgstr "Produkt ilustracji"
-
-# tools/R/QC.R: 6260
-# warning(gettextf("Generics 'g' in 'env' %s where '%s' errors: %s\nMay need something like\n\n%s\nin NAMESPACE.",
-#                              format(env),
-#                              "hasMethods(g, env)",
-#                              paste(sQuote(rErr), collapse = ", "),
-#                              paste0("  importFrom(",
-#                                     paste(dq(pkgs), dq(rErr), sep =", "),
-#                                     ")\n")
-#                              ),
-#                     domain = NA)
-# tools/R/Vignettes.R: 29
-# stop("Vignette product ", sQuote(file), " does not have a known filename extension (", paste(sQuote(names(type)), collapse=", "), ")")
-#~ msgid ")"
-#~ msgstr ")"
-
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-#~ msgid "Failed to locate the"
-#~ msgstr "Nie udało się znaleźć"
-
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-#~ msgid "output file (by engine"
-#~ msgstr "pliku wyjściowego (silnika"
-
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-#~ msgid "%s::%s"
-#~ msgstr "%s::%s"
-
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-#~ msgid ") for vignette with name"
-#~ msgstr ") dla ilustracji o nazwie"
-
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-#~ msgid ". The following files exists in directory"
-#~ msgstr ". Następujące pliki istnieją w katalogu"
-
-# tools/R/translations.R: 125
-# message("  R-", lang, ":", appendLF = FALSE, domain = NA)
-# tools/R/translations.R: 151
-# message("  R-", lang, ":", domain = NA)
-# tools/R/translations.R: 200
-# message("  ", lang, ":", appendLF = FALSE, domain = NA)
-# tools/R/translations.R: 224
-# message("  ", lang, ":", domain = NA)
-# tools/R/translations.R: 279
-# message("  ", lang2, ":", appendLF = FALSE, domain = NA)
-# tools/R/Vignettes.R: 66
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 81
-# stop("Failed to locate the ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ". The following files exists in directory ", sQuote(dir), ": ", paste(sQuote(output0), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 183
-# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
-#~ msgid ":"
-#~ msgstr ":"
-
-# tools/R/Vignettes.R: 69
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-# tools/R/Vignettes.R: 83
-# stop("Located more than one ", sQuote(by), " output file (by engine ", sQuote(sprintf("%s::%s", engine$package, engine$name)), ") for vignette with name ", sQuote(name), ": ", paste(sQuote(output), collapse=", "))
-#~ msgid "Located more than one"
-#~ msgstr "Znaleziono więcej niż jeden"
-
-# tools/R/Vignettes.R: 183
-# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
-#~ msgid "Vignette"
-#~ msgstr "Ilustracja"
-
-# tools/R/Vignettes.R: 183
-# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
-#~ msgid "overwrites the following"
-#~ msgstr "nadpisuje następujące"
-
-# tools/R/Vignettes.R: 183
-# stop("Vignette ", sQuote(basename(names(resultsT)[j])), " overwrites the following ", sQuote(name), " output by vignette ", sQuote(basename(names(resultsT)[i])), ": ", paste(basename(bad), collapse=", "))
-#~ msgid "output by vignette"
-#~ msgstr "wyjście ilustracji"
-
-# tools/R/Vignettes.R: 402
-# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
-#~ msgid "Detected vignette source files ("
-#~ msgstr "Wykryto pliki źródłowe ilustracji ("
-
-# tools/R/Vignettes.R: 402
-# stop("Detected vignette source files (", paste(sQuote(docs), collapse=", "), ") with shared names (", paste(sQuote(names), collapse=", "), ") and therefore risking overwriting each others output files")
-#~ msgid ") with shared names ("
-#~ msgstr ") ze wspólnymi nazwami ("
-
-# tools/R/Vignettes.R: 867
-# stop("None of packages ", paste(sQuote(package), collapse = ", "), " have registered vignette engines")
-#~ msgid "None of packages"
-#~ msgstr "Żaden z pakietów"
-
-# tools/R/Vignettes.R: 886
-# stop("Vignette engine ", sQuote(name), " is not registered")
-# tools/R/Vignettes.R: 896
-# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
-# tools/R/Vignettes.R: 900
-# stop("Vignette engine ", sQuote(name), " is not registered by any of the packages ", paste(sQuote(package), collapse = ", "))
-#~ msgid "Vignette engine"
-#~ msgstr "Silnik ilustracji"
-
-# tools/R/Vignettes.R: 886
-# stop("Vignette engine ", sQuote(name), " is not registered")
-#~ msgid "is not registered"
-#~ msgstr "nie jest zarejestrowany"
-
-# tools/R/Vignettes.R: 908
-# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
-#~ msgid "Engine name"
-#~ msgstr "Nazwa silnika"
-
-# tools/R/Vignettes.R: 908
-# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
-#~ msgid "and package"
-#~ msgstr "oraz pakiet"
-
-# tools/R/Vignettes.R: 908
-# stop("Engine name ", sQuote(name), " and package ", sQuote(package), " do not match")
-#~ msgid "do not match"
-#~ msgstr "nie zgadzają się"
-
-# tools/R/Vignettes.R: 922
-# stop("Argument ", sQuote("weave"), " must be a function and not ", sQuote(class(weave)[1L]))
-# tools/R/Vignettes.R: 924
-# stop("Argument ", sQuote("tangle"), " must be a function and not ", sQuote(class(tangle)[1L]))
-# tools/R/Vignettes.R: 929
-# stop("Argument ", sQuote("pattern"), " must be a character vector or NULL and not ", sQuote(class(pattern)[1L]))
-#~ msgid "Argument"
-#~ msgstr "Argument"
-
-# tools/R/Vignettes.R: 922
-# stop("Argument ", sQuote("weave"), " must be a function and not ", sQuote(class(weave)[1L]))
-#~ msgid "weave"
-#~ msgstr "weave"
-
-# tools/R/Vignettes.R: 924
-# stop("Argument ", sQuote("tangle"), " must be a function and not ", sQuote(class(tangle)[1L]))
-#~ msgid "tangle"
-#~ msgstr "tangle"
-
-# tools/R/Vignettes.R: 929
-# stop("Argument ", sQuote("pattern"), " must be a character vector or NULL and not ", sQuote(class(pattern)[1L]))
-#~ msgid "pattern"
-#~ msgstr "pattern"
-
-# tools/R/Vignettes.R: 948
-# stop("Cannot change the ", sQuote("Sweave"), " engine or use an engine of that name")
-#~ msgid "Cannot change the"
-#~ msgstr "Nie można zmienić silnika"
-
-# tools/R/Vignettes.R: 948
-# stop("Cannot change the ", sQuote("Sweave"), " engine or use an engine of that name")
-#~ msgid "Sweave"
-#~ msgstr "Sweave"
-
-# tools/R/readNEWS.R: 157
-# stop("'file' must be a character string or connection")
-#~ msgid "'file' must be a character string or connection"
-#~ msgstr "'file' musi być łańcuchem tekstowym lub połączeniem"
-
 #~ msgid "not found"
 #~ msgstr ": nie znaleziono."
 
 #~ msgid "engine"
 #~ msgstr " "
+
+#~ msgid "file '%s' was not created"
+#~ msgstr "plik '%s' nie został utworzony"
 
 #~ msgid "found %s"
 #~ msgstr "znaleziono %s"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.0.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-27 17:14\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -119,8 +119,11 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr "Ostrzeżenie: nieznana opcja %s"
 
-msgid "Output file:"
-msgstr ""
+# utils/R/Sweave.R: 498
+# message(gettextf("Created PDF document %s", sQuote(ofile)),
+#                 domain = NA)
+msgid "Created PDF document %s"
+msgstr "Utworzono dokument PDF %s"
 
 # utils/R/Sweave.R: 504
 # message("Compacting PDF document")
@@ -260,12 +263,6 @@ msgstr "'file' musi być wartością NULL, łańcuchem tekstowym lub połączeni
 msgid "bad argument"
 msgstr "niepoprawny argument"
 
-msgid "'full.names' must be TRUE for multiple paths."
-msgstr ""
-
-msgid "Timestamp file no longer exists."
-msgstr ""
-
 # utils/R/citation.R: 36
 # warning(gettextf("Not all arguments are of the same length, the following need to be recycled: %s",
 #                          paste(names(args)[!args_length_ok],
@@ -397,6 +394,11 @@ msgstr ""
 # stop(gettextf("package %s not found", sQuote(pkg)), domain = NA)
 msgid "package %s not found"
 msgstr "pakiet %s nie został znaleziony"
+
+# utils/R/citation.R: 1075
+# stop("broken installation, no CITATION file in the base package.")
+msgid "broken installation, no CITATION file in the base package."
+msgstr "uszkodzona instalacja, brak pliku CITATION w bazowym pakiecie"
 
 # utils/R/citation.R: 1095
 # warning(gettextf("no date field in DESCRIPTION file of package %s",
@@ -539,9 +541,6 @@ msgstr "'dump' nie jest obiektem klasy %s"
 # gettext("Message: ")
 msgid "Message:"
 msgstr "Wiadomość:"
-
-msgid "'dump' is empty"
-msgstr ""
 
 # utils/R/debugger.R: 59
 # gettext("Available environments had calls:\n")
@@ -1365,9 +1364,8 @@ msgstr "pliki: %s"
 # warning(gettextf("installation of one of more packages failed,\n  probably %s",
 #                                  paste(sQuote(failed), collapse = ", ")),
 #                         domain = NA)
-#, fuzzy
 msgid ""
-"installation of one or more packages failed,\n"
+"installation of one of more packages failed,\n"
 "  probably %s"
 msgstr ""
 "instalacja jednego lub więcej pakietów nie powiodła się,\n"
@@ -1722,12 +1720,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr "nie można przekształcić 'x' na liczby rzymskie"
 
-# utils/R/de.R: 100
-# warning("could not restore type information")
-#, fuzzy
-msgid "Could not create file %s, aborting"
-msgstr "nie można przywrócić informacji o typie"
-
 # utils/R/sessionInfo.R: 38
 # stop("no valid packages were specified")
 msgid "no valid packages were specified"
@@ -1907,12 +1899,6 @@ msgstr ""
 msgid "file size is limited to 8GB"
 msgstr "rozmiar pliku jest ograniczony do 8GB"
 
-msgid "invalid uid value replaced by that for user 'nobody'"
-msgstr ""
-
-msgid "invalid gid value replaced by that for user 'nobody'"
-msgstr ""
-
 # utils/R/vignette.R: 55
 # warning(gettextf("vignette %s found more than once,\nusing the one found in %s",
 #                                      sQuote(topic), sQuote(dirname(pdf[idx]))),
@@ -1936,13 +1922,6 @@ msgstr "ilustracja %s nie została znaleziona"
 #, fuzzy
 msgid "vignette %s has no PDF/HTML"
 msgstr "ilustracja %s nie posiada PDF"
-
-# utils/R/vignette.R: 71
-# warning(gettextf("vignette %s not found", sQuote(topic)),
-#                     call. = FALSE, domain = NA)
-#, fuzzy
-msgid "vignette %s has no R code"
-msgstr "ilustracja %s nie została znaleziona"
 
 # utils/R/widgets.R: 23
 # stop("select.list() cannot be used non-interactively")
@@ -2060,9 +2039,6 @@ msgstr "'ccaddress' musi być długości 1"
 # stop("no download method found")
 msgid "no download method found"
 msgstr "nie znaleziono metody pobierania"
-
-msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-msgstr ""
 
 # utils/R/unix/download.file.R: 68
 # warning("download had nonzero exit status")
@@ -2524,17 +2500,6 @@ msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "pakiet %s jest w użyciu i nie zostanie zainstalowany"
 msgstr[1] "pakiety %s są w użyciu i nie zostaną zainstalowane"
 msgstr[2] "pakiety %s są w użyciu i nie zostaną zainstalowane"
-
-# utils/R/citation.R: 1075
-# stop("broken installation, no CITATION file in the base package.")
-#~ msgid "broken installation, no CITATION file in the base package."
-#~ msgstr "uszkodzona instalacja, brak pliku CITATION w bazowym pakiecie"
-
-# utils/R/Sweave.R: 498
-# message(gettextf("Created PDF document %s", sQuote(ofile)),
-#                 domain = NA)
-#~ msgid "Created PDF document %s"
-#~ msgstr "Utworzono dokument PDF %s"
 
 #~ msgid "%d): succeeded '%s'"
 #~ msgstr "%d): udało się '%s'"

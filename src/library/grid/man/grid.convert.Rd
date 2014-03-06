@@ -4,6 +4,11 @@
 % Distributed under GPL 2 or later
 
 \name{grid.convert}
+\alias{grid.convert}
+\alias{grid.convertX}
+\alias{grid.convertY}
+\alias{grid.convertWidth}
+\alias{grid.convertHeight}
 \alias{convertUnit}
 \alias{convertX}
 \alias{convertY}
@@ -21,6 +26,14 @@ convertY(x, unitTo, valueOnly = FALSE)
 convertWidth(x, unitTo, valueOnly = FALSE)
 convertHeight(x, unitTo, valueOnly = FALSE)
 convertUnit(x, unitTo,
+             axisFrom = "x", typeFrom = "location",
+             axisTo = axisFrom, typeTo = typeFrom,
+             valueOnly = FALSE)
+grid.convertX(x, unitTo, valueOnly = FALSE)
+grid.convertY(x, unitTo, valueOnly = FALSE)
+grid.convertWidth(x, unitTo, valueOnly = FALSE)
+grid.convertHeight(x, unitTo, valueOnly = FALSE)
+grid.convert(x, unitTo,
              axisFrom = "x", typeFrom = "location",
              axisTo = axisFrom, typeTo = typeFrom,
              valueOnly = FALSE)
@@ -63,6 +76,9 @@ convertUnit(x, unitTo,
   In some cases, however, it is necessary for the user to
   perform calculations on a unit value and this function becomes
   necessary.  In such cases, please take note of the warning below.
+
+  The grid.* versions are just previous incarnations which have
+  been deprecated.
 }
 \value{
   A unit object in the specified coordinate system

@@ -21,17 +21,18 @@ dummy.coef <- function(object, ...) UseMethod("dummy.coef")
 
 dummy.coef.lm <- function(object, use.na=FALSE, ...)
 {
-    xl <- object$xlevels
-    if(!length(xl)) # no factors in model
-	return(as.list(coef(object)))
     Terms <- terms(object)
     tl <- attr(Terms, "term.labels")
     int <- attr(Terms, "intercept")
     facs <- attr(Terms, "factors")[-1, , drop=FALSE]
     Terms <- delete.response(Terms)
-    vars <- all.vars(Terms) # e.g. drops I(.), ...
+    vars <- all.vars(Terms)
+    xl <- object$xlevels
+    if(!length(xl)) {			# no factors in model
+	return(as.list(coef(object)))
+    }
     nxl <- setNames(rep.int(1, length(vars)), vars)
-    tmp <- vapply(xl, length, 1L)
+    tmp <- unlist(lapply(xl, length)) ## ?? vapply(xl, length, 1L)
     nxl[names(tmp)] <- tmp
     lterms <- apply(facs, 2L, function(x) prod(nxl[x > 0]))
     nl <- sum(lterms)
@@ -63,7 +64,7 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
     ## NaNs and set to NA afterwards.
     mf <- model.frame(Terms, dummy, na.action=function(x)x, xlev=xl)
     mm <- model.matrix(Terms, mf, object$contrasts, xl)
-    if(anyNA(mm)) {
+    if(any(is.na(mm))) {
         warning("some terms will have NAs due to the limits of the method")
         mm[is.na(mm)] <- NA
     }

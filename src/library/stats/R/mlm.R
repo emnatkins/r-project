@@ -67,9 +67,7 @@ SSD.mlm <- function(object, ...){
     ## anyone use them?
     if (!is.null(object$weights))
         stop("'mlm' objects with weights are not supported")
-    ## avoid residuals(objects) -- if na.exclude was used
-    ## that will introduce NAs
-    structure(list(SSD=crossprod(object$residuals),
+    structure(list(SSD=crossprod(residuals(object)),
                    call=object$call,
                    df=object$df.residual), class="SSD")
 }

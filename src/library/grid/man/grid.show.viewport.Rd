@@ -12,7 +12,7 @@
 }
 \usage{
 grid.show.viewport(v, parent.layout = NULL, newpage = TRUE,
-                   vp.ex = 0.8, border.fill="light grey",
+                   border.fill="light grey",
                    vp.col="blue", vp.fill="light blue",
                    scale.col="red",
                    vp = NULL)
@@ -25,8 +25,6 @@ grid.show.viewport(v, parent.layout = NULL, newpage = TRUE,
     \code{v} occupies within the layout.}
   \item{newpage}{A logical value to indicate whether to move to
     a new page before drawing the diagram.}
-  \item{vp.ex}{positive number, typically in \eqn{(0,1]}, specifying the
-    scaling of the layout.}
   \item{border.fill}{Colour to fill the border margin.}
   \item{vp.col}{Colour for the border of the viewport region.}
   \item{vp.fill}{Colour to fill the viewport region.}

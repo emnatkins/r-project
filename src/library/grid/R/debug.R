@@ -394,7 +394,7 @@ showVPmatrix <- function(vp, cvpt, depth, col, fill,
             for (j in 1:ncol) {
                 theLeaf <- firstPath + (i - 1)*nrow + j
                 if (theLeaf <= length(paths)) {
-                    thePath <- vpPath(paths[theLeaf])
+                    thePath <- vpPathDirect(paths[theLeaf])
                     pushViewport(viewport(layout.pos.row=i,
                                           layout.pos.col=j))
                     grid.rect(gp=gpar(col="grey80"))

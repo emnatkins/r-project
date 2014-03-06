@@ -217,6 +217,7 @@ tre_regexec(const regex_t *preg, const char *str,
   return tre_regnexec(preg, str, (unsigned)-1, nmatch, pmatch, eflags);
 }
 
+/* R addition */
 int
 tre_regexecb(const regex_t *preg, const char *str,
 	     size_t nmatch, regmatch_t pmatch[], int eflags)
@@ -328,6 +329,7 @@ tre_regaexec(const regex_t *preg, const char *str,
   return tre_reganexec(preg, str, (unsigned)-1, match, params, eflags);
 }
 
+/* R addition */
 int
 tre_regaexecb(const regex_t *preg, const char *str,
 	  regamatch_t *match, regaparams_t params, int eflags)

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-13 14:11\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2013-03-19 21:46-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -285,9 +285,6 @@ msgstr "'order.max' должен быть >= 1"
 msgid "'order.max' must be < 'n.used'"
 msgstr "'order.max' должен быть < 'n.used'"
 
-msgid "zero-variance series"
-msgstr ""
-
 msgid "'n.ahead' must be at least 1"
 msgstr "'n.ahead' должен быть по меньшей мере 1"
 
@@ -352,14 +349,6 @@ msgstr "часть скользящего среднего из модели не обратима"
 msgid "seasonal MA part of model is not invertible"
 msgstr "сезонная часть скользящего среднего из модели необратима"
 
-#, fuzzy
-msgid "NAs in '%s'"
-msgstr "NAs в 'x'"
-
-#, fuzzy
-msgid "invalid 'SSinit'"
-msgstr "неправильный 'nb'"
-
 msgid "converting non-invertible initial MA values"
 msgstr "конвертирую не-необратимые начальные значения скользящего среднего"
 
@@ -408,10 +397,6 @@ msgstr "все наблюдения находятся в одной группе"
 
 msgid "there must be at least 2 observations in each group"
 msgstr "тут должно быть как минимум 2 наблюдения в каждой группе"
-
-#, fuzzy
-msgid "'formula' should be of the form response ~ group"
-msgstr "формула '%s' должна быть в виде '~expr'"
 
 msgid "'x' must be nonnegative and integer"
 msgstr "'x' должен быть неотрицательным и целым"
@@ -942,8 +927,7 @@ msgstr "'x' должен иметь по крайней мере 2 строки и колонки"
 msgid "'x' has entries too large to be integer"
 msgstr "у 'x' есть элементы, слишком большие чтобы быть целыми"
 
-#, fuzzy
-msgid "'x' has been rounded to integer: %s"
+msgid "'x' has been rounded to integer: %d"
 msgstr "'x' был округлен до целого: %d"
 
 msgid "if 'x' is not a matrix, 'y' must be given"
@@ -1234,9 +1218,6 @@ msgstr "пустой кластер: попробуйте другой набор исходных центров"
 msgid "number of cluster centres must lie between 1 and nrow(x)"
 msgstr "количество центров кластеров должно быть в пределах между 1 и nrow(x)"
 
-msgid "Quick-TRANSfer stage steps exceeded maximum (= %d)"
-msgstr ""
-
 msgid "invalid nrow(x)"
 msgstr "неправильный nrow(x)"
 
@@ -1441,9 +1422,6 @@ msgstr "недоступен атрибут \"nobs\""
 msgid "no 'nobs' method is available"
 msgstr "нет доступного метода 'nobs'"
 
-msgid "'margin' must contain names or numbers corresponding to 'table'"
-msgstr ""
-
 msgid "'start' and 'table' must be same length"
 msgstr "'start' и 'table' должны быть одной длины"
 
@@ -1624,24 +1602,8 @@ msgstr "f.lower = f(lower) -- это NA"
 msgid "f.upper = f(upper) is NA"
 msgstr "f.upper = f(upper) -- это NA"
 
-#, fuzzy
-msgid "invalid 'extendInt'; please report"
-msgstr "недопустимый аргумент 'method'"
-
-#, fuzzy
-msgid "no sign change found in %d iterations"
-msgstr "не сошлось за %d итерацию"
-
-msgid ""
-"did not succeed extending the interval endpoints for f(lower) * f(upper) <= 0"
-msgstr ""
-
 msgid "f() values at end points not of opposite sign"
 msgstr "f() значений на концевых точках не противоположного знака"
-
-#, fuzzy
-msgid "convergence problem in zero finding:"
-msgstr "возможно, проблема сходимости: 'optim' выдал код= %d"
 
 msgid "'control' argument must be a named list"
 msgstr "аргумент 'control' должен быть именованным списком"

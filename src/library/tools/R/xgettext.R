@@ -226,10 +226,10 @@ checkPoFile <- function(f, strictPlural = FALSE)
 		i <- i + 1L
 		s1 <- paste0(s1, sub('^["](.*)["][[:blank:]]*$', "\\1", lines[i]))
 	    }
-	    f1 <- tryCatch(getfmts(s1), error = function(e)e)
+	    f1 <- try(getfmts(s1), silent = TRUE)
 	    j <- i + 1L
 
-	    if (noCformat || inherits(f1, "error")) {
+	    if (noCformat || inherits(f1, "try-error")) {
 		noCformat <- FALSE
 		next
 	    }
@@ -257,7 +257,7 @@ checkPoFile <- function(f, strictPlural = FALSE)
 		    break
 		}
 
-		f2 <- tryCatch(getfmts(s2), error = function(e)e)
+		f2 <- try(getfmts(s2), silent = TRUE)
 
 		if (statement == "msgid_plural") {
 		    if (!strictPlural) {
@@ -270,8 +270,8 @@ checkPoFile <- function(f, strictPlural = FALSE)
 		if (s2 != "" &&
 		     !(identical(f1, f2) || identical(f1_plural, f2))) {
 		    location <- paste0(f, ":", j)
-		    if (inherits(f2, "error"))
-			diff <- conditionMessage(f2)
+		    if (inherits(f2, "try-error"))
+			diff <- conditionMessage(attr(f2, "condition"))
 		    else {
 		    	if (length(f1) < length(f2)) {
 			    diff <- "too many entries"

@@ -70,7 +70,8 @@ ecdf(x)
   \code{quantile(x, ...)} would where \code{x} is the original sample.
 }
 \author{
-  Martin Maechler; fixes and new features by other R-core members.
+  Martin Maechler, \email{maechler@stat.math.ethz.ch}.\cr
+  Corrections by R-core.
 }
 \note{
   The objects of class \code{"ecdf"} are not intended to be used for

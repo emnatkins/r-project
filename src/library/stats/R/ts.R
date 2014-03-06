@@ -286,7 +286,7 @@ na.omit.ts <- function(object, ...)
         tsp(object) <- c(tm[st], tm[en], xfreq)
         if(!is.null(cl)) class(object) <- cl
     }
-    if(anyNA(object)) stop("time series contains internal NAs")
+    if(any(is.na(object))) stop("time series contains internal NAs")
     object
 }
 
@@ -414,8 +414,7 @@ print.ts <- function(x, calendar, ...)
 	if(calendar && fr.x > 1) {
 	    tm <- time(x)
 	    t2 <- 1 + round(fr.x*((tm+0.001) %%1))
-            ## protect people against themselves if they set options(digits=2)
-	    p1 <- format(floor(zapsmall(tm, digits = 7))) # yr
+	    p1 <- format(floor(zapsmall(tm)))# yr
 	    rownames(x) <-
 		if(fr.x == 12)
 		    paste(month.abb[t2], p1, sep=" ")
@@ -713,7 +712,7 @@ window.ts <- function (x, ...) as.ts(window.default(x, ...))
     xxtimes <- round(xfreq * time(xx))
 
     ind <- match(xxtimes, xtimes)
-    if(anyNA(ind)) stop("times to be replaced do not match")
+    if(any(is.na(ind))) stop("times to be replaced do not match")
 
     len <- length(ind)
     val_len <- NROW(value)

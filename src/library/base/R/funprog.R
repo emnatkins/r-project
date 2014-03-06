@@ -148,5 +148,3 @@ function(f, x, right = FALSE, nomatch = NULL)
 identity <-
 function(x)
     x
-
-dontCheck <- identity

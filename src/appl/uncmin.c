@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997-1999   Saikat DebRoy
- *  Copyright (C) 1999-2014   The R Core Team
+ *  Copyright (C) 1997-2012   Saikat DebRoy and the R Core Team
  *  Copyright (C) 2003-2010   The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -35,7 +34,6 @@
 #include <R_ext/PrtUtil.h> /* printRealVector */
 #include <R_ext/Linpack.h> /* ddot, dnrm2, dtrsl, dscal */
 #include <Rmath.h>
-#define Rexp10(x) pow(10.0, x)
 
 /* CC	 subroutines  mvmlt[lsu] should be REPLACED by BLAS ones!
  * CC
@@ -83,7 +81,7 @@ void fdhess(int n, double *x, double fval, fcn_p fun, void *state,
     int i, j;
     double tempi, tempj, fii, eta, fij;
 
-    eta = Rexp10(-ndigit/3.0);
+    eta = pow(10.0, -ndigit/3.0);
     for (i = 0; i < n; ++i) {
 	step[i] = eta * fmax2(x[i], typx[i]);
 	if (typx[i] < 0.)
@@ -2251,7 +2249,7 @@ optdrv(int nr, int n, double *x, fcn_p fcn, fcn_p d1fcn, d2fcn_p d2fcn,
     for (i = 0; i < n; ++i)
 	p[i] = 0.;
 
-    rnf = Rexp10(-(double)ndigit);
+    rnf = pow(10., -(double)ndigit);
     rnf = fmax2(rnf, epsm);
     analtl = sqrt(rnf);
     analtl = fmax2(0.1, analtl);

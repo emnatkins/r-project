@@ -331,9 +331,7 @@ make check-all
 @end example
 
 @noindent
-see file @file{tests/README} and @ref{Testing a Unix-alike Installation}
-for the possibilities of doing this in parallel.  Note that these checks
-need the recommended packages to be installed.
+see file @file{tests/README}.
 
 If the command @command{configure} and @command{make} commands execute
 successfully, a shell-script front-end called @file{R} will be created
@@ -585,7 +583,8 @@ make install
 
 @noindent
 A parallel make can be used (but run @command{make} before @command{make
-install}).
+install}): however it is not recommended for @command{make check} as the
+output from different checks will interleaved and hard to decipher.
 
 This will install to the following directories:
 
@@ -891,17 +890,6 @@ and recommended packages are lazyloaded but not byte-compiled.
 @env{R_NO_BASE_COMPILE} can be set to a non-empty value for the duration
 of the build.)
 
-Option @option{--with-internal-tzcode} makes use of @R{}'s own code and
-copy of the Olson database for managing timezones.  This will be
-preferred where there are issues with the system implementation, usually
-involving times after 2037 or before 1916.  An alternative time-zone
-directory@footnote{How to prepare such a directory is described in file
-@file{src/extra/tzone/Notes} in the @R{} sources.} can be used, pointed
-to by environment variable @env{TZDIR}: this should contain files such
-as @file{Europe/London}.  On all tested OSes the system timezone was
-deduced correctly, but if necessary it can be set as the value of
-environment variable @env{TZ}.
-
 
 @node Testing a Unix-alike Installation,  , Other Options, Installing R under Unix-alikes
 @section Testing an Installation
@@ -938,18 +926,6 @@ checking the example code in the manuals nor making the standalone Rmath
 library.  This can occasionally be useful when the operating environment
 has been changed, for example by OS updates or by substituting the
 @acronym{BLAS} (@pxref{Shared BLAS}).
-
-Parallel checking of packages may be possible: set the environment
-variable @env{TEST_MC_CORES} to the maximum number of processes to be
-run in parallel.  This affects both checking the package examples (part
-of @command{make check}) and package sources (part of @command{make
-check-devel} and @command{make check-recommended}).  It does require a
-@command{make} command which supports the @command{make -j @var{n}}
-option: most do but on Solaris you need to select GNU @code{make} or
-@code{dmake}.  Where parallel checking of package sources is done, a log
-file @file{@var{pngname}.log} is left in the @code{tests} directory for
-inspection.
-
 
 Alternatively, the installed @R{} can be run, preferably with
 @option{--vanilla}.  Then
@@ -1289,11 +1265,6 @@ If a test fails, there will almost always be a @file{.Rout.fail} file in
 the directory being checked (often @file{tests/Examples} or
 @file{tests}): examine the file to help pinpoint the problem.
 
-Parallel checking of package sources (part of @command{make check-devel}
-and @command{make check-recommended}) is possible: see the environment
-variable @env{TEST_MC_CORES} to the maximum number of processes to be
-run in parallel.
-
 
 @node Building the manuals, Building the Inno Setup installer, Checking the build, Building from source
 @subsection Building the manuals
@@ -1588,7 +1559,7 @@ You can run command-line @R{} from a Terminal like any other Unix-alike:
 see the next chapter of this manual.  There are some small differences
 which may surprise users of @R{} on other platforms, notably the default
 personal library directory (under @file{~/Library/R},
-e.g. @file{~/Library/R/3.1/library}), and that warnings, messages and
+e.g. @file{~/Library/R/3.0/library}), and that warnings, messages and
 other output to @file{stderr} are highlighted in bold.
 
 Users of @Rapp{} under Mavericks need to be aware of its `App Nap'
@@ -1638,8 +1609,8 @@ rm -rf /Library/Frameworks/R.framework /Applications/R.app \
 @end example
 
 The installation consisted of three Apple packages:
-@code{org.r-project.R.x86_64.fw.pkg},
-@code{org.r-project.R.x86_64.GUI.pkg} and
+@code{org.r-project.R.Leopard.fw.pkg},
+@code{org.r-project.R.Leopard.GUI.pkg} and
 @code{org.r-project.x86_64.tcltk.x11} (not all of which need be
 installed). You can use @code{pkgutil --unlink} (not supported by Lion
 or later) to remove their files or @code{pkgutil --forget} if you want
@@ -1665,13 +1636,13 @@ The installer will remove any previous version of the @R{} framework
 which it finds installed.  This can be avoided by using @command{pkgutil
 --forget} (see the previous section).  However, note that different
 versions are installed under
-@file{/Library/Frameworks/R.framework/Versions} as @file{3.0},
-@file{3.1} and so on, so it is not possible to have different
+@file{/Library/Frameworks/R.framework/Versions} as @file{2.15},
+@file{3.0} and so on, so it is not possible to have different
 @samp{3.x.y} versions installed for the same @samp{x}.
 
 A version of @R{} can be run directly from the command-line as e.g.@:
 @example
-/Library/Frameworks/R.framework/Versions/3.1/Resources/bin/R
+/Library/Frameworks/R.framework/Versions/3.0/Resources/bin/R
 @end example
 
 @noindent
@@ -1942,7 +1913,7 @@ containing either or both architectures.
 
 A few of the binary packages need other software to be installed on your
 system: see for example
-@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/3.1/@/@@ReadMe}.
+@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/3.0/@/@@ReadMe}.
 For 64-bit builds, packages using Gtk+ (@CRANpkg{Cairo},
 @CRANpkg{RGtk2}, @CRANpkg{cairoDevice} and those that depend on them)
 need the @file{bin} directory of a bundled distribution from
@@ -2659,7 +2630,7 @@ is the current working directory (in the build directory tree on a
 Unix-alike if that is separate from the sources).
 
 @file{Rmath.h} contains @samp{R_VERSION_STRING}, which is a character
-string containing the current @R{} version, for example @code{"3.1.0"}.
+string containing the current @R{} version, for example @code{"3.0.0"}.
 
 There is full access to @R{}'s handling of @code{NaN}, @code{Inf} and
 @code{-Inf} via special versions of the macros and functions
@@ -3063,11 +3034,6 @@ is assumed by some @R{} packages. Neither are tested by
 compiled in.  As the latter suffice and are tested with @R{} you should
 not need to change this.
 
-Option @option{--with-system-tre} is also available: it needs a recent
-version of TRE. (The current sources are in the @command{git} repository
-at @url{https://github.com/laurikari/tre/}, but at the time of writing
-the resulting build will not pass its checks.).
-
 @code{liblzma} from @code{xz-utils} version 5.0.3 or later will be used
 if installed: the version in the @R{} sources can be selected instead by
 configuring with @option{--with-system-xz=no}.  Systems differ in what
@@ -3194,15 +3160,9 @@ worked.
 
 Some add-on packages need a C++ compiler.  This is specified by the
 configure variables @code{CXX}, @code{CXXFLAGS} and similar.
-@command{configure} will normally find a suitable compiler.  However, in
-most cases this will be a C++98 compiler, and as from @R{} 3.1.0 it is
-possible to specify an alternative compiler for use with C++11 by the
-configure variables @code{CXX1X}, @code{CXX1XSTD}, @code{CXX1XFLAGS} and
-similar.  Again, @command{configure} will normally find a suitable value
-for @code{CXX1XSTD} if the compiler given by @code{CXX} is capable of
-compiling C++11 code, but it is possible that a completely different
-compiler will be needed (it is for OS X < 10.9 and Solaris, for
-example).
+@command{configure} will normally find a suitable compiler.  In most
+cases this will be a C++98 compiler: there will be supoort for C++11 in
+@R{} 3.1.0.
 
 Other packages need full Fortran 90 (or later) support.  For source
 files with extension @file{.f90} or @file{.f95}, the compiler defined by
@@ -4112,12 +4072,6 @@ also be found on CTAN).  The package sources are only re-created even in
 maintainer mode if @file{src/library/compiler/noweb/compiler.nw} has
 been updated.
 
-It is likely that in future creating @code{configure} will need the GNU
-`autoconf archive' installed.  This can be found at
-@url{http://www.gnu.org/software/autoconf-archive/} and as a package
-(usually called @pkg{autoconf-archive}) in most packaged distributions,
-for example Debian, Fedora, OpenCSW, Homebrew and MacPorts.
-
 @node Platform notes, The Windows toolset, Configuration on a Unix-alike, Top
 @appendix Platform notes
 
@@ -4567,10 +4521,6 @@ will show the compilers and configuration options used for the
 @noindent
 was used.
 
-Configure option @option{--with-internal-tzcode} is the default, as a
-64-bit @code{time_t} is available but the system implementation of time
-zones does not work correctly for times after 2037.
-
 The @TeX{} implementation used by the developers is MacTeX
 (@uref{http://www.tug.org/mactex/}): the full installation is about 4GB,
 but a smaller version (ca 300MB) is available at
@@ -4893,9 +4843,7 @@ computations.
 
 The Solaris time-zone conversion services seem to be unreliable pre-1916
 in Europe (when daylight-savings time was first introduced): most often
-reporting in the non-existent DST variant.  Using @command{configure}
-option @option{--with-internal-tzcode} is recommended if such times are
-to be used.
+reporting in the non-existent DST variant.
 
 
 When using the Oracle compilers@footnote{including @command{gcc} for
@@ -5271,7 +5219,49 @@ environment can be found in the ``R on AIX'' project on R-Forge
 @section FreeBSD
 @cindex FreeBSD
 
-There have been no reports for @R{} 3.0.0 or later.
+The reports here were for @R{} 2.15.x.
+
+Rainer Hurling has reported success on @cputype{amd64} FreeBSD 9.0 (and
+on earlier versions in the past), and Brian Ripley tested
+@cputype{amd64} FreeBSD 8.2.  Since Darwin (the base OS of OS X) is
+based on FreeBSD we find testing on Darwin tends to pick up most
+potential problems on FreeBSD.  However, FreeBSD lacks adequate
+character type (e.g.@: which are alphabetic) and collation support for
+multi-byte locales (but a port of ICU is available), and does not yet
+implement C99 complex math functions (for which @R{}'s substitutes are
+used).
+
+The native BSD @command{make} suffices to build @R{} but a number of
+packages require @acronym{GNU} @command{make}, despite the
+recommendations of the ``Writing R Extensions'' manual.
+
+The simplest way to get the additional software needed to build @R{} is
+to install a pre-compiled version first, e.g.@: by
+
+@example
+pkg_add -r R
+@end example
+
+@noindent
+(on the system this was tested on, this installed Tcl, Tk, blas, lapack
+and @code{gcc-4.6.2} which includes @command{gfortran46}).  A listing of
+dependencies (not necessarily for current @R{}) can be found at
+@uref{http://www.freebsd.org/@/ports/@/lang.html}: you will however also
+need a @TeX{} system@footnote{TeXLive is recommended.} to build the
+manuals.
+
+Then @R{} itself can be built by something like
+
+@example
+./configure CC=gcc46 F77=gfortran46 CXX=g++46 FC=gfortran46
+@end example
+
+There are also FreeBSD packages for a small eclectic collection of
+@acronym{CRAN} packages.
+
+Beware that the lack of adequate support for non-@acronym{ASCII}
+characters in UTF-8 locales has many consequences in @R{}: for example
+names will not be recognized as alphabetic by @code{make.names}.
 
 @node Cygwin, New platforms, FreeBSD, Platform notes
 @section Cygwin
@@ -5457,7 +5447,7 @@ For example for a 32-bit build, all on one line,
 
 @example
 PATH=c:\Rtools\bin;c:\Rtools\gcc-4.6.3\bin;c:\MiKTeX\miktex\bin;
-     c:\R\R-3.1\bin\i386;c:\windows;c:\windows\system32
+     c:\R\R-3.0\bin\i386;c:\windows;c:\windows\system32
 @end example
 
 @noindent

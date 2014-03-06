@@ -45,7 +45,7 @@ installdirs:
 	@$(MKINSTALLDIRS) "$(DESTDIR)$(rsharedir)/texmf/tex/latex"
 install-message:
 	@$(ECHO) "installing share ..."
-install-sources: installdirs  @BUILD_TZONE_TRUE@ install-zoneinfo
+install-sources: installdirs
 	@for f in $(srcdir)/R/*.R; do \
 	  $(INSTALL_DATA) $${f} "$(DESTDIR)$(rsharedir)/R"; \
 	done
@@ -77,9 +77,6 @@ install-sources: installdirs  @BUILD_TZONE_TRUE@ install-zoneinfo
 	  $(INSTALL_DATA) $${f} "$(DESTDIR)$(rsharedir)/texmf/tex/latex"; \
 	done
 install-strip: install
-
-install-zoneinfo:
-	@@R_UNZIPCMD@ -qo $(top_srcdir)/src/extra/tzone/zoneinfo.zip -d "$(DESTDIR)$(rsharedir)"
 
 uninstall:
 	@$(ECHO) "uninstalling share ..."

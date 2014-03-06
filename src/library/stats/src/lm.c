@@ -23,13 +23,6 @@
 
 #include "statsR.h"
 
-#ifdef ENABLE_NLS
-#include <libintl.h>
-#define _(String) dgettext ("stats", String)
-#else
-#define _(String) (String)
-#endif
-
 /* A wrapper to replace
 
     z <- .Fortran("dqrls",
@@ -45,26 +38,21 @@
 */
 
 
-SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
+SEXP Cdqrls(SEXP x, SEXP y, SEXP tol)
 {
-    SEXP ans;
+    SEXP ans, ansnames;
     SEXP qr, coefficients, residuals, effects, pivot, qraux;
     int n, ny = 0, p, rank, nprotect = 4, pivoted = 0;
     double rtol = asReal(tol), *work;
-    Rboolean check = asLogical(chk);
 
-    ans = getAttrib(x, R_DimSymbol);
-    if(check && length(ans) != 2) error(_("'x' is not a matrix"));
-    int *dims = INTEGER(ans);
+
+    int *dims = INTEGER(getAttrib(x, R_DimSymbol));
     n = dims[0]; p = dims[1];
-    if(n) ny = (int)(XLENGTH(y)/n); /* y :  n x ny, or an n - vector */
-    if(check && n * ny != XLENGTH(y))
-	error(_("dimensions of 'x' (%d,%d) and 'y' (%d) do not match"),
-	      n,p, XLENGTH(y));
+    if(n) ny = LENGTH(y)/n;  /* n x ny, or a vector */
 
     /* These lose attributes, so do after we have extracted dims */
     if (TYPEOF(x) != REALSXP) {
-	PROTECT(x = coerceVector(x, REALSXP));
+	PROTECT(x = coerceVector(x, REALSXP)); 
 	nprotect++;
     }
     if (TYPEOF(y) != REALSXP) {
@@ -74,17 +62,27 @@ SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
 
     double *rptr = REAL(x);
     for (R_xlen_t i = 0 ; i < XLENGTH(x) ; i++)
-	if(!R_FINITE(rptr[i])) error(_("NA/NaN/Inf in '%s'"), "x");
-
+	if(!R_FINITE(rptr[i])) error("NA/NaN/Inf in 'x'");
+    
     rptr = REAL(y);
     for (R_xlen_t i = 0 ; i < XLENGTH(y) ; i++)
-	if(!R_FINITE(rptr[i])) error(_("NA/NaN/Inf in '%s'"), "y");
+	if(!R_FINITE(rptr[i])) error("NA/NaN/Inf in 'y'");
 
-    const char *ansNms[] = {"qr", "coefficients", "residuals", "effects",
-			    "rank", "pivot", "qraux", "tol", "pivoted", ""};
-    PROTECT(ans = mkNamed(VECSXP, ansNms));
+    PROTECT(ans = allocVector(VECSXP, 9));
+    ansnames = allocVector(STRSXP, 9);
+    setAttrib(ans, R_NamesSymbol, ansnames);
+    SET_STRING_ELT(ansnames, 0, mkChar("qr"));
+    SET_STRING_ELT(ansnames, 1, mkChar("coefficients"));
+    SET_STRING_ELT(ansnames, 2, mkChar("residuals"));
+    SET_STRING_ELT(ansnames, 3, mkChar("effects"));
+    SET_STRING_ELT(ansnames, 4, mkChar("rank"));
+    SET_STRING_ELT(ansnames, 5, mkChar("pivot"));
+    SET_STRING_ELT(ansnames, 6, mkChar("qraux"));
+    SET_STRING_ELT(ansnames, 7, mkChar("tol"));
+    SET_STRING_ELT(ansnames, 8, mkChar("pivoted"));
     SET_VECTOR_ELT(ans, 0, qr = duplicate(x));
-    coefficients = (ny > 1) ? allocMatrix(REALSXP, p, ny) : allocVector(REALSXP, p);
+    if (ny > 1) coefficients = allocMatrix(REALSXP, p, ny);
+    else coefficients = allocVector(REALSXP, p);
     PROTECT(coefficients);
     SET_VECTOR_ELT(ans, 1, coefficients);
     SET_VECTOR_ELT(ans, 2, residuals = duplicate(y));
@@ -96,7 +94,7 @@ SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
     PROTECT(qraux = allocVector(REALSXP, p));
     SET_VECTOR_ELT(ans, 6, qraux);
     SET_VECTOR_ELT(ans, 7, tol);
-
+   
     work = (double *) R_alloc(2 * p, sizeof(double));
     F77_CALL(dqrls)(REAL(qr), &n, &p, REAL(y), &ny, &rtol,
 		    REAL(coefficients), REAL(residuals), REAL(effects),
@@ -106,6 +104,6 @@ SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
 	if(ip[i] != i+1) { pivoted = 1; break; }
     SET_VECTOR_ELT(ans, 8, ScalarLogical(pivoted));
     UNPROTECT(nprotect);
-
+    
     return ans;
 }

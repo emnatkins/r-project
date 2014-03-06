@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998      Ross Ihaka
- *  Copyright (C) 2004-2014 The R Foundation
+ *  Copyright (C) 2004-2009 The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -61,13 +61,13 @@ double lfastchoose2(double n, double k, int *s_choose)
 }
 
 #define ODD(_K_) ((_K_) != 2 * floor((_K_) / 2.))
-
-#define R_IS_INT(x)  (!R_nonint(x))
+/* matching R_D_nonint() in ./dpq.h : */
+#define R_IS_INT(x)	  (fabs((x) - floor((x)+0.5)) <= 1e-7)
 
 double lchoose(double n, double k)
 {
     double k0 = k;
-    k = R_forceint(k);
+    k = floor(k + 0.5);
 #ifdef IEEE_754
     /* NaNs propagated correctly */
     if(ISNAN(n) || ISNAN(k)) return n + k;
@@ -88,7 +88,7 @@ double lchoose(double n, double k)
 	return lchoose(-n+ k-1, k);
     }
     else if (R_IS_INT(n)) {
-	n = R_forceint(n);
+	n = floor(n + 0.5);
 	if(n < k) return ML_NEGINF;
 	/* k <= n :*/
 	if(n - k < 2) return lchoose(n, n-k); /* <- Symmetry */
@@ -110,7 +110,7 @@ double lchoose(double n, double k)
 double choose(double n, double k)
 {
     double r, k0 = k;
-    k = R_forceint(k);
+    k = floor(k + 0.5);
 #ifdef IEEE_754
     /* NaNs propagated correctly */
     if(ISNAN(n) || ISNAN(k)) return n + k;
@@ -129,7 +129,7 @@ double choose(double n, double k)
 	r = n;
 	for(j = 2; j <= k; j++)
 	    r *= (n-j+1)/j;
-	return R_IS_INT(n) ? R_forceint(r) : r;
+	return R_IS_INT(n) ? floor(r + 0.5) : r;
 	/* might have got rounding errors */
     }
     /* else: k >= k_small_max */
@@ -139,10 +139,10 @@ double choose(double n, double k)
 	return r;
     }
     else if (R_IS_INT(n)) {
-	n = R_forceint(n);
+	n = floor(n + 0.5);
 	if(n < k) return 0.;
 	if(n - k < k_small_max) return choose(n, n-k); /* <- Symmetry */
-	return R_forceint(exp(lfastchoose(n, k)));
+	return floor(exp(lfastchoose(n, k)) + 0.5);
     }
     /* else non-integer n >= 0 : */
     if (n < k-1) {
@@ -152,3 +152,7 @@ double choose(double n, double k)
     }
     return exp(lfastchoose(n, k));
 }
+
+#undef ODD
+#undef R_IS_INT
+#undef k_small_max

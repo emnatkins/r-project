@@ -147,7 +147,7 @@ function(files, filter, control = list(), encoding = "unknown",
                     domain = NA)
 
         lines <- if(is.null(filter))
-            readLines(file, encoding = enc, warn = FALSE)
+            readLines(file, encoding = enc)
         else {
             ## Assume that filter takes an input file (and additional
             ## arguments) and return a character vector.
@@ -616,24 +616,14 @@ function(dir,
 
     program <- aspell_find_program(program)
 
-    files <- split(files, vinfo$engine)
-
-    do.call(rbind,
-            Map(function(files, engine) {
-                engine <- tools::vignetteEngine(engine)
-                aspell(files,
-                       filter = engine$aspell$filter,
-                       control =
-                       c(engine$aspell$control,
-                         aspell_control_package_vignettes[[names(program)]],
-                         control),
-                       program = program,
-                       dictionaries = dictionaries)
-            },
-                files,
-                names(files)
-                )
-            )
+    aspell(files,
+           filter = "Sweave",
+           control =
+           c("-t",
+             aspell_control_package_vignettes[[names(program)]],
+             control),
+           program = program,
+           dictionaries = dictionaries)
 }
 
 ## Spell-checking R files.

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 3.1.0\n"
+"Project-Id-Version: R 3.0.1\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-13 14:11\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -260,9 +260,6 @@ msgstr ""
 msgid "'order.max' must be < 'n.used'"
 msgstr ""
 
-msgid "zero-variance series"
-msgstr ""
-
 msgid "'n.ahead' must be at least 1"
 msgstr ""
 
@@ -326,12 +323,6 @@ msgstr ""
 msgid "seasonal MA part of model is not invertible"
 msgstr ""
 
-msgid "NAs in '%s'"
-msgstr ""
-
-msgid "invalid 'SSinit'"
-msgstr ""
-
 msgid "converting non-invertible initial MA values"
 msgstr ""
 
@@ -375,9 +366,6 @@ msgid "all observations are in the same group"
 msgstr ""
 
 msgid "there must be at least 2 observations in each group"
-msgstr ""
-
-msgid "'formula' should be of the form response ~ group"
 msgstr ""
 
 msgid "'x' must be nonnegative and integer"
@@ -872,7 +860,7 @@ msgstr ""
 msgid "'x' has entries too large to be integer"
 msgstr ""
 
-msgid "'x' has been rounded to integer: %s"
+msgid "'x' has been rounded to integer: %d"
 msgstr ""
 
 msgid "if 'x' is not a matrix, 'y' must be given"
@@ -1157,9 +1145,6 @@ msgstr ""
 msgid "number of cluster centres must lie between 1 and nrow(x)"
 msgstr ""
 
-msgid "Quick-TRANSfer stage steps exceeded maximum (= %d)"
-msgstr ""
-
 msgid "invalid nrow(x)"
 msgstr ""
 
@@ -1340,9 +1325,6 @@ msgstr ""
 msgid "no 'nobs' method is available"
 msgstr ""
 
-msgid "'margin' must contain names or numbers corresponding to 'table'"
-msgstr ""
-
 msgid "'start' and 'table' must be same length"
 msgstr ""
 
@@ -1514,19 +1496,7 @@ msgstr ""
 msgid "f.upper = f(upper) is NA"
 msgstr ""
 
-msgid "invalid 'extendInt'; please report"
-msgstr ""
-
-msgid "no sign change found in %d iterations"
-msgstr ""
-
-msgid "did not succeed extending the interval endpoints for f(lower) * f(upper) <= 0"
-msgstr ""
-
 msgid "f() values at end points not of opposite sign"
-msgstr ""
-
-msgid "convergence problem in zero finding:"
 msgstr ""
 
 msgid "'control' argument must be a named list"

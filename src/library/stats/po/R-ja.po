@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-13 14:11\n"
+"POT-Creation-Date: 2013-06-09 21:53\n"
 "PO-Revision-Date: 2013-03-19 13:40+0200 \n"
 "Last-Translator: Masafumi <mokada@mail.ne.jp> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -275,9 +275,6 @@ msgstr " 'order.max' は 1 以上でなければなりません "
 msgid "'order.max' must be < 'n.used'"
 msgstr " 'order.max' は 'n.used' より小さくなければなりません "
 
-msgid "zero-variance series"
-msgstr ""
-
 msgid "'n.ahead' must be at least 1"
 msgstr " 'n.ahead' は少なくとも 1 です "
 
@@ -343,14 +340,6 @@ msgstr " モデルの MA 部分は可逆ではありません "
 msgid "seasonal MA part of model is not invertible"
 msgstr " モデルの季節的な MA 部分は可逆ではありません "
 
-#, fuzzy
-msgid "NAs in '%s'"
-msgstr " 'x' 中に NA 値があります "
-
-#, fuzzy
-msgid "invalid 'SSinit'"
-msgstr " 無効な 'nb' "
-
 msgid "converting non-invertible initial MA values"
 msgstr " 非可逆な初期 MA 値を変換します "
 
@@ -397,10 +386,6 @@ msgstr " 全ての観測値が同じグループ中にあります "
 
 msgid "there must be at least 2 observations in each group"
 msgstr " 各グループに少なくとも 2 つの観測値がなければなりません "
-
-#, fuzzy
-msgid "'formula' should be of the form response ~ group"
-msgstr " 式 '%s' は形式 '~expr' でなければなりません "
 
 msgid "'x' must be nonnegative and integer"
 msgstr " 'x' は非負整数でなければなりません "
@@ -931,8 +916,7 @@ msgstr " 'x' は少なくとも 2 つの行及び列を持たなければなり�
 msgid "'x' has entries too large to be integer"
 msgstr " 'x' は整数とするにはあまりに多くの項目を持っています "
 
-#, fuzzy
-msgid "'x' has been rounded to integer: %s"
+msgid "'x' has been rounded to integer: %d"
 msgstr " 'x' は整数に丸められました: %d "
 
 msgid "if 'x' is not a matrix, 'y' must be given"
@@ -1227,9 +1211,6 @@ msgstr " 空のクラスタ: より良い初期中心を試みましょう "
 msgid "number of cluster centres must lie between 1 and nrow(x)"
 msgstr " クラスタ中心の数は 1 と nrow(x) の間になければなりません "
 
-msgid "Quick-TRANSfer stage steps exceeded maximum (= %d)"
-msgstr ""
-
 msgid "invalid nrow(x)"
 msgstr " nrow(x) が不正です "
 
@@ -1428,9 +1409,6 @@ msgstr " いかなる \"nobs\" 属性も利用不能です "
 msgid "no 'nobs' method is available"
 msgstr " いかなる 'nobs' メソッドもありません "
 
-msgid "'margin' must contain names or numbers corresponding to 'table'"
-msgstr ""
-
 msgid "'start' and 'table' must be same length"
 msgstr " 'strat' と 'table' は同じ長さでなければなりません "
 
@@ -1609,24 +1587,8 @@ msgstr " f.lower = f(lower) が NA です "
 msgid "f.upper = f(upper) is NA"
 msgstr " f.upper = f(upper) が NA です "
 
-#, fuzzy
-msgid "invalid 'extendInt'; please report"
-msgstr " 無効な 'method' 引数です "
-
-#, fuzzy
-msgid "no sign change found in %d iterations"
-msgstr " %d 回の反復を行いましたが収束しませんでした "
-
-msgid ""
-"did not succeed extending the interval endpoints for f(lower) * f(upper) <= 0"
-msgstr ""
-
 msgid "f() values at end points not of opposite sign"
 msgstr " f() の端点での値が異なった符号を持ちません "
-
-#, fuzzy
-msgid "convergence problem in zero finding:"
-msgstr " 収束に問題があるかもしれません: optim はコード = %d で終了しました "
 
 msgid "'control' argument must be a named list"
 msgstr " 引数 'control' は名前付きリストでなければなりません "

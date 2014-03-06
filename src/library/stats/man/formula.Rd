@@ -4,6 +4,13 @@
 % Distributed under GPL 2 or later
 
 \name{formula}
+\title{Model Formulae}
+\usage{
+formula(x, \dots)
+as.formula(object, env = parent.frame())
+
+\method{print}{formula}(x, showEnv = !identical(e, .GlobalEnv), \dots)
+}
 \alias{formula}
 \alias{formula.default}
 \alias{formula.formula}
@@ -12,14 +19,6 @@
 \alias{as.formula}
 \alias{print.formula}
 \alias{[.formula}
-
-\title{Model Formulae}
-\usage{
-formula(x, \dots)
-as.formula(object, env = parent.frame())
-
-\method{print}{formula}(x, showEnv = !identical(e, .GlobalEnv), \dots)
-}
 \description{
   The generic function \code{formula} and its specific methods provide a
   way of extracting formulae which have been included in other objects.

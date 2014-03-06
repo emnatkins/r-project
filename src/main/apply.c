@@ -27,57 +27,60 @@
 /* .Internal(lapply(X, FUN)) */
 
 /* This is a special .Internal, so has unevaluated arguments.  It is
-   called from a closure wrapper, so X and FUN are promises. 
-
-   FUN must be unevaluated for use in e.g. bquote .
-*/
+   called from a closure wrapper, so X and FUN are promises. */
 SEXP attribute_hidden do_lapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
+    SEXP R_fcall, ans, names, X, XX, FUN;
+    R_xlen_t i, n;
     PROTECT_INDEX px;
 
     checkArity(op, args);
-    SEXP X, XX, FUN;
-    PROTECT_WITH_INDEX(X =CAR(args), &px);
-    XX = PROTECT(eval(CAR(args), rho));
-    R_xlen_t n = xlength(XX);  // a vector, so will be valid.
-    FUN = CADR(args);
+    PROTECT_WITH_INDEX(X = CAR(args), &px);
+    PROTECT(XX = eval(CAR(args), rho));
+    FUN = CADR(args);  /* must be unevaluated for use in e.g. bquote */
+    n = xlength(XX);
+    if (n == NA_INTEGER) error(_("invalid length"));
     Rboolean realIndx = n > INT_MAX;
 
-    SEXP ans = PROTECT(allocVector(VECSXP, n));
-    SEXP names = getAttrib(XX, R_NamesSymbol);
+    PROTECT(ans = allocVector(VECSXP, n));
+    names = getAttrib(XX, R_NamesSymbol);
     if(!isNull(names)) setAttrib(ans, R_NamesSymbol, names);
 
-    /* Build call: FUN(XX[[<ind>]], ...) */
-
-    /* Notice that it is OK to have one arg to LCONS do memory
-       allocation and not PROTECT the result (LCONS does memory
-       protection of its args internally), but not both of them,
-       since the computation of one may destroy the other */
-    
-    SEXP ind = PROTECT(allocVector(realIndx ? REALSXP : INTSXP, 1));
-    SEXP tmp;
     /* The R level code has ensured that XX is a vector.
        If it is atomic we can speed things up slightly by
        using the evaluated version.
     */
-    if(isVectorAtomic(XX))
-	tmp = PROTECT(tmp = LCONS(R_Bracket2Symbol,
-				  LCONS(XX, LCONS(ind, R_NilValue))));
-    else
-	tmp = PROTECT(LCONS(R_Bracket2Symbol,
-			    LCONS(X, LCONS(ind, R_NilValue))));
-    SEXP R_fcall = PROTECT(LCONS(FUN,
-				 LCONS(tmp, LCONS(R_DotsSymbol, R_NilValue))));
+    {
+	SEXP ind, tmp;
+	/* Build call: FUN(XX[[<ind>]], ...) */
 
-    for(R_xlen_t i = 0; i < n; i++) {
-	if (realIndx) REAL(ind)[0] = (double)(i + 1);
-	else INTEGER(ind)[0] = (int)(i + 1);
-	tmp = eval(R_fcall, rho);
-	if (MAYBE_REFERENCED(tmp)) tmp = lazy_duplicate(tmp);
-	SET_VECTOR_ELT(ans, i, tmp);
+	/* Notice that it is OK to have one arg to LCONS do memory
+	   allocation and not PROTECT the result (LCONS does memory
+	   protection of its args internally), but not both of them,
+	   since the computation of one may destroy the other */
+
+	PROTECT(ind = allocVector(realIndx ? REALSXP : INTSXP, 1));
+	if(isVectorAtomic(XX))
+	    PROTECT(tmp = LCONS(R_Bracket2Symbol,
+				LCONS(XX, LCONS(ind, R_NilValue))));
+	else
+	    PROTECT(tmp = LCONS(R_Bracket2Symbol,
+				LCONS(X, LCONS(ind, R_NilValue))));
+	PROTECT(R_fcall = LCONS(FUN,
+				LCONS(tmp, LCONS(R_DotsSymbol, R_NilValue))));
+
+	for(i = 0; i < n; i++) {
+	    if (realIndx) REAL(ind)[0] = (double)(i + 1);
+	    else INTEGER(ind)[0] = (int)(i + 1);
+	    tmp = eval(R_fcall, rho);
+	    if (NAMED(tmp))
+		tmp = duplicate(tmp);
+	    SET_VECTOR_ELT(ans, i, tmp);
+	}
+	UNPROTECT(3);
     }
 
-    UNPROTECT(6);
+    UNPROTECT(3); /* X, XX, ans */
     return ans;
 }
 
@@ -155,8 +158,8 @@ SEXP attribute_hidden do_vapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    if (realIndx) REAL(ind)[0] = (double)(i + 1);
 	    else INTEGER(ind)[0] = (int)(i + 1);
 	    val = eval(R_fcall, rho);
-	    if (MAYBE_REFERENCED(val))
-		val = lazy_duplicate(val);
+	    if (NAMED(val))
+		val = duplicate(val);
 	    PROTECT_WITH_INDEX(val, &indx);
 	    if (length(val) != commonLen)
 	    	error(_("values must be length %d,\n but FUN(X[[%d]]) result is length %d"),
@@ -273,12 +276,12 @@ static SEXP do_one(SEXP X, SEXP FUN, SEXP classes, SEXP deflt,
 	/* PROTECT(R_fcall = lang2(FUN, X)); */
 	PROTECT(R_fcall = lang3(FUN, X, R_DotsSymbol));
 	ans = eval(R_fcall, rho);
-	if (MAYBE_REFERENCED(ans))
-	    ans = lazy_duplicate(ans);
+	if (NAMED(ans))
+	    ans = duplicate(ans);
 	UNPROTECT(1);
 	return(ans);
-    } else if(replace) return lazy_duplicate(X);
-    else return lazy_duplicate(deflt);
+    } else if(replace) return duplicate(X);
+    else return duplicate(deflt);
 }
 
 SEXP attribute_hidden do_rapply(SEXP call, SEXP op, SEXP args, SEXP rho)

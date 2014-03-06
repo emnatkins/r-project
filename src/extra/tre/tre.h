@@ -137,19 +137,20 @@ extern int
 tre_regexec(const regex_t *preg, const char *string, size_t nmatch,
 	    regmatch_t pmatch[], int eflags);
 
-extern int
-tre_regcompb(regex_t *preg, const char *regex, int cflags);
-
-extern int
-tre_regexecb(const regex_t *preg, const char *string, size_t nmatch,
-	     regmatch_t pmatch[], int eflags);
-
 extern size_t
 tre_regerror(int errcode, const regex_t *preg, char *errbuf,
 	     size_t errbuf_size);
 
 extern void
 tre_regfree(regex_t *preg);
+
+/* R additions */
+extern int
+tre_regcompb(regex_t *preg, const char *regex, int cflags);
+
+extern int
+tre_regexecb(const regex_t *preg, const char *string, size_t nmatch,
+	     regmatch_t pmatch[], int eflags);
 
 #ifdef TRE_WCHAR
 #ifdef HAVE_WCHAR_H
@@ -222,10 +223,7 @@ extern int
 tre_regaexec(const regex_t *preg, const char *string,
 	     regamatch_t *match, regaparams_t params, int eflags);
 
-extern int
-tre_reganexec(const regex_t *preg, const char *string, size_t len,
-	      regamatch_t *match, regaparams_t params, int eflags);
-
+/* R addition */
 extern int
 tre_regaexecb(const regex_t *preg, const char *string,
 	      regamatch_t *match, regaparams_t params, int eflags);
@@ -281,7 +279,8 @@ enum {
   TRE_CONFIG_WCHAR,
   TRE_CONFIG_MULTIBYTE,
   TRE_CONFIG_SYSTEM_ABI,
-  TRE_CONFIG_VERSION
+  TRE_CONFIG_VERSION,
+  TRE_MB_CUR_MAX_VALUE  /* [i_a] - derived from MULTIBYTE and WCHAR, but still handy to have: no need to copy logic in TRE header files, etc. in order to know this */
 };
 
 /* Returns 1 if the compiled pattern has back references, 0 if not. */

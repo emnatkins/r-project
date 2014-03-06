@@ -65,7 +65,6 @@
       \item
       \code{exp}, \code{log},  \code{expm1}, \code{log1p},\cr
       \code{cos}, \code{sin}, \code{tan},\cr
-      \code{cospi}, \code{sinpi}, \code{tanpi},\cr
       \code{acos}, \code{asin}, \code{atan}
 
       \code{cosh}, \code{sinh}, \code{tanh},\cr

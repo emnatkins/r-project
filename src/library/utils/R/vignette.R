@@ -23,30 +23,36 @@ vignette <-
     
     if(!missing(topic)) {
         topic <- topic[1L]               # Just making sure ...
-        vinfo <- vinfo[vinfo[, "Topic"] == topic, , drop = FALSE]
+        vinfo <- vinfo[vinfo[, "Topic"] == topic,,drop=FALSE]
         if(length(vinfo)) {
-            pos <- which(file_test("-f",
-                                   file.path(vinfo[, "Dir"], "doc",
-                                             vinfo[, "PDF"])))
-            if(!length(pos)) {
-                z <- as.list(vinfo[1L, ])
-                z$PDF <- ""
-            } else {
-                if(length(pos) > 1L) {
+
+            pdf <- vinfo[, "PDF"]
+            pidx <- file_test("-f", file.path(vinfo[, "Dir"], "doc", vinfo[, "PDF"]))
+
+            if(any(pidx)){
+                idx <- min(which(pidx))
+                if(sum(pidx)>1){
                     ## <FIXME>
                     ## Should really offer a menu to select from.
-                    pos <- pos[1L]
                     warning(gettextf("vignette %s found more than once,\nusing the one found in %s",
-                                     sQuote(topic),
-                                     sQuote(file.path(vinfo[pos, "Dir"],
-                                                      "doc"))),
+                                     sQuote(topic), sQuote(dirname(pdf[idx]))),
                             call. = FALSE, domain = NA)
                     ## </FIXME>
                 }
-                z <- as.list(vinfo[pos, ])
+		vinfo <- vinfo[idx,,drop=FALSE]
+		Dir <- vinfo[, "Dir"]
+		File <- vinfo[, "File"]
+		PDF <- vinfo[, "PDF"]
+                z <- list(file=file.path(Dir, "doc", File),
+                          pdf=file.path(Dir, "doc", PDF))
             }
-            if(!file_test("-f", file.path(z$Dir, "doc", z$R)))
-                z$R <- ""
+            else{
+		Dir <- vinfo[1, "Dir"]
+		File <- vinfo[1, "File"]
+                z <- list(file=file.path(Dir, "doc", File),
+                          pdf=character(0L))
+            }
+            z$topic <- topic
             class(z) <- "vignette"
             return(z)
         }
@@ -61,11 +67,8 @@ vignette <-
         title <- if(nrow(vinfo)) {
             paste(vinfo[, "Title"],
                   paste0(rep.int("(source", nrow(vinfo)),
-                        ifelse(vinfo[, "PDF"] != "",
-                               paste0(", ",
-                                      tools::file_ext(vinfo[, "PDF"])),
-                               ""),
-                         ")"))
+                        ifelse(vinfo[, "PDF"] != "", paste0(", ", tools::file_ext(vinfo[, "PDF"])), ""),
+                        ")"))
         }
         else
             character()
@@ -87,46 +90,35 @@ vignette <-
     }
 }
 
-print.vignette <-
-function(x, ...)
-{
-    if(nzchar(out <- x$PDF)) {
-        ext <- tools::file_ext(out)
-        out <- file.path(x$Dir, "doc", out)
-        if(tolower(ext) == "pdf") {
+print.vignette <- function(x, ...){
+
+    if(length(x$pdf)){
+        ## <FIXME>
+        ## Should really abstract this into a BioC style
+        ## openPDF() along the lines of browseURL() ...
+        ext <- tools::file_ext(x$pdf)
+        if (tolower(ext) == "pdf") {
             pdfviewer <- getOption("pdfviewer")
             if(identical(pdfviewer, "false")) {
-            }
-            else if(.Platform$OS.type == "windows" &&
-                    identical(pdfviewer,
-                              file.path(R.home("bin"), "open.exe")))
-            	shell.exec(out)
-            else system2(pdfviewer, shQuote(out), wait = FALSE)
+            } else if(.Platform$OS.type == "windows" &&
+                      identical(pdfviewer, file.path(R.home("bin"), "open.exe")))
+            	shell.exec(x$pdf)
+            else system2(pdfviewer, shQuote(x$pdf), wait = FALSE)
+        ## </FIXME>         
         } else 
-            browseURL(out)
+             browseURL(x$pdf)
+
     } else {
-        warning(gettextf("vignette %s has no PDF/HTML",
-                         sQuote(x$Topic)),
+        warning(gettextf("vignette %s has no PDF/HTML", sQuote(x$topic)),
                 call. = FALSE, domain = NA)
     }
-    
     invisible(x)
 }
 
-edit.vignette <-
-function(name, ...)
+edit.vignette <- function(name, ...)
 {
-    if(nzchar(p <- name$R)) {
-        f <- tempfile(name$Topic, fileext = ".R")
-        file.copy(file.path(name$Dir, "doc", p), f)
-        file.edit(file = f, ...)
-    } else {
-        ## Could try to extract the R code from the source via tangle,
-        ## using
-        ##   tools::buildVignette(tangle = TRUE, weave = FALSE)
-        ## but why should this not have been done at install time?
-        warning(gettextf("vignette %s has no R code",
-                         sQuote(name$Topic)),
-                call. = FALSE, domain = NA)
-    }
+
+    f <- tempfile(name$topic, fileext=".R")
+    Stangle(name$file, output=f, quiet=TRUE)
+    file.edit(file=f, ...)
 }

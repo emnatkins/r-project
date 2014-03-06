@@ -1,6 +1,6 @@
 % File src/library/base/man/pushBack.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2014 R Core Team
+% Copyright 1995-2012 R Core Team
 % Distributed under GPL 2 or later
 
 \name{pushBack}
@@ -13,8 +13,7 @@
   how many lines are currently pushed back.
 }
 \usage{
-pushBack(data, connection, newLine = TRUE,
-         encoding = c("", "bytes", "UTF-8"))
+pushBack(data, connection, newLine = TRUE)
 pushBackLength(connection)
 clearPushBack(connection)
 }
@@ -23,7 +22,6 @@ clearPushBack(connection)
   \item{connection}{A \link{connection}.}
   \item{newLine}{logical.  If true, a newline is appended to each string
     pushed back.}
-  \item{encoding}{character.  See details.}
 }
 \details{
   Several character strings can be pushed back on one or more occasions.
@@ -42,10 +40,8 @@ clearPushBack(connection)
 
   When character strings with a marked encoding (see
   \code{\link{Encoding}}) are pushed back they are converted to the
-  current encoding if \code{encoding = ""}.  This may involve
-  representing characters as \samp{<U+xxxx>} if they cannot be
-  converted.  They will be converted to UTF-8 if \code{encoding =
-  "UTF-8"} or left as-is if \code{encoding = "bytes"}.
+  current encoding.  This may involve representing characters as
+  \samp{<U+xxxx>} if they cannot be converted.
 }
 \value{
   \code{pushBack} and \code{clearPushBack()} return nothing, invisibly.

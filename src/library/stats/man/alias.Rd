@@ -3,8 +3,6 @@
 % Copyright 1995-2013 R Core Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{alias}
 \title{Find Aliases (Dependencies) in a Model}
 \usage{
@@ -45,7 +43,7 @@ alias(object, \dots)
   correlations induced by the design.
   
   Some parts of the \code{"lm"} method require recommended package
-  \CRANpkg{MASS} to be installed. 
+  \pkg{MASS} to be installed. 
 }
 \value{
   A list (of \code{\link{class}} \code{"listof"}) containing components

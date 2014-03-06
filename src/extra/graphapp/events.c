@@ -24,7 +24,6 @@
 */
 
 /* Copyright (C) 2004, 2009	The R Foundation
-   Copyright (C) 2013		The R Core Team
 
    Changes for R, Chris Jackson, 2004
    Handle find-and-replace modeless dialogs
@@ -32,7 +31,6 @@
    Handle WM_CONTEXTMENU events for right-clicking on a (rich) edit control
    Handle mouse wheel scrolling
    Remove assumption that current->dest is non-NULL
-   Add waitevent() function
  */
 
 #include "internal.h"
@@ -1097,15 +1095,6 @@ int peekevent(void)
 {
     return PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE);
 }
-
-/*
- *  Wait for the next message
- */
-void waitevent(void)
-{
-    if (!peekevent()) WaitMessage();
-}
-
 
 /*
  *  Handle one event.

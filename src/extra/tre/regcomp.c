@@ -99,6 +99,7 @@ tre_regncomp(regex_t *preg, const char *regex, size_t n, int cflags)
   return ret;
 }
 
+
 /* this version takes bytes literally, to be used with raw vectors */
 int
 tre_regncompb(regex_t *preg, const char *regex, size_t n, int cflags)
@@ -130,6 +131,7 @@ tre_regcomp(regex_t *preg, const char *regex, int cflags)
   return tre_regncomp(preg, regex, regex ? strlen(regex) : 0, cflags);
 }
 
+/* R addition */
 int
 tre_regcompb(regex_t *preg, const char *regex, int cflags)
 {

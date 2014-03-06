@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-02-27 17:14\n"
+"POT-Creation-Date: 2013-06-21 09:14\n"
 "PO-Revision-Date: 2013-03-19 22:02+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -73,8 +73,8 @@ msgstr ""
 msgid "Warning: unknown option %s"
 msgstr "Avis : option inconnue %s"
 
-msgid "Output file:"
-msgstr ""
+msgid "Created PDF document %s"
+msgstr "Document PDF %s créé"
 
 msgid "Compacting PDF document"
 msgstr "Document PDF compacté"
@@ -150,12 +150,6 @@ msgstr "'file' doit être NULL, une chaîne de caractères ou une connexion"
 msgid "bad argument"
 msgstr "argument incorrect"
 
-msgid "'full.names' must be TRUE for multiple paths."
-msgstr ""
-
-msgid "Timestamp file no longer exists."
-msgstr ""
-
 msgid ""
 "Not all arguments are of the same length, the following need to be recycled: "
 "%s"
@@ -204,6 +198,9 @@ msgstr ""
 
 msgid "package %s not found"
 msgstr "package %s introuvable"
+
+msgid "broken installation, no CITATION file in the base package."
+msgstr "installation incomplète, pas de fichier CITATION dans le package base"
 
 msgid "no date field in DESCRIPTION file of package %s"
 msgstr "pas de champ date dans le fichier DESCRIPTION du package %s"
@@ -286,9 +283,6 @@ msgstr "'dump'  n'est pas un objet de la classe %s"
 
 msgid "Message:"
 msgstr "Message :"
-
-msgid "'dump' is empty"
-msgstr ""
 
 msgid "Available environments had calls:"
 msgstr "Les environnements disponibles avaient les appels suivants :"
@@ -742,9 +736,8 @@ msgstr "foundpkgs : %s"
 msgid "files: %s"
 msgstr "fichiers : %s"
 
-#, fuzzy
 msgid ""
-"installation of one or more packages failed,\n"
+"installation of one of more packages failed,\n"
 "  probably %s"
 msgstr ""
 "l'installation de un package ou plus a échoué,\n"
@@ -917,10 +910,6 @@ msgstr ""
 msgid "cannot coerce 'x' to roman"
 msgstr "impossible de convertir 'x' en roman"
 
-#, fuzzy
-msgid "Could not create file %s, aborting"
-msgstr "impossible de restaurer l'information de type"
-
 msgid "no valid packages were specified"
 msgstr "aucun package valide n'a été spécifié"
 
@@ -1010,12 +999,6 @@ msgstr ""
 msgid "file size is limited to 8GB"
 msgstr "la taille du fichier est limitée à 8GB"
 
-msgid "invalid uid value replaced by that for user 'nobody'"
-msgstr ""
-
-msgid "invalid gid value replaced by that for user 'nobody'"
-msgstr ""
-
 msgid ""
 "vignette %s found more than once,\n"
 "using the one found in %s"
@@ -1029,10 +1012,6 @@ msgstr "vignette %s introuvable"
 #, fuzzy
 msgid "vignette %s has no PDF/HTML"
 msgstr "la vignette %s n'a pas de PDF"
-
-#, fuzzy
-msgid "vignette %s has no R code"
-msgstr "vignette %s introuvable"
 
 msgid "select.list() cannot be used non-interactively"
 msgstr "select.list() ne peut pas être utilisé en mode non-interactif"
@@ -1098,9 +1077,6 @@ msgstr "'ccaddress' doit être de longueur 1"
 
 msgid "no download method found"
 msgstr "impossible de trouver une méthode de téléchargement"
-
-msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-msgstr ""
 
 msgid "download had nonzero exit status"
 msgstr "le téléchargement a a eu un statut de sortie non nul"
@@ -1321,13 +1297,6 @@ msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "le package %s est en cours d'utilisation et ne sera pas installé"
 msgstr[1] ""
 "les packages %s sont en cours d'utilisation et ne seront pas installés"
-
-#~ msgid "broken installation, no CITATION file in the base package."
-#~ msgstr ""
-#~ "installation incomplète, pas de fichier CITATION dans le package base"
-
-#~ msgid "Created PDF document %s"
-#~ msgstr "Document PDF %s créé"
 
 #~ msgid "file path is too long"
 #~ msgstr "le chemin d'accès au fichier est trop long"

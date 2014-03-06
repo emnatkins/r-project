@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2013-07-20 09:37\n"
+"POT-Creation-Date: 2013-03-20 07:11\n"
 "PO-Revision-Date: 2013-02-28 05:46+0200 \n"
 "Last-Translator: Triad sou <triadsou@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -411,8 +411,7 @@ msgstr " 'locations' の行数と 'x' は等しくなければなりません "
 msgid "length of 'angles' must equal 'ncol(x)'"
 msgstr " 'angles' の長さは 'ncol(x)' と同じでなければなりません "
 
-#, fuzzy
-msgid "no finite and non-missing values"
+msgid "no non-missing values"
 msgstr " 全て欠損値です "
 
 msgid "'scale' must be positive"
