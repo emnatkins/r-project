@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-03-27 09:11\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2014-03-26 23:11-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -44,6 +44,9 @@ msgstr "알 수 없는 chunk %s를 참조합니다"
 
 msgid "no Sweave file with name %s found"
 msgstr "%s이라는 이름을 가진 Sweave 파일이 없습니다"
+
+msgid "%d Sweave files for basename %s found"
+msgstr "basename %2$s에 대한 %1$d Sweave 파일들을 찾았습니다"
 
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
@@ -1141,11 +1144,6 @@ msgstr "winDialog()는 인터랙티브하게 사용되어져야 합니다"
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString()는 인터랙티브하게 사용되어져야 합니다"
-
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "basename %2$s에 대한 %1$d Sweave 파일들을 찾았습니다"
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"

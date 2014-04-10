@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-03-27 18:29\n"
+"POT-Creation-Date: 2014-02-13 14:10\n"
 "PO-Revision-Date: 2014-03-27 08:58-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -322,14 +322,16 @@ msgid "invalid list argument: all variables should have the same length"
 msgstr ""
 "유효하지 않은 리스트 인자입니다:  모든 변수들이 같은 길이를 가지고 있습니다"
 
+msgid "data frame with 0 columns and %d rows"
+msgstr "행의 개수가 %d이고 열의 개수가 0인 데이터 프레임입니다"
+
 msgid "<0 rows> (or 0-length row.names)"
 msgstr "<0 행> <또는 row.names의 길이가 0입니다>"
 
 msgid "non-numeric variable in data frame:"
 msgstr "데이터 프레임에 수치형이 아닌 변수가 있습니다"
 
-#, fuzzy
-msgid "%s only defined for equally-sized data frames"
+msgid "only defined for equally-sized data frames"
 msgstr "동일한 사이즈의 데이터 프레임들에 대해서만 정의되어집니다"
 
 msgid "list of length %d not meaningful"
@@ -551,9 +553,8 @@ msgstr ""
 msgid "number of levels differs"
 msgstr "레벨의 개수가 다릅니다"
 
-#, fuzzy
-msgid "%s not meaningful for factors"
-msgstr "순서형 요인들에 정의되지 않은 '%s'입니다"
+msgid "not meaningful for factors"
+msgstr ""
 
 msgid "level sets of factors are different"
 msgstr ""
@@ -962,9 +963,6 @@ msgstr ""
 
 msgid "'by.x' and 'by.y' specify different numbers of columns"
 msgstr "'by.x'와 'by.y'는 열의 개수를 다르게 지정해야 합니다"
-
-msgid "'incomparables' is supported only for merging on a single column"
-msgstr ""
 
 msgid "additional arguments ignored in message()"
 msgstr "message()내에서 무시된 추가적인 인자들입니다"
@@ -1594,31 +1592,6 @@ msgstr[0] ""
 
 msgid "provided %d variable to replace %d variables"
 msgid_plural "provided %d variables to replace %d variables"
-msgstr[0] ""
-
-#, fuzzy
-msgid "data frame with 0 columns and %d row"
-msgid_plural "data frame with 0 columns and %d rows"
-msgstr[0] "행의 개수가 %d이고 열의 개수가 0인 데이터 프레임입니다"
-
-msgid ""
-"The following object is masked _by_ %s:\n"
-"\n"
-"%s\n"
-msgid_plural ""
-"The following objects are masked _by_ %s:\n"
-"\n"
-"%s\n"
-msgstr[0] ""
-
-msgid ""
-"The following object is masked from %s:\n"
-"\n"
-"%s\n"
-msgid_plural ""
-"The following objects are masked from %s:\n"
-"\n"
-"%s\n"
 msgstr[0] ""
 
 msgid "library %s contains no packages"

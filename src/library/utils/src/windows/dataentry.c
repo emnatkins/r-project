@@ -279,7 +279,7 @@ SEXP Win_dataentry(SEXP args)
 
     /* start up the window, more initializing in here */
     if (initwin(DE, G_("Data Editor")))
-	error("unable to start data editor");
+	error(G_("invalid device"));
     R_de_up = TRUE;
 
     /* set up a context which will close the window if there is an error */
@@ -1888,7 +1888,7 @@ SEXP Win_dataviewer(SEXP args)
 
     /* start up the window, more initializing in here */
     if (initwin(DE, CHAR(STRING_ELT(stitle, 0))))
-	error("unable to start data viewer");
+	error(G_("invalid device"));
 
     /* set up a context which will close the window if there is an error */
     begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,

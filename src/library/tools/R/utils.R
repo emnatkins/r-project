@@ -525,8 +525,7 @@ function(val) {
     if (v %in% c("1", "yes", "true")) TRUE
     else if (v %in% c("0", "no", "false")) FALSE
     else {
-        warning(gettextf("cannot coerce %s to logical", sQuote(val)),
-                domain = NA)
+        warning("cannot coerce ", sQuote(val), " to logical")
         NA
     }
 }

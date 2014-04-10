@@ -7,43 +7,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{anyNA()} gains a \code{recursive} argument.
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{dbinom(x,n)}, \code{pbinom()}, \code{dpois()}, etc,
-      are slightly less restrictive in checking if \code{n} is integer
-      valued. (Wish of \PR{15734}.)
-
-      \item \code{pchisq(x, df, ncp, log.p=TRUE)} is more accurate and
-      no longer underflows for small x and ncp < 80, e.g, for
-      \code{pchisq(1e-5, df=100, ncp=1, log=TRUE)}. Based on \PR{15635}
-      and a suggestion by Roby Joehanes.  
-
-      \item When \code{attach()} notices conflicts, it does so
-      compatibly with \code{library()}, emitting a \code{message()}.
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.1.0 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \command{configure} option \option{--with-internal-tzcode}
-      can now be used with variable \code{rsharedir}.
-      
-      \item \code{tools::buildVignette()} and \code{tools::buildVignettes()}
-      with \code{clean = FALSE} no longer remove any created files.
-      This is used in the new \command{--no-clean} option to
-      \command{R CMD Sweave}.
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.1.0}{
   \subsection{NEW FEATURES}{
     \itemize{
