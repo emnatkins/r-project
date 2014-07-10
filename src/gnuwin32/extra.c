@@ -134,6 +134,7 @@ int check_doc_file(const char * file)
 }
 
 #include "Startup.h"
+extern UImode CharacterMode;
 
 void Rwin_fpset(void)
 {
@@ -555,7 +556,9 @@ SEXP in_shortpath(SEXP paths)
 }
     
 #include "devWindows.h"
+#include <Startup.h>
 #include <R_ext/GraphicsEngine.h> /* GEgetDevice */
+extern UImode CharacterMode;
 
 /* grDevices::bringToTop */
 SEXP bringtotop(SEXP sdev, SEXP sstay)

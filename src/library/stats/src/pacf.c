@@ -21,6 +21,10 @@
 # include <config.h>
 #endif
 
+#if !defined(atanh) && defined(HAVE_DECL_ATANH) && !HAVE_DECL_ATANH
+extern double atanh(double x);
+#endif
+
 /* do this first to get the right options for math.h */
 #include <R_ext/Arith.h>
 
@@ -355,9 +359,10 @@ static void dotrans(Starma G, double *raw, double *new, int trans)
     }
 }
 
-#if !defined(atanh) && defined(HAVE_DECL_ATANH) && !HAVE_DECL_ATANH
-extern double atanh(double x);
+#ifdef _WIN32
+extern double atanh(double);
 #endif
+
 static void invpartrans(int p, double *phi, double *new)
 {
     int j, k;

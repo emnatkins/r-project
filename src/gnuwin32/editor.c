@@ -31,6 +31,7 @@
 #include <Fileio.h>
 #include <stdio.h>
 #include <Startup.h>
+extern UImode  CharacterMode;
 #include "graphapp/ga.h"
 #include "graphapp/graphapp.h"
 #include "graphapp/stdimg.h"

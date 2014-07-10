@@ -2278,8 +2278,7 @@ SEXP attribute_hidden do_saveToConn(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (ascii) {
 	magic = "RDA2\n";
-	type = (ascii == NA_LOGICAL) ?
-	    R_pstream_asciihex_format : R_pstream_ascii_format;
+	type = R_pstream_ascii_format;
     }
     else {
 	if (con->text)
@@ -2323,6 +2322,9 @@ SEXP attribute_hidden do_saveToConn(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 /* Read and checks the magic number, open the connection if needed */
+
+extern int R_ReadItemDepth;
+extern int R_InitReadItemDepth;
 
 SEXP attribute_hidden do_loadFromConn2(SEXP call, SEXP op, SEXP args, SEXP env)
 {

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-03-27 09:11\n"
+"POT-Creation-Date: 2014-01-26 09:09\n"
 "PO-Revision-Date: 2014-03-17 11:53+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -621,9 +621,11 @@ msgstr ""
 "le nom de fichier '%s' pour la vignette ne correspond pas au pattern de nom "
 "de fichier '%s'"
 
-#, fuzzy
-msgid "Inconsistent encoding specifications: %s with %%\\SweaveUTF8"
+msgid "Inconsistent encoding specifications:"
 msgstr "Spécifications d'encodage incohérentes :"
+
+msgid "with %\\SweaveUTF8"
+msgstr "avec %\\SweaveUTF8"
 
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr "Dans '%s' les vignettes '%s' et '%s' ont le même nom de vignette"
@@ -1141,6 +1143,9 @@ msgstr "%s est trouvé, sans doute depuis %s"
 msgid "testing '%s' failed"
 msgstr "le test '%s' a échoué"
 
+msgid "%d of the package tests failed"
+msgstr "%d des tests du package ont échoué"
+
 msgid "Testing examples for package %s"
 msgstr "Vérification des exemples du package %s"
 
@@ -1212,9 +1217,11 @@ msgstr "impossible d'exécuter '%s' sur '%s'"
 msgid "unable to run %s on '%s'"
 msgstr "impossible d'exécuter %s sur '%s'"
 
-#, fuzzy
-msgid "cannot coerce %s to logical"
+msgid "cannot coerce"
 msgstr "impossible de transformer"
+
+msgid "to logical"
+msgstr "en valeur logique"
 
 msgid "File 'DESCRIPTION' is missing."
 msgstr "Le fichier 'DESCRIPTION' est manquant."
@@ -1405,18 +1412,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "l'objet %s est créé par plus d'un appel aux données"
 msgstr[1] "les objets %s sont créés par plus d'un appel aux données"
-
-#, fuzzy
-msgid "%d of the package tests failed"
-msgid_plural "%d of the package tests failed"
-msgstr[0] "%d des tests du package ont échoué"
-msgstr[1] "%d des tests du package ont échoué"
-
-#~ msgid "with %\\SweaveUTF8"
-#~ msgstr "avec %\\SweaveUTF8"
-
-#~ msgid "to logical"
-#~ msgstr "en valeur logique"
 
 #~ msgid "Vignette product"
 #~ msgstr "Vignette produit"

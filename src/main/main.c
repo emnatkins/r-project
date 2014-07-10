@@ -410,7 +410,6 @@ static RETSIGTYPE handleInterrupt(int dummy)
  */
 
 #ifndef Win32
-// controlled by the internal http server in the internet module
 int R_ignore_SIGPIPE = 0;
 
 static RETSIGTYPE handlePipe(int dummy)
@@ -671,6 +670,8 @@ static void R_LoadProfile(FILE *fparg, SEXP env)
 
 
 int R_SignalHandlers = 1;  /* Exposed in R_interface.h */
+
+unsigned int TimeToSeed(void); // times.c
 
 const char* get_workspace_name();  /* from startup.c */
 

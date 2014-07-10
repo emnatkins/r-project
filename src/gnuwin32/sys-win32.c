@@ -34,6 +34,7 @@
 #include <ctype.h> /* for isalpha */
 
 extern Rboolean LoadInitFile;
+extern UImode  CharacterMode;
 
 /*
  *  4) INITIALIZATION AND TERMINATION ACTIONS

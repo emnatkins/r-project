@@ -2889,14 +2889,3 @@ function( a   # parameter 1
 p <- parse(text = raw)
 getParseData(p)
 ## Got some parents wrong
-
-
-## wish of PR#15819
-set.seed(123); x <- runif(10); y <- rnorm(10)
-op <- options(OutDec = ",")
-fit <- lm(y ~ x)
-summary(fit)
-options(op)
-## those parts using formatC still used a decimal point.
-
-

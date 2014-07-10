@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-06-17 08:36\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2014-03-26 23:11-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -45,6 +45,9 @@ msgstr "알 수 없는 chunk %s를 참조합니다"
 msgid "no Sweave file with name %s found"
 msgstr "%s이라는 이름을 가진 Sweave 파일이 없습니다"
 
+msgid "%d Sweave files for basename %s found"
+msgstr "basename %2$s에 대한 %1$d Sweave 파일들을 찾았습니다"
+
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
 "한개이상의 구문지정 (syntax specification)이 있었기 때문에 첫번째 것을 사용합"
@@ -69,10 +72,6 @@ msgstr ""
 "구문분석 에러 또는 다음에 empty option입니다\n"
 "%s"
 
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "경고: 알수없는 옵션 %s입니다"
-
 msgid "Warning: unknown option %s"
 msgstr "경고: 알수없는 옵션 %s입니다"
 
@@ -87,12 +86,6 @@ msgstr "%s로의 파일경로에 공백들이 있습니다,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "이것은 LaTeX를 실행할때 문제를 야기할 수 있습니다"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ""
 
 msgid "the output file '%s' has disappeared"
 msgstr "출력결과를 포함한 파일 '%s'가 사라졌습니다"
@@ -349,6 +342,9 @@ msgstr "%s에 대한 도움말을 찾을 수 없습니다"
 
 msgid "%s has a help file but no examples"
 msgstr "%s에 대한 도움말이 있지만 예제는 없습니다"
+
+msgid "test '%s' is not available"
+msgstr "테스트 '%s'는 사용할 수 없습니다"
 
 msgid "Line number missing"
 msgstr "라인넘버가 없습니다"
@@ -676,12 +672,8 @@ msgstr "패키지들을 설치할 수 없습니다"
 msgid "unable to create %s"
 msgstr "%s를 생성할 수 없습니다"
 
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "파일이름으로부터 'repos = NULL'임을 알 수 있습니다"
-
-msgid "unable to create temporary directory %s"
-msgstr "임시 디렉토리 %s를 생성할 수 없습니다"
 
 msgid ""
 "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
@@ -725,6 +717,9 @@ msgstr "시스템 (cmd0): %s"
 
 msgid "installation of package %s had non-zero exit status"
 msgstr "패키지 %s의 설치가 0이 아닌 종료상태를 가졌습니다"
+
+msgid "unable to create temporary directory %s"
+msgstr "임시 디렉토리 %s를 생성할 수 없습니다"
 
 msgid "foundpkgs: %s"
 msgstr "발견된 패키지들: %s"
@@ -1150,11 +1145,6 @@ msgstr "winDialog()는 인터랙티브하게 사용되어져야 합니다"
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString()는 인터랙티브하게 사용되어져야 합니다"
 
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "basename %2$s에 대한 %1$d Sweave 파일들을 찾았습니다"
-
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
 msgstr[0] "%d는 %s내에서 발생하였습니다"
@@ -1265,9 +1255,6 @@ msgstr[0] ""
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "패키지 %s가 사용중이므로 설치되지 않을 것입니다"
-
-#~ msgid "test '%s' is not available"
-#~ msgstr "테스트 '%s'는 사용할 수 없습니다"
 
 #~ msgid "broken installation, no CITATION file in the base package."
 #~ msgstr "설치시 문제로 인하여 base 패키지 내에 CITATION 파일이 없습니다."

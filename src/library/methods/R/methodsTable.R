@@ -468,7 +468,8 @@
     ## signature, with "missing" for missing args
     if(!is.environment(table)) {
         if(is(fdef, "standardGeneric"))
-          stop(gettextf("invalid or unset methods table in generic function %s", sQuote(fdef@generic)), damain = NA)
+          stop("invalid or unset methods table in generic function \"",
+               fdef@generic,"\"", damain = NA)
         else
           stop("trying to find a methods table in a non-generic function")
     }
@@ -814,7 +815,6 @@
 	cli <- defClasses[i,]
 	dist <- dist + ihi[match(cli, names(ihi))]
     }
-    ## These should be integers, so we do not need to worry about a decimal point
     if(verbose) cat("** final methods' distances: (",
 		    paste(formatC(dist), collapse= ", "), ")\n", sep='')
     best <- dist == min(dist)

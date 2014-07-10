@@ -47,14 +47,8 @@ newPSOCKnode <- function(machine = "localhost", ...,
     rscript <- if (getClusterOption("homogeneous", options)) {
         shQuote(getClusterOption("rscript", options))
     } else "Rscript"
-    rscript_args <- getClusterOption("rscript_args", options)
 
-    ## in principle we should quote these,
-    ## but the current possible values do not need quoting
-    cmd <- if(length(rscript_args))
-        paste(rscript, paste(rscript_args, collapse = " "),
-              "-e", shQuote(arg), env)
-    else paste(rscript, "-e", shQuote(arg), env)
+    cmd <- paste(rscript, "-e", shQuote(arg), env)
 
     ## We do redirection of connections at R level once the process is
     ## running.  We could instead do it at C level here, at least on

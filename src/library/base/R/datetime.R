@@ -352,7 +352,7 @@ Summary.POSIXlt <- function (..., na.rm)
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
-    ## class(x) <- NULL
+    class(x) <- NULL
     val <- NextMethod("[")
     class(val) <- cl
     attr(val, "tzone") <- attr(x, "tzone")
@@ -363,7 +363,7 @@ function(x, ..., drop = TRUE)
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
-    ## class(x) <- NULL
+    class(x) <- NULL
     val <- NextMethod("[[")
     class(val) <- cl
     attr(val, "tzone") <- attr(x, "tzone")
@@ -397,7 +397,7 @@ as.list.POSIXct <- function(x, ...)
 }
 
 is.na.POSIXlt <- function(x) is.na(as.POSIXct(x))
-anyNA.POSIXlt <- function(x, recursive = FALSE) anyNA(as.POSIXct(x))
+anyNA.POSIXlt <- function(x) anyNA(as.POSIXct(x))
 
 ## <FIXME> check the argument validity
 ## This is documented to remove the timezone

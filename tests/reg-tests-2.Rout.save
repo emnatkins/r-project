@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2014-07-10 r66113) -- "Unsuffered Consequences"
+R version 3.1.1 RC (2014-07-04 r66081) -- "Sock it to Me"
 Copyright (C) 2014 The R Foundation for Statistical Computing
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -6403,15 +6403,15 @@ function ()
 > print.function
 function (x, ...)  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 19 1 63 19 63 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2d10530> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x469c238> 
 > f
 function ()  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 17 1 28 17 28 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2d1c258> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x4676000> 
  - attr(*, "note")= chr "just a note"
  - attr(*, "yada")=function ()  
   ..- attr(*, "srcref")=Class 'srcref'  atomic [1:8] 2 24 2 48 24 48 2 2
-  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2d1c258> 
+  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x4676000> 
 > rm(print.function)
 > ## auto-printing and printing differed up to R 2.9.x
 > 
@@ -7490,32 +7490,4 @@ $foo
 24    FALSE              
 23     TRUE             }
 > ## Got some parents wrong
-> 
-> 
-> ## wish of PR#15819
-> set.seed(123); x <- runif(10); y <- rnorm(10)
-> op <- options(OutDec = ",")
-> fit <- lm(y ~ x)
-> summary(fit)
-
-Call:
-lm(formula = y ~ x)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--1,62155 -0,33471  0,05238  0,55227  1,19742 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)
-(Intercept)   0,8994     0,6282   1,432    0,190
-x            -1,3275     0,9780  -1,357    0,212
-
-Residual standard error: 0,8648 on 8 degrees of freedom
-Multiple R-squared:  0,1872,	Adjusted R-squared:  0,08557 
-F-statistic: 1,842 on 1 and 8 DF,  p-value: 0,2117
-
-> options(op)
-> ## those parts using formatC still used a decimal point.
-> 
-> 
 > 

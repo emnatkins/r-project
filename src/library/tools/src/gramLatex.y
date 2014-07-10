@@ -69,7 +69,7 @@ typedef struct yyltype
 # define YYLTYPE yyltype
 # define YYLLOC_DEFAULT(Current, Rhs, N)				\
     do									\
-	if (N)								\
+      if (YYID (N))							\
 	{								\
 	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
 	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
@@ -87,7 +87,7 @@ typedef struct yyltype
 	  (Current).first_byte   = (Current).last_byte =		\
 	    YYRHSLOC (Rhs, 0).last_byte;				\
 	}								\
-    while (0)
+    while (YYID (0))
 
 /* Useful defines so editors don't get confused ... */
 

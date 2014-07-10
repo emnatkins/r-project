@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 3.2.0\n"
+"Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-06-17 08:36\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,6 +32,9 @@ msgstr ""
 msgid "no Sweave file with name %s found"
 msgstr ""
 
+msgid "%d Sweave files for basename %s found"
+msgstr ""
+
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
 
@@ -50,9 +53,6 @@ msgstr ""
 msgid "parse error or empty option in\n%s"
 msgstr ""
 
-msgid "Warning: unknown option '--clean='%s"
-msgstr ""
-
 msgid "Warning: unknown option %s"
 msgstr ""
 
@@ -66,12 +66,6 @@ msgid "path to %s contains spaces,"
 msgstr ""
 
 msgid "this may cause problems when running LaTeX"
-msgstr ""
-
-msgid "at"
-msgstr ""
-
-msgid ","
 msgstr ""
 
 msgid "the output file '%s' has disappeared"
@@ -300,6 +294,9 @@ msgid "no help found for %s"
 msgstr ""
 
 msgid "%s has a help file but no examples"
+msgstr ""
+
+msgid "test '%s' is not available"
 msgstr ""
 
 msgid "Line number missing"
@@ -593,10 +590,7 @@ msgstr ""
 msgid "unable to create %s"
 msgstr ""
 
-msgid "inferring 'repos = NULL' from 'pkgs'"
-msgstr ""
-
-msgid "unable to create temporary directory %s"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr ""
 
 msgid "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
@@ -630,6 +624,9 @@ msgid "system (cmd0): %s"
 msgstr ""
 
 msgid "installation of package %s had non-zero exit status"
+msgstr ""
+
+msgid "unable to create temporary directory %s"
 msgstr ""
 
 msgid "foundpkgs: %s"
@@ -1006,11 +1003,6 @@ msgstr ""
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr ""
-
-msgid        "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0]    ""
-msgstr[1]    ""
 
 msgid        "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"

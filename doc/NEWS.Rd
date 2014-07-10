@@ -1,192 +1,11 @@
 % -*- coding: utf-8 -*-
+\newcommand{\PR}{\Sexpr[results=rd]{tools:::Rd_expr_PR(#1)}}
 \newcommand{\Rlogo}{\if{html}{\figure{../../html/logo.jpg}}\if{latex}{\figure{logo.jpg}{options: width=0.5in}}}
+\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 
 \name{NEWS}
 \title{R News}
 \encoding{UTF-8}
-
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{anyNA()} gains a \code{recursive} argument.
-
-      \item When \code{x} is missing and \code{names} is not false
-      (including the default value), \code{Sys.getenv(x, names)} returns
-      an object of class \code{"Dlist"} and hence prints tidily.
-
-      \item (Windows.)  \code{shell()} no longer consults the
-      environment variable \env{SHELL}: too many systems have been
-      encountered where it was set incorrectly (usually to a path where
-      software was compiled, not where it was installed).
-      \env{R_SHELL}, the preferred way to select a non-default shell,
-      can be used instead.
-
-      \item \code{embedFonts()} now defaults to \code{format =
-      "ps2write"} for \file{.ps} and \file{.eps} files.  This is
-      available in Ghostscript 9.x (since 2010) whereas the previous
-      default, \code{format = "pswrite"}, was removed in 9.10.
-
-      \item Some unusual arguments to \code{embedFonts()} can now be
-      specified as character vectors, and the defaults have changed
-      accordingly.
-
-      \item Functions in the \code{Summary} group duplicate less.
-      (\PR{15798})
-
-      \item (Unix-alikes.) \code{system(cmd, input = )} now uses
-      \sQuote{shell-execution-environment} redirection, which will be
-      more natural if \code{cmd} is not a single command (but requires a
-      POSIX-compliant shell). (\PR{15508})
-
-      \item \code{read.fwf()} and \code{read.DIF()} gain a
-      \code{fileEncoding} argument, for convenience.
-
-      \item Graphics devices can add attributes to their description in
-      \code{.Device} and \code{.Devices}.  Several of those included with
-      \R use a \code{"filepath"} attribute.
-
-      \item \code{pmatch()} uses hashing in more cases and so is faster
-      at the expense of using more memory. (\PR{15697})
-
-      \item \code{pairs()} gains new arguments to select sets of
-      variables to be plotted against each other.
-
-      \item \code{file.info(, extra_cols = FALSE)} allows a minimal set
-      of columns to be computed: on some systems this can be
-      significantly faster with large file lists.
-
-      \item New function \code{dir.exists()} in \pkg{base} to test
-      efficiently whether one or more paths exist and are directories.
-
-      \item \code{dput()} and friends gain new controls
-      \samp{"hexNumeric"} and \samp{"digits17"} which output double and
-      complex quantities as, respectively, binary fractions (exactly,
-      see \code{sprintf("\%a")}) and as decimals with up to 17
-      significant digits.
-
-      \item \code{save()}, \code{saveRDS()} and \code{serialize()} now
-      support \code{ascii = NA} which writes ASCII files using the
-      \code{sprintf("\%a")}) for double/complex quantities.  This is
-      read-compatible with \code{ascii = TRUE} but avoids
-      binary->decimal->binary conversions with potential loss of
-      precision.  Unfortunately Windows' lack of C99 compliance means
-      that the format can be written but not read correctly there in \R
-      before 3.2.0.
-
-      \item The default for \code{formatC(decimal.mark =)} has been
-      changed to be \code{getOption("OutDec")}; this makes it more
-      consistent with \code{format()} and suitable for use in print
-      methods.
-
-      \item The print methods for classes \code{"density"},
-      \code{"ecdf"}, \code{"kmeans"}, \code{"stepfun"} and
-      \code{"summary.lm"} now consult \code{getOption("OutDec")} even
-      where \code{formatC()} or \code{sprintf()} is used.
-
-      Similarly when \code{cut()}, \code{dendrogram()}, \code{plot.ts()}
-      and \code{quantile()} construct labels, and for the report from
-      \code{legend(trace = TRUE)}.
-
-      (In part, wish of \PR{15819}.)
-
-      \item \code{printNum()} and hence \code{format()} and
-      \code{formatC()} give a warning if \code{big.mark} and
-      \code{decimal.mark} are set to the same value (period and comma
-      are not uncommonly used for each, and this is a check that
-      conventions have not got mixed).
-
-      \item \code{merge()} can create a result which uses long vectors
-      on 64-bit platforms.
-
-      \item \code{dget()} gains a new argument \code{keep.source} which
-      defaults to \code{FALSE} for speed (\code{dput()} and
-      \code{dget()} are most often used for data objects where this can
-      make \code{dget()} many times faster).
-
-      \item Packages may now use a file of common macro definitions in
-      their help files, and may import definitions from other packages.
-
-      \item A number of macros have been added in the new
-      \file{share/Rd} directory for use in package overview help pages,
-      and \code{promptPackage()} now makes use of them.
-
-      \item \code{capabilities()} now reports if ICU is used for collation.
-
-      % TODO: Port to 3.1.1 patched
-      \item For consistency with \code{[dpqr]norm()}, and \code{[qr]lnorm()},
-      \code{[dp]lnorm(sdlog = 0)} also model a point mass at \code{exp(mulog)}.
-
-      \item \code{prettyNum(x, zero.print = *)} now also works when
-      \code{x} contains \code{NA}s.
-      
-      \item \code{tools::parse_Rd()} gains a new \code{permissive}
-      argument which converts unrecognized macros into text.  This is
-      used by \code{utils:::format.bibentry} to allow LaTeX markup to be
-      ignored.
-  
-      \item \code{options(OutDec=)} can now specify a multi-byte
-      character, e.g. \code{options(OutDec = "\u00b7")} in a UTF-8 locale.
-    }
-  }
-
-  \subsection{INSTALLATION and INCLUDED SOFTWARE}{
-    \itemize{
-      \item When building \R as a shared library, the
-      \option{-L${R_HOME}/lib${R_ARCH}} flag is placed earlier in the
-      link commands used during installation and when packages are
-      installed: this helps ensure that the current build has priority if
-      an \R shared library has already been installed by e.g.
-      \command{install-libR} in a library mentioned in \env{LDFLAGS}
-      (and not in \sQuote{your system's library directory} as
-      documented). (Wish of \PR{15790}.)
-
-      \item LaTeX package \pkg{upquote} is no longer required for \R's
-      use of \pkg{inconsolata}.
-
-      \item The \code{\\donttest} sections of \R's help files can be
-      tested by\cr
-      \command{make check TEST_DONTTEST=TRUE}.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item There is some support for testing the \code{\\dontrun} and
-      \code{\\donttest} parts of examples in packages.
-
-      \code{tools::testInstalledPackage()} accepts new arguments
-      \code{commentDontrun = FALSE} and \code{commentDonttest = FALSE}.
-
-      \command{R CMD check} gains \option{--run-dontrun} and
-      \option{--run-donttest} options.
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item New C API utility \code{logspace_sum(logx[], n)}.
-
-      \item Entry points \code{rbinom_mu}, \code{rnbinom_mu} and
-      \code{rmultinom} are remapped (by default).  This requires
-      packages using them to be re-installed.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Fixed two obscure bugs in pairlist subassignment, reported by
-      Radford Neal as part of pqR issue 16.
-    }
-  }
-}
-\section{\Rlogo CHANGES IN R 3.1.1 patched}{
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{dmultinom()} did not handle non-finite probabilities
-      correctly. 
-    }
-  }
-}
 
 \section{\Rlogo CHANGES IN R 3.1.1}{
   \subsection{NEW FEATURES}{
@@ -244,22 +63,22 @@
 
       \item Modifying internal logical scalar constants now results in
       an error instead of a warning.
-
+      
       \item \code{install.packages(repos = NULL)} now accepts
       \code{http://} or \code{ftp://} URLs of package archives as well
       as file paths, and will download as required.  In most cases
       \code{repos = NULL} can be deduced from the extension of the URL.
-
+      
       \item The warning when using partial matching with the \code{$}
       operator on data frames is now only given when
       \code{options("warnPartialMatchDollar")} is \code{TRUE}.
-
-      \item Package help requests like \code{package?foo} now
+      
+      \item Package help requests like \code{package?foo} now 
       try the package \code{foo} whether loaded or not.
-
-      \item General help requests now default to trying all loaded
+      
+      \item General help requests now default to trying all loaded 
       packages, not just those on the search path.
-
+      
       \item Added a new function \code{promptImport()}, to generate a
       help page for a function that was imported from another package
       (and presumably re-exported, or help would not be needed).
@@ -288,7 +107,7 @@
       \item Compilers/linkers were handling the visibility controls in
       \file{src/extra/xz} inconsistently (and apparently in some cases
       incorrectly), so it has been simplified.  (\PR{15327})
-
+      
       \item (Windows)  There is updated support for the use of ICU for
       collation: see the \sQuote{R Installation and Administration Manual}.
     }
@@ -412,7 +231,7 @@
 
       \item \code{getParseData()} could return incorrect values for
       the parents of some elements. (Reported by Andrew Redd.)
-
+      
       \item Attempting to use data frames of 2^31 or more rows with
       \code{merge()} or to create a merged data frame of that size now
       gives a clearer error message.
@@ -422,20 +241,20 @@
       e.g. \code{parse(FALSE)} attempted to read from \code{stdin}.
 
       Nor did \code{dump()} and \code{dput()}.
-
+      
       \item The \code{"help.try.all.packages"} option was ignored when
-      the shortcut syntax for help was used, e.g. \code{?foo}.
-
+      the shortcut syntax for help was used, e.g. \code{?foo}.  
+      
       \item A potential segfault in string allocation has been fixed.
       (Found by Radford Neal.)
-
-      \item Potential memory protection errors in \code{sort()} and
+      
+      \item Potential memory protection errors in \code{sort()} and 
       \code{D()} have been fixed. (Found by Radford Neal.)
-
+      
       \item Fixed a lack of error checking in graphics event functions.
       (Found by Radford Neal; a different patch used here than the
       one in pqR.)
-
+      
       \item \code{numericDeriv()} sometimes miscalculated the gradient.
       (\PR{15849}, reported originally by Radford Neal)
     }

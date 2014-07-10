@@ -332,6 +332,8 @@ static SEXP GetSeedsFromVar(void)
     return seeds;
 }
 
+unsigned int TimeToSeed(void); // times.c
+
 static void Randomize(RNGtype kind)
 {
 /* Only called by  GetRNGstate() when there is no .Random.seed */

@@ -14,7 +14,7 @@ dump(list, file = "dumpdata.R", append = FALSE,
   This function takes a vector of names of \R objects and produces
   text representations of the objects on a file or connection.
   A \code{dump} file can usually be \code{\link{source}}d into another
-  \R session.
+  \R (or S) session.
 }
 \arguments{
   \item{list}{character.  The names of one or more \R objects to be dumped.}
@@ -49,8 +49,7 @@ dump(list, file = "dumpdata.R", append = FALSE,
   A \code{dump} file can be \code{\link{source}}d into another \R (or
   perhaps S) session, but the function \code{\link{save}} is designed to
   be used for transporting \R data, and will work with \R objects that
-  \code{dump} does not handle.  For maximal reproducibility use
-  \code{control = c("all", "hexNumeric")}.
+  \code{dump} does not handle.
 
   To produce a more readable representation of an object, use
   \code{control = NULL}.  This will skip attributes, and will make other
@@ -62,7 +61,7 @@ dump(list, file = "dumpdata.R", append = FALSE,
     "warnIncomplete", "keepNA")}.  This will lose all formatting and
   comments, but may be useful in those cases where the saved source is
   no longer correct.
-  
+
   Promises will normally only be encountered by users as a result of
   lazy-loading (when the default \code{evaluate = TRUE} is essential)
   and after the use of \code{\link{delayedAssign}},

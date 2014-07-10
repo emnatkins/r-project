@@ -572,7 +572,7 @@ installed.packages <-
             enc <- sprintf("%d_%s", nchar(base), .Call(C_crc64, base))
             dest <- file.path(tempdir(), paste0("libloc_", enc, ".rds"))
             if(file.exists(dest) &&
-               file.mtime(dest) > file.mtime(lib) &&
+               file.info(dest)$mtime > file.info(lib)$mtime &&
                (val <- readRDS(dest))$base == base)
                 ## use the cache file
                 retval <- rbind(retval, val$value)
@@ -652,8 +652,10 @@ download.packages <- function(pkgs, destdir, available = NULL,
                               contriburl = contrib.url(repos, type),
                               method, type = getOption("pkgType"), ...)
 {
+    dirTest <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
+
     nonlocalcran <- length(grep("^file:", contriburl)) < length(contriburl)
-    if(nonlocalcran && !dir.exists(destdir))
+    if(nonlocalcran && !dirTest(destdir))
         stop("'destdir' is not a directory")
     if(is.null(available))
         available <- available.packages(contriburl=contriburl, method=method)

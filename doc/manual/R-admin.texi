@@ -482,7 +482,8 @@ will need a recent version of the appropriate @LaTeX{} package
 @pkg{inconsolata}@footnote{Instructions on how to install the latest
 version are at
 @uref{http://www.ctan.org/tex-archive/fonts/inconsolata/}.} or
-@pkg{bera} installed.)
+@pkg{bera} installed: @pkg{inconsolata} is likely to require
+@pkg{upquote}.)
 
 Note that in most @LaTeX{} installations this will not actually use the
 standard fonts for PDF, but rather embed the URW clones NimbusRom,
@@ -3036,10 +3037,11 @@ kept up-to-date.  A number of standard @LaTeX{} packages are required
 as @pkg{times}, @pkg{helvetic}, @pkg{ec} and @pkg{cm-super}) and others
 such as @pkg{hyperref} and @pkg{inconsolata} are desirable (and without
 them you may need to change @R{}'s defaults: @pxref{Making the
-manuals}).  Note that package @pkg{hyperref} (currently) requires
-packages @pkg{kvoptions}, @pkg{ltxcmds} and @pkg{refcount}.  For
-distributions based on TeXLive the simplest approach may be to install
-collections @pkg{collection-latex}, @pkg{collection-fontsrecommended},
+manuals}).  Note that most versions of @pkg{inconsolata} require package
+@pkg{upquote} and that @pkg{hyperref} (currently) requires packages
+@pkg{kvoptions}, @pkg{ltxcmds} and @pkg{refcount}.  For distributions
+based on TeXLive the simplest approach may be to install collections
+@pkg{collection-latex}, @pkg{collection-fontsrecommended},
 @pkg{collection-latexrecommended}, @pkg{collection-fontsextra} and
 @pkg{collection-latexextra} (assuming they are not installed by
 default): Fedora uses names like @pkg{texlive-collection-fontsextra} and
@@ -3480,16 +3482,17 @@ The MKL interface has changed several times, and may change again: the
 following notes apply exactly only to version 10.3 but have been used
 with version 11.1.
 
-Versions 10 and later of MKL support two linking models: only the
-layered model is described here: it gives the user fine-grained control
+Versions 10 and later of MKL support two linking models: the default
+model (which is backward compatible with version 9 see below) and the
+layered model.  The layered model gives the user fine-grained control
 over four different library layers: interface, threading, computation,
-and run-time library support.  The choice of interface layer is
-important on @cputype{x86_64} since the Intel Fortran compiler returns
-complex values in different registers from the @acronym{GNU} Fortran
-compiler: you must therefore use the interface layer that matches your
-compiler (@code{mkl_intel*} or @code{mkl_gf*}).
-
-These examples are for GCC compilers on @cputype{x86_64}.
+and run-time library support. Some examples of linking to MKL using this
+layered model are given below. (These examples are for GCC compilers on
+@cputype{x86_64}.)  The choice of interface layer is important on
+@cputype{x86_64} since the Intel Fortran compiler returns complex values
+in different registers from the @acronym{GNU} Fortran compiler. You must
+therefore use the interface layer that matches your compiler
+(@code{mkl_intel*} or @code{mkl_gf*}).
 
 @R{} can be linked to a sequential version of MKL by something like
 
@@ -3548,6 +3551,19 @@ systems and may not be needed everywhere.)
 The MKL documentation includes a `link line advisor' which will suggest
 appropriate incantations: an on-line version was available at
 @uref{http://software.intel.com/@/en-us/@/articles/@/intel-mkl-link-line-advisor/}
+
+The default linking model, which was also used by version 9 of MKL, can
+be used by
+
+@example
+--with-blas="-lmkl -lguide -lpthread"
+@end example
+
+@noindent
+but this may not match your compiler on a 64-bit platform.  This is
+multi-threaded, but in version 9 the number of threads defaults to 1.
+It can be increased by setting @code{OMP_NUM_THREADS}.  (Thanks to Andy
+Liaw for the information.)
 
 @node Shared BLAS,  , MKL, BLAS
 @subsubsection Shared BLAS
@@ -5572,7 +5588,7 @@ it (and the default).  The `basic' version of @samp{MiKTeX} almost
 suffices: when last tested packages
 
 @example
-epsf fancyvrb inconsolata listings mptopdf natbib url
+epsf fancyvrb inconsolata listings mptopdf natbib upquote url
 @end example
 
 @noindent

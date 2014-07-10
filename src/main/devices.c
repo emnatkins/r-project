@@ -448,24 +448,13 @@ void GEaddDevice(pGEDevDesc gdd)
     }
 }
 
-/* convenience wrappers */
+/* convenience wrapper */
 void GEaddDevice2(pGEDevDesc gdd, const char *name)
 {
     gsetVar(R_DeviceSymbol, mkString(name), R_BaseEnv);
     GEaddDevice(gdd);
     GEinitDisplayList(gdd);
 }
-
-void GEaddDevice2f(pGEDevDesc gdd, const char *name, const char *file)
-{
-    SEXP f = PROTECT(mkString(name));
-    if(file) setAttrib(f, install("filepath"), mkString(file));
-    gsetVar(R_DeviceSymbol, f, R_BaseEnv);
-    UNPROTECT(1);
-    GEaddDevice(gdd);
-    GEinitDisplayList(gdd);
-}
-
 
 Rboolean Rf_GetOptionDeviceAsk(void); /* from options.c */
 

@@ -180,7 +180,6 @@ static R_INLINE void register_bad_sexp_type(SEXP s, int line)
 }
 
 /* also called from typename() in inspect.c */
-attribute_hidden
 const char *sexptype2char(SEXPTYPE type) {
     switch (type) {
     case NILSXP:	return "NILSXP";
@@ -2758,6 +2757,9 @@ static void R_gc_full(R_size_t size_needed)
     R_gc_internal(size_needed);
 }
 
+extern double R_getClockIncrement(void);
+extern void R_getProcTime(double *data);
+
 static double gctimes[5], gcstarttimes[5];
 static Rboolean gctime_enabled = FALSE;
 
@@ -3018,9 +3020,7 @@ void R_signal_protect_error(void)
 
 void R_signal_unprotect_error(void)
 {
-    error(ngettext("unprotect(): only %d protected item",
-		   "unprotect(): only %d protected items", R_PPStackTop),
-	  R_PPStackTop);
+    error(_("unprotect(): only %d protected items"), R_PPStackTop);
 }
 
 #ifndef INLINE_PROTECT
@@ -3091,10 +3091,8 @@ void R_ProtectWithIndex(SEXP s, PROTECT_INDEX *pi)
 
 void R_signal_reprotect_error(PROTECT_INDEX i)
 {
-    error(ngettext("R_Reprotect: only %d protected items, can't reprotect index %d", 
-		   "R_Reprotect: only %d protected items, can't reprotect index %d",
-		   R_PPStackTop),
-          R_PPStackTop, i);
+    error(_("R_Reprotect: only %d protected items, can't reprotect index %d"),
+	  R_PPStackTop, i);
 }
     
 #ifndef INLINE_PROTECT
@@ -3281,7 +3279,6 @@ int (TYPEOF)(SEXP x) { return TYPEOF(CHK(x)); }
 int (NAMED)(SEXP x) { return NAMED(CHK(x)); }
 int (RTRACE)(SEXP x) { return RTRACE(CHK(x)); }
 int (LEVELS)(SEXP x) { return LEVELS(CHK(x)); }
-int (REFCNT)(SEXP x) { return REFCNT(x); }
 
 void (SET_ATTRIB)(SEXP x, SEXP v) {
     if(TYPEOF(v) != LISTSXP && TYPEOF(v) != NILSXP)

@@ -503,7 +503,6 @@ int  (OBJECT)(SEXP x);
 int  (MARK)(SEXP x);
 int  (TYPEOF)(SEXP x);
 int  (NAMED)(SEXP x);
-int  (REFCNT)(SEXP x);
 void (SET_OBJECT)(SEXP x, int v);
 void (SET_TYPEOF)(SEXP x, int v);
 void (SET_NAMED)(SEXP x, int v);
@@ -932,8 +931,7 @@ typedef enum {
     R_pstream_any_format,
     R_pstream_ascii_format,
     R_pstream_binary_format,
-    R_pstream_xdr_format,
-    R_pstream_asciihex_format
+    R_pstream_xdr_format
 } R_pstream_format_t;
 
 typedef struct R_outpstream_st *R_outpstream_t;

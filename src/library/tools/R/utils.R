@@ -1,7 +1,7 @@
 #  File src/library/tools/R/utils.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -58,8 +58,6 @@ function(x, compression = FALSE)
 
 ### ** file_test
 
-## exported/documented copy is in utils.
-
 file_test <-
 function(op, x, y)
 {
@@ -69,13 +67,13 @@ function(op, x, y)
     ## directory (the GNU variant tests for being a regular file).
     ## Note: vectorized in x and y.
     switch(op,
-           "-f" = !is.na(isdir <- file.info(x, extra_cols = FALSE)$isdir) & !isdir,
-           "-d" = dir.exists(x),
-           "-nt" = (!is.na(mt.x <- file.mtime(x))
-                    & !is.na(mt.y <- file.mtime(y))
+           "-f" = !is.na(isdir <- file.info(x)$isdir) & !isdir,
+           "-d" = !is.na(isdir <- file.info(x)$isdir) & isdir,
+           "-nt" = (!is.na(mt.x <- file.info(x)$mtime)
+                    & !is.na(mt.y <- file.info(y)$mtime)
                     & (mt.x > mt.y)),
-           "-ot" = (!is.na(mt.x <- file.mtime(x))
-                    & !is.na(mt.y <- file.mtime(y))
+           "-ot" = (!is.na(mt.x <- file.info(x)$mtime)
+                    & !is.na(mt.y <- file.info(y)$mtime)
                     & (mt.x < mt.y)),
            "-x" = (file.access(x, 1L) == 0L),
            stop(gettextf("test '%s' is not available", op),
@@ -131,7 +129,7 @@ function(dir, type, all.files = FALSE, full.names = TRUE,
     if(type %in% c("code", "docs")) {
         for(os in OS_subdirs) {
             os_dir <- file.path(dir, os)
-            if(dir.exists(os_dir)) {
+            if(file_test("-d", os_dir)) {
                 os_files <- list_files_with_exts(os_dir, exts,
                                                  all.files = all.files,
                                                  full.names = FALSE)
@@ -444,11 +442,12 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
 ### ** .BioC_version_associated_with_R_version
 
+..BioC_version_associated_with_R_version <- function()
+    numeric_version(Sys.getenv("R_BIOC_VERSION", "2.14"))
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.0"))
+    ..BioC_version_associated_with_R_version()
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
-## Wierdly, 3.0 is the second version (after 2.14) for the 3.1.x series.
 
 ### ** .vc_dir_names
 
@@ -528,8 +527,7 @@ function(val) {
     if (v %in% c("1", "yes", "true")) TRUE
     else if (v %in% c("0", "no", "false")) FALSE
     else {
-        warning(gettextf("cannot coerce %s to logical", sQuote(val)),
-                domain = NA)
+        warning("cannot coerce ", sQuote(val), " to logical")
         NA
     }
 }
@@ -1033,8 +1031,6 @@ function()
                "Version",
                "VignetteBuilder",
                "ZipData"),
-             ## Should be documented in R-exts eventually:
-             c("Additional_repositories"),
              ## Others: adjust as needed.
              c("Repository",
                "Path",
@@ -1044,7 +1040,6 @@ function()
                "Revision",
                "RcmdrModels",
                "RcppModules",
-               "Roxygen",
                "biocViews")
              ))
 }
@@ -1380,7 +1375,7 @@ function(packages = NULL, FUN, ...)
 .parse_code_file <-
 function(file, encoding = NA)
 {
-    if(!file.size(file)) return()
+    if(!file.info(file)$size) return()
     suppressWarnings({
         if(!is.na(encoding) &&
            !(Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX"))) {
@@ -1512,7 +1507,7 @@ function(x)
                                     "http://www.bioconductor.org")),
              x, fixed = TRUE)
     sub("%v",
-        as.character(.BioC_version_associated_with_R_version()),
+        as.character(..BioC_version_associated_with_R_version()),
         x, fixed = TRUE)
 }
 

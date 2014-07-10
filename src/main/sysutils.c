@@ -52,6 +52,7 @@
 
 #ifdef HAVE_AQUA
 int (*ptr_CocoaSystem)(const char*);
+extern	Rboolean useaqua;
 #endif
 
 #ifdef Win32
@@ -1161,7 +1162,8 @@ next_char:
 }
 
 
-#include <R_ext/GraphicsEngine.h>
+extern void *Rf_AdobeSymbol2utf8(char* work, const char *c0, size_t nwork); /* from util.c */
+
 /* This may return a R_alloc-ed result, so the caller has to manage the
    R_alloc stack */
 const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)

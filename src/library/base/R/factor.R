@@ -158,18 +158,17 @@ print.factor <- function (x, quote = FALSE, max.levels = NULL,
 }
 
 
-Math.factor <- function(x, ...)
-    stop(gettextf("%s not meaningful for factors", sQuote(.Generic)))
-
+Math.factor <- function(x, ...) {
+    stop(.Generic, " not meaningful for factors")
+}
 ## The next two have an .ordered method:
 Summary.factor <- function(..., na.rm)
-    stop(gettextf("%s not meaningful for factors", sQuote(.Generic)))
-
+    stop(.Generic, " not meaningful for factors")
 Ops.factor <- function(e1, e2)
 {
     ok <- switch(.Generic, "=="=, "!="=TRUE, FALSE)
     if(!ok) {
-	warning(gettextf("%s not meaningful for factors", sQuote(.Generic)))
+	warning(.Generic, " not meaningful for factors")
 	return(rep.int(NA, max(length(e1), if(!missing(e2)) length(e2))))
     }
     nas <- is.na(e1) | is.na(e2)
