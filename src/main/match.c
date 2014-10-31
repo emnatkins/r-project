@@ -186,8 +186,7 @@ SEXP attribute_hidden matchArgExact(SEXP tag, SEXP * list)
 
 SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
 {
-    Rboolean seendots;
-    int i, arg_i = 0;
+    int i, seendots, arg_i = 0;
     SEXP f, a, b, dots, actuals;
 
     actuals = R_NilValue;
@@ -222,8 +221,9 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
     arg_i = 0;
     while (f != R_NilValue) {
 	if (TAG(f) != R_DotsSymbol) {
-	    for (b = supplied, i = 1; b != R_NilValue; b = CDR(b), i++) {
-		if (TAG(b) != R_NilValue && pmatch(TAG(f), TAG(b), /*exact*/ TRUE)) {
+	    i = 1;
+	    for (b = supplied; b != R_NilValue; b = CDR(b)) {
+		if (TAG(b) != R_NilValue && pmatch(TAG(f), TAG(b), 1)) {
 		    if (fargused[arg_i] == 2)
 			error(_("formal argument \"%s\" matched by multiple actual arguments"),
 			      CHAR(PRINTNAME(TAG(f))));
@@ -234,6 +234,7 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
 		    SET_ARGUSED(b, 2);
 		    fargused[arg_i] = 2;
 		}
+		i++;
 	    }
 	}
 	f = CDR(f);
@@ -246,7 +247,7 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
     /* The location of the first ... is saved in "dots" */
 
     dots = R_NilValue;
-    seendots = FALSE;
+    seendots = 0;
     f = formals;
     a = actuals;
     arg_i = 0;
@@ -255,9 +256,10 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
 	    if (TAG(f) == R_DotsSymbol && !seendots) {
 		/* Record where ... value goes */
 		dots = a;
-		seendots = TRUE;
+		seendots = 1;
 	    } else {
-		for (b = supplied, i = 1; b != R_NilValue; b = CDR(b), i++) {
+		i = 1;
+		for (b = supplied; b != R_NilValue; b = CDR(b)) {
 		    if (ARGUSED(b) != 2 && TAG(b) != R_NilValue &&
 			pmatch(TAG(f), TAG(b), seendots)) {
 			if (ARGUSED(b))
@@ -276,6 +278,7 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
 			SET_ARGUSED(b, 1);
 			fargused[arg_i] = 1;
 		    }
+		    i++;
 		}
 	    }
 	}
@@ -294,12 +297,12 @@ SEXP attribute_hidden matchArgs(SEXP formals, SEXP supplied, SEXP call)
     f = formals;
     a = actuals;
     b = supplied;
-    seendots = FALSE;
+    seendots = 0;
 
     while (f != R_NilValue && b != R_NilValue && !seendots) {
 	if (TAG(f) == R_DotsSymbol) {
 	    /* Skip ... matching until all tags done */
-	    seendots = TRUE;
+	    seendots = 1;
 	    f = CDR(f);
 	    a = CDR(a);
 	} else if (CAR(a) != R_MissingArg) {

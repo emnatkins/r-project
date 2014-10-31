@@ -16,11 +16,10 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-assertCondition <-
-    function(expr, ...,
-             .exprString = .deparseTrim(substitute(expr), cutoff = 30L),
-             verbose = FALSE)
-{
+assertCondition <- function(expr, ...,
+                            .exprString = .deparseTrim(substitute(expr), cutoff = 30L),
+                            verbose = FALSE) {
+    fe <- function(e)e
     getConds <- function(expr) {
 	conds <- list()
 	tryCatch(withCallingHandlers(expr,

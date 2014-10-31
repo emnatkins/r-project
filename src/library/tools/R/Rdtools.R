@@ -19,8 +19,7 @@
 
 RdTextFilter <-
 function(ifile, encoding = "unknown", keepSpacing = TRUE,
-         drop = character(), keep = character(),
-         macros = file.path(R.home("share"), "Rd", "macros", "system.Rd"))
+         drop = character(), keep = character())
 {
     if(inherits(ifile, "srcfile"))
         ifile <- ifile$filename
@@ -30,7 +29,7 @@ function(ifile, encoding = "unknown", keepSpacing = TRUE,
 	p <- ifile[ order(srcrefs[1,], srcrefs[2,]) ]
 	class(p) <- class(ifile)
     } else
-    	p <- parse_Rd(ifile, encoding = encoding, macros = macros)
+    	p <- parse_Rd(ifile, encoding = encoding)
 
     tags <- RdTags(p)
 
@@ -38,7 +37,7 @@ function(ifile, encoding = "unknown", keepSpacing = TRUE,
 	encoding <- p[[which.max(tags == "\\encoding")]][[1L]]
 	if (encoding %in% c("UTF-8", "utf-8", "utf8")) encoding <- "UTF-8"
 	if (!inherits(ifile, "Rd"))
-	    p <- parse_Rd(ifile, encoding=encoding, macros = macros)
+	    p <- parse_Rd(ifile, encoding=encoding)
     } else
 	encoding <- ""
 
@@ -51,7 +50,7 @@ function(ifile, encoding = "unknown", keepSpacing = TRUE,
     ##     mycat("\n")
     ## })$output
 
-##    myval <- character()
+    myval <- character()
     mycon <- textConnection("myval", open = "w", local = TRUE,
                             encoding = "UTF-8")
     on.exit(close(mycon))
@@ -88,7 +87,9 @@ function(ifile, encoding = "unknown", keepSpacing = TRUE,
     show <- function(x) {
 	srcref <- attr(x, "srcref")
 	firstline <- srcref[1L]
+	firstbyte <- srcref[2L]
 	lastline <- srcref[3L]
+	lastbyte <- srcref[4L]
 	firstcol <- srcref[5L]
 	lastcol <- srcref[6L]
 	tag <- attr(x, "Rd_tag")

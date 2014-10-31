@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2011-04-02 \n"
 "Last-Translator: Murat Alkan <muratalk@gmail.com>\n"
 "Language-Team: Turkish <muratalk@gmail.com>\n"
@@ -41,6 +41,9 @@ msgstr ""
 msgid "no Sweave file with name %s found"
 msgstr ""
 
+msgid "%d Sweave files for basename %s found"
+msgstr ""
+
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
 
@@ -61,9 +64,6 @@ msgid ""
 "%s"
 msgstr ""
 
-msgid "Warning: unknown option '--clean='%s"
-msgstr ""
-
 msgid "Warning: unknown option %s"
 msgstr ""
 
@@ -77,12 +77,6 @@ msgid "path to %s contains spaces,"
 msgstr ""
 
 msgid "this may cause problems when running LaTeX"
-msgstr ""
-
-msgid "at"
-msgstr ""
-
-msgid ","
 msgstr ""
 
 msgid "the output file '%s' has disappeared"
@@ -327,6 +321,9 @@ msgstr ""
 msgid "%s has a help file but no examples"
 msgstr ""
 
+msgid "test '%s' is not available"
+msgstr ""
+
 msgid "Line number missing"
 msgstr ""
 
@@ -442,7 +439,7 @@ msgstr ""
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 
 msgid ""
@@ -634,10 +631,7 @@ msgstr "paketler yüklenemedi"
 msgid "unable to create %s"
 msgstr "oluşturulamadı"
 
-msgid "inferring 'repos = NULL' from 'pkgs'"
-msgstr ""
-
-msgid "unable to create temporary directory %s"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr ""
 
 msgid ""
@@ -675,6 +669,9 @@ msgid "system (cmd0): %s"
 msgstr ""
 
 msgid "installation of package %s had non-zero exit status"
+msgstr ""
+
+msgid "unable to create temporary directory %s"
 msgstr ""
 
 msgid "foundpkgs: %s"
@@ -720,9 +717,6 @@ msgid "Created file named %s."
 msgstr ""
 
 msgid "Edit the file and move it to the appropriate directory."
-msgstr ""
-
-msgid "cannot determine import name"
 msgstr ""
 
 msgid "no documentation of type %s and topic %s (or error in processing help)"
@@ -1009,6 +1003,9 @@ msgstr ""
 msgid "no download method found"
 msgstr ""
 
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr ""
+
 msgid "download had nonzero exit status"
 msgstr ""
 
@@ -1053,6 +1050,11 @@ msgstr ""
 msgid "method 'mailx' is Unix-only"
 msgstr ""
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+
 msgid "zip file %s not found"
 msgstr ""
 
@@ -1068,11 +1070,6 @@ msgstr ""
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr ""
-
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
@@ -1189,11 +1186,6 @@ msgstr[1] ""
 
 msgid "invalid roman numeral: %s"
 msgid_plural "invalid roman numerals: %s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "is"
-msgid_plural "are"
 msgstr[0] ""
 msgstr[1] ""
 

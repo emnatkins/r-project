@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-03-27 07:47\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -239,9 +239,6 @@ msgstr "'x$lag' musi mieć jak przynajmniej 1 kolumnę"
 # warning("can use ci.type=\"ma\" only if first lag is 0")
 msgid "can use ci.type=\"ma\" only if first lag is 0"
 msgstr "można użyć 'ci.type=\"ma\"' tylko jeśli pierwsze opóźnienie wynosi 0"
-
-msgid "Page [%d,%d]: i =%s; j =%s"
-msgstr ""
 
 # stats/R/acf.R: 218
 # stop("univariate time series only")
@@ -1373,10 +1370,10 @@ msgstr "komponent 'height' w 'tree' nie jest (rosnąco) posortowany"
 msgid "elements of 'k' must be between 1 and %d"
 msgstr "elementy 'k' muszą być pomiędzy 1 a %d"
 
-msgid ""
-"dendrogram entries must be 1,2,..,%d (in any order), to be coercible to "
-"\"hclust\""
-msgstr ""
+# stats/R/dendrogram.R: 32
+# stop("'merge' and 'height' do not fit!")
+msgid "'merge' and 'height' do not fit!"
+msgstr "argumenty 'merge' oraz 'height' nie pasują!"
 
 # stats/R/dendrogram.R: 188
 # stop("dendrogram node with non-positive #{branches}")
@@ -1632,11 +1629,11 @@ msgstr "określ 'rate' lub 'scale', ale nie oba jednocześnie"
 msgid "x[] and prob[] must be equal length vectors."
 msgstr "argumenty 'x' oraz 'prob' muszą być wektorami o jednakowej długości"
 
-# stats/R/chisq.test.R: 110
-# stop("probabilities must be non-negative.")
-#, fuzzy
-msgid "probabilities must be finite, non-negative and not all 0"
-msgstr "prawdopodobieństwa muszą być nieujemne."
+# stats/R/distn.R: 157
+# stop("probabilities cannot be negative nor all 0")
+msgid "probabilities cannot be negative nor all 0"
+msgstr ""
+"prawdopodobieństwa nie mogą być ujemne ani wszyskie jednocześnie być równe 0"
 
 # stats/R/distn.R: 161
 # stop("'x' must be non-negative")
@@ -1928,6 +1925,17 @@ msgstr ""
 # stop("length of 'init' must equal length of 'filter'")
 msgid "length of 'init' must equal length of 'filter'"
 msgstr "długość argumentu 'init' musi równać się długości argumentu 'filter'"
+
+# stats/R/filter.R: 56
+# stop("'init' must have 1 column")
+msgid "'init' must have 1 column"
+msgstr "'init' musi mieć 1 kolumnę"
+
+# stats/R/filter.R: 57
+# stop(gettextf("'init' must have 1 or %d columns", nser),
+#                           domain = NA)
+msgid "'init' must have 1 or %d columns"
+msgstr "'init' musi mieć liczbę kolumn równą 1 lub %d"
 
 # stats/R/fisher.test.R: 31
 # stop("'x' must have at least 2 rows and columns")
@@ -2518,6 +2526,16 @@ msgstr "co najmniej 2 obiekty są potrzebne aby móc grupować"
 # stop("invalid length of members")
 msgid "invalid length of members"
 msgstr "niepoprawna długość argumentu 'members'"
+
+# stats/R/hclust.R: 115
+# stop("invalid dendrogram")
+msgid "invalid dendrogram"
+msgstr "niepoprawne drzewo celów"
+
+# stats/R/hclust.R: 118
+# stop("'merge' component in dendrogram must be integer")
+msgid "'merge' component in dendrogram must be integer"
+msgstr "komponent 'merge' w drzewie celu musi być liczbą całkowitą"
 
 # stats/R/hclust.R: 159
 # stop(gettextf("argument 'x' cannot be coerced to class %s",
@@ -4054,9 +4072,6 @@ msgstr "próba wygładzenia wartości NA"
 msgid "invalid 'endrule' argument"
 msgstr "niepoprawny argument 'endrule'"
 
-msgid ".nknots.smspl() is now exported; use it instead of n.knots()"
-msgstr ""
-
 # stats/R/smspline.R: 49
 # stop("invalid 'control.spar'")
 msgid "invalid 'control.spar'"
@@ -4295,8 +4310,7 @@ msgstr "'plot.stepfun' wywołana z błędnym typem argumentu 'x'"
 
 # stats/R/stl.R: 39
 # stop(degname, " must be 0 or 1")
-#, fuzzy
-msgid "%s must be 0 or 1"
+msgid "must be 0 or 1"
 msgstr "musi wynosić 0 lub 1"
 
 # stats/R/stl.R: 43
@@ -4848,15 +4862,6 @@ msgstr[0] "nie można zoptymalizować z tej wartości startowej"
 msgstr[1] "nie można zoptymalizować z tych wartości startowych"
 msgstr[2] "nie można zoptymalizować z tych wartości startowych"
 
-# stats/R/filter.R: 56
-# stop("'init' must have 1 column")
-#, fuzzy
-msgid "'init' must have %d column"
-msgid_plural "'init' must have 1 or %d columns"
-msgstr[0] "'init' musi mieć 1 kolumnę"
-msgstr[1] "'init' musi mieć 1 kolumnę"
-msgstr[2] "'init' musi mieć 1 kolumnę"
-
 # stats/R/glm.R: 251
 # stop(sprintf(ngettext(nobs,
 #                                       "X matrix has rank %d, but only %d observation",
@@ -5094,31 +5099,3 @@ msgid_plural "'start.innov' is too short: need %d points"
 msgstr[0] "argument 'start.innov' jest zbyt krótki: potrzeba %d punktu"
 msgstr[1] "argument 'start.innov' jest zbyt krótki: potrzeba %d punktów"
 msgstr[2] "argument 'start.innov' jest zbyt krótki: potrzeba %d punktów"
-
-# stats/R/dendrogram.R: 32
-# stop("'merge' and 'height' do not fit!")
-#~ msgid "'merge' and 'height' do not fit!"
-#~ msgstr "argumenty 'merge' oraz 'height' nie pasują!"
-
-# stats/R/hclust.R: 115
-# stop("invalid dendrogram")
-#~ msgid "invalid dendrogram"
-#~ msgstr "niepoprawne drzewo celów"
-
-# stats/R/hclust.R: 118
-# stop("'merge' component in dendrogram must be integer")
-#~ msgid "'merge' component in dendrogram must be integer"
-#~ msgstr "komponent 'merge' w drzewie celu musi być liczbą całkowitą"
-
-# stats/R/distn.R: 157
-# stop("probabilities cannot be negative nor all 0")
-#~ msgid "probabilities cannot be negative nor all 0"
-#~ msgstr ""
-#~ "prawdopodobieństwa nie mogą być ujemne ani wszyskie jednocześnie być "
-#~ "równe 0"
-
-# stats/R/filter.R: 57
-# stop(gettextf("'init' must have 1 or %d columns", nser),
-#                           domain = NA)
-#~ msgid "'init' must have 1 or %d columns"
-#~ msgstr "'init' musi mieć liczbę kolumn równą 1 lub %d"

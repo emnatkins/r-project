@@ -9,11 +9,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-01-26 09:09\n"
 "PO-Revision-Date: 2014-03-11 10:34-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
-"Language: ru\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=KOI8-R\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -347,9 +347,9 @@ msgstr "Стартовые функции пакета не должны вызывать %s."
 msgid "See section %s in '%s'."
 msgstr "См. раздел %s в '%s'."
 
-#, fuzzy
 msgid ""
-"Package detach functions should have one argument with name starting with %s."
+"Package detach functions should have one arguments with names starting with "
+"%s."
 msgstr ""
 "Функции отсоединения пакета должны иметь один аргумент с именем, "
 "начинающимся с %s."
@@ -376,14 +376,6 @@ msgid "'library' or 'require' calls not declared from:"
 msgstr "не объявлены вызовы 'library' или 'require' из:"
 
 msgid "'library' or 'require' call not declared from: %s"
-msgstr "не объявлен вызов 'library' или 'require' из %s"
-
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' calls not declared from:"
-msgstr "не объявлены вызовы 'library' или 'require' из:"
-
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' call not declared from: %s"
 msgstr "не объявлен вызов 'library' или 'require' из %s"
 
 #, fuzzy
@@ -481,8 +473,8 @@ msgstr ""
 "%s\n"
 "в NAMESPACE."
 
-msgid "Rd object required"
-msgstr ""
+msgid "argument 'file' must be a character string or connection"
+msgstr "аргумент 'file' должен быть текстовой строкой  или соединением"
 
 msgid "missing/empty %s field in '%s'"
 msgstr "пропущенное/пустое %s поле в '%s'"
@@ -511,16 +503,6 @@ msgstr "не могу работать с Rd-объектами в пропущенными/пустыми именами"
 
 msgid "No help on %s found in RdDB %s"
 msgstr "Не найдено помощи %s в RdDB %s"
-
-msgid "'macros' must be TRUE or must specify existing macros"
-msgstr ""
-
-msgid "Macro file %s should only contain Rd macro definitions and comments"
-msgstr ""
-
-#, fuzzy
-msgid "No Rd macros in package '%s'."
-msgstr "Не могу найти документации для пакета %s"
 
 msgid "more than one \\examples section, using the first"
 msgstr "более чем одна \\секция примеров, использую первую"
@@ -560,10 +542,6 @@ msgstr "неправильное значение '%s' : %s"
 
 msgid "Only one Rd section per %s is supported."
 msgstr "Поддерживается только один раздел Rd на %s."
-
-#, fuzzy
-msgid "DESCRIPTION file is for package '%s', not '%s'"
-msgstr "пропущен 'DESCRIPTION.in' у пакета '%s'"
 
 #, fuzzy
 msgid "Vignette product %s does not have a known filename extension (%s)"
@@ -618,8 +596,11 @@ msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
 msgstr ""
 
 #, fuzzy
-msgid "Inconsistent encoding specifications: %s with %%\\SweaveUTF8"
+msgid "Inconsistent encoding specifications:"
 msgstr "Нестандартная лицензия:"
+
+msgid "with %\\SweaveUTF8"
+msgstr ""
 
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr "Среди миниатюр '%s' '%s' и '%s' имеют одинаковые имена"
@@ -847,9 +828,6 @@ msgstr "Ссылка %s в пакете %s не найдена"
 msgid "No docs found for package %s"
 msgstr "Не могу найти документации для пакета %s"
 
-msgid "URL %s was not found"
-msgstr "URL %s не найден"
-
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
 msgstr ""
@@ -858,6 +836,9 @@ msgstr ""
 
 msgid "unsupported URL %s"
 msgstr "неподдерживаемые URL %s"
+
+msgid "URL %s was not found"
+msgstr "URL %s не найден"
 
 msgid "httpd server disabled by R_DISABLE_HTTPD"
 msgstr "сервер httpd отключен через R_DISABLE_HTTPD"
@@ -1132,6 +1113,9 @@ msgstr "Нашел %s, возможно, из %s"
 msgid "testing '%s' failed"
 msgstr "тестирование '%s' не удалось"
 
+msgid "%d of the package tests failed"
+msgstr ""
+
 msgid "Testing examples for package %s"
 msgstr "Проверяю примеры к пакету %s"
 
@@ -1201,9 +1185,11 @@ msgstr "не могу запустить '%s' на '%s'"
 msgid "unable to run %s on '%s'"
 msgstr "не могу запустить %s на '%s'"
 
-#, fuzzy
-msgid "cannot coerce %s to logical"
+msgid "cannot coerce"
 msgstr "нельзя соединить"
+
+msgid "to logical"
+msgstr "в логический"
 
 msgid "File 'DESCRIPTION' is missing."
 msgstr "Файл 'DESCRIPTION' пропущен."
@@ -1405,18 +1391,6 @@ msgstr[0] "объект %s создан больше чем за один вызов данных"
 msgstr[1] "объекты %s созданы больше чем за один вызов данных"
 msgstr[2] "объекты %s созданы больше чем за один вызов данных"
 
-msgid "%d of the package tests failed"
-msgid_plural "%d of the package tests failed"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
-#~ msgid "argument 'file' must be a character string or connection"
-#~ msgstr "аргумент 'file' должен быть текстовой строкой  или соединением"
-
-#~ msgid "to logical"
-#~ msgstr "в логический"
-
 #~ msgid "Vignette product"
 #~ msgstr "Продукт миниатюры"
 
@@ -1574,8 +1548,8 @@ msgstr[2] ""
 
 #~ msgid "This name was used for a base package and is remapped by library()."
 #~ msgstr ""
-#~ "Это имя использовано базовым пакетом и связано заново посредством "
-#~ "library()."
+#~ "Это имя использовано базовым пакетом и связано заново посредством library"
+#~ "()."
 
 #~ msgid "package must be loaded"
 #~ msgstr "должен быть загружен пакет"
@@ -1930,6 +1904,9 @@ msgstr[2] ""
 
 #~ msgid "Unable to locate help document %s in package %s"
 #~ msgstr "Не могу найти документ помощи %s в пакете %s"
+
+#~ msgid "missing 'DESCRIPTION.in' for package '%s'"
+#~ msgstr "пропущен 'DESCRIPTION.in' у пакета '%s'"
 
 #~ msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
 #~ msgstr "ОШИБКА: это R версии %s, а набор '%s' требует R %s %s"

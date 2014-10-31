@@ -380,7 +380,7 @@ function(x,
          )
 {
     if(!length(x)) return(character())
-
+    
     args <- c("given", "family", "email", "role", "comment")
     include <- sapply(include, match.arg, args)
 
@@ -512,7 +512,7 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
 
     rval <- lapply(seq_along(args$bibtype),
                    function(i)
-                   do.call(bibentry1,
+                   do.call("bibentry1",
                            c(lapply(args, "[[", i),
                              list(other = lapply(other, "[[", i)))))
 
@@ -611,7 +611,7 @@ function(x, style = "text", .bibstyle = NULL,
          sort = FALSE, ...)
 {
     if(!length(x)) return(character())
-
+    
     style <- .bibentry_match_format_style(style)
 
     if(sort) x <- sort(x, .bibstyle = .bibstyle)
@@ -631,7 +631,7 @@ function(x, style = "text", .bibstyle = NULL,
                    ## </FIXME>
                    con <- textConnection(rd)
                    on.exit(close(con))
-                   f(con, fragment = TRUE, out = out, permissive = TRUE, ...)
+                   f(con, fragment = TRUE, out = out, ...)
                    paste(readLines(out), collapse = "\n")
                })
     }
@@ -1048,6 +1048,7 @@ function(file, meta = NULL)
     rval <- list()
     mheader <- NULL
     mfooter <- NULL
+    k <- 0L
     envir <- new.env(hash = TRUE)
     ## Make the package metadata available to the citation entries.
     assign("meta", meta, envir = envir)
@@ -1353,7 +1354,7 @@ local({
 	}
 
 	authorList <- function(paper)
-	    sapply(paper$author, shortName)
+	    names <- sapply(paper$author, shortName)
 
 	if (!missing(previous))
 	    cited <<- previous

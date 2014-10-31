@@ -929,17 +929,16 @@ validDetails.beziergrob <- function(x) {
     if (!is.null(x$id.lengths))
         x$id.lengths <- as.integer(x$id.lengths)
     if (is.null(x$id) && is.null(x$id.lengths)) {
-        if (length(x$x) != 4L)
+        if (length(x$x) != 4)
             stop("must have exactly 4 control points")
     } else {
         if (is.null(x$id)) {
-            n <- length(x$id.lengths)
             id <- rep(1L:n, x$id.lengths)
         } else {
             id <- x$id
         }
         xper <- split(x$x, id)
-        if (any(sapply(xper, length) != 4L))
+        if (any(sapply(xper, length) != 4))
             stop("must have exactly 4 control points per Bezier curve")
     }
     if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))

@@ -749,8 +749,9 @@ insertSource <- function(source, package = "",
     }
     .mnames <- allMethodTables()
     if(length(methods) > 0) {
-	notThere <- vapply(methods, function(fname)
-	    length(grep(fname, .mnames, fixed = TRUE)) == 0, NA)
+        notThere <- sapply(methods,
+         function(fname) (length(grep(fname, .mnames, fixed = TRUE)) == 0)
+        )
         if(any(notThere)) {
             warning(gettextf("cannot insert methods for these functions (methods table not found in source): %s",
                     paste('"',methods[notThere],'"',
@@ -758,8 +759,9 @@ insertSource <- function(source, package = "",
                     domain = NA)
             methods <- methods[!notThere]
         }
-        methodNames <- vapply(methods, function(fname)
-                              .mnames[[grep(fname, .mnames, fixed = TRUE)[[1]]]], "")
+        methodNames <- sapply(methods,
+         function(fname) .mnames[[grep(fname, .mnames, fixed = TRUE)[[1]]]]
+        )
     }
     else {
         methodNames <- .mnames

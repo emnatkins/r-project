@@ -45,15 +45,12 @@ endif
 
 platform-CPPFLAGS=-I../gnuwin32 -I../extra -DPLATFORM_PKGTYPE='"win.binary"'
 
-RNG-CPPFLAGS=-I../nmath
 agrep-CPPFLAGS=-I../extra
 # array-CPPFLAGS=$(OPENMP) # too slow to be useful.
 builtin-CPPFLAGS=-I../gnuwin32
 connections-CPPFLAGS=-I../extra/zlib -I../extra/bzip2
 connections-CPPFLAGS+=-DLZMA_API_STATIC -I../extra/xz/api
 dcf-CPPFLAGS=-I../extra
-## gcc warns incorrectly about %a
-deparse-CFLAGS=-Wno-format
 dounzip-CPPFLAGS=-I../extra/zlib -I../extra/bzip2
 edit-CPPFLAGS=-I../gnuwin32
 grep-CPPFLAGS=-I../extra -I../extra/pcre -I../gnuwin32 -DPCRE_STATIC
@@ -65,8 +62,7 @@ sysutils-CPPFLAGS=-I../gnuwin32
 util-CPPFLAGS=-DLZMA_API_STATIC -I../extra/xz/api
 
 ifdef USE_ICU
-platform-CPPFLAGS += -DUSE_ICU
-util-CPPFLAGS += -DUSE_ICU -I"$(ICU_PATH)"/include
+util-CPPFLAGS+=-DUSE_ICU -I"$(ICU_PATH)"/include
 endif
 
 libmain.a: $(OBJS)

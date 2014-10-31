@@ -3,6 +3,8 @@
 % Copyright 1995-2010 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{kernel}
 \alias{kernel}
 \alias{bandwidth.kernel}

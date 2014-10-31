@@ -167,27 +167,26 @@ attachNamespace <- function(ns, pos = 2L, depends = NULL)
     invisible(env)
 }
 
-## *inside* another function, useful to check for cycles
-dynGet <- function(x, ifnotfound = stop(gettextf("%s not found",
-			     sQuote(x)), domain = NA),
-		   minframe = 1L, inherits = FALSE)
-{
-    n <- sys.nframe()
-    while (n > minframe) {
-	n <- n - 1L
-	env <- sys.frame(n)
-	if ( exists   (x, envir = env, inherits=inherits))
-	    return(get(x, envir = env, inherits=inherits))
-    }
-    ifnotfound
-}
-
 loadNamespace <- function (package, lib.loc = NULL,
                            keep.source = getOption("keep.source.pkgs"),
                            partial = FALSE, versionCheck = NULL)
 {
     package <- as.character(package)[[1L]]
 
+    ## check for cycles
+    dynGet <- function(name,
+                       notFound = stop(gettextf("%s not found", name),
+                       domain = NA))
+    {
+        n <- sys.nframe()
+        while (n > 1) {
+            n <- n - 1
+            env <- sys.frame(n)
+            if (exists(name, envir = env, inherits = FALSE))
+                return(get(name, envir = env, inherits = FALSE))
+        }
+        notFound
+    }
     loading <- dynGet("__NameSpacesLoading__", NULL)
     if (match(package, loading, 0L))
         stop("cyclic namespace dependency detected when loading ",
@@ -676,6 +675,19 @@ requireNamespace <- function (package, ..., quietly = FALSE)
 }
 
 loadingNamespaceInfo <- function() {
+    dynGet <- function(name,
+                       notFound = stop(gettextf("%s not found", sQuote(name)),
+                       domain = NA))
+    {
+        n <- sys.nframe()
+        while (n > 1) {
+            n <- n - 1
+            env <- sys.frame(n)
+            if (exists(name, envir = env, inherits = FALSE))
+                return(get(name, envir = env, inherits = FALSE))
+        }
+        notFound
+    }
     dynGet("__LoadingNamespaceInfo__", stop("not loading a namespace"))
 }
 
@@ -913,6 +925,8 @@ namespaceImportMethods <- function(self, ns, vars, from = NULL)
                 domain = NA)
         vars <- vars[vars %in% allFuns]
     }
+    tPrefix <- methods:::.TableMetaPrefix()
+    allMethodTables <- methods:::.getGenerics(ns, tPrefix)
     if(any(is.na(match(vars, allFuns))))
         stop(gettextf("requested methods not found in environment/package %s: %s",
                       sQuote(pkg),
@@ -955,9 +969,9 @@ namespaceImportMethods <- function(self, ns, vars, from = NULL)
 
 importIntoEnv <- function(impenv, impnames, expenv, expnames) {
     exports <- getNamespaceInfo(expenv, "exports")
-    ex <- .Internal(ls(exports, TRUE, FALSE))
-    if(!all(eie <- expnames %in% ex)) {
-        miss <- expnames[!eie]
+    ex <- .Internal(ls(exports, TRUE))
+    if(!all(expnames %in% ex)) {
+        miss <- expnames[! expnames %in% ex]
         ## if called (indirectly) for namespaceImportClasses
         ## these are all classes
         if(all(grepl("^\\.__C__", miss))) {
@@ -994,7 +1008,7 @@ namespaceExport <- function(ns, vars) {
             exports <- getNamespaceInfo(ns, "exports")
             expnames <- names(new)
             intnames <- new
-            objs <- .Internal(ls(exports, TRUE, FALSE))
+            objs <- .Internal(ls(exports, TRUE))
             ex <- expnames %in% objs
             if(any(ex))
                 warning(sprintf(ngettext(sum(ex),
@@ -1018,7 +1032,7 @@ namespaceExport <- function(ns, vars) {
         }
         new <- makeImportExportNames(unique(vars))
         ## calling exists each time is too slow, so do two phases
-        undef <- new[! new %in% .Internal(ls(ns, TRUE, FALSE))]
+        undef <- new[! new %in% .Internal(ls(ns, TRUE))]
         undef <- undef[! vapply(undef, exists, NA, envir = ns)]
         if (length(undef)) {
             undef <- do.call("paste", as.list(c(undef, sep = ", ")))
@@ -1095,8 +1109,8 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                           ! Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX")) {
 	    con <- file(nsFile, encoding=enc)
             on.exit(close(con))
-	    parse(con, keep.source = FALSE, srcfile = NULL)
-        } else parse(nsFile, keep.source = FALSE, srcfile = NULL)
+	    parse(con, srcfile=NULL)
+        } else parse(nsFile, srcfile=NULL)
     else if (mustExist)
         stop(gettextf("package %s has no 'NAMESPACE' file", sQuote(package)),
              domain = NA)
@@ -1236,9 +1250,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                            ## e.g. c("pre", "post") or a regular name
                            ## as the prefix.
                            if(symNames[idx] != "") {
-                               e <- parse(text = symNames[idx],
-                                          keep.source = FALSE,
-                                          srcfile = NULL)[[1L]]
+                               e <- parse(text = symNames[idx], srcfile = NULL)[[1L]]
                                if(is.call(e))
                                    val <- eval(e)
                                else
@@ -1391,7 +1403,7 @@ registerS3methods <- function(info, package, env)
     z <- is.na(info[,3])
     info[z,3] <- methname[z]
     Info <- cbind(info, methname)
-    loc <- .Internal(ls(env, TRUE, FALSE))
+    loc <- .Internal(ls(env, TRUE))
     notex <- !(info[,3] %in% loc)
     if(any(notex))
         warning(sprintf(ngettext(sum(notex),

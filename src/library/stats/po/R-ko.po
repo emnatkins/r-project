@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-03-27 07:47\n"
 "PO-Revision-Date: 2014-03-27 13:33-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -109,9 +109,6 @@ msgstr "x$lag은 적어도 1개의 열을 반드시 가지고 있어야 합니�
 
 msgid "can use ci.type=\"ma\" only if first lag is 0"
 msgstr "만약 첫번째 lag이 0인 경우만 ci.type=\"ma\"를 사용할 수 있습니다"
-
-msgid "Page [%d,%d]: i =%s; j =%s"
-msgstr ""
 
 msgid "univariate time series only"
 msgstr "일변량 시계열만 가능합니다"
@@ -634,10 +631,8 @@ msgstr "'tree'의 구성요소 'height'는 오름차순으로 정렬되어 있�
 msgid "elements of 'k' must be between 1 and %d"
 msgstr "'which'의 모든 구성요소들은 반드시 1과 %d 사이에 있어야 합니다"
 
-msgid ""
-"dendrogram entries must be 1,2,..,%d (in any order), to be coercible to "
-"\"hclust\""
-msgstr ""
+msgid "'merge' and 'height' do not fit!"
+msgstr "'merge'와 'height'가 서로 맞아떨어지지 않습니다!"
 
 msgid "dendrogram node with non-positive #{branches}"
 msgstr "양수가 아닌 #{branches}가 사용된 덴드로그램 노드입니다"
@@ -766,9 +761,8 @@ msgstr "'rate' 또는 'scale' 중 하나만 지정해야 합니다"
 msgid "x[] and prob[] must be equal length vectors."
 msgstr "x[]와 prob[]는 반드시 같은 길이를 가지는 벡터이어야 합니다"
 
-#, fuzzy
-msgid "probabilities must be finite, non-negative and not all 0"
-msgstr "확률은 반드시 음의 값을 가져서는 안됩니다"
+msgid "probabilities cannot be negative nor all 0"
+msgstr "확률값은 음의 값을 가질 수 없고 모두 0일 수도 없습니다"
 
 msgid "'x' must be non-negative"
 msgstr "'x'는 반드시 음수가 아니어야 합니다"
@@ -934,6 +928,12 @@ msgstr "'circular'는 반드시 논리값이고 NA가 아니어야 합니다"
 
 msgid "length of 'init' must equal length of 'filter'"
 msgstr "'init'의 길이는 반드시 'filter'의 길이와 같아야 합니다"
+
+msgid "'init' must have 1 column"
+msgstr "'init'는 반드시 1개의 열을 가지고 있어야 합니다"
+
+msgid "'init' must have 1 or %d columns"
+msgstr "'init'는 반드시 1개 또는 %d개의 열을 가지고 있어야 합니다"
 
 msgid "'x' must have at least 2 rows and columns"
 msgstr "'x'는 반드시 적어도 2개의 행과 열을 가져야 합니다"
@@ -1160,6 +1160,12 @@ msgstr ""
 
 msgid "invalid length of members"
 msgstr ""
+
+msgid "invalid dendrogram"
+msgstr "유효하지 않은 덴드로그램입니다"
+
+msgid "'merge' component in dendrogram must be integer"
+msgstr "덴드로그램에서 'merge'요소는 반드시 정수이어야 합니다"
 
 msgid "argument 'x' cannot be coerced to class %s"
 msgstr "인수 'x'를 클래스  %s로 강제형변환을 할 수 없습니다"
@@ -2003,9 +2009,6 @@ msgstr ""
 msgid "invalid 'endrule' argument"
 msgstr "유효하지 않은 'endrule'인자입니다"
 
-msgid ".nknots.smspl() is now exported; use it instead of n.knots()"
-msgstr ""
-
 msgid "invalid 'control.spar'"
 msgstr "유효하지 않은 'control.spar'입니다"
 
@@ -2142,8 +2145,7 @@ msgstr "유효한 step function이 아닙니다"
 msgid "'plot.stepfun' called with wrong type of argument 'x'"
 msgstr ""
 
-#, fuzzy
-msgid "%s must be 0 or 1"
+msgid "must be 0 or 1"
 msgstr "반드시 0 또는 1 이어야 합니다"
 
 msgid "only univariate series are allowed"
@@ -2428,11 +2430,6 @@ msgid "unable to optimize from this starting value"
 msgid_plural "unable to optimize from these starting values"
 msgstr[0] "이 초기값으로부터는 최적화된 솔루션을 찾을 수 없습니다"
 
-#, fuzzy
-msgid "'init' must have %d column"
-msgid_plural "'init' must have 1 or %d columns"
-msgstr[0] "'init'는 반드시 1개의 열을 가지고 있어야 합니다"
-
 msgid "X matrix has rank %d, but only %d observation"
 msgid_plural "X matrix has rank %d, but only %d observations"
 msgstr[0] ""
@@ -2505,21 +2502,6 @@ msgstr[0] "NA, NaNs 그리고/또는 Infs를 가지는 %d개의 관측치들은 
 msgid "'start.innov' is too short: need %d point"
 msgid_plural "'start.innov' is too short: need %d points"
 msgstr[0] ""
-
-#~ msgid "'merge' and 'height' do not fit!"
-#~ msgstr "'merge'와 'height'가 서로 맞아떨어지지 않습니다!"
-
-#~ msgid "invalid dendrogram"
-#~ msgstr "유효하지 않은 덴드로그램입니다"
-
-#~ msgid "'merge' component in dendrogram must be integer"
-#~ msgstr "덴드로그램에서 'merge'요소는 반드시 정수이어야 합니다"
-
-#~ msgid "probabilities cannot be negative nor all 0"
-#~ msgstr "확률값은 음의 값을 가질 수 없고 모두 0일 수도 없습니다"
-
-#~ msgid "'init' must have 1 or %d columns"
-#~ msgstr "'init'는 반드시 1개 또는 %d개의 열을 가지고 있어야 합니다"
 
 #~ msgid "'deriv' must be between 0 and 2"
 #~ msgstr "'deriv'는 반드시 0과 2사이에 있어야 합니다"

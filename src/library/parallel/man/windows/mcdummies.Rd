@@ -3,6 +3,8 @@
 % Copyright 2009-2011 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{mclapply}
 \alias{mclapply}
 \alias{pvec}

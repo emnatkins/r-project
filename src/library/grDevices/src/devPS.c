@@ -704,7 +704,7 @@ pserror:
 }
 
 
-#include <rlocale.h> /* for Ri18n_wcwidth */
+extern int Ri18n_wcwidth(wchar_t c);
 
 
 static double
@@ -8255,7 +8255,7 @@ SEXP PostScript(SEXP args)
 	    error(_("unable to start %s() device"), "postscript");
 	}
 	gdd = GEcreateDevDesc(dev);
-	GEaddDevice2f(gdd, "postscript", file);
+	GEaddDevice2(gdd, "postscript");
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;
@@ -8322,7 +8322,7 @@ SEXP XFig(SEXP args)
 	    error(_("unable to start %s() device"), "xfig");
 	}
 	gdd = GEcreateDevDesc(dev);
-	GEaddDevice2f(gdd, "xfig", file);
+	GEaddDevice2(gdd, "xfig");
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;
@@ -8421,7 +8421,7 @@ SEXP PDF(SEXP args)
 	    error(_("unable to start %s() device"), "pdf");
 	}
 	gdd = GEcreateDevDesc(dev);
-	GEaddDevice2f(gdd, "pdf", file);
+	GEaddDevice2(gdd, "pdf");
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;

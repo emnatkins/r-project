@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -61,6 +61,14 @@ msgstr "referencja do nieznanego fragmentu %s"
 msgid "no Sweave file with name %s found"
 msgstr "nie znaleziono pliku 'Sweave' o nazwie %s"
 
+# utils/R/Sweave.R: 205
+# stop(paste(gettextf("%d Sweave files for basename %s found",
+#                                 length(f), sQuote(file[1L])),
+#                        paste(":\n         ", f, collapse="")),
+#                  domain = NA)
+msgid "%d Sweave files for basename %s found"
+msgstr "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
+
 # utils/R/Sweave.R: 241
 # warning(gettextf("more than one syntax specification found, using the first one"),
 # 		domain = NA)
@@ -107,16 +115,6 @@ msgstr "błąd parsowania lub pusta opcja w %s"
 # utils/R/Sweave.R: 590
 # message(gettextf("Warning: unknown option %s", sQuote(a)),
 #                     domain = NA)
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "Ostrzeżenie: nieznana opcja %s"
-
-# utils/R/Sweave.R: 488
-# message(gettextf("Warning: unknown option %s", sQuote(a)),
-#                     domain = NA)
-# utils/R/Sweave.R: 590
-# message(gettextf("Warning: unknown option %s", sQuote(a)),
-#                     domain = NA)
 msgid "Warning: unknown option %s"
 msgstr "Ostrzeżenie: nieznana opcja %s"
 
@@ -145,12 +143,6 @@ msgstr "ścieżka do %s zawiera spacje,"
 #                     domain = NA)
 msgid "this may cause problems when running LaTeX"
 msgstr "to może spowodować problemy podczas uruchamiania LaTeX'a"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ""
 
 # utils/R/SweaveDrivers.R: 507
 # stop(gettextf("the output file '%s' has disappeared", outputname))
@@ -661,6 +653,12 @@ msgstr "nie znaleziono pomocy dla %s"
 msgid "%s has a help file but no examples"
 msgstr "%s posiada plik pomocy, ale nie ma przykładów"
 
+# utils/R/filetest.R: 39
+# stop(gettextf("test '%s' is not available", op),
+#                 domain = NA)
+msgid "test '%s' is not available"
+msgstr "test '%s' nie jest dostępny"
+
 # utils/R/findLineNum.R: 97
 # stop("Line number missing")
 msgid "Line number missing"
@@ -875,10 +873,10 @@ msgstr "'help.start()' wymaga aby serwer HTTP był uruchomiony"
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 "Jeśli nic się nie stanie, powinieneś otworzyć\n"
-"%s samemu"
+"'%s' samemu"
 
 # utils/R/help.start.R: 44
 # gettextf("If the browser launched by '%s' is already running, it is *not* restarted, and you must switch to its window.",
@@ -1254,28 +1252,8 @@ msgstr "nie udało się utworzyć %s"
 
 # utils/R/packages2.R: 291
 # message("inferring 'repos = NULL' from the file name")
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "wnioskowanie 'repos = NULL' z nazwy pliku"
-
-# utils/R/packages2.R: 584
-# stop(gettextf("unable to create temporary directory %s",
-#                           sQuote(tmpd)),
-#                  domain = NA)
-# utils/R/packages2.R: 626
-# stop(gettextf("unable to create temporary directory %s",
-#                               sQuote(tmpd)),
-#                      domain = NA)
-# utils/R/windows/install.packages.R: 40
-# stop(gettextf("unable to create temporary directory %s",
-#                       sQuote(normalizePath(tmpDir, mustWork = FALSE))),
-#              domain = NA, call. = FALSE)
-# utils/R/windows/install.packages.R: 239
-# stop(gettextf("unable to create temporary directory %s",
-#                           sQuote(normalizePath(tmpd, mustWork = FALSE))),
-#                  domain = NA)
-msgid "unable to create temporary directory %s"
-msgstr "nie udało się utworzyć katalogu %s"
 
 # utils/R/packages2.R: 303
 # stop("type == \"both\" can only be used on Windows or a CRAN build for Mac OS X")
@@ -1351,6 +1329,25 @@ msgstr "system (cmd0): %s"
 #                             domain = NA)
 msgid "installation of package %s had non-zero exit status"
 msgstr "instalacja pakietu %s miała niezerowy status wyjścia"
+
+# utils/R/packages2.R: 584
+# stop(gettextf("unable to create temporary directory %s",
+#                           sQuote(tmpd)),
+#                  domain = NA)
+# utils/R/packages2.R: 626
+# stop(gettextf("unable to create temporary directory %s",
+#                               sQuote(tmpd)),
+#                      domain = NA)
+# utils/R/windows/install.packages.R: 40
+# stop(gettextf("unable to create temporary directory %s",
+#                       sQuote(normalizePath(tmpDir, mustWork = FALSE))),
+#              domain = NA, call. = FALSE)
+# utils/R/windows/install.packages.R: 239
+# stop(gettextf("unable to create temporary directory %s",
+#                           sQuote(normalizePath(tmpd, mustWork = FALSE))),
+#                  domain = NA)
+msgid "unable to create temporary directory %s"
+msgstr "nie udało się utworzyć katalogu %s"
 
 # utils/R/packages2.R: 601
 # message(gettextf("foundpkgs: %s",
@@ -1480,16 +1477,6 @@ msgstr "Utworzono plik o nazwie %s."
 #             domain = NA)
 msgid "Edit the file and move it to the appropriate directory."
 msgstr "Edytuj ten plik i przenieś go do odpowiedniego katalogu."
-
-# utils/R/prompt.R: 55
-# stop("cannot determine a usable name")
-# utils/R/prompt.R: 185
-# stop("cannot determine a usable name")
-# utils/R/prompt.R: 215
-# stop("cannot determine a usable name")
-#, fuzzy
-msgid "cannot determine import name"
-msgstr "nie można wyznaczyć użytecznej nazwy"
 
 # utils/R/question.R: 87
 # stop(gettextf("no documentation of type %s and topic %s (or error in processing help)",
@@ -2077,6 +2064,13 @@ msgstr "argument 'ccaddress' musi być długości 1"
 msgid "no download method found"
 msgstr "nie znaleziono metody pobierania"
 
+# utils/R/unix/download.file.R: 63
+# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
+# utils/R/windows/download.file.R: 62
+# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr "metoda 'lynx()' jest nieprzetestowana i jest przestarzała od R 3.1.0"
+
 # utils/R/unix/download.file.R: 70
 # warning("download had nonzero exit status")
 # utils/R/windows/download.file.R: 72
@@ -2164,6 +2158,13 @@ msgstr "funkcja 'memory.limit()' jest specyficzna dla systemów Windows"
 msgid "method 'mailx' is Unix-only"
 msgstr "metoda 'mailx' jest tylko dla systemów Unix"
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+"Jeśli nic się nie stanie, powinieneś otworzyć\n"
+"%s samemu"
+
 # utils/R/windows/install.packages.R: 30
 # stop(gettextf("zip file %s not found",
 #                              sQuote(zipname)), domain = NA)
@@ -2203,18 +2204,6 @@ msgstr "'winDialog()' nie może być użyty nieinteraktywnie"
 # stop("winDialogString() cannot be used non-interactively")
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "'winDialogString()' nie może być użyty nieinteraktywnie"
-
-# utils/R/Sweave.R: 205
-# stop(paste(gettextf("%d Sweave files for basename %s found",
-#                                 length(f), sQuote(file[1L])),
-#                        paste(":\n         ", f, collapse="")),
-#                  domain = NA)
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
-msgstr[1] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
-msgstr[2] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
 
 # utils/R/apropos.R: 67
 # warning(sprintf(ngettext(ll,
@@ -2497,12 +2486,6 @@ msgstr[0] "niepoprawna rzymska numeracja: %s"
 msgstr[1] "niepoprawne rzymskie numeracje: %s"
 msgstr[2] "niepoprawne rzymskie numeracje: %s"
 
-msgid "is"
-msgid_plural "are"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 # utils/R/windows/install.packages.R: 220
 # warning(sprintf(ngettext(sum(inuse),
 #                 "package %s is in use and will not be installed",
@@ -2514,24 +2497,3 @@ msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "pakiet %s jest w użyciu i nie zostanie zainstalowany"
 msgstr[1] "pakiety %s są w użyciu i nie zostaną zainstalowane"
 msgstr[2] "pakiety %s są w użyciu i nie zostaną zainstalowane"
-
-# utils/R/unix/download.file.R: 63
-# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
-# utils/R/windows/download.file.R: 62
-# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
-#~ msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-#~ msgstr ""
-#~ "metoda 'lynx()' jest nieprzetestowana i jest przestarzała od R 3.1.0"
-
-#~ msgid ""
-#~ "If nothing happens, you should open\n"
-#~ "'%s' yourself"
-#~ msgstr ""
-#~ "Jeśli nic się nie stanie, powinieneś otworzyć\n"
-#~ "'%s' samemu"
-
-# utils/R/filetest.R: 39
-# stop(gettextf("test '%s' is not available", op),
-#                 domain = NA)
-#~ msgid "test '%s' is not available"
-#~ msgstr "test '%s' nie jest dostępny"

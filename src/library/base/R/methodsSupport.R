@@ -89,5 +89,3 @@ asS3 <- function(object, flag = TRUE, complete = TRUE)
     }
     NULL
 }
-
-returnValue <- function(default = NULL) .Internal(returnValue(default))

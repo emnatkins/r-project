@@ -86,7 +86,7 @@
              append = FALSE, extraDirs = NULL, internals = FALSE,
              silent = FALSE)
 {
-    if (dir.exists(files))
+    if (file_test("-d", files))
         .pkg2tex(files, outfile, encoding = encoding, append = append,
                  asChapter = FALSE, extraDirs = extraDirs,
                  internals = internals, silent = silent)
@@ -154,8 +154,8 @@
     ## Second guess is this is a >= 2.10.0 package with stored .rds files.
     ## If it does not exist, guess this is a source package.
     latexdir <- file.path(pkgdir, "latex")
-    if (!dir.exists(latexdir)) {
-        if (dir.exists(file.path(pkgdir, "help"))) {
+    if (!file_test("-d", latexdir)) {
+        if (file_test("-d", file.path(pkgdir, "help"))) {
             ## So convert it
             latexdir <- tempfile("ltx")
             dir.create(latexdir)
@@ -196,7 +196,7 @@
         } else {
             ## As from R 2.15.3, give priority to a man dir.
             mandir <- file.path(pkgdir, "man")
-            if (dir.exists(mandir)) {
+            if (file_test("-d", mandir)) {
                 files <- c(Sys.glob(file.path(mandir, "*.Rd")),
                            Sys.glob(file.path(mandir, "*.rd")))
                 if (is.null(extraDirs)) extraDirs <- .Platform$OS.type
@@ -497,7 +497,7 @@ function(pkgdir, outfile, title, batch = FALSE,
             desc <- read.dcf(f)[1,]
             title <- paste0("Package `", desc["Package"], "'")
         } else {
-            if (dir.exists(pkgdir)) {
+            if (file_test("-d", pkgdir)) {
                 subj <- paste0("all in \\file{", pkgdir, "}")
             } else {
                 files <- strsplit(files_or_dir, "[[:space:]]+")[[1L]]
@@ -526,7 +526,7 @@ function(pkgdir, outfile, title, batch = FALSE,
     }
 
     ## Rd2.tex part 2: body
-    toc <- if (dir.exists(files_or_dir)) {
+    toc <- if (file_test("-d", files_or_dir)) {
         "\\Rdcontents{\\R{} topics documented:}"
     } else ""
 
@@ -534,9 +534,9 @@ function(pkgdir, outfile, title, batch = FALSE,
     hasFigures <- FALSE
     ## if this looks like a package with no man pages, skip body
     if (file.exists(file.path(pkgdir, "DESCRIPTION")) &&
-        !(dir.exists(file.path(pkgdir, "man")) ||
-          dir.exists(file.path(pkgdir, "help")) ||
-          dir.exists(file.path(pkgdir, "latex")))) only_meta <- TRUE
+        !(file_test("-d", file.path(pkgdir, "man")) ||
+          file_test("-d", file.path(pkgdir, "help")) ||
+          file_test("-d", file.path(pkgdir, "latex")))) only_meta <- TRUE
     if (!only_meta) {
         if (nzchar(toc)) writeLines(toc, out)
         res <- .Rdfiles2tex(files_or_dir, out, encoding = enc, append = TRUE,
@@ -612,17 +612,17 @@ setEncoding2, "
     ## </NOTE>
 
     if (!file.exists(file)) return(0L)
-    age <- file.mtime(file)
+    age <- file.info(file)$mtime
 
-    if (any(file.mtime(c(Sys.glob(file.path(dir, "man", "*.Rd")),
-                        Sys.glob(file.path(dir, "man", "*.rd"))))
-                       > age))
+    if (any(file.info(c(Sys.glob(file.path(dir, "man", "*.Rd")),
+                        Sys.glob(file.path(dir, "man", "*.rd")))
+                      )$mtime > age))
         return(0L)
 
-    if (dir.exists(file.path(dir, OS))) {
-        if (any(file.mtime(c(Sys.glob(file.path(dir, "man", OS, "*.Rd")),
-                            Sys.glob(file.path(dir, "man", OS, "*.rd"))))
-                           > age))
+    if (isTRUE(file.info(file.path(dir, OS))$isdir)) {
+        if (any(file.info(c(Sys.glob(file.path(dir, "man", OS, "*.Rd")),
+                            Sys.glob(file.path(dir, "man", OS, "*.rd")))
+                          )$mtime > age))
             return(0L)
     }
 
@@ -636,6 +636,8 @@ setEncoding2, "
 
 ..Rd2pdf <- function(args = NULL, quit = TRUE)
 {
+    dir.exists <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
+
     do_cleanup <- function() {
         if(clean) {
             setwd(startdir)

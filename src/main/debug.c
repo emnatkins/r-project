@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2014   The R Core Team.
+ *  Copyright (C) 1998-2013   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,22 +40,22 @@ SEXP attribute_hidden do_debug(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     find_char_fun
 
-    if (TYPEOF(CAR(args)) != CLOSXP && TYPEOF(CAR(args)) != SPECIALSXP
+    if (TYPEOF(CAR(args)) != CLOSXP && TYPEOF(CAR(args)) != SPECIALSXP 
          &&  TYPEOF(CAR(args)) != BUILTINSXP )
 	errorcall(call, _("argument must be a closure"));
     switch(PRIMVAL(op)) {
-    case 0: // debug()
+    case 0:
 	SET_RDEBUG(CAR(args), 1);
 	break;
-    case 1: // undebug()
+    case 1:
 	if( RDEBUG(CAR(args)) != 1 )
 	    warningcall(call, "argument is not being debugged");
 	SET_RDEBUG(CAR(args), 0);
 	break;
-    case 2: // isdebugged()
+    case 2:
         ans = ScalarLogical(RDEBUG(CAR(args)));
         break;
-    case 3: // debugonce()
+    case 3:
         SET_RSTEP(CAR(args), 1);
         break;
     }
@@ -87,36 +87,30 @@ SEXP attribute_hidden do_trace(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-/* maintain global trace & debug state */
+/* maintain global trace state */
 
-static Rboolean tracing_state = TRUE, debugging_state = TRUE;
+static Rboolean tracing_state = TRUE;
 #define GET_TRACE_STATE tracing_state
-#define GET_DEBUG_STATE debugging_state
 #define SET_TRACE_STATE(value) tracing_state = value
-#define SET_DEBUG_STATE(value) debugging_state = value
 
 SEXP attribute_hidden do_traceOnOff(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     checkArity(op, args);
     SEXP onOff = CAR(args);
-    Rboolean trace = (PRIMVAL(op) == 0),
-	prev = trace ? GET_TRACE_STATE : GET_DEBUG_STATE;
 
+    Rboolean prev = GET_TRACE_STATE;
     if(length(onOff) > 0) {
 	Rboolean _new = asLogical(onOff);
 	if(_new == TRUE || _new == FALSE)
-	    if(trace) SET_TRACE_STATE(_new);
-	    else      SET_DEBUG_STATE(_new);
+	    SET_TRACE_STATE(_new);
 	else
-	    error(_("Value for '%s' must be TRUE or FALSE"),
-		  trace ? "tracingState" : "debuggingState");
+	    error("Value for tracingState must be TRUE or FALSE");
     }
     return ScalarLogical(prev);
 }
 
-// GUIs, packages, etc can query:
-Rboolean R_current_debug_state() { return GET_DEBUG_STATE; }
-Rboolean R_current_trace_state() { return GET_TRACE_STATE; }
+Rboolean attribute_hidden
+R_current_trace_state() { return GET_TRACE_STATE; }
 
 
 /* memory tracing */
@@ -213,25 +207,23 @@ void memtrace_report(void * old, void * _new)
 SEXP attribute_hidden do_retracemem(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 #ifdef R_MEMORY_PROFILING
-    SEXP object, previous, ans, argList;
+    SEXP object, previous, ans, ap, argList;
     char buffer[21];
-    static SEXP do_retracemem_formals = NULL;
 
-    if (do_retracemem_formals == NULL)
-        do_retracemem_formals = allocFormalsList2(install("x"),
-						  R_PreviousSymbol);
-
-    PROTECT(argList =  matchArgs(do_retracemem_formals, args, call));
+    PROTECT(ap = list2(R_NilValue, R_NilValue));
+    SET_TAG(ap,  install("x"));
+    SET_TAG(CDR(ap), install("previous"));
+    PROTECT(argList =  matchArgs(ap, args, call));
     if(CAR(argList) == R_MissingArg) SETCAR(argList, R_NilValue);
     if(CADR(argList) == R_MissingArg) SETCAR(CDR(argList), R_NilValue);
 
-    object = CAR(argList);
+    object = CAR(ap);
     if (TYPEOF(object) == CLOSXP ||
 	TYPEOF(object) == BUILTINSXP ||
 	TYPEOF(object) == SPECIALSXP)
 	errorcall(call, _("argument must not be a function"));
 
-    previous = CADR(argList);
+    previous = CADR(ap);
     if(!isNull(previous) && !isString(previous))
 	    errorcall(call, _("invalid '%s' argument"), "previous");
 
@@ -253,7 +245,7 @@ SEXP attribute_hidden do_retracemem(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    memtrace_stack_dump();
 	}
     }
-    UNPROTECT(1);
+    UNPROTECT(2);
     return ans;
 #else
     R_Visible = 0; /* for consistency with other case */

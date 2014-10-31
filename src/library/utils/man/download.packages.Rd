@@ -3,6 +3,8 @@
 % Copyright 1995-2009 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{download.packages}
 \alias{download.packages}
 \title{Download Packages from CRAN-like Repositories}

@@ -30,7 +30,7 @@ tkStartGUI <- function()
     tcl("source", file.path(.Library, "tcltk", "exec", "console.tcl"))
     .C(.C_RTcl_ActivateConsole)
     Menu <- .Tk.newwin(".menu")
-    .Tk.newwin(".tk-R.term") # result unused
+    Term <- .Tk.newwin(".tk-R.term")
     Toolbar <- .Tk.newwin(".tk-R.toolbar")
     options(pager=tkpager)
 

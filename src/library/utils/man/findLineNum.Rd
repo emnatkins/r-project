@@ -3,6 +3,8 @@
 % Copyright 2009-2013 Duncan Murdoch and the R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{findLineNum}
 \alias{findLineNum}
 \alias{setBreakpoint}

@@ -3,6 +3,9 @@
 % Copyright 2009-2013 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{mcparallel}
 \alias{mccollect}
 \alias{mcparallel}

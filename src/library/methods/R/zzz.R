@@ -1,7 +1,7 @@
 #  File src/library/methods/R/zzz.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -49,10 +49,7 @@
     .makeBasicFuns(where)
     rm(.makeGeneric, .newClassRepresentation, .possibleExtends,
        ..mergeClassDefSlots, .classGeneratorFunction, ..classEnv,
-       ..addToMetaTable, ..extendsForS3,
-       .InitClassDefinition, .InitBasicClasses, .initClassSupport,
-       .InitMethodsListClass, .setCoerceGeneric, .makeBasicFuns,
-       envir = where)
+       ..addToMetaTable, ..extendsForS3, envir = where)
     .InitMethodDefinitions(where)
     .InitShowMethods(where)
     assign(".isPrototype", ..isPrototype, envir = where)
@@ -75,12 +72,7 @@
     assign(".checkRequiredGenerics", ..checkRequiredGenerics, envir = where)
     assign(".methodPackageSlots", ..methodPackageSlots, envir = where)
     rm(..isPrototype, .isSealedMethod, ..requirePackage, .implicitGeneric,
-       ..checkRequiredGenerics, ..methodPackageSlots, .envRefMethods,
-       .InitBasicClassMethods, .InitExtensions, .InitStructureMethods,
-       .InitMethodDefinitions, .InitShowMethods, .InitClassUnion,
-       .InitS3Classes, .InitSpecialTypesAndClasses, .InitTraceFunctions,
-       .InitRefClasses, .initImplicitGenerics,
-       envir = where)
+       ..checkRequiredGenerics, ..methodPackageSlots, envir = where)
     ## unlock some bindings that must be modifiable
     unlockBinding(".BasicFunsList", where)
     assign(".saveImage", TRUE, envir = where)

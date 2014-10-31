@@ -10,11 +10,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2014-03-11 10:35-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
-"Language: ru\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=KOI8-R\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -48,6 +48,9 @@ msgstr "ссылка на неизвестный фрагмент %s"
 msgid "no Sweave file with name %s found"
 msgstr "Sweave-файл с именем %s не найден"
 
+msgid "%d Sweave files for basename %s found"
+msgstr "%d Sweave-файлов с базовым именем %s найдено"
+
 msgid "more than one syntax specification found, using the first one"
 msgstr "найдено более одного указания на синтаксис, использую первое"
 
@@ -70,10 +73,6 @@ msgstr ""
 "ошибка разбора или пустая опция в\n"
 "%s"
 
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "Предупреждение: неизвестная опция %s"
-
 msgid "Warning: unknown option %s"
 msgstr "Предупреждение: неизвестная опция %s"
 
@@ -88,12 +87,6 @@ msgstr "путь у %s содержит пробелы,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "это может привести к проблемам с LaTeX"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ","
 
 msgid "the output file '%s' has disappeared"
 msgstr "файл вывода '%s' пропал :("
@@ -300,8 +293,8 @@ msgstr "Введите номер окружения или 0 для выхода"
 
 msgid "recover called non-interactively; frames dumped, use debugger() to view"
 msgstr ""
-"восстановление вызвано неинтерактивно; кадры сброшены, используйте "
-"debugger(), чтобы их просмотреть"
+"восстановление вызвано неинтерактивно; кадры сброшены, используйте debugger"
+"(), чтобы их просмотреть"
 
 msgid "No suitable frames for recover()"
 msgstr "Нет подходящих кадров для recover()"
@@ -351,6 +344,9 @@ msgstr "в %s не найдено помощи"
 
 msgid "%s has a help file but no examples"
 msgstr "у %s есть файл помощи, но нет примеров"
+
+msgid "test '%s' is not available"
+msgstr "тест '%s' недоступен"
 
 msgid "Line number missing"
 msgstr "Пропущен номер строки"
@@ -473,10 +469,10 @@ msgstr "help.start() требует запуска сервера HTTP"
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 "Если ничего не произойдет, надо открыть\n"
-"%s самостоятельно"
+"'%s' самостоятельно"
 
 msgid ""
 "If the browser launched by '%s' is already running, it is *not* restarted, "
@@ -676,12 +672,8 @@ msgstr "не могу установить пакеты"
 msgid "unable to create %s"
 msgstr "не удалось создать %s"
 
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "выставляю 'repos = NULL' на основе имени файла"
-
-msgid "unable to create temporary directory %s"
-msgstr "не могу создать временную директорию %s"
 
 msgid ""
 "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
@@ -724,6 +716,9 @@ msgstr "system (cmd0): %s"
 
 msgid "installation of package %s had non-zero exit status"
 msgstr "установка пакета %s имеет ненулевой статус выхода"
+
+msgid "unable to create temporary directory %s"
+msgstr "не могу создать временную директорию %s"
 
 msgid "foundpkgs: %s"
 msgstr "foundpkgs: %s"
@@ -776,10 +771,6 @@ msgstr "Создан файл с именем %s."
 
 msgid "Edit the file and move it to the appropriate directory."
 msgstr "Редактируется файл и перемещается в положенную папку."
-
-#, fuzzy
-msgid "cannot determine import name"
-msgstr "не могу определить имя, которое можно использовать"
 
 msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr "нет документации на тип %s и раздел %s (или ошибка в обработке помощи)"
@@ -1083,6 +1074,9 @@ msgstr "'ccaddress' должен быть длиной 1"
 msgid "no download method found"
 msgstr "не найдено метода скачивания"
 
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr ""
+
 msgid "download had nonzero exit status"
 msgstr "у скачивания ненулевой статус выхода"
 
@@ -1130,6 +1124,13 @@ msgstr "'memory.limit()' -- Windows-специфичный"
 msgid "method 'mailx' is Unix-only"
 msgstr "метод 'mailx' только для Unix"
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+"Если ничего не произойдет, надо открыть\n"
+"%s самостоятельно"
+
 msgid "zip file %s not found"
 msgstr "zip-файл %s не найден"
 
@@ -1144,13 +1145,6 @@ msgstr "winDialog() нельзя использовать неинтерактивно"
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString() нельзя использовать неинтерактивно"
-
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "%d Sweave-файлов с базовым именем %s найдено"
-msgstr[1] "%d Sweave-файлов с базовым именем %s найдено"
-msgstr[2] "%d Sweave-файлов с базовым именем %s найдено"
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
@@ -1314,27 +1308,11 @@ msgstr[0] "Неправильные римский номер: %s"
 msgstr[1] "Неправильные римские номера: %s"
 msgstr[2] "Неправильные римские номера: %s"
 
-msgid "is"
-msgid_plural "are"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
 msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
 msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
-
-#~ msgid ""
-#~ "If nothing happens, you should open\n"
-#~ "'%s' yourself"
-#~ msgstr ""
-#~ "Если ничего не произойдет, надо открыть\n"
-#~ "'%s' самостоятельно"
-
-#~ msgid "test '%s' is not available"
-#~ msgstr "тест '%s' недоступен"
 
 #~ msgid "Created PDF document %s"
 #~ msgstr "Созданный документ PDF %s"
@@ -1408,6 +1386,9 @@ msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
 
 #~ msgid "not found"
 #~ msgstr "не найден"
+
+#~ msgid ","
+#~ msgstr ","
 
 #~ msgid "HTTPUserAgent"
 #~ msgstr "HTTPUserAgent"

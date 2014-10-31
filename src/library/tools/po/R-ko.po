@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-01-26 09:09\n"
 "PO-Revision-Date: 2014-03-27 13:35-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -356,9 +356,9 @@ msgstr "패키지 스타트업 함수들은 %s를 호출해서는 안됩니다."
 msgid "See section %s in '%s'."
 msgstr "'%2$s'에서 섹션 %1$s를 살펴보세요."
 
-#, fuzzy
 msgid ""
-"Package detach functions should have one argument with name starting with %s."
+"Package detach functions should have one arguments with names starting with "
+"%s."
 msgstr ""
 "패키지 분리(detach)와 관계된 함수들은 %s로 시작하는 이름을 가진 인자 한개를 "
 "반드시 가지고 있어야 합니다."
@@ -385,14 +385,6 @@ msgid "'library' or 'require' calls not declared from:"
 msgstr "다음으로부터 선언되지 않은 'library' 또는 'require' 호출입니다:"
 
 msgid "'library' or 'require' call not declared from: %s"
-msgstr "다음으로부터 선언되지 않은 'library' 또는 'require' 호출입니다: %s"
-
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' calls not declared from:"
-msgstr "다음으로부터 선언되지 않은 'library' 또는 'require' 호출입니다:"
-
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' call not declared from: %s"
 msgstr "다음으로부터 선언되지 않은 'library' 또는 'require' 호출입니다: %s"
 
 msgid "'library' or 'require' calls to packages already attached by Depends:"
@@ -490,8 +482,8 @@ msgid ""
 "in NAMESPACE."
 msgstr ""
 
-msgid "Rd object required"
-msgstr ""
+msgid "argument 'file' must be a character string or connection"
+msgstr "인자 'file'은 반드시 문자열 또는 연결이어야 합니다"
 
 msgid "missing/empty %s field in '%s'"
 msgstr "'%2$s'내에 %1$s 항목이 없습니다"
@@ -520,16 +512,6 @@ msgstr "이름이 없는 Rd 객체들은 다루어질 수 없습니다"
 
 msgid "No help on %s found in RdDB %s"
 msgstr "RdDB %2$s 로부터 %1$s와 관계된 도움말을 찾을 수 없습니다"
-
-msgid "'macros' must be TRUE or must specify existing macros"
-msgstr ""
-
-msgid "Macro file %s should only contain Rd macro definitions and comments"
-msgstr ""
-
-#, fuzzy
-msgid "No Rd macros in package '%s'."
-msgstr "패키지 %s에 대한 문서를 찾을 수 없습니다"
 
 msgid "more than one \\examples section, using the first"
 msgstr "한 개이상의 \\examples 섹션이 발견되었으며, 이중 첫번째것을 사용합니다"
@@ -569,9 +551,6 @@ msgid "invalid value for '%s' : %s"
 msgstr "'%s'에 대한 값이 잘못되었습니다 : %s"
 
 msgid "Only one Rd section per %s is supported."
-msgstr ""
-
-msgid "DESCRIPTION file is for package '%s', not '%s'"
 msgstr ""
 
 msgid "Vignette product %s does not have a known filename extension (%s)"
@@ -631,9 +610,11 @@ msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
 msgstr ""
 "비니에트 파일명 '%1$s'은 '%2$s' 파일명 패턴들 중 어느것과도 일치하지 않습니다"
 
-#, fuzzy
-msgid "Inconsistent encoding specifications: %s with %%\\SweaveUTF8"
+msgid "Inconsistent encoding specifications:"
 msgstr "다음은 일치하지 않는 인코딩 지정들입니다:"
+
+msgid "with %\\SweaveUTF8"
+msgstr ""
 
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr ""
@@ -855,9 +836,6 @@ msgstr "패키지 %2$s 내의 링크 %1$s 를 제자리에 위치시킬 수 없�
 msgid "No docs found for package %s"
 msgstr "패키지 %s에 대한 문서를 찾을 수 없습니다"
 
-msgid "URL %s was not found"
-msgstr "URL %s을 찾을 수 없습니다"
-
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
 msgstr ""
@@ -866,6 +844,9 @@ msgstr ""
 
 msgid "unsupported URL %s"
 msgstr "지원되지 않는 URL %s입니다"
+
+msgid "URL %s was not found"
+msgstr "URL %s을 찾을 수 없습니다"
 
 msgid "httpd server disabled by R_DISABLE_HTTPD"
 msgstr ""
@@ -1125,6 +1106,9 @@ msgstr ""
 msgid "testing '%s' failed"
 msgstr "'%s'를 테스팅하는 것은 실패했습니다"
 
+msgid "%d of the package tests failed"
+msgstr ""
+
 msgid "Testing examples for package %s"
 msgstr "패키지 %s의 예제를 테스트합니다"
 
@@ -1194,9 +1178,11 @@ msgstr "'%2$s'에 '%1$s'를 실행할 수 없습니다"
 msgid "unable to run %s on '%s'"
 msgstr "'%2$s'에 %1$s를 실행할 수 없습니다"
 
-#, fuzzy
-msgid "cannot coerce %s to logical"
+msgid "cannot coerce"
 msgstr "강제변환을 할 수 없습니다"
+
+msgid "to logical"
+msgstr ""
 
 msgid "File 'DESCRIPTION' is missing."
 msgstr "파일 'DESCRIPTION'이 없습니다."
@@ -1341,13 +1327,6 @@ msgstr[0] "'%s'와 관련된 주제를 다음의 패키지들로부터 찾았습
 msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "객체 %s는 하나 이상의 데이터 호출로부터 생성되었습니다"
-
-msgid "%d of the package tests failed"
-msgid_plural "%d of the package tests failed"
-msgstr[0] ""
-
-#~ msgid "argument 'file' must be a character string or connection"
-#~ msgstr "인자 'file'은 반드시 문자열 또는 연결이어야 합니다"
 
 #~ msgid "Sweave"
 #~ msgstr "Sweave"

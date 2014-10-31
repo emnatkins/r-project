@@ -17,13 +17,9 @@
  *  http://www.r-project.org/Licenses/
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-#define NO_NLS
-#include <Defn.h>
-
 #include "tcltk.h" /* declarations of our `public' interface */
+
+#include <R.h>
 #include <stdlib.h>
 
 #ifdef ENABLE_NLS
@@ -32,6 +28,9 @@
 #else
 #define _(String) (String)
 #endif
+
+// From Defn.f
+extern void  R_Busy(int);
 
 static void RTcl_dec_refcount(SEXP R_tclobj)
 {

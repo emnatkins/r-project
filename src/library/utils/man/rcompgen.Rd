@@ -3,6 +3,8 @@
 % Copyright 2008-2013 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{rcompgen}
 \alias{rcompgen}
 \alias{rc.settings}

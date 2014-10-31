@@ -1,7 +1,7 @@
 #  File src/library/tools/R/pdftools.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ function(file, cache = TRUE)
         ## there a way to get the connection closed when the doc object
         ## gets removed?
         ##   if(cache) {
-        ##       .bytes <- readBin(file, "raw", file.size(file))
+        ##       .bytes <- readBin(file, "raw", file.info(file)$size)
         ##       con <- rawConnection(.bytes)
         ##       keep <- TRUE
         ##   }
@@ -235,7 +235,7 @@ function(file, cache = TRUE)
             ## PDF 1.5+ cross-reference stream, hopefully.
             .con_seek(con, -1L, 2L)
             pos <- .con_seek(con)
-            pdf_read_object_header(con)
+            hdr <- pdf_read_object_header(con)
             obj <- pdf_read_object(con)
             if(!("Type" %in% names(obj)) ||
                !(obj[["Type"]] == "XRef")) {
@@ -1825,7 +1825,7 @@ function(con)
 raw_connection_to_bytes_in_file <-
 function(file)
 {
-    bytes <- readBin(file, "raw", file.size(file))
+    bytes <- readBin(file, "raw", file.info(file)$size)
     rawConnection(bytes)
 }
 

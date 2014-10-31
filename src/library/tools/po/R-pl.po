@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-01-26 09:09\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -819,9 +819,9 @@ msgstr "Zobacz sekcję %s w '%s'."
 
 # tools/R/QC.R: 4857
 # gettextf("Package detach functions should have one arguments with names starting with %s.", sQuote("lib"))
-#, fuzzy
 msgid ""
-"Package detach functions should have one argument with name starting with %s."
+"Package detach functions should have one arguments with names starting with "
+"%s."
 msgstr ""
 "Funkcje odłączające pakiet powinny jeden argument z nazwami rozpoczynającymi "
 "się od %s."
@@ -878,19 +878,6 @@ msgstr "wywołania 'library' lub 'require' nie są zadeklarowane z:"
 # gettextf("'library' or 'require' call not declared from: %s",
 #                        sQuote(xx))
 msgid "'library' or 'require' call not declared from: %s"
-msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
-
-# tools/R/QC.R: 5379
-# gettext("'library' or 'require' calls not declared from:")
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' calls not declared from:"
-msgstr "wywołania 'library' lub 'require' nie są zadeklarowane z:"
-
-# tools/R/QC.R: 5382
-# gettextf("'library' or 'require' call not declared from: %s",
-#                        sQuote(xx))
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' call not declared from: %s"
 msgstr "wywołanie 'library' lub 'require' nie jest zadeklarowane z: %s"
 
 # tools/R/QC.R: 5389
@@ -1064,8 +1051,10 @@ msgstr ""
 "%s\n"
 "w pliku 'NAMESPACE'."
 
-msgid "Rd object required"
-msgstr ""
+# tools/R/Rd.R: 38
+# stop("argument 'file' must be a character string or connection")
+msgid "argument 'file' must be a character string or connection"
+msgstr "argument 'file' musi być łańcuchem tekstowym lub połączeniem"
 
 # tools/R/Rd.R: 55
 # gettextf("missing/empty %s field in '%s'",
@@ -1121,19 +1110,6 @@ msgstr "nie można poradzić sobie z obiektami Rd z brakującymi/pustymi nazwami
 #                      domain = NA)
 msgid "No help on %s found in RdDB %s"
 msgstr "Nie znaleziono pomocy na temat %s w zbiorach RdDB %s"
-
-msgid "'macros' must be TRUE or must specify existing macros"
-msgstr ""
-
-msgid "Macro file %s should only contain Rd macro definitions and comments"
-msgstr ""
-
-# tools/R/dynamicHelp.R: 358
-# gettextf("No docs found for package %s",
-#                                        mono(pkg))
-#, fuzzy
-msgid "No Rd macros in package '%s'."
-msgstr "Nie znaleziono dokumentów dla pakietu '%s'"
 
 # tools/R/Rd2ex.R: 145
 # warning("more than one \\examples section, using the first")
@@ -1233,9 +1209,6 @@ msgstr "niepoprawna wartość dla '%s' : %s"
 #                              domain = NA)
 msgid "Only one Rd section per %s is supported."
 msgstr "Tylko jedna sekcja Rd na %s jest wspierana."
-
-msgid "DESCRIPTION file is for package '%s', not '%s'"
-msgstr ""
 
 # tools/R/Vignettes.R: 29
 # stop(gettextf("Vignette product %s does not have a known filename extension (%s)",
@@ -1359,9 +1332,13 @@ msgstr ""
 
 # tools/R/Vignettes.R: 698
 # stop("Inconsistent encoding specifications: ", result1, " with %\\SweaveUTF8")
-#, fuzzy
-msgid "Inconsistent encoding specifications: %s with %%\\SweaveUTF8"
+msgid "Inconsistent encoding specifications:"
 msgstr "Niespójne specyfikacje strony kodowej:"
+
+# tools/R/Vignettes.R: 698
+# stop("Inconsistent encoding specifications: ", result1, " with %\\SweaveUTF8")
+msgid "with %\\SweaveUTF8"
+msgstr "z %\\SweaveUTF8"
 
 # tools/R/Vignettes.R: 824
 # stop(gettextf("In '%s' vignettes '%s' and '%s' have the same vignette name",
@@ -1970,11 +1947,6 @@ msgstr "Linki %s w pakiecie '%s' nie mogły zostać zlokalizowane"
 msgid "No docs found for package %s"
 msgstr "Nie znaleziono dokumentów dla pakietu '%s'"
 
-# tools/R/dynamicHelp.R: 455
-# gettextf("URL %s was not found", mono(path))
-msgid "URL %s was not found"
-msgstr "adres URL %s nie został znaleziony"
-
 # tools/R/dynamicHelp.R: 431
 # gettextf("Only help files, %s, %s and files under %s and %s in a package can be viewed", mono("NEWS"),
 #                               mono("DESCRIPTION"), mono("doc/"), mono("demo/"))
@@ -1988,6 +1960,11 @@ msgstr ""
 # gettextf("unsupported URL %s", mono(path))
 msgid "unsupported URL %s"
 msgstr "niewspierany adres URL %s"
+
+# tools/R/dynamicHelp.R: 455
+# gettextf("URL %s was not found", mono(path))
+msgid "URL %s was not found"
+msgstr "adres URL %s nie został znaleziony"
 
 # tools/R/dynamicHelp.R: 471
 # warning("httpd server disabled by R_DISABLE_HTTPD", immediate. = TRUE)
@@ -2496,6 +2473,12 @@ msgstr "Znaleziono %s, prawdopodobnie z %s"
 msgid "testing '%s' failed"
 msgstr "testowanie '%s' nie powiodło się"
 
+# tools/R/testing.R: 253
+# stop(gettextf("%d of the package tests failed", sum(res)),
+#                      domain = NA, call. = FALSE)
+msgid "%d of the package tests failed"
+msgstr "%d z testów pakietu nie powiodło się"
+
 # tools/R/testing.R: 285
 # message(gettextf("Testing examples for package %s", sQuote(pkg)),
 #                 domain = NA)
@@ -2653,9 +2636,13 @@ msgstr "nie można uruchomić polecenia '%s' na pliku '%s'"
 
 # tools/R/utils.R: 528
 # warning("cannot coerce ", sQuote(val), " to logical")
-#, fuzzy
-msgid "cannot coerce %s to logical"
+msgid "cannot coerce"
 msgstr "nie można przekształcić"
+
+# tools/R/utils.R: 528
+# warning("cannot coerce ", sQuote(val), " to logical")
+msgid "to logical"
+msgstr "na typ logiczny"
 
 # tools/R/utils.R: 780
 # stop("File 'DESCRIPTION' is missing.")
@@ -3043,31 +3030,6 @@ msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "obiekt %s jest utworzony przez więcej niż jedno wywołanie danych"
 msgstr[1] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
 msgstr[2] "obiekty %s są utworzone przez więcej niż jedno wywołanie danych"
-
-# tools/R/testing.R: 253
-# stop(gettextf("%d of the package tests failed", sum(res)),
-#                      domain = NA, call. = FALSE)
-#, fuzzy
-msgid "%d of the package tests failed"
-msgid_plural "%d of the package tests failed"
-msgstr[0] "%d z testów pakietu nie powiodło się"
-msgstr[1] "%d z testów pakietu nie powiodło się"
-msgstr[2] "%d z testów pakietu nie powiodło się"
-
-# tools/R/Rd.R: 38
-# stop("argument 'file' must be a character string or connection")
-#~ msgid "argument 'file' must be a character string or connection"
-#~ msgstr "argument 'file' musi być łańcuchem tekstowym lub połączeniem"
-
-# tools/R/Vignettes.R: 698
-# stop("Inconsistent encoding specifications: ", result1, " with %\\SweaveUTF8")
-#~ msgid "with %\\SweaveUTF8"
-#~ msgstr "z %\\SweaveUTF8"
-
-# tools/R/utils.R: 528
-# warning("cannot coerce ", sQuote(val), " to logical")
-#~ msgid "to logical"
-#~ msgstr "na typ logiczny"
 
 #~ msgid "'file' must be a character string or connection"
 #~ msgstr "argument 'file' musi być łańcuchem tekstowym lub połączeniem"

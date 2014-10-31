@@ -64,7 +64,6 @@ example(Rdutils)
 example(fileutils)
 ## results are location- and OS-specific
 example(parseLatex) # charset-specific
-example(loadRdMacros) # collation-specific
 
 ## part of example(buildVignettes) at one time
 gVigns <- pkgVignettes("grid")
@@ -83,6 +82,4 @@ if(nzchar(vind)) { # so vignettes have been installed
     stopifnot("grid" %in% gVigns$names, inherits(gVigns, "pkgVignettes"))
 }
 
-## This might leave collation changed, so do not put other things after it.
-example(icuSetCollate)
 proc.time()

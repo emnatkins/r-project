@@ -528,7 +528,7 @@ SEXP in_Cairo(SEXP args)
 	    error(_("unable to start device '%s'"), devtable[type].name);
 	}
 	gdd = GEcreateDevDesc(dev);
-	GEaddDevice2f(gdd, devtable[type].name, filename);
+	GEaddDevice2(gdd, devtable[type].name);
     } END_SUSPEND_INTERRUPTS;
 
     vmaxset(vmax);

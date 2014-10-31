@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-10-26 08:48\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2014-03-17 11:04+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -44,6 +44,9 @@ msgstr "référence à un tronçon inconnu %s"
 msgid "no Sweave file with name %s found"
 msgstr "un fichier Sweave de nom %s est introuvable"
 
+msgid "%d Sweave files for basename %s found"
+msgstr "%d fichiers Sweave trouvés pour le nom de base %s"
+
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
 "plusieurs spécifications de syntaxe possibles ; la première est utilisée"
@@ -67,10 +70,6 @@ msgstr ""
 "erreur d'interprétation ou option vide dans\n"
 "%s"
 
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "Avis : option inconnue %s"
-
 msgid "Warning: unknown option %s"
 msgstr "Avis : option inconnue %s"
 
@@ -85,12 +84,6 @@ msgstr "le chemin vers %s contient des espaces,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "cela peut provoquer des problèmes dans l'utilisation de LaTeX"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ","
 
 msgid "the output file '%s' has disappeared"
 msgstr "le fichier en sortie '%s' a disparu"
@@ -358,6 +351,9 @@ msgstr "fichier d'aide introuvable pour %s"
 msgid "%s has a help file but no examples"
 msgstr "%s a un fichier d'aide associé, mais pas d'exemples"
 
+msgid "test '%s' is not available"
+msgstr "le test '%s' n'est pas disponible"
+
 msgid "Line number missing"
 msgstr "Numéro de ligne manquant"
 
@@ -485,10 +481,10 @@ msgstr "help.start() nécessite que le serveur HTTP soit en cours d'exécution"
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 "Si rien ne se passe, vous devrez ouvrir\n"
-"%s vous-même"
+"'%s' vous-même"
 
 msgid ""
 "If the browser launched by '%s' is already running, it is *not* restarted, "
@@ -689,12 +685,8 @@ msgstr "impossible d'installer les packages"
 msgid "unable to create %s"
 msgstr "impossible de créer %s"
 
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "supposition de 'repos = NULL' à partir du nom de fichier"
-
-msgid "unable to create temporary directory %s"
-msgstr "impossible de créer le répertoire temporaire %s"
 
 msgid ""
 "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
@@ -740,6 +732,9 @@ msgstr "system (cmd0) : %s"
 
 msgid "installation of package %s had non-zero exit status"
 msgstr "l'installation du package %s a eu un statut de sortie non nul"
+
+msgid "unable to create temporary directory %s"
+msgstr "impossible de créer le répertoire temporaire %s"
 
 msgid "foundpkgs: %s"
 msgstr "foundpkgs : %s"
@@ -791,10 +786,6 @@ msgstr "Création du fichier %s."
 
 msgid "Edit the file and move it to the appropriate directory."
 msgstr "Editez le fichier et déplacez-le dans le répertoire approprié"
-
-#, fuzzy
-msgid "cannot determine import name"
-msgstr "impossible de trouver un nom utilisable"
 
 msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr ""
@@ -1104,6 +1095,9 @@ msgstr "'ccaddress' doit être de longueur 1"
 msgid "no download method found"
 msgstr "impossible de trouver une méthode de téléchargement"
 
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr "la méthode 'lynx' est non testée et dépréciée depuis R 3.1.0"
+
 msgid "download had nonzero exit status"
 msgstr "le téléchargement a a eu un statut de sortie non nul"
 
@@ -1153,6 +1147,13 @@ msgstr "'memory.limit()' est spécifique à Windows"
 msgid "method 'mailx' is Unix-only"
 msgstr "la méthode 'mailx' n'est valable que sous Unix"
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+"Si rien ne se passe, vous devrez ouvrir\n"
+"%s vous-même"
+
 msgid "zip file %s not found"
 msgstr "fichier zip %s introuvable"
 
@@ -1167,12 +1168,6 @@ msgstr "winDialog() ne peut être utilisé en mode non interactif"
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString() ne peut être utilisé en mode non interactif"
-
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "%d fichiers Sweave trouvés pour le nom de base %s"
-msgstr[1] "%d fichiers Sweave trouvés pour le nom de base %s"
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
@@ -1317,29 +1312,11 @@ msgid_plural "invalid roman numerals: %s"
 msgstr[0] "nombre roman incorrect : %s"
 msgstr[1] "nombres romans incorrects : %s"
 
-msgid "is"
-msgid_plural "are"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "le package %s est en cours d'utilisation et ne sera pas installé"
 msgstr[1] ""
 "les packages %s sont en cours d'utilisation et ne seront pas installés"
-
-#~ msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-#~ msgstr "la méthode 'lynx' est non testée et dépréciée depuis R 3.1.0"
-
-#~ msgid ""
-#~ "If nothing happens, you should open\n"
-#~ "'%s' yourself"
-#~ msgstr ""
-#~ "Si rien ne se passe, vous devrez ouvrir\n"
-#~ "'%s' vous-même"
-
-#~ msgid "test '%s' is not available"
-#~ msgstr "le test '%s' n'est pas disponible"
 
 #~ msgid "broken installation, no CITATION file in the base package."
 #~ msgstr ""
@@ -1414,6 +1391,9 @@ msgstr[1] ""
 
 #~ msgid "not found"
 #~ msgstr "introuvable"
+
+#~ msgid ","
+#~ msgstr ","
 
 #~ msgid "HTTPUserAgent"
 #~ msgstr "HTTPUserAgent"

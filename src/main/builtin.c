@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2014  The R Core Team.
+ *  Copyright (C) 1999-2012  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ SEXP attribute_hidden do_makelazy(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (!isEnvironment(aenv)) error(_("invalid '%s' argument"), "assign.env");
 
     for(i = 0; i < XLENGTH(names); i++) {
-	SEXP name = installChar(STRING_ELT(names, i));
+	SEXP name = install(CHAR(STRING_ELT(names, i)));
 	PROTECT(val = eval(VECTOR_ELT(values, i), eenv));
 	PROTECT(expr0 = duplicate(expr));
 	SETCAR(CDR(expr0), val);
@@ -132,14 +132,13 @@ SEXP attribute_hidden do_makelazy(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     RCNTXT *ctxt;
-    SEXP code, oldcode, tmp, argList;
+    SEXP code, oldcode, tmp, ap, argList;
     int addit = 0;
-    static SEXP do_onexit_formals = NULL;
 
-    if (do_onexit_formals == NULL)
-        do_onexit_formals = allocFormalsList2(install("expr"), install("add"));
-
-    PROTECT(argList =  matchArgs(do_onexit_formals, args, call));
+    PROTECT(ap = list2(R_NilValue, R_NilValue));
+    SET_TAG(ap,  install("expr"));
+    SET_TAG(CDR(ap), install("add"));
+    PROTECT(argList =  matchArgs(ap, args, call));
     if (CAR(argList) == R_MissingArg) code = R_NilValue;
     else code = CAR(argList);
     if (CADR(argList) != R_MissingArg) {
@@ -180,7 +179,7 @@ SEXP attribute_hidden do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	else
 	    ctxt->conexit = code;
     }
-    UNPROTECT(1);
+    UNPROTECT(2);
     return R_NilValue;
 }
 
@@ -601,7 +600,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 		   The copy is needed as cat_newline might reuse the buffer.
 		   Use strncpy is in case these assumptions change.
 		*/
-		p = EncodeElement0(s, 0, 0, OutDec);
+		p = EncodeElement(s, 0, 0, OutDec);
 		strncpy(buf, p, 512); buf[511] = '\0';
 		p = buf;
 	    }
@@ -633,7 +632,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    if (isString(s))
 			p = trChar(STRING_ELT(s, i+1));
 		    else {
-			p = EncodeElement0(s, i+1, 0, OutDec);
+			p = EncodeElement(s, i+1, 0, OutDec);
 			strncpy(buf, p, 512); buf[511] = '\0';
 			p = buf;
 		    }

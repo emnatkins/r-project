@@ -29,7 +29,7 @@ formula.default <- function (x, env = parent.frame(), ...)
     else {
         form <- switch(mode(x),
                        NULL = structure(NULL, class = "formula"),
-                       character = formula(eval(parse(text = x, keep.source = FALSE)[[1L]])),
+                       character = formula(eval(parse(text = x)[[1L]])),
                        call = eval(x), stop("invalid formula"))
         environment(form) <- env
         form
@@ -56,8 +56,7 @@ formula.data.frame <- function (x, ...)
         rhs <- nm[1L]
         lhs <- NULL
     } else stop("cannot create a formula from a zero-column data frame")
-    ff <- parse(text = paste(lhs, paste(rhs, collapse = "+"), sep = "~"),
-                keep.source = FALSE)
+    ff <- parse(text = paste(lhs, paste(rhs, collapse = "+"), sep = "~"))
     ff <- eval(ff)
     environment(ff) <- parent.frame()
     ff
@@ -65,7 +64,7 @@ formula.data.frame <- function (x, ...)
 
 formula.character <- function(x, env = parent.frame(), ...)
 {
-    ff <- formula(eval(parse(text=x, keep.source = FALSE)[[1L]]))
+    ff <- formula(eval(parse(text=x)[[1L]]))
     environment(ff) <- env
     ff
 }
@@ -153,7 +152,7 @@ reformulate <- function (termlabels, response=NULL, intercept = TRUE)
 		      paste(termlabels, collapse = "+"),
 		      collapse = "")
     if(!intercept) termtext <- paste(termtext, "- 1")
-    rval <- eval(parse(text = termtext, keep.source = FALSE)[[1L]])
+    rval <- eval(parse(text = termtext)[[1L]])
     if(has.resp) rval[[2L]] <-
         if(is.character(response)) as.symbol(response) else response
     ## response can be a symbol or call as  Surv(ftime, case)
@@ -646,8 +645,7 @@ get_all_vars <- function(formula, data = NULL, ...)
     env <- environment(formula)
     rownames <- .row_names_info(data, 0L) #attr(data, "row.names")
     varnames <- all.vars(formula)
-    inp <- parse(text = paste("list(", paste(varnames, collapse = ","), ")"),
-                 keep.source = FALSE)
+    inp <- parse(text=paste("list(", paste(varnames, collapse=","), ")"))
     variables <- eval(inp, data, env)
     if(is.null(rownames) && (resp <- attr(formula, "response")) > 0) {
         ## see if we can get rownames from the response

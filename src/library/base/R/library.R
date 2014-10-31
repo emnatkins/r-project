@@ -225,7 +225,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
     if(!missing(package)) {
         if (is.null(lib.loc)) lib.loc <- .libPaths()
         ## remove any non-existent directories
-        lib.loc <- lib.loc[dir.exists(lib.loc)]
+        lib.loc <- lib.loc[file.info(lib.loc)$isdir %in% TRUE]
 
 	if(!character.only)
 	    package <- as.character(substitute(package))
@@ -532,7 +532,7 @@ function(chname, libpath, verbose = getOption("verbose"),
 {
     dll_list <- .dynLibs()
 
-    if(missing(chname) || nchar(chname, "c") == 0L)
+    if(missing(chname) || (nc_chname <- nchar(chname, "c")) == 0L)
         if(.Platform$OS.type == "windows")
             stop("no DLL was specified")
         else
@@ -685,7 +685,7 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
             ## Note that we cannot use tools::file_test() here, as
             ## cyclic namespace dependencies are not supported.  Argh.
             paths <- c(paths,
-                       dirs[dir.exists(dirs) &
+                       dirs[file.info(dirs)$isdir &
                             file.exists(file.path(dirs,
                                                   "DESCRIPTION"))])
         }

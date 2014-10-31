@@ -1,4 +1,3 @@
- BASE_SYM_CACHED
  BINDING_IS_LOCKED
  BM_norm_keep
  BZ2_blockSort
@@ -36,6 +35,7 @@
  BZ2_hbMakeCodeLengths
  BZ2_indexIntoF
  BZ2_rNums
+ BindDomain
  CPFun
  ConsoleAcceptCmd
  DebugMenuitem
@@ -47,7 +47,6 @@
  IS_ASCII
  IS_BYTES
  IS_LATIN1
- IS_SPECIAL_SYMBOL
  IS_UTF8
  InitDynload
  InitParser
@@ -57,7 +56,6 @@
  MDIset
  MDIsize
  MainThread
- NO_SPECIAL_SYMBOLS
  PrintUsage
  ProfileEvent
  R_BCNodeStackBase
@@ -99,7 +97,6 @@
  R_GetVarLocValue
  R_HandlerStack
  R_HiddenFile
- R_InitReadItemDepth
  R_InitSrcRefState
  R_InitialData
  R_InsertRestartHandlers
@@ -138,7 +135,6 @@
  R_PendingPromises
  R_Primitive
  R_Quiet
- R_ReadItemDepth
  R_RecursiveSymbol
  R_RestartStack
  R_RestartToken
@@ -237,6 +233,8 @@
  R_restore_globals
  R_run_onexits
  R_seemsOldStyleS4Object
+ R_serialize
+ R_serializeb
  R_strftime
  R_subset3_dflt
  R_syscall
@@ -257,7 +255,6 @@
  Rcons_vprintf
  Rconsolesetwidth
  Rf_AdobeSymbol2ucs2
- Rf_BindDomain
  Rf_CheckFormals
  Rf_CoercionWarning
  Rf_ComplexFromInteger
@@ -288,10 +285,8 @@
  Rf_InitMemory
  Rf_InitNames
  Rf_InitOptions
- Rf_InitS3DefaultTypes
  Rf_InitStringHash
  Rf_InitTempDir
- Rf_InitTypeTables
  Rf_IntegerFromComplex
  Rf_IntegerFromLogical
  Rf_IntegerFromReal
@@ -320,7 +315,6 @@
  Rf_StringFromInteger
  Rf_StringFromLogical
  Rf_StringFromReal
- Rf_TimeToSeed
  Rf_VectorIndex
  Rf_WarningMessage
  Rf_allocCharsxp
@@ -383,7 +377,6 @@
  Rf_regfree
  Rf_setIVector
  Rf_setRVector
- Rf_sexptype2char
  Rf_ssort
  Rf_stirlerr
  Rf_strmat2intmat
@@ -417,22 +410,17 @@
  Rwin_wrename
  SET_ACTIVE_BINDING_BIT
  SET_ASCII
- SET_BASE_SYM_CACHED
  SET_BYTES
  SET_CACHED
  SET_CXTAIL
  SET_HASHASH
  SET_LATIN1
- SET_NO_SPECIAL_SYMBOLS
  SET_PRIMOFFSET
- SET_SPECIAL_SYMBOL
  SET_UTF8
  Sys_TempDir
- UNIMPLEMENTED_TYPEt
+ TimeToSeed
  UNLOCK_BINDING
- UNSET_BASE_SYM_CACHED
- UNSET_NO_SPECIAL_SYMBOLS
- UNSET_SPECIAL_SYMBOL
+ UNIMPLEMENTED_TYPEt
  UTF8in
  UTF8out
  UseInternet2
@@ -546,7 +534,6 @@
  do_D2POSIXlt
  do_External
  do_Externalgr
- do_ICUget
  do_ICUset
  do_Math2
  do_POSIXlt2D
@@ -572,8 +559,8 @@
  do_asPOSIXct
  do_asPOSIXlt
  do_as_environment
- do_asatomic
  do_ascall
+ do_ascharacter
  do_asfunction
  do_assign
  do_asvector
@@ -642,7 +629,6 @@
  do_dimnamesgets
  do_dirchmod
  do_dircreate
- do_direxists
  do_dirname
  do_disassemble
  do_dllversion
@@ -1326,7 +1312,6 @@
  pcre_malloc
  pcre_refcount
  pcre_stack_free
- pcre_stack_guard
  pcre_stack_malloc
  pcre_study
  pcre_version
@@ -1448,28 +1433,14 @@
  trio_asprintfv
  trio_fprintf
  trio_fprintfv
- trio_fscanf
- trio_fscanfv
  trio_printf
  trio_printfv
- trio_scanf
- trio_scanfv
- trio_snprintf
  trio_snprintfv
- trio_sprintf
  trio_sprintfv
- trio_sscanf
- trio_sscanfv
- trio_strerror
  trio_vaprintf
  trio_vasprintf
  trio_vfprintf
- trio_vfscanf
  trio_vprintf
- trio_vscanf
- trio_vsnprintf
- trio_vsprintf
- trio_vsscanf
  tzname
  tzset
  unregisterBase

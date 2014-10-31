@@ -73,6 +73,10 @@ R_setInternetRoutines(R_InternetRoutines *routines)
     return(tmp);
 }
 
+#ifdef Win32
+extern Rboolean UseInternet2;
+#endif
+
 static void internet_Init(void)
 {
     int res;

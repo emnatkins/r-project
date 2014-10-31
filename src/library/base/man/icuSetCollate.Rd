@@ -3,6 +3,8 @@
 % Copyright 2008-2014 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{icuSetCollate}
 \alias{icuSetCollate}
 \alias{icuGetCollate}
@@ -112,10 +114,7 @@ icuGetCollate(type = c("actual", "valid"))
   It is optional on Windows: if \R has been built against ICU, it will
   only be used if environment variable \env{R_ICU_LOCALE} is set or once
   \code{icuSetCollate} is called to select the locale (as ICU and
-  Windows differ in their idea of locale names).  Note that
-  \code{icuSetCollate(locale = "default")} should work reasonably well
-  for \R >= 3.2.0 and Windows Vista/Server 2008 and later (but finds the
-  system default ignoring environment variables such as \env{LC_COLLATE}).
+  Windows, at least pre-Vista, differ in their idea of locale names).
 }
 \seealso{
   \link{Comparison}, \code{\link{sort}}.
@@ -140,7 +139,7 @@ if(capabilities("ICU")) {
     icuSetCollate(locale = "da_DK", case_first = "default"); print(sort(x)) 
     ## Estonian collates Z between S and T
     icuSetCollate(locale = "et_EE"); print(sort(x))
-    icuSetCollate(locale = "default"); print(icuGetCollate("valid"))
+    icuSetCollate(locale = "default")
 }
 }}
 \keyword{ utilities }

@@ -138,7 +138,7 @@ pGEDevDesc GEcurrentDevice(void)
     if (NoDevices()) {
 	SEXP defdev = GetOption1(install("device"));
 	if (isString(defdev) && length(defdev) > 0) {
-	    SEXP devName = installChar(STRING_ELT(defdev, 0));
+	    SEXP devName = install(CHAR(STRING_ELT(defdev, 0)));
 	    /*  Not clear where this should be evaluated, since
 		grDevices need not be in the search path.
 		So we look for it first on the global search path.
@@ -448,24 +448,13 @@ void GEaddDevice(pGEDevDesc gdd)
     }
 }
 
-/* convenience wrappers */
+/* convenience wrapper */
 void GEaddDevice2(pGEDevDesc gdd, const char *name)
 {
     gsetVar(R_DeviceSymbol, mkString(name), R_BaseEnv);
     GEaddDevice(gdd);
     GEinitDisplayList(gdd);
 }
-
-void GEaddDevice2f(pGEDevDesc gdd, const char *name, const char *file)
-{
-    SEXP f = PROTECT(mkString(name));
-    if(file) setAttrib(f, install("filepath"), mkString(file));
-    gsetVar(R_DeviceSymbol, f, R_BaseEnv);
-    UNPROTECT(1);
-    GEaddDevice(gdd);
-    GEinitDisplayList(gdd);
-}
-
 
 Rboolean Rf_GetOptionDeviceAsk(void); /* from options.c */
 

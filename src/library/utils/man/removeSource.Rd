@@ -1,6 +1,6 @@
 % File src/library/utils/man/removeSource.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 2014 R Core Team
+% Copyright 2011 R Core Team
 % Distributed under GPL 2 or later
 
 \name{removeSource}
@@ -22,7 +22,8 @@ removeSource(fn)
   }
 }
 \details{
-  This removes the \code{"srcref"} and related attributes.
+  This removes both the \code{"source"} attribute (from \R version
+  2.13.x or earlier) and the \code{"srcref"} and related attributes.
 }
 \value{
   A copy of the function with the source removed.

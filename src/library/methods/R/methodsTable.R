@@ -468,7 +468,8 @@
     ## signature, with "missing" for missing args
     if(!is.environment(table)) {
         if(is(fdef, "standardGeneric"))
-          stop(gettextf("invalid or unset methods table in generic function %s", sQuote(fdef@generic)), damain = NA)
+          stop("invalid or unset methods table in generic function \"",
+               fdef@generic,"\"", damain = NA)
         else
           stop("trying to find a methods table in a non-generic function")
     }
@@ -686,11 +687,11 @@
       what
     else {
 	eligible <-
-	    vapply(contains,
+	    sapply(contains,
 		   if(simpleOnly)
 		   function(x) (is.logical(x) && x) || x@simple
 		   else # eliminate conditional inheritance
-		   function(x) (is.logical(x) && x) || x@simple || identical(body(x@test), TRUE), NA)
+		   function(x) (is.logical(x) && x) || x@simple || identical(body(x@test), TRUE))
 	what[eligible]
     }
 }
@@ -748,7 +749,7 @@
   if(length(methods) == 1L)
     return(methods[[1L]]) # the method
   else if(length(methods) == 0L) {
-    cnames <- paste0("\"", vapply(classes, as.character, ""), "\"",
+    cnames <- paste0("\"", sapply(classes, as.character), "\"",
 		     collapse = ", ")
     stop(gettextf("unable to find an inherited method for function %s for signature %s",
                   sQuote(fdef@generic),
@@ -814,7 +815,6 @@
 	cli <- defClasses[i,]
 	dist <- dist + ihi[match(cli, names(ihi))]
     }
-    ## These should be integers, so we do not need to worry about a decimal point
     if(verbose) cat("** final methods' distances: (",
 		    paste(formatC(dist), collapse= ", "), ")\n", sep='')
     best <- dist == min(dist)
@@ -901,9 +901,9 @@
   }
   ## prefer partially direct methods
   if(length(which) > 1) {
-    direct <- vapply(methods[which], function(x, target)
+    direct <- sapply(methods[which], function(x, target)
                      (is(x, "MethodDefinition") && any(target == x@defined)),
-		     NA, target = target)
+                     target = target)
     if(any(direct) && !all(direct)) {
       which <- which[direct]
       note <- c(note, sprintf(ngettext(length(which),
@@ -1051,7 +1051,7 @@
     labels <- objects(envir=table, all.names = TRUE)
     if(!is.null(classes) && length(labels)) {
 	sigL <- strsplit(labels, split = "#")
-	keep <- !vapply(sigL, function(x, y) all(is.na(match(x, y))), NA, y=classes)
+	keep <- !sapply(sigL, function(x, y) all(is.na(match(x, y))), classes)
 	labels <- labels[keep]
     }
     if(length(labels) == 0L) {
@@ -1496,7 +1496,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
   ## in testInheritedMethods as a marker to warn about undefined subclasses
   .relevantClasses <- function(classes, excludeVirtual, where, doinheritance) {
     classDefs <- lapply(classes, getClassDef, where)
-    undefs <- vapply(classDefs, is.null, NA)
+    undefs <- sapply(classDefs, is.null)
     if(any(undefs)) {
       .undefClasses <<- unique(c(.undefClasses, classes[undefs]))
       classes <- classes[!undefs]
@@ -1526,7 +1526,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
       classDefs[[iAny]] <- getClassDef(".Other")
     }
     if(excludeVirtual)
-      classes <- classes[vapply(classDefs, function(def) identical(def@virtual, FALSE), NA)]
+      classes <- classes[sapply(classDefs, function(def) identical(def@virtual, FALSE))]
     unique(c(classes, allSubs))
   }
   ## end of .relevantClasses
@@ -1620,9 +1620,9 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
           nsig
       }
       else if(is.null(x))
-        rep_len("<NONE>", length(sig))
+        rep("<NONE>", length(sig))
       else # primitive
-        rep_len("ANY", length(sig))
+        rep("ANY", length(sig))
     }
     signatures <- lapply(signatures, doSelect)
   }

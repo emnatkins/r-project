@@ -43,9 +43,8 @@ system <- function(command, intern = FALSE,
         f <- tempfile()
         on.exit(unlink(f))
         writeLines(input, f)
-##        command <- paste(command, "<", shQuote(f))
-        ## change to use shell-execution-environment redirection, PR#15508
-        command <- paste("<", shQuote(f), command)
+        # cat(input, file=f, sep="\n")
+        command <- paste(command, "<", shQuote(f))
     }
     if(!wait && !intern) command <- paste(command, "&")
     .Internal(system(command, intern))
@@ -98,7 +97,7 @@ system2 <- function(command, args = character(),
         f <- tempfile()
         on.exit(unlink(f))
         writeLines(input, f)
-        ## here 'command' is a single command, unlike system()
+        # cat(input, file=f, sep="\n")
         command <- paste(command, "<", shQuote(f))
     } else if (nzchar(stdin)) command <- paste(command, "<", stdin)
     if(!wait && !intern) command <- paste(command, "&")

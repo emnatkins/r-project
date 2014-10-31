@@ -1,6 +1,6 @@
 % File src/library/methods/man/inheritedSlotNames.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 2009-14 R Core Team
+% Copyright 2009-12 R Core Team
 % Distributed under GPL 2 or later
 
 \name{inheritedSlotNames}
@@ -34,6 +34,8 @@ inheritedSlotNames(Class, where = topenv(parent.frame()))
 library(stats4)
 inheritedSlotNames("mle")
 
+%% this is not run currently, as it makes later examples fail:
+\dontrun{
 if(require("Matrix")) {
   print( inheritedSlotNames("Matrix") ) # NULL
   ## whereas
@@ -44,7 +46,6 @@ if(require("Matrix")) {
 
   print( inheritedSlotNames(cl) ) # *all* six slots are inherited
 }
-\dontrun{
 % currently, don't do this when running all examples: classes remain
 % cached anyway :
 ## detach package we've attached above:

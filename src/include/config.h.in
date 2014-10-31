@@ -29,6 +29,9 @@
 /* Define if F77 and FC dummy `main' functions are identical. */
 #undef FC_DUMMY_MAIN_EQ_F77
 
+/* Defined if framework Accelerate is present */
+#undef HAVE_ACCELERATE_FW
+
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
 
@@ -664,9 +667,6 @@
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT
-
-/* Define to 1 if you have the <stdalign.h> header file. */
-#undef HAVE_STDALIGN_H
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H

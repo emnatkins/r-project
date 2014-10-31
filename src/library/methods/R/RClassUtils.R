@@ -317,9 +317,11 @@ completeClassDefinition <-
             }
         }
         if(any(undefClasses))
-            warning(sprintf(gettext("undefined slot classes in definition of %s: %s", domain = "R-methods"),
+            warning(gettextf("undefined slot classes in definition of %s: %s",
                              .dQ(ClassDef@className),
-                             paste(names(properties)[undefClasses], gettextf("(class %s)", .dQ(unlist(properties, recursive = FALSE)[undefClasses])), collapse = ", ", sep = "")),
+                             paste(names(properties)[undefClasses], "(class ",
+                                   .dQ(unlist(properties, recursive = FALSE)[undefClasses]),
+                                   ")", collapse = ", ", sep = "")),
                     call. = FALSE, domain = NA)
         ClassDef@slots <- properties
         ClassDef
@@ -333,7 +335,7 @@ completeClassDefinition <-
     else {
         prev <- slot(ClassDef, slotName)
         if(length(prev)) {
-            indir <- vapply(prev, .isIndirectExtension, NA)
+            indir <- sapply(prev, .isIndirectExtension)
             slot(ClassDef, slotName) <- slot(ClassDef, slotName)[!indir]
         }
         ClassDef
@@ -344,13 +346,14 @@ completeClassDefinition <-
     is(object, "SClassExtension") && length(object@by) > 0
 }
 
-## .mergeSlots <- function(classDef1, classDef2) {
-## }
+.mergeSlots <- function(classDef1, classDef2) {
+
+}
 
 .directSubClasses <- function(ClassDef) {
     ## no checks for input here:
     if(length(sc <- ClassDef@subclasses)) {
-        names(sc)[vapply(sc, function(cc) cc@distance == 1L, NA)]
+        names(sc)[sapply(sc, function(cc) cc@distance == 1L)]
     } ## else NULL
 }
 
@@ -1162,7 +1165,7 @@ completeSubclasses <-
         ext <- ext[ok]
     }
     ## require superclasses to be sorted by distance
-    distOrder <- sort.list(vapply(ext, function(x) x@distance, 1))
+    distOrder <- sort.list(sapply(ext, function(x)x@distance))
     ext <- ext[distOrder]
     if(superClassCase && (anyDuplicated(what) || length(conflicts) > 0))
         ext <- .resolveSuperclasses(ClassDef, ext, where, conflicts)
@@ -1201,7 +1204,7 @@ completeSubclasses <-
 .resolveSuperclasses <- function(classDef, ext, where, conflicts = attr(ext, "conflicts")) {
   ## find conditional extensions, ignored in superclass ordering
   .condExts <- function(contains)
-      vapply(contains, function(x) is(x, "conditionalExtension" ), NA)
+      sapply(contains, function(x) is(x, "conditionalExtension" ))
   .noncondExtsClass <- function(cl) {
     if(isClass(cl, where = where) ) {
       contains <- getClass(cl, where = where)@contains
@@ -1227,7 +1230,7 @@ completeSubclasses <-
       }
       ## else, go on with conditionals eliminated
     }
-    directSupers <- vapply(classDef@contains, function(x) identical(x@distance, 1), NA)
+    directSupers <- sapply(classDef@contains, function(x) identical(x@distance, 1))
     directSupers <- unique(names(classDef@contains[directSupers]))
     ## form a list of the superclass orderings of the direct superclasses
     ## to check consistency with each way to eliminate duplicates
@@ -2078,7 +2081,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
             ## insert the new superclass to maintain order by distance
             cntns <- subDef@contains
             cntns[[class]] <- subs[[i]]
-            cntns <- cntns[sort.list(vapply(cntns, function(x) x@distance, 1))]
+            cntns <- cntns[sort.list(sapply(cntns, function(x)x@distance))]
             subDef@contains <- cntns
             .cacheClass(what, subDef, FALSE, env)
         }
@@ -2352,18 +2355,18 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
                               function(x,y)mapply(c,x,y, SIMPLIFY=FALSE))
     }
     ## check each way to make the list unique against each superclass extension
-    problems <- function(x,y) any(diff(match(y, x)) < 0)
+    problems <- function(x,y) any(diff(match(y, x))<0)
     possibles <- lapply(candidates, function(x, names)names[-x], names=allNames)
     ## the next could be vectorized, but here we choose instead to exit early.
     scores <- vector("list", length(possibles))
     for(i in seq_along(possibles)) {
-        score <- vapply(subNames, problems, NA, x=possibles[[i]])
+        score <- sapply(subNames, problems, x=possibles[[i]])
         scores[[i]] <- whichCase[score]
         if(!any(score))
           return(-candidates[[i]]+1)
     }
     # the first min. scoring possibility and its score
-    i <- which.min(vapply(scores, length, 1))
+    i <- which.min(sapply(scores, length))
     list(-candidates[[i]]+1, scores[[i]])
 }
 
@@ -2381,7 +2384,7 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
               is.primitive(f)
       maybe
     }
-  vapply(what, .checkFun, NA)
+  sapply(what, .checkFun)
 }
 
 

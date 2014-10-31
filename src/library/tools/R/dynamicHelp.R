@@ -30,7 +30,7 @@ httpd <- function(path, query, ...)
     .HTMLdirListing <- function(dir, base, up)
     {
         files <- list.files(dir)    # note, no hidden files are listed
-        out <- HTMLheader(paste0("Listing of directory<br/>", dir),
+        out <- HTMLheader(paste0("Listing of directory<br>", dir),
         		  headerTitle = paste("R:", dir), logo=FALSE,
         		  up = up)
         if(!length(files))
@@ -41,7 +41,7 @@ httpd <- function(path, query, ...)
                      paste0("<dd>", mono(iconv(urls, "", "UTF-8")), "</dd>"),
                      "</dl>")
         }
-        out <- c(out, "<hr/>\n</body></html>")
+        out <- c(out, "<hr>\n</body></html>")
         list(payload = paste(out, collapse="\n"))
     }
 
@@ -56,7 +56,7 @@ httpd <- function(path, query, ...)
          	out <- c(out, paste0('<h2>Manuals in package', sQuote(pkg),'</h2>'),
          		 makeVignetteTable(cbind(Package=pkg, vinfo[,c("File", "Title", "PDF", "R"), drop = FALSE])))
      	}
-        out <- c(out, "<hr/>\n</body></html>")
+        out <- c(out, "<hr>\n</body></html>")
         list(payload = paste(out, collapse="\n"))
     }
 
@@ -100,7 +100,7 @@ httpd <- function(path, query, ...)
         out <- c(HTMLheader(title),
                  if ("pattern" %in% names(query))
                      paste0('The search string was <b>"', query["pattern"], '"</b>'),
-                 '<hr/>\n')
+                 '<hr>\n')
 
         if(!NROW(res))
             out <- c(out, gettext("No results found"))
@@ -141,7 +141,7 @@ httpd <- function(path, query, ...)
 		    })
 	    }
         }
-        out <- c(out, "<hr/>\n</body></html>")
+        out <- c(out, "<hr>\n</body></html>")
         list(payload = paste(out, collapse="\n"))
     }
 
@@ -289,7 +289,7 @@ httpd <- function(path, query, ...)
     } else if (grepl(fileRegexp, path)) {
         ## ----------------------- package help by file ---------------------
     	pkg <- sub(fileRegexp, "\\1", path)
-    	helpdoc <- sub(fileRegexp, "\\2", path)
+    	h0 <- helpdoc <- sub(fileRegexp, "\\2", path)
         if (helpdoc == "00Index") {
             ## ------------------- package listing ---------------------
             file <- system.file("html", "00Index.html", package = pkg)
@@ -334,7 +334,7 @@ httpd <- function(path, query, ...)
                     path <- dirname(dirname(files))
                     files <- paste0('/library/', basename(path), '/html/',
                                     basename(files), '.html')
-                    msg <- c(msg, "<br/>",
+                    msg <- c(msg, "<br>",
                              "However, you might be looking for one of",
                              "<p></p>",
                              paste0('<p><a href="', files, '">',
@@ -348,8 +348,8 @@ httpd <- function(path, query, ...)
 
         ## Now we know which document we want in which package
 	dirpath <- dirname(path)
-##	pkgname <- basename(dirpath)
-##	RdDB <- file.path(path, pkgname)
+	pkgname <- basename(dirpath)
+	RdDB <- file.path(path, pkgname)
         outfile <- tempfile("Rhttpd")
         Rd2HTML(utils:::.getHelpFile(file.path(path, helpdoc)),
                 out = outfile, package = dirpath,
@@ -366,20 +366,14 @@ httpd <- function(path, query, ...)
             return(error_page(gettextf("No docs found for package %s",
                                        mono(pkg))))
         if(nzchar(rest) && rest != "/") {
+            ## FIXME should we check existence here?
             file <- paste0(docdir, rest)
-            exists <- file.exists(file)
-            if (!exists && rest == "/index.html") {
-                rest <- ""
-            	file <- docdir
-            }
-            if(dir.exists(file))
+            if(isTRUE(file.info(file)$isdir))
                 return(.HTMLdirListing(file,
                                        paste0("/library/", pkg, "/doc", rest),
                                        up))
-            else if (exists)
+            else
                 return(list(file = file, "content-type" = mime_type(rest)))
-            else 
-            	return(error_page(gettextf("URL %s was not found", mono(path))))
         } else {
             ## request to list <pkg>/doc
             return(.HTMLdirListing(docdir,

@@ -1,251 +1,12 @@
 % -*- coding: utf-8 -*-
+\newcommand{\PR}{\Sexpr[results=rd]{tools:::Rd_expr_PR(#1)}}
 \newcommand{\Rlogo}{\if{html}{\figure{../../html/logo.jpg}}\if{latex}{\figure{logo.jpg}{options: width=0.5in}}}
+\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
 
 \name{NEWS}
 \title{R News}
 \encoding{UTF-8}
-
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{anyNA()} gains a \code{recursive} argument.
-
-      \item When \code{x} is missing and \code{names} is not false
-      (including the default value), \code{Sys.getenv(x, names)} returns
-      an object of class \code{"Dlist"} and hence prints tidily.
-
-      \item (Windows.)  \code{shell()} no longer consults the
-      environment variable \env{SHELL}: too many systems have been
-      encountered where it was set incorrectly (usually to a path where
-      software was compiled, not where it was installed).
-      \env{R_SHELL}, the preferred way to select a non-default shell,
-      can be used instead.
-
-      \item Some unusual arguments to \code{embedFonts()} can now be
-      specified as character vectors, and the defaults have been changed
-      accordingly.
-
-      \item Functions in the \code{Summary} group duplicate less.
-      (\PR{15798})
-
-      \item (Unix-alikes.) \code{system(cmd, input = )} now uses
-      \sQuote{shell-execution-environment} redirection, which will be
-      more natural if \code{cmd} is not a single command (but requires a
-      POSIX-compliant shell). (Wish of \PR{15508})
-
-      \item \code{read.fwf()} and \code{read.DIF()} gain a
-      \code{fileEncoding} argument, for convenience.
-
-      \item Graphics devices can add attributes to their description in
-      \code{.Device} and \code{.Devices}.  Several of those included with
-      \R use a \code{"filepath"} attribute.
-
-      \item \code{pmatch()} uses hashing in more cases and so is faster
-      at the expense of using more memory. (\PR{15697})
-
-      \item \code{pairs()} gains new arguments to select sets of
-      variables to be plotted against each other.
-
-      \item \code{file.info(, extra_cols = FALSE)} allows a minimal set
-      of columns to be computed on Unix-alikes: on some systems without
-      properly-configured caching this can be significantly faster with
-      large file lists.
-
-      \item New function \code{dir.exists()} in package \pkg{base} to
-      test efficiently whether one or more paths exist and are
-      directories.
-
-      \item \code{dput()} and friends gain new controls
-      \samp{"hexNumeric"} and \samp{"digits17"} which output double and
-      complex quantities as, respectively, binary fractions (exactly,
-      see \code{sprintf("\%a")}) and as decimals with up to 17
-      significant digits.
-
-      \item \code{save()}, \code{saveRDS()} and \code{serialize()} now
-      support \code{ascii = NA} which writes ASCII files using
-      \code{sprintf("\%a")} for double/complex quantities.  This is
-      read-compatible with \code{ascii = TRUE} but avoids
-      binary->decimal->binary conversions with potential loss of
-      precision.  Unfortunately the Windows C runtime's lack of C99
-      compliance means that the format cannot be read correctly there in
-      \R before 3.1.2.
-
-      \item The default for \code{formatC(decimal.mark =)} has been
-      changed to be \code{getOption("OutDec")}; this makes it more
-      consistent with \code{format()} and suitable for use in print
-      methods, e.g.\sspace{}those for classes \code{"density"}, \code{"ecdf"},
-      \code{"stepfun"} and \code{"summary.lm"}.
-
-      \code{getOption("OutDec")} is now consulted by the print method
-      for class \code{"kmeans"}, by \code{cut()}, \code{dendrogram()},
-      \code{plot.ts()} and \code{quantile()} when constructing labels
-      and for the report from \code{legend(trace = TRUE)}.
-
-      (In part, wish of \PR{15819}.)
-
-      \item \code{printNum()} and hence \code{format()} and
-      \code{formatC()} give a warning if \code{big.mark} and
-      \code{decimal.mark} are set to the same value (period and comma
-      are not uncommonly used for each, and this is a check that
-      conventions have not got mixed).
-
-      \item \code{merge()} can create a result which uses long vectors
-      on 64-bit platforms.
-
-      \item \code{dget()} gains a new argument \code{keep.source} which
-      defaults to \code{FALSE} for speed (\code{dput()} and
-      \code{dget()} are most often used for data objects where this can
-      make \code{dget()} many times faster).
-
-      \item Packages may now use a file of common macro definitions in
-      their help files, and may import definitions from other packages.
-
-      \item A number of macros have been added in the new
-      \file{share/Rd} directory for use in package overview help pages,
-      and \code{promptPackage()} now makes use of them.
-
-      \item \code{tools::parse_Rd()} gains a new \code{permissive}
-      argument which converts unrecognized macros into text.  This is
-      used by \code{utils:::format.bibentry} to allow LaTeX markup to be
-      ignored.
-
-      \item \code{options(OutDec =)} can now specify a multi-byte
-      character, e.g., \code{options(OutDec = "\u00b7")} in a UTF-8
-      locale.
-
-      \item \code{is.recursive(x)} is no longer true when \code{x} is an
-      external pointer, a weak reference or byte code; the first enables
-      \code{all.equal(x, x)} when \code{x <- getClass(.)}.
-
-      \item \code{ls()} (aka \code{objects()}) and
-      \code{as.list.environment()} gain a new argument \code{sorted}.
-
-      \item The \code{"source"} attribute (which has not been added
-      to functions by \R
-      since before \R version 2.14.0) is no longer treated as special.
-
-      \item An experimental function \code{returnValue()} has been added
-      to give \code{on.exit()} code access to a function's return
-      value for debugging purposes.
-
-      \item \code{crossprod(x, y)} allows more matrix coercions when
-      \code{x} or \code{y} are vectors, now equalling
-      \code{t(x) \%*\% y} in these cases (also reported by Radford Neal).
-      Similarly, \code{tcrossprod(x,y)} and \code{\%*\%} work in more
-      cases with vector arguments.
-
-      \item An experimental utility \code{dynGet()} useful for detecting
-      cycles, aka infinite recursions.
-
-      \item The byte code compiler and interpreter now include new
-      instructions that allow many scalar subsetting and assignment and
-      scalar arithmetic operations to be handled more efficiently. This
-      can result in significant performance improvements in scalar
-      numerical code.
-
-      \item \code{apply(m, 2, identity)} is now the same as the matrix
-      \code{m} when it has \emph{named} row names.
-
-      \item A new somewhat experimental function \code{debuggingState()}
-      has been added, allowing to temporarily turn off debugging.
-    }
-  }
-
-  \subsection{INSTALLATION and INCLUDED SOFTWARE}{
-    \itemize{
-      \item The \code{\\donttest} sections of \R's help files can be
-      tested by\cr
-      \command{make check TEST_DONTTEST=TRUE}.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item There is support for testing the \code{\\dontrun} and
-      \code{\\donttest} parts of examples in packages.
-
-      \code{tools::testInstalledPackage()} accepts new arguments
-      \code{commentDontrun = FALSE} and \code{commentDonttest = FALSE}.
-
-      \command{R CMD check} gains options \option{--run-dontrun} and
-      \option{--run-donttest}.
-
-      \item The \acronym{HTML} generated by \code{tools::Rd2HTML()} and
-      \code{tools::toHTML()} methods is now
-      \sQuote{\acronym{XHTML} 1.0 Strict}.
-
-      \item The compiler utility function \code{setCompilerOptions()}
-      now returns the old values invisibly. The initial optimization
-      level can also be set with the environment variable
-      \env{R_COMPILER_OPTIMIZE}.
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item New C API utility \code{logspace_sum(logx[], n)}.
-
-      \item Entry points \code{rbinom_mu}, \code{rnbinom_mu} and
-      \code{rmultinom} are remapped (by default).  This requires
-      packages using them to be re-installed.
-
-      \item \code{.C(DUP = FALSE)} and \code{.Fortran(DUP = FALSE)} are
-      now ignored, so arguments are duplicated if \code{DUP = TRUE}
-      would do so.  As their help has long said, \code{.Call()} is much
-      preferred.
-      
-      \item New entry point \code{R_allocLD}, like \code{R_alloc} but
-      guaranteed to have sufficient alignment for \code{long double}
-      pointers.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item \code{download.file(method = "lynx")} is defunct.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Fixed two obscure bugs in pairlist subassignment, reported by
-      Radford Neal as part of pqR issue 16.
-
-      \item Fixes for bugs in handling empty arguments and argument
-      matching by name in \code{log()}.
-
-      \item \code{all.equal()} gains methods for \code{environment}s and
-      \code{refClass}es.
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.1.2 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The internal method of \code{download.file()} can now handle
-      files larger than 2GB on 32-bit builds which support such files
-      (tested on 32-bit \R running on 64-bit Windows).
-
-      \item \code{kruskal.test()} warns on more types of suspicious input.
-
-      \item The \code{as.dendrogram} method for \code{"hclust"} objects
-      gets a \code{check} argument protecting against memory explosion for
-      invalid inputs.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item (Windows.) \command{Rscript.exe} was missing a
-      manifest specifying the modern style for common controls (e.g.,
-      the download progress bar).
-
-      \item If a package had extra documentation files but no vignette,
-      the HTML help system produced an empty index page.
-    }
-  }
-}
 
 \section{\Rlogo CHANGES IN R 3.1.2}{
   \subsection{NEW FEATURES}{
@@ -292,7 +53,7 @@
 
       \item \code{unique(warnings())} and \code{c(warnings())} are now
       supported.
-
+      
       \item The Bioconductor \sQuote{version} used by
       \code{setRepositories()} now defaults to \code{3.0}. (It can be
       set at runtime \emph{via} environment variable
@@ -306,7 +67,7 @@
       capabilities/options which will not be compiled in.
 
       More types of external BLAS are recognized by name in that report.
-
+      
       \item When building \R as a shared library, the
       \option{-L${R_HOME}/lib${R_ARCH}} flag is placed earlier in the
       link commands used during installation and when packages are
@@ -454,10 +215,10 @@
 
       \item \code{bw.SJ(x)} and other bw.*() no longer segfault when
       \code{x} contains non-finite values. (\PR{16024})
-
+      
       \item \command{R CMD Rd2pdf} unintentionally ignored its
       \option{--os} option.
-
+      
       \item The internal method of \code{download.file()} was not
       reporting file sizes and progress correctly on files larger than
       2GB (inherited from \code{libxml2}).  This is corrected for 64-bit

@@ -119,7 +119,8 @@ typedef long long int _lli_t;
 /* Win32 does have popen, but it does not work in GUI applications,
    so test that later */
 #ifdef Win32
-# include <Startup.h>
+# include <R_ext/RStartup.h>
+  extern UImode  CharacterMode;
 #endif
 
 #define NCONNECTIONS 128 /* snow needs one per slave node */
@@ -4839,6 +4840,8 @@ SEXP attribute_hidden do_sinknumber(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 #ifdef Win32
+#include <R_ext/RStartup.h>
+extern UImode CharacterMode;
 void WinCheckUTF8(void)
 {
     if(CharacterMode == RGui) WinUTF8out = (SinkCons[R_SinkNumber] == 1);

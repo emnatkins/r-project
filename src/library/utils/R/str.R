@@ -62,7 +62,7 @@ str.Date <- str.POSIXt <- function(object, ...) {
 	if(length(iGiveHead)) # eliminate it from arg.list
 	    larg <- larg[ - iGiveHead ]
 	if(is.numeric(larg[["nest.lev"]]) &&
-	   is.numeric(larg[["vec.len"]])) # typical call from data.frame
+	   is.numeric(v.len <- larg[["vec.len"]])) # typical call from data.frame
 	    ## reduce length for typical call:
 	    larg[["vec.len"]] <-
 		min(larg[["vec.len"]],
@@ -204,12 +204,11 @@ str.default <-
     mod <- ""; char.like <- FALSE
     if(give.attr) a <- attributes(object)#-- save for later...
     deParse <- function(.) deparse(., width.cutoff = min(500,max(20, width-10)))
-    n.of. <- function(n, singl, plural) paste(n, ngettext(n, singl, plural))
-    n.of <- function(n, noun) n.of.(n, noun, paste0(noun,"s"))
+
     if (is.null(object))
 	cat(" NULL\n")
     else if(S4) {
-	if(is(object,"envRefClass")) {
+	if(isRef <- is(object,"envRefClass")) {
 	    cld <- tryCatch(object$getClass(), error=function(e)e)
 	    if(inherits(cld, "error")) {
 		cat("Prototypical reference class", " '", paste(cl, collapse = "', '"),
@@ -218,18 +217,32 @@ str.default <-
 		return(invisible())
 	    }
 	    nFlds <- names(cld@fieldClasses)
-	    a <- sapply(nFlds, function(ch) object[[ch]], simplify = FALSE)
+	    a <- sapply(nFlds, function(ch) object[[ch]],
+			simplify = FALSE)
+	    meths <- ls(cld@refMethods, all.names = TRUE)
+	    dfltMs <- ls(getClassDef("envRefClass")@refMethods, all.names = TRUE)
+	    oMeths <- meths[is.na(match(meths, dfltMs))]
+	    sNms <- names(cld@slots)
+	    if(length(sNms <- sNms[sNms != ".xData"]))
+		sls <- sapply(sNms, methods::slot,
+			      object=object, simplify = FALSE)
 	    cat("Reference class", " '", paste(cl, collapse = "', '"),
 		"' [package \"", attr(cl,"package"), "\"] with ",
-                n.of(length(a), "field"), "\n", sep = "")
+		length(a)," fields\n", sep = "")
+	} else {
+	    a <- sapply(methods::.slotNames(object), methods::slot,
+			object=object, simplify = FALSE)
+	    cat("Formal class", " '", paste(cl, collapse = "', '"),
+		"' [package \"", attr(cl,"package"), "\"] with ",
+		length(a), ifelse(length(a) > 1L, " slots\n", " slot\n"),
+                sep = "")
+	}
+	if(isRef) {
 	    strSub(a, no.list=TRUE, give.length=give.length,
 		   nest.lev = nest.lev + 1)
-	    meths <- ls(cld@refMethods, all.names = TRUE)
-	    oMeths <- meths[is.na(match(meths, methods:::envRefMethodNames))]
-	    cat(indent.str, "and ", n.of(length(meths), "method"), sep = "")
-	    sNms <- names(cld@slots)
-	    if(lo <- length(oMeths)) {
-		cat(", of which", lo, ngettext(lo, "is", "are"), " possibly relevant")
+	    cat(indent.str, "and ", length(meths), " methods,", sep = "")
+	    if(length(oMeths)) {
+		cat(" of which", length(oMeths), "are possibly relevant")
 		if (is.na(max.level) || nest.lev < max.level)
 		    cat(":",
 			strwrap(paste(oMeths, collapse=", "),
@@ -238,21 +251,13 @@ str.default <-
 			sep = "\n")
 		else cat("\n")
 	    }
-	    if(length(sNms <- sNms[sNms != ".xData"])) {
-		sls <- sapply(sNms, methods::slot,
-			      object=object, simplify = FALSE)
-		cat(" and ", n.of(length(sNms), "slot"), "\n", sep="")
+	    if(length(sNms)) {
+		cat(" and", length(sNms), "slots\n")
 		strSub(sls, comp.str = "@ ", no.list=TRUE, give.length=give.length,
 		       indent.str = paste(indent.str,".."), nest.lev = nest.lev + 1)
 	    }
-	    else if(lo == 0) cat(".\n")
 	}
-	else { ## S4 non-envRefClass
-	    a <- sapply(methods::.slotNames(object), methods::slot,
-			object=object, simplify = FALSE)
-	    cat("Formal class", " '", paste(cl, collapse = "', '"),
-		"' [package \"", attr(cl,"package"), "\"] with ",
-		n.of(length(a), "slot"), "\n", sep = "")
+	else { ## S4
 	    strSub(a, comp.str = "@ ", no.list=TRUE, give.length=give.length,
 		   indent.str = paste(indent.str,".."), nest.lev = nest.lev + 1)
 	}
@@ -415,7 +420,7 @@ str.default <-
 
 	    std.attr <- c("levels", "class")
 	} else if(typeof(object) %in%
-		  c("externalptr", "weakref", "environment", "bytecode")) {
+		  c("externalptr", "weakref", "environment")) {
 	    ## Careful here, we don't want to change pointer objects
 	    if(has.class)
                 cat(pClass(cl))

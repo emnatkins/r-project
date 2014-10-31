@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-08-03 12:16\n"
+"POT-Creation-Date: 2014-02-13 14:10\n"
 "PO-Revision-Date: 2014-03-26 13:57+0200 \n"
 "Last-Translator: Masafumi  \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -42,9 +42,6 @@ msgstr " 'x' に無限値か欠測値があります "
 
 msgid "a dimension is zero"
 msgstr " 次元が 0 です "
-
-msgid "\"hexNumeric\"and \"digits17\" are mutually exclusive"
-msgstr ""
 
 msgid "second argument must be a list"
 msgstr " 第二引数はリストでなければなりません "
@@ -301,8 +298,7 @@ msgstr " 存在しない列中の要素の置き換えです: %s "
 msgid "only a single element should be replaced"
 msgstr " ただ一つの要素しか置き換えられるべきではありません "
 
-#, fuzzy
-msgid "Partial match of '%s' to '%s' in data frame"
+msgid "Name partially matched in data frame"
 msgstr " データフレーム中の名前は部分的にマッチしました "
 
 msgid "names do not match previous names"
@@ -314,14 +310,16 @@ msgstr " 引数の列の数が一致しません "
 msgid "invalid list argument: all variables should have the same length"
 msgstr " 無効なリストの引数です。全ての変数は同じ長さを持つべきです "
 
+msgid "data frame with 0 columns and %d rows"
+msgstr " 0 列 %d 行のデータフレーム "
+
 msgid "<0 rows> (or 0-length row.names)"
 msgstr " <0 行> (または長さ 0 の row.names) "
 
 msgid "non-numeric variable in data frame:"
 msgstr " 以下のデータフレーム中に数値でない変数があります: "
 
-#, fuzzy
-msgid "%s only defined for equally-sized data frames"
+msgid "only defined for equally-sized data frames"
 msgstr " 同じ大きさのデータフレームに対してだけ定義されています "
 
 msgid "list of length %d not meaningful"
@@ -555,8 +553,7 @@ msgstr " 無効な 'labels' です; 長さ %d は 1 または %d であるべき
 msgid "number of levels differs"
 msgstr " 水準の数が異なります "
 
-#, fuzzy
-msgid "%s not meaningful for factors"
+msgid "not meaningful for factors"
 msgstr " 因子に対しては無意味です "
 
 msgid "level sets of factors are different"
@@ -650,9 +647,6 @@ msgstr " 'flag' は '0 + - #' だけを含むことができます "
 msgid "corrupt data frame: columns will be truncated or padded with NAs"
 msgstr ""
 " 壊れたデータフレームです。列が切り詰められるか、または NA 値で埋められます "
-
-msgid "'big.mark' and 'decimal.mark' are both '%s', which could be confusing"
-msgstr ""
 
 msgid "'zero.print' has length > 1"
 msgstr " 'zero.print' は長さ > 1 を持ちます "
@@ -983,14 +977,8 @@ msgstr " 'by' は列数にマッチしなければなりません "
 msgid "'by' must specify one or more columns as numbers, names or logical"
 msgstr " 'by' は列を数値、名前ラベルもしくは論理値で特定しなければなりません "
 
-msgid "long vectors are not supported"
-msgstr ""
-
 msgid "'by.x' and 'by.y' specify different numbers of columns"
 msgstr " 'by.x' そして 'by.y' は異なった列数を指定しています "
-
-msgid "'incomparables' is supported only for merging on a single column"
-msgstr ""
 
 msgid "additional arguments ignored in message()"
 msgstr " message() で追加引数は無視されました "
@@ -1486,6 +1474,9 @@ msgstr " 利用できる traceback がありません "
 msgid "invalid version specification %s"
 msgstr " 無効なバージョンの指定 %s です "
 
+msgid "wrong argument"
+msgstr " 間違った引数です "
+
 msgid "invalid 'value'"
 msgstr " 無効な 'value' です "
 
@@ -1585,27 +1576,12 @@ msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
 msgstr[0] " 逆構文解析オプション %s は認識できません "
 
-#, fuzzy
 msgid ""
-"The following object is masked _by_ %s:\n"
+"The following object is masked %s %s:\n"
 "\n"
 "%s\n"
 msgid_plural ""
-"The following objects are masked _by_ %s:\n"
-"\n"
-"%s\n"
-msgstr[0] ""
-" 以下のオブジェクトはマスクされています (%s %s) : \n"
-"\n"
-" %s \n"
-
-#, fuzzy
-msgid ""
-"The following object is masked from %s:\n"
-"\n"
-"%s\n"
-msgid_plural ""
-"The following objects are masked from %s:\n"
+"The following objects are masked %s %s:\n"
 "\n"
 "%s\n"
 msgstr[0] ""
@@ -1655,11 +1631,6 @@ msgstr[0] " 置換データは %d 行ですが、%d 個の行を置換しよう�
 msgid "provided %d variable to replace %d variables"
 msgid_plural "provided %d variables to replace %d variables"
 msgstr[0] " %d 個の変数を与えて、%d 個の変数を置換しようとしています "
-
-#, fuzzy
-msgid "data frame with 0 columns and %d row"
-msgid_plural "data frame with 0 columns and %d rows"
-msgstr[0] " 0 列 %d 行のデータフレーム "
 
 msgid "library %s contains no packages"
 msgid_plural "libraries %s contain no packages"
@@ -1720,22 +1691,6 @@ msgstr[0] " %s は TRUE ではありません "
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] " 警告メッセージ: \n"
-
-#~ msgid "wrong argument"
-#~ msgstr " 間違った引数です "
-
-#~ msgid ""
-#~ "The following object is masked %s %s:\n"
-#~ "\n"
-#~ "%s\n"
-#~ msgid_plural ""
-#~ "The following objects are masked %s %s:\n"
-#~ "\n"
-#~ "%s\n"
-#~ msgstr[0] ""
-#~ " 以下のオブジェクトはマスクされています (%s %s) : \n"
-#~ "\n"
-#~ " %s \n"
 
 #~ msgid "'nu' must be 0, nrow(x) or ncol(x)"
 #~ msgstr " 'nu' は 0、または nrow(x) または ncol(x) でなければなりません "

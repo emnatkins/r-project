@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.5.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2014-07-18 13:11+0100\n"
+"POT-Creation-Date: 2014-03-27 07:46+0000\n"
 "PO-Revision-Date: 2014-03-26 13:54+0200 \n"
 "Last-Translator: Masafumi  \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -25,112 +25,92 @@ msgid "'%s' must be numeric of length %d"
 msgstr " '%s' は長さ %d の数値でなければなりません "
 
 #: colors.c:69
-#, fuzzy, c-format
-msgid "color intensity %s, not in [0,1]"
-msgstr " 色彩強度 %g が [0, 1] の範囲内にありません "
-
-#: colors.c:71
 #, c-format
 msgid "color intensity %g, not in [0,1]"
 msgstr " 色彩強度 %g が [0, 1] の範囲内にありません "
 
-#: colors.c:78
-#, fuzzy, c-format
-msgid "color intensity %s, not in 0:255"
-msgstr " 色彩強度 %d が 0:255 の範囲内にありません "
-
-#: colors.c:80
+#: colors.c:76
 #, c-format
 msgid "color intensity %d, not in 0:255"
 msgstr " 色彩強度 %d が 0:255 の範囲内にありません "
 
-#: colors.c:87
-#, fuzzy, c-format
-msgid "alpha level %s, not in [0,1]"
-msgstr " アルファ値 %g が [0, 1] の範囲内にありません "
-
-#: colors.c:89
+#: colors.c:83
 #, c-format
 msgid "alpha level %g, not in [0,1]"
 msgstr " アルファ値 %g が [0, 1] の範囲内にありません "
 
-#: colors.c:96
-#, fuzzy, c-format
-msgid "alpha level %s, not in 0:255"
-msgstr " アルファ値 %d が 0:255 の範囲内にありません "
-
-#: colors.c:98
+#: colors.c:90
 #, c-format
 msgid "alpha level %d, not in 0:255"
 msgstr " アルファ値 %d が 0:255 の範囲内にありません "
 
-#: colors.c:126
+#: colors.c:118
 msgid "bad hsv to rgb color conversion"
 msgstr " hsv から rgb への色変換に失敗しました "
 
-#: colors.c:215 colors.c:229
+#: colors.c:207 colors.c:221
 msgid "invalid hsv color"
 msgstr " hsv カラーが不正です "
 
-#: colors.c:341 colors.c:361
+#: colors.c:333 colors.c:353
 msgid "invalid hcl color"
 msgstr " hcl カラーが不正です "
 
-#: colors.c:393
+#: colors.c:385
 msgid "invalid value of 'maxColorValue'"
 msgstr " 'maxColorValue' の値が不正です "
 
-#: colors.c:421
+#: colors.c:413
 msgid "invalid 'names' vector"
 msgstr " 'names' ベクトルが不正です "
 
-#: colors.c:480 colors.c:489
+#: colors.c:472 colors.c:481
 msgid "invalid gray level, must be in [0,1]."
 msgstr " 濃淡度が不正です。濃淡度は [0, 1] の範囲内にある必要があります "
 
-#: colors.c:545
+#: colors.c:537
 #, c-format
 msgid "invalid '%s' value"
 msgstr " '%s' の値が不正です "
 
-#: colors.c:1337
+#: colors.c:1329
 msgid "invalid hex digit in 'color' or 'lty'"
 msgstr " 'color' または 'lty' 中の 16 進数が不正です "
 
-#: colors.c:1347 colors.c:1357
+#: colors.c:1339 colors.c:1349
 msgid "invalid RGB specification"
 msgstr " RGB の指定が不正です "
 
-#: colors.c:1390
+#: colors.c:1382
 #, c-format
 msgid "invalid color name '%s'"
 msgstr " 色名 '%s' が不正です "
 
-#: colors.c:1440 colors.c:1449
+#: colors.c:1432 colors.c:1441
 #, c-format
 msgid "invalid color specification \"%s\""
 msgstr " 色の指定 \"%s\" が不正です "
 
-#: colors.c:1477
+#: colors.c:1469
 msgid "supplied color is neither numeric nor character"
 msgstr " 与えられた色が数値でも文字列でもありません "
 
-#: colors.c:1481
+#: colors.c:1473
 #, c-format
 msgid "numerical color values must be >= 0, found %d"
 msgstr ""
 " 色を数値で指定する場合、数値は 0 以上である必要があります。%d が指定されまし"
 "た "
 
-#: colors.c:1492
+#: colors.c:1484
 msgid "invalid argument type"
 msgstr " 引数の型が不正です "
 
-#: colors.c:1503
+#: colors.c:1495
 msgid "unknown palette (need >= 2 colors)"
 msgstr " パレットが不正です (2 色以上必要です) "
 
-#: colors.c:1507 colors.c:1529
+#: colors.c:1499 colors.c:1521
 #, c-format
 msgid "maximum number of colors is %d"
 msgstr " パレットの色数の最大値は %d です "
@@ -559,7 +539,7 @@ msgstr " %s 中に不正な 'fonts' パラメータ "
 msgid "invalid value of '%s'"
 msgstr " '%s' の値が不正です "
 
-#: devPS.c:8255 devPS.c:8322 devPS.c:8421 devPicTeX.c:740 devWindows.c:3736
+#: devPS.c:8255 devPS.c:8322 devPS.c:8421 devPicTeX.c:740 devWindows.c:3732
 #, c-format
 msgid "unable to start %s() device"
 msgstr " デバイス %s() を開始できませんでした "
@@ -596,7 +576,7 @@ msgid ""
 msgstr ""
 " quartz() デバイスを作成できません。与えられた型はサポートされていません "
 
-#: devQuartz.c:1609
+#: devQuartz.c:1606
 msgid "Quartz device is not available on this platform"
 msgstr " Quartz デバイスはこのプラットフォームでは利用できません "
 
@@ -687,7 +667,7 @@ msgstr " クリップボードメタファイルは一つの図だけを保管�
 msgid "metafile '%s' could not be created"
 msgstr " メタファイル '%s' を作成できませんでした "
 
-#: devWindows.c:3112 devWindows.c:3760
+#: devWindows.c:3112 devWindows.c:3756
 msgid "R Graphics"
 msgstr " R グラフィックス "
 

@@ -26,5 +26,3 @@ isdebugged <- function(fun) .Internal(isdebugged(fun))
 browserText <- function(n=1L) .Internal(browserText(n))
 browserCondition <- function(n=1L) .Internal(browserCondition(n))
 browserSetDebug <- function(n=1L) .Internal(browserSetDebug(n))
-
-debuggingState <- function(on = NULL) .Internal(debugOnOff(on))

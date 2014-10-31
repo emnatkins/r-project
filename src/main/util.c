@@ -18,6 +18,7 @@
  *  http://www.r-project.org/Licenses/
  */
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -160,7 +161,7 @@ SEXP asChar(SEXP x)
 	    case REALSXP:
 		PrintDefaults();
 		formatReal(REAL(x), 1, &w, &d, &e, 0);
-		return mkChar(EncodeReal0(REAL(x)[0], w, d, e, OutDec));
+		return mkChar(EncodeReal(REAL(x)[0], w, d, e, OutDec));
 	    case CPLXSXP:
 		PrintDefaults();
 		formatComplex(COMPLEX(x), 1, &w, &d, &e, &wi, &di, &ei, 0);
@@ -241,66 +242,14 @@ SEXPTYPE str2type(const char *s)
     return (SEXPTYPE) -1;
 }
 
-static struct {
-    const char *cstrName;
-    SEXP rcharName;
-    SEXP rstrName;
-    SEXP rsymName;
-} Type2Table[MAX_NUM_SEXPTYPE];
 
-
-static int findTypeInTypeTable(SEXPTYPE t)
- {
-    for (int i = 0; TypeTable[i].str; i++)
-	if (TypeTable[i].type == t) return i;
-
-    return -1;
-}
-
-// called from main.c
-attribute_hidden 
-void InitTypeTables(void) {
-
-    /* Type2Table */
-    for (int type = 0; type < MAX_NUM_SEXPTYPE; type++) {
-        int j = findTypeInTypeTable(type);
-
-        if (j != -1) {
-            const char *cstr = TypeTable[j].str;
-            SEXP rchar = PROTECT(mkChar(cstr));
-            SEXP rstr = ScalarString(rchar);
-            MARK_NOT_MUTABLE(rstr);
-            R_PreserveObject(rstr);
-            UNPROTECT(1); /* rchar */
-            SEXP rsym = install(cstr);
-
-            Type2Table[type].cstrName = cstr;
-            Type2Table[type].rcharName = rchar;
-            Type2Table[type].rstrName = rstr;
-            Type2Table[type].rsymName = rsym;
-        } else {
-            Type2Table[type].cstrName = NULL;
-            Type2Table[type].rcharName = NULL;
-            Type2Table[type].rstrName = NULL;
-            Type2Table[type].rsymName = NULL;
-        }
-    }
-}
-
-SEXP type2str_nowarn(SEXPTYPE t) /* returns a CHARSXP */
+SEXP type2str(SEXPTYPE t)
 {
-    if (t < MAX_NUM_SEXPTYPE) { /* FIXME: branch not really needed */
-        SEXP res = Type2Table[t].rcharName;
-        if (res != NULL) return res;
-    }
-    return R_NilValue;
-}
+    int i;
 
-SEXP type2str(SEXPTYPE t) /* returns a CHARSXP */
-{
-    SEXP s = type2str_nowarn(t);
-    if (s != R_NilValue) {
-        return s;
+    for (i = 0; TypeTable[i].str; i++) {
+	if (TypeTable[i].type == t)
+	    return mkChar(TypeTable[i].str);
     }
     warning(_("type %d is unimplemented in '%s'"), t, "type2str");
     char buf[50];
@@ -308,22 +257,13 @@ SEXP type2str(SEXPTYPE t) /* returns a CHARSXP */
     return mkChar(buf);
 }
 
-SEXP type2rstr(SEXPTYPE t) /* returns a STRSXP */
+const char *type2char(SEXPTYPE t)
 {
-    if (t < MAX_NUM_SEXPTYPE) { /* FIXME: branch not really needed */
-        SEXP res = Type2Table[t].rstrName;
-        if (res != NULL) return res;
-    }
-    error(_("type %d is unimplemented in '%s'"), t, 
-	  "type2ImmutableScalarString");
-    return R_NilValue; /* for -Wall */
-}
+    int i;
 
-const char *type2char(SEXPTYPE t) /* returns a char* */
-{
-    if (t < MAX_NUM_SEXPTYPE) { /* FIXME: branch not really needed */
-        const char * res = Type2Table[t].cstrName;
-        if (res != NULL) return res;
+    for (i = 0; TypeTable[i].str; i++) {
+	if (TypeTable[i].type == t)
+	    return TypeTable[i].str;
     }
     warning(_("type %d is unimplemented in '%s'"), t, "type2char");
     static char buf[50];
@@ -334,11 +274,13 @@ const char *type2char(SEXPTYPE t) /* returns a char* */
 #ifdef UNUSED
 SEXP type2symbol(SEXPTYPE t)
 {
-    if (t >= 0 && t < MAX_NUM_SEXPTYPE) { /* FIXME: branch not really needed */
-        SEXP res = Type2Table[t].rsymName;
-        if (res != NULL) {
-            return res;
-        }
+    int i;
+    /* for efficiency, a hash table set up to index TypeTable, and
+       with TypeTable pointing to both the
+       character string and to the symbol would be better */
+    for (i = 0; TypeTable[i].str; i++) {
+	if (TypeTable[i].type == t)
+	    return install((const char *)&TypeTable[i].str);
     }
     error(_("type %d is unimplemented in '%s'"), t, "type2symbol");
     return R_NilValue; /* for -Wall */
@@ -627,10 +569,12 @@ static void isort_with_index(int *x, int *indx, int n)
 */
 SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP xi, yi, ansx, ansy, ans;
+    SEXP xi, yi, ansx, ansy, ans, x_lone, y_lone;
     int nx = 0, ny = 0, i, j, k, nx_lone = 0, ny_lone = 0;
     int all_x = 0, all_y = 0, ll = 0/* "= 0" : for -Wall */;
-    int nnx, nny;
+    int *ix, *iy, tmp, nnx, nny, i0, j0;
+    double dnans = 0;
+    const char *nms[] = {"xi", "yi", "x.alone", "y.alone", ""};
 
     checkArity(op, args);
     xi = CAR(args);
@@ -646,8 +590,8 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("'all.y' must be TRUE or FALSE"));
 
     /* 0. sort the indices */
-    int *ix = (int *) R_alloc((size_t) nx, sizeof(int));
-    int *iy = (int *) R_alloc((size_t) ny, sizeof(int));
+    ix = (int *) R_alloc((size_t) nx, sizeof(int));
+    iy = (int *) R_alloc((size_t) ny, sizeof(int));
     for(i = 0; i < nx; i++) ix[i] = i+1;
     for(i = 0; i < ny; i++) iy[i] = i+1;
     isort_with_index(INTEGER(xi), ix, nx);
@@ -656,9 +600,8 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* 1. determine result sizes */
     for (i = 0; i < nx; i++) if (INTEGER(xi)[i] > 0) break; nx_lone = i;
     for (i = 0; i < ny; i++) if (INTEGER(yi)[i] > 0) break; ny_lone = i;
-    double dnans = 0;
     for (i = nx_lone, j = ny_lone; i < nx; i = nnx, j = nny) {
-	int tmp = INTEGER(xi)[i];
+	tmp = INTEGER(xi)[i];
 	for(nnx = i; nnx < nx; nnx++) if(INTEGER(xi)[nnx] != tmp) break;
 	/* the next is not in theory necessary,
 	   since we have the common values only */
@@ -667,39 +610,38 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 	/* printf("i %d nnx %d j %d nny %d\n", i, nnx, j, nny); */
 	dnans += ((double)(nnx-i))*(nny-j);
     }
-    if (dnans > R_XLEN_T_MAX)
+    if (dnans > INT_MAX)
 	error(_("number of rows in the result exceeds maximum vector length"));
-    R_xlen_t nans = (int) dnans;
+    int nans = (int) dnans;
 
 
     /* 2. allocate and store result components */
 
-    const char *nms[] = {"xi", "yi", "x.alone", "y.alone", ""};
-    ans = PROTECT(mkNamed(VECSXP, nms));
+    PROTECT(ans = mkNamed(VECSXP, nms));
     ansx = allocVector(INTSXP, nans);    SET_VECTOR_ELT(ans, 0, ansx);
     ansy = allocVector(INTSXP, nans);    SET_VECTOR_ELT(ans, 1, ansy);
 
     if(all_x) {
-	SEXP x_lone = allocVector(INTSXP, nx_lone);
+	x_lone = allocVector(INTSXP, nx_lone);
 	SET_VECTOR_ELT(ans, 2, x_lone);
 	for (i = 0, ll = 0; i < nx_lone; i++)
 	    INTEGER(x_lone)[ll++] = ix[i];
     }
 
     if(all_y) {
-	SEXP y_lone = allocVector(INTSXP, ny_lone);
+	y_lone = allocVector(INTSXP, ny_lone);
 	SET_VECTOR_ELT(ans, 3, y_lone);
 	for (i = 0, ll = 0; i < ny_lone; i++)
 	    INTEGER(y_lone)[ll++] = iy[i];
     }
 
     for (i = nx_lone, j = ny_lone, k = 0; i < nx; i = nnx, j = nny) {
-	int tmp = INTEGER(xi)[i];
+	tmp = INTEGER(xi)[i];
 	for(nnx = i; nnx < nx; nnx++) if(INTEGER(xi)[nnx] != tmp) break;
 	for(; j < ny; j++) if(INTEGER(yi)[j] >= tmp) break;
 	for(nny = j; nny < ny; nny++) if(INTEGER(yi)[nny] != tmp) break;
-	for(int i0 = i; i0 < nnx; i0++)
-	    for(int j0 = j; j0 < nny; j0++) {
+	for(i0 = i; i0 < nnx; i0++)
+	    for(j0 = j; j0 < nny; j0++) {
 		INTEGER(ansx)[k]   = ix[i0];
 		INTEGER(ansy)[k++] = iy[j0];
 	    }
@@ -1890,36 +1832,12 @@ static const struct {
     { NULL,  0 }
 };
 
-#ifdef Win32
-#define BUFFER_SIZE 512
-typedef int (WINAPI *PGSDLN)(LPWSTR, int);
-
-static const char *getLocale(void)
-{
-    const char *p = getenv("R_ICU_LOCALE");
-    if (p && p[0]) return p;
-
-    // This call is >= Vista/Server 2008
-    // ICU should accept almost all of these, e.g. en-US and uz-Latn-UZ
-    PGSDLN pGSDLN = (PGSDLN)
-	GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
-		       "GetSystemDefaultLocaleName");
-    if(pGSDLN) {
-	WCHAR wcBuffer[BUFFER_SIZE];
-	pGSDLN(wcBuffer, BUFFER_SIZE);
-	static char locale[BUFFER_SIZE];
-	WideCharToMultiByte(CP_ACP, 0, wcBuffer, -1,
-			    locale, BUFFER_SIZE, NULL, NULL);
-	return locale;
-    } else return "root";
-}
-#else
+// Idea is to remap Windows' locale names by 3.2.0.
 static const char *getLocale(void)
 {
     const char *p = getenv("R_ICU_LOCALE");
     return (p && p[0]) ? p : setlocale(LC_COLLATE, NULL);
 }
-#endif
 
 SEXP attribute_hidden do_ICUset(SEXP call, SEXP op, SEXP args, SEXP rho)
 {

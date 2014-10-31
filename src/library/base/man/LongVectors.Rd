@@ -3,6 +3,8 @@
 % Copyright 2012 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{LongVectors}
 \alias{long vector}
 \alias{long vectors}

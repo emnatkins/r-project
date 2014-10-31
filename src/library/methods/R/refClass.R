@@ -1,7 +1,7 @@
 #  File src/library/methods/R/refClass.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2014 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -164,7 +164,10 @@ envRefSetField <- function(object, field,
             if(is(fp, "defaultBindingFunction")) {
                 ## ensure an initial value
                 class <- fieldClasses[[field]]
-		value <- if(!isVirtualClass(class)) new(class) # else NULL
+                if(isVirtualClass(class))
+                    value <- NULL
+                else
+                    value <- new(class)
                 assign(.bindingMetaName(field), value, envir = selfEnv)
             }
         }
@@ -255,7 +258,6 @@ initRefFields <- function(.Object, classDef, selfEnv, args) {
     invisible(x)
 }
 
-utils::globalVariables(".envRefMethods")# (codetools analysis)
 .envRefMethods <-
     list(
          export = function(Class) {
@@ -370,7 +372,7 @@ that class itself, but then you could just overrwite the object).
          untrace = function(..., classMethod = FALSE) {
              ' Untrace the method given as the first argument.
 '
-             .TraceWithMethods(..., untrace=TRUE, where = .self, classMethod=classMethod)
+             .TraceWithMethods(..., untrace = TRUE,  where = .self, classMethod = classMethod)
          },
          show = function() {
 	     if(is.null(cl <- tryCatch(class(.self), error=function(e)NULL))) {
@@ -457,7 +459,7 @@ makeEnvRefMethods <- function() {
     assignClassDef("envRefClass", def, where = envir)
     setMethod("initialize", "envRefClass", methods:::.initForEnvRefClass,
               where = envir)
-    ## NOTE:  "$" method requires setting in .InitStructureMethods()
+    ## NOTE:  "$" method requires setting in methods:::.InitStructureMethods
     setMethod("$", "envRefClass", .dollarForEnvRefClass, where = envir)
     setMethod("$<-", "envRefClass", .dollarGetsForEnvRefClass, where = envir)
     setMethod("show", "envRefClass",
@@ -530,7 +532,7 @@ getRefSuperClasses <- function(classes, classDefs) {
     if(is.null(mnames) || !all(nzchar(mnames)))
         stop("arguments to methods() must be named, or one named list")
     ## look for methods to remove (new definition is NULL)
-    removeThese <- vapply(methodDefs, is.null, NA)
+    removeThese <- sapply(methodDefs, is.null)
     if(any(removeThese)) {
         rmNames <- mnames[removeThese]
         mnames <- mnames[!removeThese]
@@ -668,7 +670,7 @@ class method modifies a field.
 
 .makeCall <- function(name, x) {
     n <- length(argls <- formals(x))
-    noDeflt <- if(n > 0) vapply(argls, function(x) !is.name(x) || nzchar(as.character(x)), NA)
+    noDeflt <- if(n > 0) sapply(argls,function(x)  !is.name(x) || nzchar(as.character(x)))
     if (n) {
         arg.names <- arg.n <- names(argls)
     }
@@ -778,15 +780,15 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
                                                        dQuote(class(what))),
                                               domain = NA)
                                  })
-        missingDefs <- vapply(superClassDefs, is.null, NA)
+        missingDefs <- sapply(superClassDefs, is.null)
         if(any(missingDefs))
             stop(gettextf("no definition found for inherited class: %s",
                           paste0('"',contains[missingDefs], '"', collapse = ", ")),
                  domain = NA)
         superClasses <- unlist(lapply(superClassDefs,
                           function(def) def@className), FALSE)
-        isRefSuperClass <- vapply(superClassDefs, function(def)
-				  is(def, "refClassRepresentation"), NA)
+        isRefSuperClass <- sapply(superClassDefs, function(def)
+                              is(def, "refClassRepresentation"))
     }
     else {
         superClassDefs <- list()
@@ -836,7 +838,8 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
         }
         else if(is.function(thisField)) {
             fieldClasses[[i]] <- "activeBindingFunction"
-	    fieldPrototypes[[thisName]] <- .makeActiveBinding(thisField)
+            fieldPrototypes[[thisName]] <-
+                .makeActiveBinding(thisField)
         }
         else
             stop(gettextf("field %s was supplied as an object of class %s; must be a class name or a binding function",
@@ -1011,20 +1014,17 @@ showClassMethod <- function(object) {
     cat(sprintf(" for method %s()\n", object@name))
     show(as(object, "function"))
     if(length(object@mayCall))
-        .printNames("\nMethods used: ", object@mayCall)
+        .printNames("Methods used: ", object@mayCall)
 }
 
 .printNames <- function(header, names, separateLine = TRUE) {
-    names <- paste0('"', names, '"')
-    if(separateLine) {
-        cat(header, "\n", sep = "")
-        cat(names, sep = ", ", fill = TRUE, labels = "    ")
-    } else {
-        cat(header, ": ", sep = "")
-        cat(names, sep = ", ", fill = TRUE)
-    }
+    if(separateLine)
+        cat("\n",header,"\n    ")
+    else
+        cat(header,": ",sep="")
+    cat(paste0('"', names, '"'), sep = ", ", fill = TRUE)
     cat("\n")
-}
+    }
 
 showRefClassDef <- function(object, title = "Reference Class") {
     cat(title," \"", object@className,"\":\n", sep="")
@@ -1039,7 +1039,7 @@ showRefClassDef <- function(object, title = "Reference Class") {
         cat("\nNo fields defined\n")
     methods <- objects(object@refMethods, all.names = TRUE)
     if(length(methods))
-        .printNames("\nClass Methods: ", methods)
+        .printNames("Class Methods: ", methods)
     else
         cat ("\nNo Class Methods\n")
     supers <- object@refSuperClasses
@@ -1258,7 +1258,7 @@ getMethodsAndAccessors <- function(Class) {
         stop(gettextf("%s is not a reference class",
              dQuote(def@className)))
     ff <- def@fieldPrototypes
-    accs <- vapply(ff, function(what) is(what, "activeBindingFunction") && !is(what, "defaultBindingFunction"), NA)
+    accs <- sapply(ff, function(what) is(what, "activeBindingFunction") && !is(what, "defaultBindingFunction"))
     c(as.list(def@refMethods), as.list(ff)[accs])
 }
 

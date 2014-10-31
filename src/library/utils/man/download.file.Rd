@@ -3,6 +3,8 @@
 % Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+
 \name{download.file}
 \alias{download.file}
 \concept{proxy}
@@ -25,9 +27,9 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
     file is saved.  Tilde-expansion is performed.}
 
   \item{method}{Method to be used for downloading files.  Currently
-    download methods \code{"internal"}, \code{"wget"} and \code{"curl"},
-    and there is a value \code{"auto"}: see \sQuote{Details} and
-    \sQuote{Note}.
+    download methods \code{"internal"}, \code{"wget"}, \code{"curl"} and
+    \code{"lynx"} (deprecated) are available, and there is a value
+    \code{"auto"}: see \sQuote{Details} and \sQuote{Note}.
 
     The method can also be set through the option
     \code{"download.file.method"}: see \code{\link{options}()}.
@@ -48,7 +50,7 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
     \code{"curl"} methods.}
 
   \item{extra}{character vector of additional command-line arguments for
-    the \code{"wget"} and \code{"curl"} methods.}
+    the \code{"wget"}, \code{"curl"} and \code{"lynx"} methods.}
 }
 \details{
   The function \code{download.file} can be used to download a single
@@ -61,18 +63,19 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
   If \code{method = "auto"} is chosen (the default), the internal method
   is chosen for \samp{file://} URLs, and for the others provided
   \code{\link{capabilities}("http/ftp")} is true (which it almost always
-  is).  Otherwise methods \code{"wget"} and \code{"curl"}.
+  is).  Otherwise methods \code{"wget"}, \code{"curl"} and \code{"lynx"}
+  are tried in turn.
 #endif
 #ifdef windows
   If \code{method = "auto"} is chosen (the default), the internal method
   is used on Windows.
 #endif
 
-  For methods \code{"wget"} and \code{"curl"} a system call is made to
-  the tool given by \code{method}, and the respective program must be
-  installed on your system and be in the search path for executables.
-  They will block all other activity on the \R process until they
-  complete: this may make a GUI unresponsive.
+  For methods \code{"wget"}, \code{"curl"} and \code{"lynx"} a system
+  call is made to the tool given by \code{method}, and the respective
+  program must be installed on your system and be in the search path for
+  executables.  They will block all other activity on the \R process
+  until they complete: this may make a GUI unresponsive.
 
   \code{cacheOK = FALSE} is useful for \samp{http://} URLs, and will
   attempt to get a copy directly from the site rather than from an
@@ -135,8 +138,8 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
 #endif
 }
 \note{
-   Files of more than 2GB are supported on 64-bit builds of \R; they
-  may be truncated on some 32-bit builds.
+   Files of more than 2GB are only supported on 64-bit builds of \R; they
+  may be truncated on 32-bit builds.
   
   Method \code{"wget"} is mainly for historical compatibility, but it
   and \code{"curl"} can be used for URLs (e.g., \samp{https://} URLs or
@@ -152,6 +155,9 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
 
   \command{curl} (\url{http://curl.haxx.se/}) is installed on OS X and
   commonly on Unix-alikes.  Windows binaries are available at that URL.
+
+  Use of \command{lynx} (\url{http://lynx.browser.org/} is of historical
+  interest and now deprecated.
 }
 \section{Setting Proxies}{
   This applies to the internal code only.

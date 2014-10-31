@@ -227,7 +227,7 @@ install.packages <-
     }
 
     ## check for writability by user
-    ok <- dir.exists(lib) & (file.access(lib, 2) == 0L)
+    ok <- file.info(lib)$isdir & (file.access(lib, 2) == 0)
     if(length(lib) > 1 && any(!ok))
         stop(sprintf(ngettext(sum(!ok),
                               "'lib' element %s is not a writable directory",
@@ -236,7 +236,7 @@ install.packages <-
     if(length(lib) == 1L && .Platform$OS.type == "windows") {
         ## file.access is unreliable on Windows, especially >= Vista.
         ## the only known reliable way is to try it
-        ok <- dir.exists(lib) # dir might not exist, PR#14311
+        ok <- file.info(lib)$isdir %in% TRUE # dir might not exist, PR#14311
         if(ok) {
             fn <- file.path(lib, paste("_test_dir", Sys.getpid(), sep = "_"))
             unlink(fn, recursive = TRUE) # precaution
@@ -496,7 +496,7 @@ install.packages <-
         pkgs <- gsub("\\\\", "/", pkgs)
     } else {
         if(substr(type, 1L, 10L) == "mac.binary") {
-            if(!grepl("darwin", R.version$platform))
+            if(!length(grep("darwin", R.version$platform)))
                 stop("cannot install MacOS X binary packages on this platform")
             .install.macbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
                                method = method, available = available,
@@ -533,7 +533,7 @@ install.packages <-
             keep_outputs <- FALSE
     } else if(is.character(keep_outputs) &&
               (length(keep_outputs) == 1L)) {
-        if(!dir.exists(keep_outputs) &&
+        if(!file_test("-d", keep_outputs) &&
            !dir.create(keep_outputs, recursive = TRUE))
             stop(gettextf("unable to create %s", sQuote(keep_outputs)),
                  domain = NA)
@@ -715,9 +715,10 @@ install.packages <-
             setwd(cwd); on.exit()
             unlink(tmpd, recursive = TRUE)
         } else {
-            outfiles <- paste0(update[, 1L], ".out")
             for(i in seq_len(nrow(update))) {
-                outfile <- if(keep_outputs) outfiles[i] else output
+                outfile <- if(keep_outputs) {
+                    paste0(update[i, 1L], ".out")
+                } else output
                 args <- c(args0,
                           get_install_opts(update[i, 3L]),
                           "-l", shQuote(update[i, 2L]),
@@ -738,10 +739,8 @@ install.packages <-
                             domain = NA)
                 }
             }
-            if(keep_outputs && (outdir != getwd())) {
-                file.copy(outfiles, outdir)
-                file.remove(outfiles)
-            }
+            if(keep_outputs && (outdir != getwd()))
+                file.copy(paste0(update[, 1L], ".out"), outdir)
         }
         if(!quiet && nonlocalrepos && !is.null(tmpd) && is.null(destdir))
             cat("\n", gettextf("The downloaded source packages are in\n\t%s",

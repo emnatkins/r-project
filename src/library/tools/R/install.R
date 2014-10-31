@@ -36,6 +36,8 @@
     ## calls system() on Windows for
     ## sh (configure.win/cleanup.win) make zip
 
+    dir.exists <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
+
     ## global variables
     curPkg <- character() # list of packages in current pkg
     lockdir <- ""
@@ -901,7 +903,7 @@
                                    "bzip2" = 2L,
                                    "xz" = 3L,
                                    TRUE)  # default to gzip
-                } else if(file.size(f) > 1e6) comp <- 3L # "xz"
+                } else if(file.info(f)$size > 1e6) comp <- 3L # "xz"
 		res <- try(sysdata2LazyLoadDB(f, file.path(instdir, "R"),
                                               compress = comp))
 		if (inherits(res, "try-error"))
@@ -1064,7 +1066,7 @@
             file.copy(i_files, i2_files)
             if (!WINDOWS) {
                 ## make executable if the source file was (for owner)
-                modes <- file.mode(i_files)
+                modes <- file.info(i_files)$mode
                 execs <- as.logical(modes & as.octmode("100"))
 		Sys.chmod(i2_files[execs], dmode)
             }
@@ -1147,7 +1149,7 @@
 				types = build_help_types,
 				outenc = outenc)
 	    }
-	    if (dir.exists(figdir <- file.path(pkg_dir, "man", "figures"))) {
+	    if (file_test("-d", figdir <- file.path(pkg_dir, "man", "figures"))) {
 		starsmsg(paste0(stars, "*"), "copying figures")
 		dir.create(destdir <- file.path(instdir, "help", "figures"))
 		file.copy(Sys.glob(c(file.path(figdir, "*.png"),
@@ -1164,7 +1166,7 @@
 	    res <- try(.install_package_indices(".", instdir))
 	    if (inherits(res, "try-error"))
 		errmsg("installing package indices failed")
-            if(dir.exists("vignettes")) {
+            if(file_test("-d", "vignettes")) {
                 starsmsg(stars, "installing vignettes")
                 enc <- desc["Encoding"]
                 if (is.na(enc)) enc <- ""
@@ -1251,10 +1253,11 @@
     build_latex <- FALSE
     build_example <- FALSE
     use_configure <- TRUE
+    auto_zip <- FALSE
     configure_args <- character()
     configure_vars <- character()
     fake <- FALSE
-##    lazy <- TRUE
+    lazy <- TRUE
     lazy_data <- FALSE
     byte_compile <- NA # means take from DESCRIPTION file.
     ## Next is not very useful unless R CMD INSTALL reads a startup file
@@ -1501,7 +1504,7 @@
                 errmsg("cannot extract package from ", sQuote(pkg))
             if (length(new) > 1L)
                 errmsg("extracted multiple files from ", sQuote(pkg))
-            if (dir.exists(new)) pkgname <- basename(new)
+            if (file.info(new)$isdir) pkgname <- basename(new)
             else errmsg("cannot extract package from ", sQuote(pkg))
 
             ## If we have a binary bundle distribution, there should
@@ -1568,7 +1571,7 @@
     group.writable <- if(WINDOWS) FALSE else {
 	## install package group-writable  iff  in group-writable lib
         d <-  as.octmode("020")
-	(file.mode(lib) & d) == d ## TRUE  iff  g-bit is "w"
+	(file.info(lib)$mode & d) == d ## TRUE  iff  g-bit is "w"
     }
 
     if (libs_only) {
@@ -2066,8 +2069,7 @@
 
     ## No need to handle encodings: everything is in UTF-8
 
-    html_header(desc["Package"], htmlize(desc["Title"], TRUE),
-                desc["Version"], outcon)
+    html_header(desc["Package"], desc["Title"], desc["Version"], outcon)
 
     use_alpha <- (nrow(M) > 100)
     if (use_alpha) {
@@ -2077,7 +2079,7 @@
         if (m) nm <- c(" ", nm[-m])
         m <- match("misc", nm, 0L) # force last in all locales.
         if (m) nm <- c(nm[-m], "misc")
-	writeLines(c('<p style="text-align: center;">',
+	writeLines(c("<p align=\"center\">",
 		     paste0("<a href=\"#", nm, "\">", nm, "</a>"),
 		     "</p>\n"), outcon)
         for (f in nm) {
@@ -2086,13 +2088,13 @@
                 cat("\n<h2><a name=\"", f, "\">-- ", f, " --</a></h2>\n\n",
                     sep = "", file = outcon)
 	    writeLines(c('<table width="100%">',
-			 paste0('<tr><td style="width: 25%;"><a href="', MM[, 2L], '.html">',
+			 paste0('<tr><td width="25%"><a href="', MM[, 2L], '.html">',
 				MM$HTopic, '</a></td>\n<td>', MM[, 3L],'</td></tr>'),
 			 "</table>"), outcon)
        }
     } else if (nrow(M)) {
 	writeLines(c('<table width="100%">',
-		     paste0('<tr><td style="width: 25%;"><a href="', M[, 2L], '.html">',
+		     paste0('<tr><td width="25%"><a href="', M[, 2L], '.html">',
 			    M$HTopic, '</a></td>\n<td>', M[, 3L],'</td></tr>'),
 		     "</table>"), outcon)
     } else { # no rows
@@ -2127,7 +2129,7 @@
     ext     <- c(".html", ".tex", ".R")
     names(dirname) <- names(ext) <- c("html", "latex", "example")
     mandir <- file.path(dir, "man")
-    if (!dir.exists(mandir)) return()
+    if (!file_test("-d", mandir)) return()
     desc <- readRDS(file.path(outDir, "Meta", "package.rds"))$DESCRIPTION
     pkg <- desc["Package"]
     ver <- desc["Version"]

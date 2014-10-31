@@ -3,6 +3,8 @@
 % Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{options}
 \alias{options}
 \alias{.Options}
@@ -185,15 +187,12 @@ getOption(x, default = NULL)
       to something in the order of (and typically slightly less than)
       \code{max.print} \emph{entries}.}
 
-    \item{\code{OutDec}:}{character string containing a single
+    \item{\code{OutDec}:}{character string containing a single-byte
       character.  The preferred character to be used as the decimal
       point in output conversions, that is in printing, plotting,
       \code{\link{format}} and \code{\link{as.character}} but not when
       deparsing nor by \code{\link{sprintf}} nor \code{\link{formatC}}
-      (which are sometimes used prior to printing.
-
-      Only single-byte characters were supported prior to \R 3.2.0.
-    }
+      (which are sometimes used prior to printing.}
 
     \item{\code{pager}:}{the command used for displaying text files by
       \code{\link{file.show}}.

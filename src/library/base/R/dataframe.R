@@ -257,9 +257,8 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...,
                                  stringsAsFactors = default.stringsAsFactors())
 {
     d <- dim(x)
-    nrows <- d[1L]
-    ncols <- d[2L]
-    ic <- seq_len(ncols)
+    nrows <- d[1L]; ir <- seq_len(nrows)
+    ncols <- d[2L]; ic <- seq_len(ncols)
     dn <- dimnames(x)
     ## surely it cannot be right to override the supplied row.names?
     ## changed in 1.8.0
@@ -1510,8 +1509,7 @@ Ops.data.frame <- function(e1, e2 = NULL)
 	if(.row_names_info(e1) > 0L) rn <- attr(e1, "row.names")
 	cn <- names(e1)
 	if(any(dim(e2) != dim(e1)))
-	    stop(gettextf("%s only defined for equally-sized data frames",
-                          sQuote(.Generic)), domain = NA)
+	    stop(sQuote(.Generic), " only defined for equally-sized data frames")
     } else if(lclass) {
 	## e2 is not a data frame, but e1 is.
         nr <- .row_names_info(e1, 2L)

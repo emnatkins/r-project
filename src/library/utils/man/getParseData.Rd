@@ -3,6 +3,8 @@
 % Copyright 2012-2013 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+
 \name{getParseData}
 \alias{getParseData}
 \alias{getParseText}

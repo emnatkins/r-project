@@ -328,7 +328,7 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
 	}
 	ptr = strcpy(ptr, "#"); ptr +=1;
 	ptr = strcpy(ptr, "missing"); ptr += strlen("missing");
-    }
+    }	    
     value = findVarInFrame(mtable, install(buf));
     if(value == R_UnboundValue)
 	value = R_NilValue;
@@ -377,7 +377,7 @@ static SEXP get_generic(SEXP symbol, SEXP rho, SEXP package)
 {
     SEXP vl, generic = R_UnboundValue, gpackage; const char *pkg; Rboolean ok;
     if(!isSymbol(symbol))
-	symbol = installChar(asChar(symbol));
+	symbol = install(CHAR(asChar(symbol)));
     pkg = CHAR(STRING_ELT(package, 0)); /* package is guaranteed single string */
 
     while (rho != R_NilValue) {
@@ -581,7 +581,7 @@ static SEXP do_dispatch(SEXP fname, SEXP ev, SEXP mlist, int firstTry,
     else
 	/* shouldn't happen, since argument in class MethodsList has class
 	   "name" */
-	arg_sym = installChar(asChar(arg_slot));
+	arg_sym = install(CHAR(asChar(arg_slot)));
     if(arg_sym == R_DotsSymbol || DDVAL(arg_sym) > 0)
 	error(_("(in selecting a method for function '%s') '...' and related variables cannot be used for methods dispatch"),
 	      CHAR(asChar(fname)));
@@ -647,7 +647,6 @@ SEXP R_M_setPrimitiveMethods(SEXP fname, SEXP op, SEXP code_vec,
 			     SEXP fundef, SEXP mlist)
 {
     return R_set_prim_method(fname, op, code_vec, fundef, mlist);
-    // -> ../../../main/objects.c
 }
 
 SEXP R_nextMethodCall(SEXP matched_call, SEXP ev)
@@ -736,18 +735,18 @@ static SEXP R_loadMethod(SEXP def, SEXP fname, SEXP ev)
 	else if(t == R_nextMethod)  {
 	    defineVar(R_dot_nextMethod, CAR(s), ev); found++;
 	}
-	else if(t == R_SourceSymbol || t == s_generic)  {
+	else if(t == R_SourceSymbol)  {
 	    /* ignore */ found++;
 	}
     }
     defineVar(R_dot_Method, def, ev);
     UNPROTECT(1);
 
+    /* this shouldn't be needed but check the generic being
+       "loadMethod", which would produce a recursive loop */
+    if(strcmp(CHAR(asChar(fname)), "loadMethod") == 0)
+	return def;
     if(found < length(attrib)) {
-        /* this shouldn't be needed but check the generic being
-           "loadMethod", which would produce a recursive loop */
-        if(strcmp(CHAR(asChar(fname)), "loadMethod") == 0)
-            return def;
 	SEXP e, val;
 	PROTECT(def);
 	PROTECT(e = allocVector(LANGSXP, 4));
@@ -771,7 +770,7 @@ static SEXP R_selectByPackage(SEXP table, SEXP classes, int nargs) {
 	if(thisPkg == R_NilValue)
 	    thisPkg = s_base;
 	lwidth += strlen(STRING_VALUE(thisPkg)) + 1;
-    }
+    }	
     /* make the label */
     const void *vmax = vmaxget();
     buf = (char *) R_alloc(lwidth + 1, sizeof(char));
@@ -862,7 +861,7 @@ SEXP R_getClassFromCache(SEXP class, SEXP table)
     SEXP value;
     if(TYPEOF(class) == STRSXP) {
 	SEXP package = PACKAGE_SLOT(class);
-	value = findVarInFrame(table, installChar(STRING_ELT(class, 0)));
+	value = findVarInFrame(table, install(CHAR(STRING_ELT(class, 0))));
 	if(value == R_UnboundValue)
 	    return R_NilValue;
 	else if(TYPEOF(package) == STRSXP) {
@@ -883,7 +882,7 @@ SEXP R_getClassFromCache(SEXP class, SEXP table)
     } else /* assumes a class def, but might check */
 	return class;
 }
-
+	
 
 static SEXP do_inherited_table(SEXP class_objs, SEXP fdef, SEXP mtable, SEXP ev)
 {
@@ -938,7 +937,7 @@ SEXP R_dispatchGeneric(SEXP fname, SEXP ev, SEXP fdef)
 {
     static SEXP R_mtable = NULL, R_allmtable, R_sigargs, R_siglength, R_dots;
     int nprotect = 0;
-    SEXP mtable, classes, thisClass = R_NilValue /* -Wall */, sigargs,
+    SEXP mtable, classes, thisClass = R_NilValue /* -Wall */, sigargs, 
 	siglength, f_env = R_NilValue, method, f, val = R_NilValue;
     char *buf, *bufptr;
     int nargs, i, lwidth = 0;

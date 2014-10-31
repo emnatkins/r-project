@@ -49,7 +49,7 @@ termplot <- function(model, data = NULL,envir = environment(formula(model)),
     if (any(grepl(":", nmt, fixed = TRUE)))
         warning("'model' appears to involve interactions: see the help page",
                 domain = NA, immediate. = TRUE)
-    cn <- parse(text = nmt, keep.source = FALSE)
+    cn <- parse(text = nmt)
     ## Defaults:
     if (!is.null(smooth))
       smooth <- match.fun(smooth)
