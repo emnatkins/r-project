@@ -54,5 +54,3 @@ cairo_ps <- function(filename = if(onefile) "Rplots.ps" else "Rplot%03d.ps",
                         pointsize, bg, NA_integer_, antialias, onefile,
                         family))
 }
-
-cairoVersion <- function() .Call(C_cairoVersion)

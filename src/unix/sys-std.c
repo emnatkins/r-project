@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2015  The R Core Team
+ *  Copyright (C) 1997--2013  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ static RETSIGTYPE (*oldSigintHandler)(int) = SIG_DFL;
 
 typedef void (*sel_intr_handler_t)(void);
 
-static RETSIGTYPE NORET handleSelectInterrupt(int dummy)
+static RETSIGTYPE handleSelectInterrupt(int dummy)
 {
     signal(SIGINT, oldSigintHandler);
     SIGLONGJMP(seljmpbuf, 1);
@@ -1033,7 +1033,7 @@ void R_CleanTempDir(void)
 }
 
 
-void attribute_hidden NORET Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
+void attribute_hidden Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 {
     if(saveact == SA_DEFAULT) /* The normal case apart from R_Suicide */
 	saveact = SaveAction;
@@ -1279,9 +1279,19 @@ void attribute_hidden Rstd_addhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 
 #define R_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-void Rsleep(double timeint)
+double currentTime(void); /* from datetime.c */
+SEXP attribute_hidden do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    double tm = timeint * 1e6, start = currentTime(), elapsed;
+    int Timeout;
+    double tm, timeint, start, elapsed;
+
+    checkArity(op, args);
+    timeint = asReal(CAR(args));
+    if (ISNAN(timeint) || timeint < 0)
+	errorcall(call, _("invalid '%s' value"), "time");
+    tm = timeint * 1e6;
+
+    start = currentTime();
     for (;;) {
 	fd_set *what;
 	tm = R_MIN(tm, 2e9); /* avoid integer overflow */
@@ -1290,8 +1300,9 @@ void Rsleep(double timeint)
 	if (R_wait_usec > 0) wt = R_wait_usec;
 	if (Rg_wait_usec > 0 && (wt < 0 || wt > Rg_wait_usec))
 	    wt = Rg_wait_usec;
-	int Timeout = (int) (wt > 0 ? R_MIN(tm, wt) : tm);
+	Timeout = (int) (wt > 0 ? R_MIN(tm, wt) : tm);
 	what = R_checkActivity(Timeout, 1);
+
 	/* For polling, elapsed time limit ... */
 	R_CheckUserInterrupt();
 	/* Time up? */
@@ -1307,4 +1318,6 @@ void Rsleep(double timeint)
 
 	tm = 1e6*(timeint - elapsed);
     }
+
+    return R_NilValue;
 }

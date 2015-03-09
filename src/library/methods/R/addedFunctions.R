@@ -1,7 +1,7 @@
 #  File src/library/methods/R/addedFunctions.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -51,8 +51,10 @@ getFunction <- function(name, generic = TRUE, mustFind = TRUE,
     lastEnv <- if(isNamespace(where)) function(where) isBaseNamespace(where) else
     function(where) identical(where, baseenv())
     repeat {
-      if(!is.null(f <- get0(name, envir = where, mode = "function", inherits = FALSE)))
+        if(exists(name, envir = where, mode = "function", inherits = FALSE)) {
+            f <- get(name, envir = where)
             found <- generic || !is(f, "genericFunction")
+        }
         if(found || lastEnv(where))
             break
         where <- parent.env(where)
@@ -116,7 +118,8 @@ findFunction <-
     ok <- logical(length(allWhere))
     for(i in seq_along(allWhere)) {
 	wherei <- allWhere[[i]]
-	if(!is.null(fdef <- wherei[[f]])) {
+	if(exists(f, wherei, inherits = FALSE)) {
+	    fdef <- get(f, wherei)
 	    ok[i] <- is.function(fdef) && (generic || is.primitive(fdef) || !isGeneric(f, wherei, fdef))
 	}## else ok[i] <- FALSE
     }

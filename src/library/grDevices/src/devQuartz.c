@@ -1481,10 +1481,7 @@ SEXP Quartz(SEXP args)
 	const char *devname = "quartz_off_screen";
 	if(streql(type, "") || streql(type, "native") || streql(type, "cocoa") 
 	   || streql(type, "carbon")) devname = "quartz";
-	SEXP f = PROTECT(mkString(devname));
-	if(file) setAttrib(f, install("filepath"), mkString(file));
- 	gsetVar(R_DeviceSymbol, f, R_BaseEnv);
-	UNPROTECT(1);
+ 	gsetVar(R_DeviceSymbol, mkString(devname), R_BaseEnv);
 	pGEDevDesc dd = GEcreateDevDesc(dev);
 	GEaddDevice(dd);
 	GEinitDisplayList(dd);

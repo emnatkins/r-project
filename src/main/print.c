@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998	Robert Gentleman and Ross Ihaka.
- *  Copyright (C) 2000-2015	The R Core Team.
+ *  Copyright (C) 2000-2012	The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -300,9 +300,7 @@ SEXP attribute_hidden do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    SEXP methodsNS = R_FindNamespace(mkString("methods"));
 	    if(methodsNS == R_UnboundValue)
 		error("missing methods namespace: this should not happen");
-	    PROTECT(methodsNS);
 	    showS = findVarInFrame3(methodsNS, install("show"), TRUE);
-	    UNPROTECT(1);
 	    if(showS == R_UnboundValue)
 		error("missing show() in methods namespace: this should not happen");
 	}
@@ -364,7 +362,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		if (LENGTH(tmp) == 1) {
 		    formatReal(REAL(tmp), 1, &w, &d, &e, 0);
 		    snprintf(pbuf, 115, "%s",
-			     EncodeReal0(REAL(tmp)[0], w, d, e, OutDec));
+			     EncodeReal(REAL(tmp)[0], w, d, e, OutDec));
 		} else
 		    snprintf(pbuf, 115, "Numeric,%d", LENGTH(tmp));
 		break;
@@ -374,7 +372,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		    if (ISNA(x[0].r) || ISNA(x[0].i))
 			/* formatReal(NA) --> w=R_print.na_width, d=0, e=0 */
 			snprintf(pbuf, 115, "%s",
-				 EncodeReal0(NA_REAL, R_print.na_width, 0, 0, OutDec));
+				 EncodeReal(NA_REAL, R_print.na_width, 0, 0, OutDec));
 		    else {
 			formatComplex(x, 1, &wr, &dr, &er, &wi, &di, &ei, 0);
 			snprintf(pbuf, 115, "%s",
@@ -877,7 +875,7 @@ static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 		if (TAG(a) == R_NamesSymbol)
 		    goto nextattr;
 	    }
-	    if(TAG(a) == R_CommentSymbol || TAG(a) == R_SrcrefSymbol
+	    if(TAG(a) == R_CommentSymbol || TAG(a) == R_SourceSymbol || TAG(a) == R_SrcrefSymbol
 	       || TAG(a) == R_WholeSrcrefSymbol || TAG(a) == R_SrcfileSymbol)
 		goto nextattr;
 	    if(useSlots)
@@ -901,10 +899,7 @@ static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 		    SEXP methodsNS = R_FindNamespace(mkString("methods"));
 		    if(methodsNS == R_UnboundValue)
 			error("missing methods namespace: this should not happen");
-		    PROTECT(showS);
-		    PROTECT(methodsNS);
 		    showS = findVarInFrame3(methodsNS, install("show"), TRUE);
-		    UNPROTECT(2);
 		    if(showS == R_UnboundValue)
 			error("missing show() in methods namespace: this should not happen");
 		}
@@ -985,9 +980,7 @@ void attribute_hidden PrintValueEnv(SEXP s, SEXP env)
 		SEXP methodsNS = R_FindNamespace(mkString("methods"));
 		if(methodsNS == R_UnboundValue)
 		    error("missing methods namespace: this should not happen");
-		PROTECT(methodsNS);
 		showS = findVarInFrame3(methodsNS, install("show"), TRUE);
-		UNPROTECT(1);
 		if(showS == R_UnboundValue)
 		    error("missing show() in methods namespace: this should not happen");
 	    }
@@ -1100,7 +1093,7 @@ int F77_NAME(realp0) (const char *label, int *nchar, float *data, int *ndata)
 
 /* Fortran-callable error routine for lapack */
 
-void NORET F77_NAME(xerbla)(const char *srname, int *info)
+void F77_NAME(xerbla)(const char *srname, int *info)
 {
    /* srname is not null-terminated.  It should be 6 characters. */
     char buf[7];

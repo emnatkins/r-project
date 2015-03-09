@@ -98,13 +98,9 @@ apply <- function(X, MARGIN, FUN, ...)
 	return(array(ans, d.ans, dn.ans))
     if(len.a && len.a %% d2 == 0L) {
         if(is.null(dn.ans)) dn.ans <- vector(mode="list", length(d.ans))
-	dn1 <- if(length(dn.call) &&
-		  length(ans.names) == length(dn.call[[1L]])) dn.call[1L]
-	       else list(ans.names)
-	dn.ans <- c(dn1, dn.ans)
+        dn.ans <- c(list(ans.names), dn.ans)
 	return(array(ans, c(len.a %/% d2, d.ans),
-		     if(!is.null(names(dn.ans)) || !all(vapply(dn.ans, is.null, NA)))
-			 dn.ans))
+		     if(!all(vapply(dn.ans, is.null, NA))) dn.ans))
     }
     return(ans)
 }

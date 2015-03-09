@@ -1,4 +1,3 @@
- BASE_SYM_CACHED
  BINDING_IS_LOCKED
  BM_norm_keep
  BZ2_blockSort
@@ -36,6 +35,7 @@
  BZ2_hbMakeCodeLengths
  BZ2_indexIntoF
  BZ2_rNums
+ BindDomain
  CPFun
  ConsoleAcceptCmd
  DebugMenuitem
@@ -47,7 +47,6 @@
  IS_ASCII
  IS_BYTES
  IS_LATIN1
- IS_SPECIAL_SYMBOL
  IS_UTF8
  InitDynload
  InitParser
@@ -57,7 +56,6 @@
  MDIset
  MDIsize
  MainThread
- NO_SPECIAL_SYMBOLS
  PrintUsage
  ProfileEvent
  R_BCNodeStackBase
@@ -70,7 +68,6 @@
  R_ChooseFile
  R_CollectWarnings
  R_Collected
- R_ColonSymbol
  R_CommentSymbol
  R_ConnIdSymbol
  R_ConsoleIob
@@ -79,6 +76,7 @@
  R_DevicesSymbol
  R_DisableNLinBrowser
  R_DotEnvSymbol
+ R_DoubleColonSymbol
  R_ErrorCon
  R_EvalDepth
  R_ExactSymbol
@@ -99,11 +97,9 @@
  R_GetVarLocValue
  R_HandlerStack
  R_HiddenFile
- R_InitReadItemDepth
  R_InitSrcRefState
  R_InitialData
  R_InsertRestartHandlers
- R_Interactive
  R_IoBufferFree
  R_IoBufferGetc
  R_IoBufferInit
@@ -129,7 +125,6 @@
  R_OpenSiteFile
  R_OpenSysInitFile
  R_OutputCon
- R_PPStackSize
  R_Parse1Buffer
  R_Parse1File
  R_ParseBuffer
@@ -140,7 +135,6 @@
  R_PendingPromises
  R_Primitive
  R_Quiet
- R_ReadItemDepth
  R_RecursiveSymbol
  R_RestartStack
  R_RestartToken
@@ -168,6 +162,7 @@
  R_TmpvalSymbol
  R_Toplevel
  R_ToplevelContext
+ R_TripleColonSymbol
  R_UTF8fixslash
  R_UseNamesSymbol
  R_VSize
@@ -186,6 +181,7 @@
  R_compress1
  R_compress2
  R_compress3
+ R_current_trace_state
  R_data_class2
  R_dec_min_exponent
  R_decompress1
@@ -227,11 +223,9 @@
  R_max_num_math_threads
  R_mktime
  R_moduleCdynload
- R_newCurlUrl
  R_newsock
  R_newunz
  R_newurl
- R_num_math_threads
  R_nwarnings
  R_osDynSymbol
  R_possible_dispatch
@@ -239,6 +233,8 @@
  R_restore_globals
  R_run_onexits
  R_seemsOldStyleS4Object
+ R_serialize
+ R_serializeb
  R_strftime
  R_subset3_dflt
  R_syscall
@@ -259,7 +255,6 @@
  Rcons_vprintf
  Rconsolesetwidth
  Rf_AdobeSymbol2ucs2
- Rf_BindDomain
  Rf_CheckFormals
  Rf_CoercionWarning
  Rf_ComplexFromInteger
@@ -272,7 +267,6 @@
  Rf_DispatchOrEval
  Rf_EncodeEnvironment
  Rf_EncodeRaw
- Rf_EncodeReal2
  Rf_EncodeString
  Rf_EnsureString
  Rf_ErrorMessage
@@ -291,10 +285,8 @@
  Rf_InitMemory
  Rf_InitNames
  Rf_InitOptions
- Rf_InitS3DefaultTypes
  Rf_InitStringHash
  Rf_InitTempDir
- Rf_InitTypeTables
  Rf_IntegerFromComplex
  Rf_IntegerFromLogical
  Rf_IntegerFromReal
@@ -323,10 +315,8 @@
  Rf_StringFromInteger
  Rf_StringFromLogical
  Rf_StringFromReal
- Rf_TimeToSeed
  Rf_VectorIndex
  Rf_WarningMessage
- Rf_addMissingVarsToNewEnv
  Rf_allocCharsxp
  Rf_asVecSize
  Rf_bd0
@@ -335,7 +325,6 @@
  Rf_check1arg
  Rf_check_stack_balance
  Rf_convertToC
- Rf_createS3Vars
  Rf_d1mach
  Rf_ddfindVar
  Rf_deparse1s
@@ -352,8 +341,6 @@
  Rf_get1index
  Rf_i1mach
  Rf_initStack
- Rf_installDDVAL
- Rf_installS3Signature
  Rf_isValidName
  Rf_lfastchoose
  Rf_lgammacor
@@ -374,7 +361,6 @@
  Rf_onsigusr1
  Rf_onsigusr2
  Rf_osDynSymbol
- Rf_patchArgsByActuals
  Rf_pbeta_raw
  Rf_printArray
  Rf_printComplexVector
@@ -385,17 +371,14 @@
  Rf_printVector
  Rf_promiseArgs
  Rf_qchisq_appr
- Rf_readS3VarsFromFrame
  Rf_regcomp
  Rf_regerror
  Rf_regexec
  Rf_regfree
  Rf_setIVector
  Rf_setRVector
- Rf_sexptype2char
  Rf_ssort
  Rf_stirlerr
- Rf_stringSuffix
  Rf_strmat2intmat
  Rf_substituteList
  Rf_tsConform
@@ -427,29 +410,23 @@
  Rwin_wrename
  SET_ACTIVE_BINDING_BIT
  SET_ASCII
- SET_BASE_SYM_CACHED
  SET_BYTES
  SET_CACHED
  SET_CXTAIL
  SET_HASHASH
  SET_LATIN1
- SET_NO_SPECIAL_SYMBOLS
  SET_PRIMOFFSET
- SET_SPECIAL_SYMBOL
  SET_UTF8
  Sys_TempDir
- UNIMPLEMENTED_TYPEt
+ TimeToSeed
  UNLOCK_BINDING
- UNSET_BASE_SYM_CACHED
- UNSET_NO_SPECIAL_SYMBOLS
- UNSET_SPECIAL_SYMBOL
+ UNIMPLEMENTED_TYPEt
  UTF8in
  UTF8out
+ UseInternet2
  WinCheckUTF8
  WinUTF8out
  WrongArgCount
- _controlify
- _hershey_font_info
  _nl_explode_name
  _nl_find_domain
  _nl_find_msg
@@ -461,8 +438,6 @@
  _nl_make_l10nflist
  _nl_msg_cat_cntr
  _nl_normalize_codeset
- _occidental_hershey_glyphs
- _oriental_hershey_glyphs
  _pcre_OP_lengths
  _pcre_default_tables
  _pcre_find_bracket
@@ -551,6 +526,7 @@
  cpuLimit2
  cpuLimitValue
  csroot_
+ dbinom_raw
  dblep0_
  deleditordata
  do_AT
@@ -558,7 +534,6 @@
  do_D2POSIXlt
  do_External
  do_Externalgr
- do_ICUget
  do_ICUset
  do_Math2
  do_POSIXlt2D
@@ -571,7 +546,6 @@
  do_addRestart
  do_addTryHandlers
  do_addhistory
- do_address
  do_adist
  do_agrep
  do_allnames
@@ -585,8 +559,8 @@
  do_asPOSIXct
  do_asPOSIXlt
  do_as_environment
- do_asatomic
  do_ascall
+ do_ascharacter
  do_asfunction
  do_assign
  do_asvector
@@ -655,7 +629,6 @@
  do_dimnamesgets
  do_dirchmod
  do_dircreate
- do_direxists
  do_dirname
  do_disassemble
  do_dllversion
@@ -669,8 +642,6 @@
  do_duplicated
  do_dynload
  do_dynunload
- do_eSoftVersion
- do_eSoftVersion
  do_eapply
  do_emptyenv
  do_enablejit
@@ -738,7 +709,6 @@
  do_geterrmessage
  do_getfmts
  do_getlocale
- do_getOption
  do_gettext
  do_getwd
  do_glob
@@ -799,7 +769,6 @@
  do_lockEnv
  do_log
  do_log1arg
- do_log_builtin
  do_logic
  do_logic2
  do_logic3
@@ -902,7 +871,6 @@
  do_readtablehead
  do_recall
  do_recordGraphics
- do_refcnt
  do_regFinaliz
  do_regNS
  do_regexec
@@ -918,7 +886,6 @@
  do_restart
  do_retracemem
  do_return
- do_returnValue
  do_rowscols
  do_rowsum
  do_sample
@@ -997,12 +964,12 @@
  do_sysbrowser
  do_syschmod
  do_sysgetpid
- do_sysimplementation
  do_sysinfo
  do_syssleep
  do_system
  do_systime
  do_sysumask
+ do_syswhich
  do_tabulate
  do_tempdir
  do_tempfile
@@ -1010,7 +977,6 @@
  do_textconvalue
  do_tilde
  do_tolower
- do_topenv
  do_trace
  do_traceOnOff
  do_traceback
@@ -1054,6 +1020,7 @@
  do_xtfrm
  dos_wglob
  dos_wglobfree
+ dpois_raw
  drawconsole
  dt_invalidate_locale
  editorchecksave
@@ -1346,7 +1313,6 @@
  pcre_malloc
  pcre_refcount
  pcre_stack_free
- pcre_stack_guard
  pcre_stack_malloc
  pcre_study
  pcre_version
@@ -1468,28 +1434,14 @@
  trio_asprintfv
  trio_fprintf
  trio_fprintfv
- trio_fscanf
- trio_fscanfv
  trio_printf
  trio_printfv
- trio_scanf
- trio_scanfv
- trio_snprintf
  trio_snprintfv
- trio_sprintf
  trio_sprintfv
- trio_sscanf
- trio_sscanfv
- trio_strerror
  trio_vaprintf
  trio_vasprintf
  trio_vfprintf
- trio_vfscanf
  trio_vprintf
- trio_vscanf
- trio_vsnprintf
- trio_vsprintf
- trio_vsscanf
  tzname
  tzset
  unregisterBase

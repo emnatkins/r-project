@@ -2095,15 +2095,6 @@ assertError( aperm(a, "A"))
 stopifnot(identical(NA_character_, enc2utf8(NA_character_)))
 ## gave "NA" instead of NA_character_
 
-
-## checking all.equal() with externalptr
-library(methods) # getClass()'s versionKey is an e.ptr
-cA <- getClass("ANY")
-stopifnot(all.equal(cA, cA),
-          is.character(all.equal(cA, getClass("S4"))))
-# both all.equal() failed in R <= 3.1.1
-
-
 ## as.hexmode(x), as.octmode(x)  when x is double
 x <- c(NA, 1)
 stopifnot(identical(x == x,

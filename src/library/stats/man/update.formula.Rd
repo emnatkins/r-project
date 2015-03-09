@@ -43,6 +43,5 @@
 \examples{
 update(y ~ x,    ~ . + x2) #> y ~ x + x2
 update(y ~ x, log(.) ~ . ) #> log(y) ~ x
-update(. ~ u+v, res  ~ . ) #> res ~ u + v
 }
 \keyword{models}

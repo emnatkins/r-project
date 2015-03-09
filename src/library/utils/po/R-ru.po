@@ -10,11 +10,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2015-02-09 08:50\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2014-03-11 10:35-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
-"Language: ru\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=KOI8-R\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -48,6 +48,9 @@ msgstr "ссылка на неизвестный фрагмент %s"
 msgid "no Sweave file with name %s found"
 msgstr "Sweave-файл с именем %s не найден"
 
+msgid "%d Sweave files for basename %s found"
+msgstr "%d Sweave-файлов с базовым именем %s найдено"
+
 msgid "more than one syntax specification found, using the first one"
 msgstr "найдено более одного указания на синтаксис, использую первое"
 
@@ -70,10 +73,6 @@ msgstr ""
 "ошибка разбора или пустая опция в\n"
 "%s"
 
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "Предупреждение: неизвестная опция %s"
-
 msgid "Warning: unknown option %s"
 msgstr "Предупреждение: неизвестная опция %s"
 
@@ -88,12 +87,6 @@ msgstr "путь у %s содержит пробелы,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "это может привести к проблемам с LaTeX"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ","
 
 msgid "the output file '%s' has disappeared"
 msgstr "файл вывода '%s' пропал :("
@@ -352,6 +345,9 @@ msgstr "в %s не найдено помощи"
 msgid "%s has a help file but no examples"
 msgstr "у %s есть файл помощи, но нет примеров"
 
+msgid "test '%s' is not available"
+msgstr "тест '%s' недоступен"
+
 msgid "Line number missing"
 msgstr "Пропущен номер строки"
 
@@ -444,17 +440,11 @@ msgstr "неправильное указание поля"
 msgid "do not know what to search"
 msgstr "непонятно, что искать"
 
-msgid "argument 'help.db' is deprecated"
-msgstr "аргумент 'help.db' устарел"
-
-msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
-msgstr "в базе данных нет информации о пакете %s: надо 'rebuild = TRUE'?"
-
-msgid "incorrect 'agrep' specification"
-msgstr "неправильное указание 'agrep'"
-
 msgid "incorrect type specification"
 msgstr "неправильное указание типа"
+
+msgid "argument 'help.db' is deprecated"
+msgstr "аргумент 'help.db' устарел"
 
 msgid "could not find package %s"
 msgstr "не могу найти пакет %s"
@@ -465,6 +455,12 @@ msgstr "пакет %s странным образом имеет пустые данные hsearch"
 msgid "removing all entries with invalid multi-byte character data"
 msgstr "удаляю все вхождения с неправильными многобайтными данными"
 
+msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
+msgstr "в базе данных нет информации о пакете %s: надо 'rebuild = TRUE'?"
+
+msgid "incorrect 'agrep' specification"
+msgstr "неправильное указание 'agrep'"
+
 msgid "invalid browser name, check options(\"browser\")."
 msgstr "неправильное имя броузера, проверьте options(\"browser\")."
 
@@ -473,10 +469,10 @@ msgstr "help.start() требует запуска сервера HTTP"
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 "Если ничего не произойдет, надо открыть\n"
-"%s самостоятельно"
+"'%s' самостоятельно"
 
 msgid ""
 "If the browser launched by '%s' is already running, it is *not* restarted, "
@@ -590,11 +586,6 @@ msgstr "недоступен индекс для хранилища %s"
 msgid "invalid 'filters' argument."
 msgstr "неправильный аргумент 'filter'."
 
-msgid ""
-"specifying 'contriburl' or 'available' requires a single type, not type = "
-"\"both\""
-msgstr ""
-
 msgid "package '%s' in library '%s' will not be updated"
 msgstr "пакет '%s' в библиотеке %s не будет обновлен"
 
@@ -669,10 +660,6 @@ msgstr ""
 "Не знаю, в какой элемент 'lib' устанавливать зависимости\n"
 "пропускаю зависимости"
 
-#, fuzzy
-msgid "type 'binary' is not supported on this platform"
-msgstr "только 'html = TRUE' поддерживается на этой платформе"
-
 msgid "no packages were specified"
 msgstr "не указаны пакеты"
 
@@ -685,18 +672,19 @@ msgstr "не могу установить пакеты"
 msgid "unable to create %s"
 msgstr "не удалось создать %s"
 
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "выставляю 'repos = NULL' на основе имени файла"
-
-msgid "unable to create temporary directory %s"
-msgstr "не могу создать временную директорию %s"
 
 msgid ""
 "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
 msgstr ""
 "type == \"both\" можно использовать только на Windows или CRAN-сборке для "
 "Mac OS X"
+
+msgid ""
+"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
+msgstr ""
+"type == \"both\" нельзя использовать если задан 'available' или 'contriburl'"
 
 msgid "type == \"both\" cannot be used with 'repos = NULL'"
 msgstr "type == \"both\" нельзя использовать вместе с 'repos = NULL'"
@@ -728,6 +716,9 @@ msgstr "system (cmd0): %s"
 
 msgid "installation of package %s had non-zero exit status"
 msgstr "установка пакета %s имеет ненулевой статус выхода"
+
+msgid "unable to create temporary directory %s"
+msgstr "не могу создать временную директорию %s"
 
 msgid "foundpkgs: %s"
 msgstr "foundpkgs: %s"
@@ -780,10 +771,6 @@ msgstr "Создан файл с именем %s."
 
 msgid "Edit the file and move it to the appropriate directory."
 msgstr "Редактируется файл и перемещается в положенную папку."
-
-#, fuzzy
-msgid "cannot determine import name"
-msgstr "не могу определить имя, которое можно использовать"
 
 msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr "нет документации на тип %s и раздел %s (или ошибка в обработке помощи)"
@@ -1087,13 +1074,8 @@ msgstr "'ccaddress' должен быть длиной 1"
 msgid "no download method found"
 msgstr "не найдено метода скачивания"
 
-#, fuzzy
-msgid "'url' must be a length-one character vector"
-msgstr "'title' должны быть NULL или текстовым вектором единичной длины"
-
-#, fuzzy
-msgid "'destfile' must be a length-one character vector"
-msgstr "'title' должны быть NULL или текстовым вектором единичной длины"
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr ""
 
 msgid "download had nonzero exit status"
 msgstr "у скачивания ненулевой статус выхода"
@@ -1142,6 +1124,13 @@ msgstr "'memory.limit()' -- Windows-специфичный"
 msgid "method 'mailx' is Unix-only"
 msgstr "метод 'mailx' только для Unix"
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+"Если ничего не произойдет, надо открыть\n"
+"%s самостоятельно"
+
 msgid "zip file %s not found"
 msgstr "zip-файл %s не найден"
 
@@ -1156,13 +1145,6 @@ msgstr "winDialog() нельзя использовать неинтерактивно"
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "winDialogString() нельзя использовать неинтерактивно"
-
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "%d Sweave-файлов с базовым именем %s найдено"
-msgstr[1] "%d Sweave-файлов с базовым именем %s найдено"
-msgstr[2] "%d Sweave-файлов с базовым именем %s найдено"
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
@@ -1216,9 +1198,8 @@ msgstr[2] ""
 "Удаляю пакеты из %s\n"
 "(потому что %s не определено)"
 
-#, fuzzy
-msgid "package %s is not available (%s)"
-msgid_plural "packages %s are not available (%s)"
+msgid "package %s is not available (for %s)"
+msgid_plural "packages %s are not available (for %s)"
 msgstr[0] "пакет '%s' недоступен (для %s)"
 msgstr[1] "пакеты %s недоступны (для %s)"
 msgstr[2] "пакеты %s недоступны (для %s)"
@@ -1264,9 +1245,7 @@ msgstr[0] "В наличии есть бинарная версия, но исходники новее"
 msgstr[1] "В наличии есть бинарные версии, но исходники новее"
 msgstr[2] "В наличии есть бинарные версии, но исходники новее"
 
-#, fuzzy
-msgid ""
-"Do you want to install from sources the package which needs compilation?"
+msgid "Do you want to install from sources the package which need compilation?"
 msgid_plural ""
 "Do you want to install from sources the packages which need compilation?"
 msgstr[0] ""
@@ -1276,9 +1255,8 @@ msgstr[1] ""
 msgstr[2] ""
 "Вы хотите установить из исходников пакеты, которые нуждаются в компиляции?"
 
-#, fuzzy
 msgid ""
-"Package which is only available in source form, and may need compilation of "
+"Package which are only available in source form, and may need compilation of "
 "C/C++/Fortran"
 msgid_plural ""
 "Packages which are only available in source form, and may need compilation "
@@ -1330,34 +1308,11 @@ msgstr[0] "Неправильные римский номер: %s"
 msgstr[1] "Неправильные римские номера: %s"
 msgstr[2] "Неправильные римские номера: %s"
 
-msgid "is"
-msgid_plural "are"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
 msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
 msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
-
-#~ msgid ""
-#~ "type == \"both\" cannot be used if 'available' or 'contriburl' is "
-#~ "specified"
-#~ msgstr ""
-#~ "type == \"both\" нельзя использовать если задан 'available' или "
-#~ "'contriburl'"
-
-#~ msgid ""
-#~ "If nothing happens, you should open\n"
-#~ "'%s' yourself"
-#~ msgstr ""
-#~ "Если ничего не произойдет, надо открыть\n"
-#~ "'%s' самостоятельно"
-
-#~ msgid "test '%s' is not available"
-#~ msgstr "тест '%s' недоступен"
 
 #~ msgid "Created PDF document %s"
 #~ msgstr "Созданный документ PDF %s"
@@ -1431,6 +1386,9 @@ msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
 
 #~ msgid "not found"
 #~ msgstr "не найден"
+
+#~ msgid ","
+#~ msgstr ","
 
 #~ msgid "HTTPUserAgent"
 #~ msgstr "HTTPUserAgent"

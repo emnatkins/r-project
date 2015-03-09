@@ -1,7 +1,7 @@
-#  File src/library/base/R/Bessel.R
+#  File src/library/base/R/exists.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-lengths <- function(x) {
-    .Internal(lengths(x))
-}
+exists <-
+    function (x, where = -1,
+              envir = if(missing(frame)) as.environment(where) else sys.frame(frame),
+              frame, mode = "any", inherits = TRUE)
+    .Internal(exists(x, envir, mode, inherits))

@@ -1,7 +1,7 @@
 #  File src/library/base/R/rank.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,15 +24,17 @@ rank <- function(x, na.last = TRUE,
     ties.method <- match.arg(ties.method)
     ## To preserve past behaviour
     if(is.factor(x)) x <- as.integer(x)
-    x <- x[!nas]
-    ## we pass length(x) to allow
+    xx <- x[!nas]
+    ## we pass length(xx) to allow
     y <- switch(ties.method,
 		"average" = , "min" = , "max" =
-		.Internal(rank(x, length(x), ties.method)),
-		"first" = sort.list(sort.list(x)),
-		"random" = sort.list(order(x, stats::runif(sum(!nas)))))
-    ## the internal code has ranks in [1, length(y)]
+		.Internal(rank(xx, length(xx), ties.method)),
+		"first" = sort.list(sort.list(xx)),
+		"random" = sort.list(order(xx, stats::runif(sum(!nas)))))
     if(!is.na(na.last) && any(nas)) {
+	## the internal code has ranks in [1, length(y)]
+	yy <- integer(length(x))
+	storage.mode(yy) <- storage.mode(y) # integer or double
 	yy <- NA
 	NAkeep <- (na.last == "keep")
 	if(NAkeep || na.last) {
@@ -41,7 +43,7 @@ rank <- function(x, na.last = TRUE,
 	} else {
 	    len <- sum(nas)
 	    yy[!nas] <- y + len
-	    yy[nas] <- seq_len(len)
+	    yy[nas] <- 1L : len
 	}
 	y <- yy
 	names(y) <- nm

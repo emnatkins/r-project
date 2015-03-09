@@ -211,13 +211,9 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
             url <- as.character(block[[1L]])
             tag <- "\\Rhref"
         }
-        ## cleanup URL
-        url <- trimws(gsub("\n", "",
-                           paste(as.character(url), collapse = ""),
-                           fixed = TRUE, useBytes = TRUE))
-        ## escape % for LaTeX
+        url <- paste(as.character(url), collapse = "")
         url <- gsub("%", "\\%",  url, fixed = TRUE, useBytes = TRUE)
-    	of0(tag, "{", url, "}")
+    	of0(tag, "{", gsub("\n", "", url), "}")
         if (tag == "\\Rhref") {
             of1("{")
             writeContent(block[[2L]], tag)

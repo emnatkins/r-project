@@ -1,7 +1,7 @@
 #  File src/library/methods/R/refClass.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
         warning(sprintf("method %s from class %s was not processed into a class method until being installed.  Possible corruption of the methods in the class.",
                          me, thisClass@className),
                 domain = NA)
-        def <- makeClassMethod(def, me, thisClass@className, "", names(thisClass@refMethods))
+        def <- makeClassMethod(def, me, thisClass@className, "", objects(thisClass@refMethods, all.names = TRUE))
         .checkFieldsInMethod(def, names(thisClass@fieldClasses))
         ## cache the analysed method definition
         assign(me, def, envir = thisClass@refMethods)
@@ -61,8 +61,8 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
     assign(me, def, envir = selfEnv)
     ## process those that are not in the instance environment, now that
     ## this method has been assigned.
-    done <- names(selfEnv)
-    notDone <- setdiff(depends, done)
+    done <- objects(selfEnv, all.names = TRUE)
+    notDone <- depends[is.na(match(depends, done))]
     superCase <- match("callSuper", notDone, 0)
     if(superCase > 0) {
         if(nzchar(def@superClassMethod))
@@ -164,7 +164,10 @@ envRefSetField <- function(object, field,
             if(is(fp, "defaultBindingFunction")) {
                 ## ensure an initial value
                 class <- fieldClasses[[field]]
-		value <- if(!isVirtualClass(class)) new(class) # else NULL
+                if(isVirtualClass(class))
+                    value <- NULL
+                else
+                    value <- new(class)
                 assign(.bindingMetaName(field), value, envir = selfEnv)
             }
         }
@@ -255,7 +258,6 @@ initRefFields <- function(.Object, classDef, selfEnv, args) {
     invisible(x)
 }
 
-utils::globalVariables(".envRefMethods")# (codetools analysis)
 .envRefMethods <-
     list(
          export = function(Class) {
@@ -370,7 +372,7 @@ that class itself, but then you could just overrwite the object).
          untrace = function(..., classMethod = FALSE) {
              ' Untrace the method given as the first argument.
 '
-             .TraceWithMethods(..., untrace=TRUE, where = .self, classMethod=classMethod)
+             .TraceWithMethods(..., untrace = TRUE,  where = .self, classMethod = classMethod)
          },
          show = function() {
 	     if(is.null(cl <- tryCatch(class(.self), error=function(e)NULL))) {
@@ -457,7 +459,7 @@ makeEnvRefMethods <- function() {
     assignClassDef("envRefClass", def, where = envir)
     setMethod("initialize", "envRefClass", methods:::.initForEnvRefClass,
               where = envir)
-    ## NOTE:  "$" method requires setting in .InitStructureMethods()
+    ## NOTE:  "$" method requires setting in methods:::.InitStructureMethods
     setMethod("$", "envRefClass", .dollarForEnvRefClass, where = envir)
     setMethod("$<-", "envRefClass", .dollarGetsForEnvRefClass, where = envir)
     setMethod("show", "envRefClass",
@@ -516,7 +518,7 @@ getRefSuperClasses <- function(classes, classDefs) {
 .GeneratorMethods <- list(methods =  function(...) {
     methodsEnv <- def@refMethods
     if(nargs() == 0)
-        return(sort(names(methodsEnv)))
+        return(objects(methodsEnv, all.names = TRUE))
     if(methods:::.classDefIsLocked(def))
         stop(gettextf("the definition of class %s in package %s is locked, methods may not be redefined",
                       dQuote(def@className),
@@ -530,7 +532,7 @@ getRefSuperClasses <- function(classes, classDefs) {
     if(is.null(mnames) || !all(nzchar(mnames)))
         stop("arguments to methods() must be named, or one named list")
     ## look for methods to remove (new definition is NULL)
-    removeThese <- vapply(methodDefs, is.null, NA)
+    removeThese <- sapply(methodDefs, is.null)
     if(any(removeThese)) {
         rmNames <- mnames[removeThese]
         mnames <- mnames[!removeThese]
@@ -549,9 +551,9 @@ getRefSuperClasses <- function(classes, classDefs) {
     ## as load actions.  Use the topenv() if that seems like
     ## the namespace in preparation, or the namespace if available
     env <- topenv(parent.frame()); declare <- TRUE
-    if(!is.null(pkg <- get0(".packageName", envir = env)) && pkg == def@package)
-	{}
-    else if(isNamespaceLoaded(def@package))
+    if(exists(".packageName", envir = env) &&
+       get(".packageName", envir = env) == def@package) {}
+    else if(def@package %in% loadedNamespaces())
         env <- asNamespace(def@package)
     else
         declare <- FALSE
@@ -668,9 +670,9 @@ class method modifies a field.
 
 .makeCall <- function(name, x) {
     n <- length(argls <- formals(x))
-    noDeflt <- if(n > 0) vapply(argls, function(x) !is.name(x) || nzchar(as.character(x)), NA)
+    noDeflt <- if(n > 0) sapply(argls,function(x)  !is.name(x) || nzchar(as.character(x)))
     if (n) {
-        arg.names <- names(argls)
+        arg.names <- arg.n <- names(argls)
     }
     Call <- paste0("$", name, "(")
     for (i in seq_len(n)) {
@@ -778,15 +780,15 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
                                                        dQuote(class(what))),
                                               domain = NA)
                                  })
-        missingDefs <- vapply(superClassDefs, is.null, NA)
+        missingDefs <- sapply(superClassDefs, is.null)
         if(any(missingDefs))
             stop(gettextf("no definition found for inherited class: %s",
                           paste0('"',contains[missingDefs], '"', collapse = ", ")),
                  domain = NA)
         superClasses <- unlist(lapply(superClassDefs,
                           function(def) def@className), FALSE)
-        isRefSuperClass <- vapply(superClassDefs, function(def)
-				  is(def, "refClassRepresentation"), NA)
+        isRefSuperClass <- sapply(superClassDefs, function(def)
+                              is(def, "refClassRepresentation"))
     }
     else {
         superClassDefs <- list()
@@ -836,7 +838,8 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
         }
         else if(is.function(thisField)) {
             fieldClasses[[i]] <- "activeBindingFunction"
-	    fieldPrototypes[[thisName]] <- .makeActiveBinding(thisField)
+            fieldPrototypes[[thisName]] <-
+                .makeActiveBinding(thisField)
         }
         else
             stop(gettextf("field %s was supplied as an object of class %s; must be a class name or a binding function",
@@ -845,7 +848,7 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
                  domain = NA)
     }
     ## assemble inherited information
-    fc <- fp <- cm <- list() #; fr <- character()
+    fc <- fp <- cm <- list(); fr <- character()
     ## assign in reverse order so nearer superclass overrides
     for(cl in rev(superClassDefs[isRefSuperClass])) {
         fcl <- cl@fieldClasses
@@ -922,7 +925,7 @@ setRefClass <- function(Class, fields = character(),
                         where = topenv(parent.frame()),
                         ...) {
     fields <- inferProperties(fields, "field")
-##    theseMethods <- names(methods) # non-inherited, for processing later
+    theseMethods <- names(methods) # non-inherited, for processing later
     ## collect the method and field definitions
     info <- refClassInformation(Class, contains, fields, methods, where)
     ## make codetools happy:
@@ -1011,20 +1014,17 @@ showClassMethod <- function(object) {
     cat(sprintf(" for method %s()\n", object@name))
     show(as(object, "function"))
     if(length(object@mayCall))
-        .printNames("\nMethods used: ", object@mayCall)
+        .printNames("Methods used: ", object@mayCall)
 }
 
 .printNames <- function(header, names, separateLine = TRUE) {
-    names <- paste0('"', names, '"')
-    if(separateLine) {
-        cat(header, "\n", sep = "")
-        cat(names, sep = ", ", fill = TRUE, labels = "    ")
-    } else {
-        cat(header, ": ", sep = "")
-        cat(names, sep = ", ", fill = TRUE)
-    }
+    if(separateLine)
+        cat("\n",header,"\n    ")
+    else
+        cat(header,": ",sep="")
+    cat(paste0('"', names, '"'), sep = ", ", fill = TRUE)
     cat("\n")
-}
+    }
 
 showRefClassDef <- function(object, title = "Reference Class") {
     cat(title," \"", object@className,"\":\n", sep="")
@@ -1037,9 +1037,9 @@ showRefClassDef <- function(object, title = "Reference Class") {
     }
     else
         cat("\nNo fields defined\n")
-    methods <- names(object@refMethods)
+    methods <- objects(object@refMethods, all.names = TRUE)
     if(length(methods))
-        .printNames("\nClass Methods: ", methods)
+        .printNames("Class Methods: ", methods)
     else
         cat ("\nNo Class Methods\n")
     supers <- object@refSuperClasses
@@ -1047,6 +1047,31 @@ showRefClassDef <- function(object, title = "Reference Class") {
         .printNames("Reference Superclasses: ", supers)
 }
 
+
+## all.equal and identical both screw up on environments
+## but a bigger change is needed to all.equal than the following
+## because it also screws up on, e.g., externalptr objects
+if(FALSE) {
+all.equal.environment <- function(target, current, ...) {
+    nt <- sort(objects(target, all.names = TRUE))
+    nc <- sort(objects(current, all.names = TRUE))
+    tmp <- all.equal(nt, nc, ...)
+    if(!identical(tmp, TRUE))
+        return(paste("Different objects in target, current:", tmp))
+    if(length(nt) == 0)
+        return(TRUE)
+    differ <- sapply(nt, function(what) {
+        tmp <- all.equal(get(what, envir = target),
+                         get(what, envir = current), ...)
+        if(identical(tmp, TRUE)) FALSE
+        else TRUE
+    })
+    if(any(differ))
+        paste("Objects differ: ", paste(nt[differ], collapse = ", "))
+    else
+        TRUE
+}
+}
 
 .assignExpr <- function(e) {
     value <- list()
@@ -1201,7 +1226,7 @@ showRefClassDef <- function(object, title = "Reference Class") {
 ## declare field and method names global to avoid spurious
 ## messages from codetools
 .declareVariables <- function(def, env) {
-    utils::globalVariables(c(names(def@fieldClasses), names(def@refMethods)),
+    utils::globalVariables(c(names(def@fieldClasses), objects(def@refMethods)),
                            env)
 }
 
@@ -1233,7 +1258,7 @@ getMethodsAndAccessors <- function(Class) {
         stop(gettextf("%s is not a reference class",
              dQuote(def@className)))
     ff <- def@fieldPrototypes
-    accs <- vapply(ff, function(what) is(what, "activeBindingFunction") && !is(what, "defaultBindingFunction"), NA)
+    accs <- sapply(ff, function(what) is(what, "activeBindingFunction") && !is(what, "defaultBindingFunction"))
     c(as.list(def@refMethods), as.list(ff)[accs])
 }
 
@@ -1260,7 +1285,8 @@ getMethodsAndAccessors <- function(Class) {
         locals <- list()
     ## the object should be assigned in environment where=
     what <- NULL
-    for(obj in as.list(where, all.names=TRUE)) {
+    for(objName in objects(envir = where, all.names = TRUE)) {
+        obj <- get(objName, envir = where)
         if(is(obj, "envRefClass") && identical(selfEnv, as.environment(obj))) {
             what <- obj
             break
@@ -1278,7 +1304,9 @@ getMethodsAndAccessors <- function(Class) {
 ## a shallow copy of a reference object
 ## This code depends on knowledge of how classes extend "environment"
 .shallowCopy <- function(object, selfEnv) {
-    newEnv <- list2env(as.list(selfEnv, all.names=TRUE), hash=TRUE)
+    newEnv <- new.env()
+    for(what in objects(envir = selfEnv, all.names = TRUE))
+        assign(what, get(what, envir = selfEnv), envir = newEnv)
     attr(object, ".xData") <- newEnv
     assign(".self", object, envir = newEnv)
     object

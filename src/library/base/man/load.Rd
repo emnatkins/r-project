@@ -67,8 +67,8 @@ load(file, envir = parent.frame(), verbose = FALSE)
   conversion and gives an informative error message.
 
   \code{load(<file>)} replaces all existing objects with the same names
-  in the current environment (typically your workspace,
-  \code{\link{.GlobalEnv}}) and hence potentially overwrites important data.
+  in the current environment (typically your workspace),
+  and hence potentially overwrites important data.
   It is considerably safer to use \code{envir = } to load into a
   different environment, or to \code{\link{attach}(file)} which
   \code{load()}s into a new entry in the \code{\link{search}} path.
@@ -80,8 +80,7 @@ load(file, envir = parent.frame(), verbose = FALSE)
 }
 #endif
 \seealso{
-  \code{\link{save}}, \code{\link{download.file}}; further
-  \code{\link{attach}} as wrapper for \code{load()}.
+  \code{\link{save}}, \code{\link{download.file}}.
 
   For other interfaces to the underlying serialization format, see
   \code{\link{unserialize}} and \code{\link{readRDS}}.
@@ -97,20 +96,9 @@ local({
    load("all.RData")
    ls()
 })
-
-xx <- exp(1:3)
 ## restore the saved values to the user's workspace
-load("all.RData") ## which is here *equivalent* to
-## load("all.RData", .GlobalEnv)
-## This however annihilates all objects in .GlobalEnv with the same names !
-xx # no longer exp(1:3)
-rm(xx)
-attach("all.RData") # safer and will warn about masked objects w/ same name in .GlobalEnv
-ls(pos = 2)
-##  also typically need to cleanup the search path:
-detach("file:all.RData")
+load("all.RData", .GlobalEnv)
 
-## clean up (the example):
 unlink("all.RData")
 
 \dontrun{

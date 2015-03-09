@@ -1,10 +1,10 @@
 #-*- Makefile -*-
 include ../gnuwin32/MkRules
 
-MODULES = internet lapack
+MODULES=internet lapack vfonts
 
 ifndef DEBUG
-  DLLFLAGS = -s
+  DLLFLAGS=-s
 endif
 
 all clean:

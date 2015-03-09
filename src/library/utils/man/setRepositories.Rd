@@ -3,6 +3,8 @@
 % Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{setRepositories}
 \alias{setRepositories}
 \title{Select Package Repositories}
@@ -33,7 +35,7 @@ setRepositories(graphics = getOption("menu.graphics"),
   A Bioconductor mirror can be selected by setting
   \code{\link{options}("BioC_mirror")}, e.g.\sspace{}via
   \code{\link{chooseBioCmirror}} the default value is
-  \samp{"http://bioconductor.org"}.
+  \samp{"http://www.bioconductor.org"}.
 
   The items that are preselected are those that are currently in
   \code{options("repos")} plus those marked as default in the

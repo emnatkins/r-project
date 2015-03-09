@@ -588,7 +588,7 @@ installed.packages <-
             enc <- sprintf("%d_%s", nchar(base), .Call(C_crc64, base))
             dest <- file.path(tempdir(), paste0("libloc_", enc, ".rds"))
             if(file.exists(dest) &&
-               file.mtime(dest) > file.mtime(lib) &&
+               file.info(dest)$mtime > file.info(lib)$mtime &&
                (val <- readRDS(dest))$base == base)
                 ## use the cache file
                 retval <- rbind(retval, val$value)
@@ -668,8 +668,10 @@ download.packages <- function(pkgs, destdir, available = NULL,
                               contriburl = contrib.url(repos, type),
                               method, type = getOption("pkgType"), ...)
 {
+    dirTest <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
+
     nonlocalcran <- length(grep("^file:", contriburl)) < length(contriburl)
-    if(nonlocalcran && !dir.exists(destdir))
+    if(nonlocalcran && !dirTest(destdir))
         stop("'destdir' is not a directory")
     if(is.null(available))
         available <- available.packages(contriburl=contriburl, method=method)
@@ -811,13 +813,12 @@ chooseBioCmirror <- function(graphics = getOption("menu.graphics"), ind = NULL)
 {
     if(is.null(ind) && !interactive())
         stop("cannot choose a BioC mirror non-interactively")
-    m <- c("Bioconductor (World-wide)"="http://bioconductor.org"
+    m <- c("Seattle (USA)"="http://www.bioconductor.org"
 	   , "Bethesda (USA)"="http://watson.nci.nih.gov/bioc_mirror"
 	   , "Dortmund (Germany)"="http://bioconductor.statistik.tu-dortmund.de"
 	   , "Anhui (China)"="http://mirrors.ustc.edu.cn/bioc/"
 	   , "Cambridge (UK)"="http://mirrors.ebi.ac.uk/bioconductor/"
 	   , "Riken, Kobe (Japan)" = "http://bioconductor.jp/"
-	   , "Tokyo (Japan)" = "http://bioc.ism.ac.jp/"
 	   , "Canberra (Australia)" = "http://mirror.aarnet.edu.au/pub/bioconductor/"
 	   , "Sao Paulo (Brazil)" = "http://bioconductor.fmrp.usp.br/"
 	   )

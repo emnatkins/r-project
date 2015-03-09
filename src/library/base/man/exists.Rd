@@ -1,21 +1,17 @@
 % File src/library/base/man/exists.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2015 R Core Team
+% Copyright 1995-2011 R Core Team
 % Distributed under GPL 2 or later
 
 \name{exists}
-\title{Is an Object Defined?}
 \alias{exists}
-\alias{get0}
+\title{Is an Object Defined?}
 \description{
-  Look for an \R object of the given name and possibly return it
+  Look for an \R object of the given name.
 }
 \usage{
 exists(x, where = -1, envir = , frame, mode = "any",
        inherits = TRUE)
-
-get0(x, envir = pos.to.env(-1L), mode = "any", inherits = TRUE,
-     ifnotfound = NULL)
 }
 \arguments{
   \item{x}{a variable name (given as a character string).}
@@ -30,8 +26,6 @@ get0(x, envir = pos.to.env(-1L), mode = "any", inherits = TRUE,
     \sQuote{Details} section.}
   \item{inherits}{should the enclosing frames of the environment be
     searched?}
-  \item{ifnotfound}{the return value of \code{get0(x, *)} when
-    \code{x} does not exist.}
 }
 \details{
   The \code{where} argument can specify the environment in which to look
@@ -60,26 +54,9 @@ get0(x, envir = pos.to.env(-1L), mode = "any", inherits = TRUE,
   collection is specified, so for example \code{mode = "special"} will
   seek any type of function.)
 }
-\note{
-  With \code{get0()}, instead of the easy to read but somewhat
-  inefficient \preformatted{
-  if (exists(myVarName, envir = myEnvir)) {
-    r <- get(myVarName, envir = myEnvir)
-    ## ... deal with r ...
-  }
-}
-  you now can use the more efficient (and slightly harder to read) \preformatted{
-  if (!is.null(r <- get0(myVarName, envir = myEnvir))) {
-    ## ... deal with r ...
-  }
-}
-}
 \value{
-  \code{exists():} Logical, true if and only if an object of the correct
-  name and mode is found.
-
-  \code{get0():} The object---as from \code{\link{get}(x, *)}---
-  if \code{exists(x, *)} is true, otherwise \code{ifnotfound}.
+  Logical, true if and only if an object of the correct name and mode is
+  found.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
@@ -100,13 +77,5 @@ if(!exists("some.fun", mode = "function"))
 search()
 exists("ls", 2) # true even though ls is in pos = 3
 exists("ls", 2, inherits = FALSE) # false
-
-## These are true (in most circumstances):
-identical(ls,   get0("ls"))
-identical(NULL, get0(".foo.bar.")) # default ifnotfound = NULL (!)
-\dontshow{
-stopifnot(identical(ls, get0("ls")),
-          is.null(get0(".foo.bar.")))
-}
 }
 \keyword{data}

@@ -23,7 +23,7 @@
 #	else
 #		define LZMA_API_EXPORT
 #	endif
-// R change: we do not want all symbols visible
+// Don't use ifdef or defined() below.
 #else
 #	define LZMA_API_EXPORT
 #endif
@@ -203,7 +203,7 @@ struct lzma_internal_s {
 
 /// Allocates memory
 extern void *lzma_alloc(size_t size, lzma_allocator *allocator)
-		lzma_attribute((__malloc__)) lzma_attr_alloc_size(1);
+		lzma_attribute((malloc));
 
 /// Frees memory
 extern void lzma_free(void *ptr, lzma_allocator *allocator);

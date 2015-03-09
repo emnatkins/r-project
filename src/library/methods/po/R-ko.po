@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2015-01-31 13:18\n"
+"POT-Creation-Date: 2013-11-25 05:14\n"
 "PO-Revision-Date: 2014-03-27 13:32-0600\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team:  <chl948@mail.usask.ca>\n"
@@ -112,8 +112,8 @@ msgid ""
 "the computation: 'as(object,\"%s\") <- value' is valid when object has class "
 "%s only if 'is(value, \"%s\")' is TRUE ('class(value)' was %s)"
 msgstr ""
-"연산: 만약 'is(value, \"%3$s\")'가 TRUE ('class(value)' was %4$s)인 경우 "
-"'as(object,\"%1$s\") <- value'는 객체가 클래스 %2$s를 가질 때  유효합니다"
+"연산: 만약 'is(value, \"%3$s\")'가 TRUE ('class(value)' was %4$s)인 경우 'as"
+"(object,\"%1$s\") <- value'는 객체가 클래스 %2$s를 가질 때  유효합니다"
 
 msgid ""
 "there is no automatic definition for 'as(object, \"%s\") <- value' when "
@@ -312,8 +312,14 @@ msgstr "함수 %s는 이미 그룹제네릭입니다; 변경하지 않습니다"
 msgid "Function %s is a group generic; do not call it directly"
 msgstr "함수 %s는 그룹제네릭입니다; 직접적으로 호출할 수 없습니다"
 
-#, fuzzy
-msgid "callGeneric() must be called from within a method body"
+msgid ""
+"'callGeneric' with a primitive needs explicit arguments (no formal args "
+"defined)"
+msgstr ""
+"프리미티브와 함께 사용되는 'callGeneric'는 명시적인 인자들을 필요로 합니다 "
+"(정의된 형식 인자들이 없습니다)"
+
+msgid "'callGeneric' must be called from a generic function or method"
 msgstr "'callGeneric'은 반드시 제네릭 함수 또는 메소드로부터 호출되어야 합니다"
 
 msgid "expected a non-empty character string for argument name"
@@ -376,12 +382,13 @@ msgstr ""
 msgid "non-generic function '%s' given to findMethods()"
 msgstr "findMethods()에 제네릭이 아닌 함수 '%s'가 주어졌습니다"
 
-#, fuzzy
-msgid ""
-"only FALSE is meaningful for 'inherited', when 'where' is supplied (got %s)"
+msgid "only FALSE is meaningful for 'inherited', when 'where' is supplied (got"
 msgstr ""
 "'where'이 주어졌을 때, 'inherited'에 대해서 오로지 FALSE만이 의미가 있습니다 "
 "(다음이 주어졌습니다"
+
+msgid "\""
+msgstr "\""
 
 msgid "argument 'f' must be a generic function or %s"
 msgstr "인자 'f'는 반드시 제네릭 함수 또는 %s이어야 합니다"
@@ -529,13 +536,6 @@ msgstr ""
 "메소드 (%s)에 대한 서명내에 있는 이름들이 %s의 인자들 (%s)과 일치하지 않습니"
 "다"
 
-#, fuzzy
-msgid ""
-"the names in signature for method (%s) do not match function's arguments (%s)"
-msgstr ""
-"메소드 (%s)에 대한 서명내에 있는 이름들이 %s의 인자들 (%s)과 일치하지 않습니"
-"다"
-
 msgid ""
 "a call to callNextMethod() appears in a call to %s, but the call does not "
 "seem to come from either a generic function or another 'callNextMethod'"
@@ -552,9 +552,6 @@ msgstr ""
 "으로 보여지지 않습니다"
 
 msgid "bad object found as method (class %s)"
-msgstr ""
-
-msgid "No next method available"
 msgstr ""
 
 msgid ""
@@ -581,9 +578,6 @@ msgstr ""
 
 msgid "undefined slot classes in definition of %s: %s"
 msgstr "%1$s의 정의내에 정의되어지지 않은 슬롯 클래스들입니다: %2$s"
-
-msgid "(class %s)"
-msgstr ""
 
 msgid ""
 "in definition of class %s, information for superclass %s is of class %s "
@@ -795,6 +789,14 @@ msgstr ""
 
 msgid "no suitable arguments to dispatch methods in this function"
 msgstr "이 함수의 디스패치를 위한 적절한 인자가 없습니다"
+
+msgid "special function %s is not permitted to have methods"
+msgstr "특이 함수 %s는 메소드를 가질 수 없습니다"
+
+msgid "special function %s has no known argument list; will assume '(x, ...)'"
+msgstr ""
+"특이 함수 %s는 알려진 인자 목록을 가지고 있지 않습니다; 따라서 '(x, ...)'를 "
+"가진다고 가정됩니다"
 
 msgid "making a generic for special function %s"
 msgstr "특이 함수 %s에 대한 제네릭을 생성합니다"
@@ -1261,9 +1263,8 @@ msgstr ""
 "메소드 테이블 (%s)내에 잘못된 객체가 있습니다, 메소드가 와야 하는데, 클래스 "
 "%s 객체를 가집니다"
 
-#, fuzzy
-msgid "invalid or unset methods table in generic function %s"
-msgstr "인자 'f'는 반드시 제네릭 함수 또는 %s이어야 합니다"
+msgid "invalid or unset methods table in generic function \""
+msgstr ""
 
 msgid "trying to find a methods table in a non-generic function"
 msgstr ""
@@ -1834,25 +1835,6 @@ msgid_plural ""
 "no definition of class %s in the specified position, %s, definitions on : %s"
 msgstr[0] ""
 msgstr[1] ""
-
-#~ msgid "special function %s is not permitted to have methods"
-#~ msgstr "특이 함수 %s는 메소드를 가질 수 없습니다"
-
-#~ msgid ""
-#~ "special function %s has no known argument list; will assume '(x, ...)'"
-#~ msgstr ""
-#~ "특이 함수 %s는 알려진 인자 목록을 가지고 있지 않습니다; 따라서 "
-#~ "'(x, ...)'를 가진다고 가정됩니다"
-
-#~ msgid ""
-#~ "'callGeneric' with a primitive needs explicit arguments (no formal args "
-#~ "defined)"
-#~ msgstr ""
-#~ "프리미티브와 함께 사용되는 'callGeneric'는 명시적인 인자들을 필요로 합니"
-#~ "다 (정의된 형식 인자들이 없습니다)"
-
-#~ msgid "\""
-#~ msgstr "\""
 
 #~ msgid "replacement value is not a matrix"
 #~ msgstr "치환값은 행렬이 아닙니다"

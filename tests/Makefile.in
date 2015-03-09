@@ -59,7 +59,7 @@ test-System: test-system2
 ## These depend on an internet connection, and the sites being up.
 ## So allow this to fail: it may be slow doing so.
 test-Internet:
-	@$(ECHO) "running tests of Internet functions"
+	@$(ECHO) "running tests of Internet and socket functions"
 	@$(ECHO) "  expect some differences"
 	-@$(MAKE) $(test-out-internet) RVAL_IF_DIFF=0
 ## </NOTE>
@@ -98,8 +98,6 @@ distclean: clean
 	done
 	-@rm -f Makefile $(test-out) $(test-src-auto) .RData
 	-@rm -rf *.Rcheck RecPackages
-	-@rm -f *.fail
-
 maintainer-clean: distclean
 
 R install install-strip uninstall TAGS info dvi:

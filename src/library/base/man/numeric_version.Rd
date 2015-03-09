@@ -15,7 +15,6 @@
 \alias{getRversion}
 % Methods.
 \alias{[.numeric_version}
-\alias{[<-.numeric_version}
 \alias{[[.numeric_version}
 \alias{[[<-.numeric_version}
 \alias{Ops.numeric_version}
@@ -28,7 +27,6 @@
 \alias{duplicated.numeric_version}
 \alias{format.numeric_version}
 \alias{is.na.numeric_version}
-\alias{is.na<-.numeric_version}
 \alias{print.numeric_version}
 \alias{rep.numeric_version}
 %\alias{sort.numeric_version}

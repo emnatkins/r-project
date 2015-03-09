@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2015-02-09 08:50\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: 2011-04-02 \n"
 "Last-Translator: Murat Alkan <muratalk@gmail.com>\n"
 "Language-Team: Turkish <muratalk@gmail.com>\n"
@@ -41,6 +41,9 @@ msgstr ""
 msgid "no Sweave file with name %s found"
 msgstr ""
 
+msgid "%d Sweave files for basename %s found"
+msgstr ""
+
 msgid "more than one syntax specification found, using the first one"
 msgstr ""
 
@@ -61,9 +64,6 @@ msgid ""
 "%s"
 msgstr ""
 
-msgid "Warning: unknown option '--clean='%s"
-msgstr ""
-
 msgid "Warning: unknown option %s"
 msgstr ""
 
@@ -77,12 +77,6 @@ msgid "path to %s contains spaces,"
 msgstr ""
 
 msgid "this may cause problems when running LaTeX"
-msgstr ""
-
-msgid "at"
-msgstr ""
-
-msgid ","
 msgstr ""
 
 msgid "the output file '%s' has disappeared"
@@ -327,6 +321,9 @@ msgstr ""
 msgid "%s has a help file but no examples"
 msgstr ""
 
+msgid "test '%s' is not available"
+msgstr ""
+
 msgid "Line number missing"
 msgstr ""
 
@@ -412,16 +409,10 @@ msgstr ""
 msgid "do not know what to search"
 msgstr ""
 
-msgid "argument 'help.db' is deprecated"
-msgstr ""
-
-msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
-msgstr ""
-
-msgid "incorrect 'agrep' specification"
-msgstr ""
-
 msgid "incorrect type specification"
+msgstr ""
+
+msgid "argument 'help.db' is deprecated"
 msgstr ""
 
 #, fuzzy
@@ -434,6 +425,12 @@ msgstr ""
 msgid "removing all entries with invalid multi-byte character data"
 msgstr ""
 
+msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
+msgstr ""
+
+msgid "incorrect 'agrep' specification"
+msgstr ""
+
 msgid "invalid browser name, check options(\"browser\")."
 msgstr ""
 
@@ -442,7 +439,7 @@ msgstr ""
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 
 msgid ""
@@ -552,11 +549,6 @@ msgstr ""
 msgid "invalid 'filters' argument."
 msgstr ""
 
-msgid ""
-"specifying 'contriburl' or 'available' requires a single type, not type = "
-"\"both\""
-msgstr ""
-
 msgid "package '%s' in library '%s' will not be updated"
 msgstr ""
 
@@ -626,9 +618,6 @@ msgid ""
 "skipping dependencies"
 msgstr ""
 
-msgid "type 'binary' is not supported on this platform"
-msgstr ""
-
 msgid "no packages were specified"
 msgstr ""
 
@@ -642,14 +631,15 @@ msgstr "paketler yüklenemedi"
 msgid "unable to create %s"
 msgstr "oluşturulamadı"
 
-msgid "inferring 'repos = NULL' from 'pkgs'"
-msgstr ""
-
-msgid "unable to create temporary directory %s"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr ""
 
 msgid ""
 "type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
+msgstr ""
+
+msgid ""
+"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
 msgstr ""
 
 msgid "type == \"both\" cannot be used with 'repos = NULL'"
@@ -679,6 +669,9 @@ msgid "system (cmd0): %s"
 msgstr ""
 
 msgid "installation of package %s had non-zero exit status"
+msgstr ""
+
+msgid "unable to create temporary directory %s"
 msgstr ""
 
 msgid "foundpkgs: %s"
@@ -724,9 +717,6 @@ msgid "Created file named %s."
 msgstr ""
 
 msgid "Edit the file and move it to the appropriate directory."
-msgstr ""
-
-msgid "cannot determine import name"
 msgstr ""
 
 msgid "no documentation of type %s and topic %s (or error in processing help)"
@@ -1013,10 +1003,7 @@ msgstr ""
 msgid "no download method found"
 msgstr ""
 
-msgid "'url' must be a length-one character vector"
-msgstr ""
-
-msgid "'destfile' must be a length-one character vector"
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
 msgstr ""
 
 msgid "download had nonzero exit status"
@@ -1063,6 +1050,11 @@ msgstr ""
 msgid "method 'mailx' is Unix-only"
 msgstr ""
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+
 msgid "zip file %s not found"
 msgstr ""
 
@@ -1078,11 +1070,6 @@ msgstr ""
 
 msgid "winDialogString() cannot be used non-interactively"
 msgstr ""
-
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "%d occurrence in %s"
 msgid_plural "%d occurrences in %s"
@@ -1123,8 +1110,8 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "package %s is not available (%s)"
-msgid_plural "packages %s are not available (%s)"
+msgid "package %s is not available (for %s)"
+msgid_plural "packages %s are not available (for %s)"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1158,15 +1145,14 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-msgid ""
-"Do you want to install from sources the package which needs compilation?"
+msgid "Do you want to install from sources the package which need compilation?"
 msgid_plural ""
 "Do you want to install from sources the packages which need compilation?"
 msgstr[0] ""
 msgstr[1] ""
 
 msgid ""
-"Package which is only available in source form, and may need compilation of "
+"Package which are only available in source form, and may need compilation of "
 "C/C++/Fortran"
 msgid_plural ""
 "Packages which are only available in source form, and may need compilation "
@@ -1200,11 +1186,6 @@ msgstr[1] ""
 
 msgid "invalid roman numeral: %s"
 msgid_plural "invalid roman numerals: %s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "is"
-msgid_plural "are"
 msgstr[0] ""
 msgstr[1] ""
 

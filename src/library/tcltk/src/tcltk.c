@@ -17,13 +17,9 @@
  *  http://www.r-project.org/Licenses/
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-#define NO_NLS
-#include <Defn.h>
-
 #include "tcltk.h" /* declarations of our `public' interface */
+
+#include <R.h>
 #include <stdlib.h>
 
 #ifdef ENABLE_NLS
@@ -32,6 +28,9 @@
 #else
 #define _(String) (String)
 #endif
+
+// From Defn.f
+extern void  R_Busy(int);
 
 static void RTcl_dec_refcount(SEXP R_tclobj)
 {
@@ -117,8 +116,7 @@ static int R_call(ClientData clientData,
     sscanf(argv[1], "%p", &fun);
 
     expr = LCONS( (SEXP)fun, alist);
-    SEXP s_try = install("try");
-    expr = LCONS(s_try, LCONS(expr, R_NilValue));
+    expr = LCONS(install("try"), LCONS(expr, R_NilValue));
 
     R_Busy(1);
     ans = eval(expr, R_GlobalEnv);
@@ -142,8 +140,7 @@ static int R_call_lang(ClientData clientData,
     sscanf(argv[1], "%p", &expr);
     sscanf(argv[2], "%p", &env);
 
-    SEXP s_try = install("try");
-    expr = LCONS(s_try, LCONS(expr, R_NilValue));
+    expr = LCONS(install("try"), LCONS(expr, R_NilValue));
 
     R_Busy(1);
     ans = eval((SEXP)expr, (SEXP)env);

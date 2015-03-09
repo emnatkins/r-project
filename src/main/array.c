@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2014   The R Core Team
+ *  Copyright (C) 1998-2013   The R Core Team
  *  Copyright (C) 2002-2008   The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -426,7 +426,6 @@ SEXP attribute_hidden do_length(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	return(ans);
     }
-    
 
 #ifdef LONG_VECTOR_SUPPORT
     // or use IS_LONG_VEC
@@ -436,68 +435,6 @@ SEXP attribute_hidden do_length(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ScalarInteger(length(x));
 }
 
-static R_xlen_t getElementLength(SEXP x, R_xlen_t i, SEXP call, SEXP rho) {
-    static SEXP length_op = NULL;
-    SEXP x_elt = VECTOR_ELT(x, i);
-    if (isObject(x_elt)) {
-        SEXP args, len;
-        PROTECT(args = list1(x_elt));
-        if (length_op == NULL) {
-            length_op = R_Primitive("length");
-        }
-        if (DispatchOrEval(call, length_op, "length", args, rho, &len, 0, 1)) {
-          return (R_xlen_t)
-	      (TYPEOF(len) == REALSXP ? REAL(len)[0] : asInteger(len));
-        }
-        UNPROTECT(1);
-    }
-    return(xlength(x_elt));
-}
-
-static SEXP do_lengths_long(SEXP x, SEXP call, SEXP rho)
-{
-    SEXP ans;
-    R_xlen_t x_len, i;
-    double *ans_elt;
-    
-    x_len = xlength(x);
-    PROTECT(ans = allocVector(REALSXP, x_len));
-    for (i = 0, ans_elt = REAL(ans); i < x_len; i++, ans_elt++) {
-        *ans_elt = getElementLength(x, i, call, rho);
-    }
-    UNPROTECT(1);
-    return ans;
-}
-
-SEXP attribute_hidden do_lengths(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP x = CAR(args), ans;
-    R_xlen_t x_len, i;
-    int *ans_elt;
-
-    if (!isVectorList(x)) {
-        error(_("'x' must be a list"));
-    }
-    
-    x_len = xlength(x);
-    PROTECT(ans = allocVector(INTSXP, x_len));
-    for (i = 0, ans_elt = INTEGER(ans); i < x_len; i++, ans_elt++) {
-        R_xlen_t x_elt_len = getElementLength(x, i, call, rho);
-#ifdef LONG_VECTOR_SUPPORT
-        if (x_elt_len > INT_MAX) {
-            ans = do_lengths_long(x, call, rho);
-            break;
-        }
-#endif
-        *ans_elt = (int)x_elt_len;
-    }
-    UNPROTECT(1);
-
-    SEXP names = getAttrib(x, R_NamesSymbol);
-    if(!isNull(names)) setAttrib(ans, R_NamesSymbol, names);
-    
-    return ans;
-}
 
 SEXP attribute_hidden do_rowscols(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -730,27 +667,16 @@ SEXP attribute_hidden do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
     ldy = length(ydims);
 
     if (ldx != 2 && ldy != 2) {		/* x and y non-matrices */
-	// for crossprod, allow two cases: n x n ==> (1,n) x (n,1);  1 x n = (n, 1) x (1, n)
-	if (PRIMVAL(op) == 1 && LENGTH(x) == 1) {
-	    nrx = ncx = nry = 1;
-	    ncy = LENGTH(y);
+	if (PRIMVAL(op) == 0) {
+	    nrx = 1;
+	    ncx = LENGTH(x);
 	}
 	else {
-	    nry = LENGTH(y);
-	    ncy = 1;
-	    if (PRIMVAL(op) == 0) {
-		nrx = 1;
-		ncx = LENGTH(x);
-		if(ncx == 1) {	        // y as row vector
-		    ncy = nry;
-		    nry = 1;
-		}
-	    }
-	    else {
-		nrx = LENGTH(x);
-		ncx = 1;
-	    }
+	    nrx = LENGTH(x);
+	    ncx = 1;
 	}
+	nry = LENGTH(y);
+	ncy = 1;
     }
     else if (ldx != 2) {		/* x not a matrix */
 	nry = INTEGER(ydims)[0];
@@ -805,20 +731,11 @@ SEXP attribute_hidden do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    if (LENGTH(y) == nrx) {	/* y is a col vector */
 		nry = nrx;
 		ncy = 1;
-	    } else if (nrx == 1) {	// y as row vector
-		nry = 1;
-		ncy = LENGTH(y);
 	    }
 	}
-	else { // tcrossprod
-	    if (nrx == 1) {		// y as row vector
-		nry = 1;
-		ncy = LENGTH(y);
-	    }
-	    else {			// y is a col vector
-		nry = LENGTH(y);
-		ncy = 1;
-	    }
+	else { /* tcrossprod --		y is a col vector */
+	    nry = LENGTH(y);
+	    ncy = 1;
 	}
     }
     else {				/* x and y matrices */
@@ -1642,7 +1559,7 @@ SEXP attribute_hidden do_diag(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (mn > 0 && LENGTH(x) == 0)
 	error(_("'x' must have positive length"));
 
-#ifndef LONG_VECTOR_SUPPORT
+ #ifndef LONG_VECTOR_SUPPORT
    if ((double)nr * (double)nc > INT_MAX)
 	error(_("too many elements specified"));
 #endif

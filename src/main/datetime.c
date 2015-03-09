@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2015  The R Core Team.
+ *  Copyright (C) 2000-2014  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -85,8 +85,6 @@ known OS with 64-bit time_t and complete tables is Linux.
 # define HAVE_TM_GMTOFF 1
 # undef MKTIME_SETS_ERRNO
 # define MKTIME_SETS_ERRNO
-# undef HAVE_WORKING_64BIT_MKTIME
-# define HAVE_WORKING_64BIT_MKTIME 1
 #else
 
 typedef struct tm stm;
@@ -1215,8 +1213,7 @@ SEXP attribute_hidden do_D2POSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(klass, 0, mkChar("POSIXlt"));
     SET_STRING_ELT(klass, 1, mkChar("POSIXt"));
     classgets(ans, klass);
-    SEXP s_tzone = install("tzone");
-    setAttrib(ans, s_tzone, mkString("UTC"));
+    setAttrib(ans, install("tzone"), mkString("UTC"));
     SEXP nm = getAttrib(x, R_NamesSymbol);
     if(nm != R_NilValue) setAttrib(VECTOR_ELT(ans, 5), R_NamesSymbol, nm);
     UNPROTECT(4);

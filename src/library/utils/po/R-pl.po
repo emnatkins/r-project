@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2015-02-09 08:50\n"
+"POT-Creation-Date: 2014-02-27 17:14\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -61,6 +61,14 @@ msgstr "referencja do nieznanego fragmentu %s"
 msgid "no Sweave file with name %s found"
 msgstr "nie znaleziono pliku 'Sweave' o nazwie %s"
 
+# utils/R/Sweave.R: 205
+# stop(paste(gettextf("%d Sweave files for basename %s found",
+#                                 length(f), sQuote(file[1L])),
+#                        paste(":\n         ", f, collapse="")),
+#                  domain = NA)
+msgid "%d Sweave files for basename %s found"
+msgstr "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
+
 # utils/R/Sweave.R: 241
 # warning(gettextf("more than one syntax specification found, using the first one"),
 # 		domain = NA)
@@ -107,16 +115,6 @@ msgstr "błąd parsowania lub pusta opcja w %s"
 # utils/R/Sweave.R: 590
 # message(gettextf("Warning: unknown option %s", sQuote(a)),
 #                     domain = NA)
-#, fuzzy
-msgid "Warning: unknown option '--clean='%s"
-msgstr "Ostrzeżenie: nieznana opcja %s"
-
-# utils/R/Sweave.R: 488
-# message(gettextf("Warning: unknown option %s", sQuote(a)),
-#                     domain = NA)
-# utils/R/Sweave.R: 590
-# message(gettextf("Warning: unknown option %s", sQuote(a)),
-#                     domain = NA)
 msgid "Warning: unknown option %s"
 msgstr "Ostrzeżenie: nieznana opcja %s"
 
@@ -145,12 +143,6 @@ msgstr "ścieżka do %s zawiera spacje,"
 #                     domain = NA)
 msgid "this may cause problems when running LaTeX"
 msgstr "to może spowodować problemy podczas uruchamiania LaTeX'a"
-
-msgid "at"
-msgstr ""
-
-msgid ","
-msgstr ""
 
 # utils/R/SweaveDrivers.R: 507
 # stop(gettextf("the output file '%s' has disappeared", outputname))
@@ -661,6 +653,12 @@ msgstr "nie znaleziono pomocy dla %s"
 msgid "%s has a help file but no examples"
 msgstr "%s posiada plik pomocy, ale nie ma przykładów"
 
+# utils/R/filetest.R: 39
+# stop(gettextf("test '%s' is not available", op),
+#                 domain = NA)
+msgid "test '%s' is not available"
+msgstr "test '%s' nie jest dostępny"
+
 # utils/R/findLineNum.R: 97
 # stop("Line number missing")
 msgid "Line number missing"
@@ -818,28 +816,15 @@ msgstr "niepoprawne określenie pola"
 msgid "do not know what to search"
 msgstr "nie wiadomo czego szukać"
 
-# utils/R/help.search.R: 161
-# warning("argument 'help.db' is deprecated")
-msgid "argument 'help.db' is deprecated"
-msgstr "argument 'help.db' jest przestarzały"
-
-# utils/R/help.search.R: 434
-# stop(gettextf("no information in the database for package %s: need 'rebuild = TRUE'?",
-# 			  sQuote(package[pos_in_hsearch_db == 0][1L])),
-#                  domain = NA)
-msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
-msgstr ""
-"brak informacji w bazie danych dla pakietu %s: potrzeba 'rebuild = TRUE'?"
-
-# utils/R/help.search.R: 472
-# stop("incorrect 'agrep' specification")
-msgid "incorrect 'agrep' specification"
-msgstr "niepoprawne określenie 'agrep'"
-
 # utils/R/help.search.R: 153
 # stop("incorrect type specification")
 msgid "incorrect type specification"
 msgstr "niepoprawne określenie typu"
+
+# utils/R/help.search.R: 161
+# warning("argument 'help.db' is deprecated")
+msgid "argument 'help.db' is deprecated"
+msgstr "argument 'help.db' jest przestarzały"
 
 # utils/R/help.search.R: 273
 # stop(gettextf("could not find package %s", sQuote(p)),
@@ -859,6 +844,19 @@ msgid "removing all entries with invalid multi-byte character data"
 msgstr ""
 "usuwanie wszystkich wpisów z niepoprawnymi danymi o wielobajtowych znakach"
 
+# utils/R/help.search.R: 434
+# stop(gettextf("no information in the database for package %s: need 'rebuild = TRUE'?",
+# 			  sQuote(package[pos_in_hsearch_db == 0][1L])),
+#                  domain = NA)
+msgid "no information in the database for package %s: need 'rebuild = TRUE'?"
+msgstr ""
+"brak informacji w bazie danych dla pakietu %s: potrzeba 'rebuild = TRUE'?"
+
+# utils/R/help.search.R: 472
+# stop("incorrect 'agrep' specification")
+msgid "incorrect 'agrep' specification"
+msgstr "niepoprawne określenie 'agrep'"
+
 # utils/R/help.start.R: 28
 # stop("invalid browser name, check options(\"browser\").")
 msgid "invalid browser name, check options(\"browser\")."
@@ -875,10 +873,10 @@ msgstr "'help.start()' wymaga aby serwer HTTP był uruchomiony"
 
 msgid ""
 "If nothing happens, you should open\n"
-"%s yourself"
+"'%s' yourself"
 msgstr ""
 "Jeśli nic się nie stanie, powinieneś otworzyć\n"
-"%s samemu"
+"'%s' samemu"
 
 # utils/R/help.start.R: 44
 # gettextf("If the browser launched by '%s' is already running, it is *not* restarted, and you must switch to its window.",
@@ -1088,11 +1086,6 @@ msgstr "nie można dostać się do indeksu dla repozytorium %s"
 msgid "invalid 'filters' argument."
 msgstr "niepoprawny argument 'filters'"
 
-msgid ""
-"specifying 'contriburl' or 'available' requires a single type, not type = "
-"\"both\""
-msgstr ""
-
 # utils/R/packages.R: 351
 # warning(sprintf("package '%s' in library '%s' will not be updated",
 # 				    oldPkgs[pkg], oldPkgs[pkg, 2]),
@@ -1224,12 +1217,6 @@ msgstr ""
 "Nie wiadomo, do którego elementu 'lib' zainstalować zależności\n"
 "pomijanie zależności"
 
-# utils/R/databrowser.R: 185
-# stop("only 'html = TRUE' is supported on this platform")
-#, fuzzy
-msgid "type 'binary' is not supported on this platform"
-msgstr "jedynie 'html = TRUE' jest wspierane na tej platformie"
-
 # utils/R/packages2.R: 198
 # stop("no packages were specified")
 # utils/R/packages2.R: 205
@@ -1265,28 +1252,8 @@ msgstr "nie udało się utworzyć %s"
 
 # utils/R/packages2.R: 291
 # message("inferring 'repos = NULL' from the file name")
-#, fuzzy
-msgid "inferring 'repos = NULL' from 'pkgs'"
+msgid "inferring 'repos = NULL' from the file name"
 msgstr "wnioskowanie 'repos = NULL' z nazwy pliku"
-
-# utils/R/packages2.R: 584
-# stop(gettextf("unable to create temporary directory %s",
-#                           sQuote(tmpd)),
-#                  domain = NA)
-# utils/R/packages2.R: 626
-# stop(gettextf("unable to create temporary directory %s",
-#                               sQuote(tmpd)),
-#                      domain = NA)
-# utils/R/windows/install.packages.R: 40
-# stop(gettextf("unable to create temporary directory %s",
-#                       sQuote(normalizePath(tmpDir, mustWork = FALSE))),
-#              domain = NA, call. = FALSE)
-# utils/R/windows/install.packages.R: 239
-# stop(gettextf("unable to create temporary directory %s",
-#                           sQuote(normalizePath(tmpd, mustWork = FALSE))),
-#                  domain = NA)
-msgid "unable to create temporary directory %s"
-msgstr "nie udało się utworzyć katalogu %s"
 
 # utils/R/packages2.R: 303
 # stop("type == \"both\" can only be used on Windows or a CRAN build for Mac OS X")
@@ -1295,6 +1262,14 @@ msgid ""
 msgstr ""
 "'type == \"both\"' może być użyte jedynie w systemie Windows lub kompilacji "
 "CRAN dla systemów Mac OS X"
+
+# utils/R/packages2.R: 305
+# stop("type == \"both\" cannot be used if 'available' or 'contriburl' is specified")
+msgid ""
+"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
+msgstr ""
+"'type == \"both\"' nie może być użyte jeśli 'available' lub 'contriburl' są "
+"określone"
 
 # utils/R/packages2.R: 307
 # stop("type == \"both\" cannot be used with 'repos = NULL'")
@@ -1354,6 +1329,25 @@ msgstr "system (cmd0): %s"
 #                             domain = NA)
 msgid "installation of package %s had non-zero exit status"
 msgstr "instalacja pakietu %s miała niezerowy status wyjścia"
+
+# utils/R/packages2.R: 584
+# stop(gettextf("unable to create temporary directory %s",
+#                           sQuote(tmpd)),
+#                  domain = NA)
+# utils/R/packages2.R: 626
+# stop(gettextf("unable to create temporary directory %s",
+#                               sQuote(tmpd)),
+#                      domain = NA)
+# utils/R/windows/install.packages.R: 40
+# stop(gettextf("unable to create temporary directory %s",
+#                       sQuote(normalizePath(tmpDir, mustWork = FALSE))),
+#              domain = NA, call. = FALSE)
+# utils/R/windows/install.packages.R: 239
+# stop(gettextf("unable to create temporary directory %s",
+#                           sQuote(normalizePath(tmpd, mustWork = FALSE))),
+#                  domain = NA)
+msgid "unable to create temporary directory %s"
+msgstr "nie udało się utworzyć katalogu %s"
 
 # utils/R/packages2.R: 601
 # message(gettextf("foundpkgs: %s",
@@ -1483,16 +1477,6 @@ msgstr "Utworzono plik o nazwie %s."
 #             domain = NA)
 msgid "Edit the file and move it to the appropriate directory."
 msgstr "Edytuj ten plik i przenieś go do odpowiedniego katalogu."
-
-# utils/R/prompt.R: 55
-# stop("cannot determine a usable name")
-# utils/R/prompt.R: 185
-# stop("cannot determine a usable name")
-# utils/R/prompt.R: 215
-# stop("cannot determine a usable name")
-#, fuzzy
-msgid "cannot determine import name"
-msgstr "nie można wyznaczyć użytecznej nazwy"
 
 # utils/R/question.R: 87
 # stop(gettextf("no documentation of type %s and topic %s (or error in processing help)",
@@ -2080,19 +2064,12 @@ msgstr "argument 'ccaddress' musi być długości 1"
 msgid "no download method found"
 msgstr "nie znaleziono metody pobierania"
 
-# utils/R/widgets.R: 25
-# stop("'title' must be NULL or a length-1 character vector")
-#, fuzzy
-msgid "'url' must be a length-one character vector"
-msgstr ""
-"argument 'title' musi być wartością NULL lub wektorem tekstowym o długości 1"
-
-# utils/R/widgets.R: 25
-# stop("'title' must be NULL or a length-1 character vector")
-#, fuzzy
-msgid "'destfile' must be a length-one character vector"
-msgstr ""
-"argument 'title' musi być wartością NULL lub wektorem tekstowym o długości 1"
+# utils/R/unix/download.file.R: 63
+# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
+# utils/R/windows/download.file.R: 62
+# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
+msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
+msgstr "metoda 'lynx()' jest nieprzetestowana i jest przestarzała od R 3.1.0"
 
 # utils/R/unix/download.file.R: 70
 # warning("download had nonzero exit status")
@@ -2181,6 +2158,13 @@ msgstr "funkcja 'memory.limit()' jest specyficzna dla systemów Windows"
 msgid "method 'mailx' is Unix-only"
 msgstr "metoda 'mailx' jest tylko dla systemów Unix"
 
+msgid ""
+"If nothing happens, you should open\n"
+"%s yourself"
+msgstr ""
+"Jeśli nic się nie stanie, powinieneś otworzyć\n"
+"%s samemu"
+
 # utils/R/windows/install.packages.R: 30
 # stop(gettextf("zip file %s not found",
 #                              sQuote(zipname)), domain = NA)
@@ -2220,18 +2204,6 @@ msgstr "'winDialog()' nie może być użyty nieinteraktywnie"
 # stop("winDialogString() cannot be used non-interactively")
 msgid "winDialogString() cannot be used non-interactively"
 msgstr "'winDialogString()' nie może być użyty nieinteraktywnie"
-
-# utils/R/Sweave.R: 205
-# stop(paste(gettextf("%d Sweave files for basename %s found",
-#                                 length(f), sQuote(file[1L])),
-#                        paste(":\n         ", f, collapse="")),
-#                  domain = NA)
-#, fuzzy
-msgid "%d Sweave file for basename %s found"
-msgid_plural "%d Sweave files for basename %s found"
-msgstr[0] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
-msgstr[1] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
-msgstr[2] "znaleziono %d plik 'Sweave' dla nazwy bazowej %s"
 
 # utils/R/apropos.R: 67
 # warning(sprintf(ngettext(ll,
@@ -2339,9 +2311,8 @@ msgstr[2] ""
 # 			paste(sQuote(p0[miss]), collapse=", "),
 # 			sub(" *\\(.*","", R.version.string)),
 #                 domain = NA, call. = FALSE)
-#, fuzzy
-msgid "package %s is not available (%s)"
-msgid_plural "packages %s are not available (%s)"
+msgid "package %s is not available (for %s)"
+msgid_plural "packages %s are not available (for %s)"
 msgstr[0] "pakiet %s nie jest dostępny (dla '%s')"
 msgstr[1] "pakiety %s nie są dostępne (dla %s)"
 msgstr[2] "pakiety %s nie są dostępne (dla %s)"
@@ -2417,9 +2388,7 @@ msgstr[2] "Są dostępne wersje binarne, ale wersje ze źródłami są później
 # ngettext(sum(later & hasSrc),
 #                              "Do you want to install from sources the package which need compilation?",
 #                              "Do you want to install from sources the packages which need compilation?")
-#, fuzzy
-msgid ""
-"Do you want to install from sources the package which needs compilation?"
+msgid "Do you want to install from sources the package which need compilation?"
 msgid_plural ""
 "Do you want to install from sources the packages which need compilation?"
 msgstr[0] "Czy chcesz zainstalować ze źródeł pakiet, który wymaga kompilacji?"
@@ -2432,9 +2401,8 @@ msgstr[2] ""
 # ngettext(length(s2),
 #                              "Package which are only available in source form, and may need compilation of C/C++/Fortran",
 #                              "Packages which are only available in source form, and may need compilation of C/C++/Fortran")
-#, fuzzy
 msgid ""
-"Package which is only available in source form, and may need compilation of "
+"Package which are only available in source form, and may need compilation of "
 "C/C++/Fortran"
 msgid_plural ""
 "Packages which are only available in source form, and may need compilation "
@@ -2518,12 +2486,6 @@ msgstr[0] "niepoprawna rzymska numeracja: %s"
 msgstr[1] "niepoprawne rzymskie numeracje: %s"
 msgstr[2] "niepoprawne rzymskie numeracje: %s"
 
-msgid "is"
-msgid_plural "are"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 # utils/R/windows/install.packages.R: 220
 # warning(sprintf(ngettext(sum(inuse),
 #                 "package %s is in use and will not be installed",
@@ -2535,33 +2497,3 @@ msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "pakiet %s jest w użyciu i nie zostanie zainstalowany"
 msgstr[1] "pakiety %s są w użyciu i nie zostaną zainstalowane"
 msgstr[2] "pakiety %s są w użyciu i nie zostaną zainstalowane"
-
-# utils/R/packages2.R: 305
-# stop("type == \"both\" cannot be used if 'available' or 'contriburl' is specified")
-#~ msgid ""
-#~ "type == \"both\" cannot be used if 'available' or 'contriburl' is "
-#~ "specified"
-#~ msgstr ""
-#~ "'type == \"both\"' nie może być użyte jeśli 'available' lub 'contriburl' "
-#~ "są określone"
-
-# utils/R/unix/download.file.R: 63
-# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
-# utils/R/windows/download.file.R: 62
-# warning("method 'lynx' is untested and deprecated as from R 3.1.0")
-#~ msgid "method 'lynx' is untested and deprecated as from R 3.1.0"
-#~ msgstr ""
-#~ "metoda 'lynx()' jest nieprzetestowana i jest przestarzała od R 3.1.0"
-
-#~ msgid ""
-#~ "If nothing happens, you should open\n"
-#~ "'%s' yourself"
-#~ msgstr ""
-#~ "Jeśli nic się nie stanie, powinieneś otworzyć\n"
-#~ "'%s' samemu"
-
-# utils/R/filetest.R: 39
-# stop(gettextf("test '%s' is not available", op),
-#                 domain = NA)
-#~ msgid "test '%s' is not available"
-#~ msgstr "test '%s' nie jest dostępny"

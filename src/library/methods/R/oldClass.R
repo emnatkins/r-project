@@ -1,7 +1,7 @@
 #  File src/library/methods/R/oldClass.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -60,10 +60,11 @@ setOldClass <- function(Classes, prototype = NULL,
     ## to convert S4 objects in S3 method dispatch.
     ## TODO:  should provide an optional argument to setOldClass()
     ## to prevednt this conversion if it's not needed
-    if(is.null(S3table <- where$.S3MethodsClasses)) {
+    if(!exists(".S3MethodsClasses", envir = where, inherits = FALSE)) {
       S3table <- new.env()
       assign(".S3MethodsClasses", S3table, envir = where)
     }
+    else S3table <- get(".S3MethodsClasses", envir = where)
     dataPartClass <- NULL
     for(cl in rev(Classes)) {
        S3Class <- c(cl, S3Class)
@@ -141,19 +142,11 @@ setOldClass <- function(Classes, prototype = NULL,
     def@slots <- c(def@slots, curDef@slots)
     ext <- c(def@contains, curDef@contains)
     ## correct ordering & duplicate resolution: copied from .walkClassGraph
-    distOrder <- sort.list(vapply(ext, function(x) x@distance, 1))
+    distOrder <- sort.list(sapply(ext, function(x)x@distance))
     ext <- ext[distOrder]
     if(anyDuplicated(names(ext)))
         ext <- .resolveSuperclasses(def, ext, where)
     def@contains <- ext
-    oldSupers <- setdiff(names(def@contains), names(curDef@contains))
-    addSubclass <- function(super) {
-      superDef <- getClassDef(super, where)
-      superWhere <- .findOrCopyClass(super, superDef, where, "subclass")
-      superDef@subclasses[[Class]] <- def@contains[[super]]
-      assignClassDef(super, superDef, superWhere, TRUE)
-    }
-    lapply(oldSupers, addSubclass)
     subcls <- curDef@subclasses
     if(length(subcls) > 0) {
       def@subclasses[names(subcls)]  <- subcls
@@ -303,7 +296,7 @@ S3Class <- function(object) {
 ## name are added, other than the className slot and the super/sub class names
 ## in the contains, subclasses slots respectively.
 .renameClassDef <- function(def, className) {
-##    oldName <- def@className
+    oldName <- def@className
     validObject(def) # to catch any non-SClassExtension objects
     def@className <- className
     comp <- def@contains

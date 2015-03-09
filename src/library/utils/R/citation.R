@@ -1,7 +1,7 @@
 #  File src/library/utils/R/citation.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -376,15 +376,10 @@ function(x,
          collapse =
          list(given = " ", family = " ", email = ", ",
               role = ", ", comment = ", "),
-         ...,
-         style = c("text", "R")
+         ...
          )
 {
     if(!length(x)) return(character())
-
-    style <- match.arg(style)
-
-    if(style == "R") return(.format_person_as_R_code(x))
 
     args <- c("given", "family", "email", "role", "comment")
     include <- sapply(include, match.arg, args)
@@ -636,7 +631,7 @@ function(x, style = "text", .bibstyle = NULL,
                    ## </FIXME>
                    con <- textConnection(rd)
                    on.exit(close(con))
-                   f(con, fragment = TRUE, out = out, permissive = TRUE, ...)
+                   f(con, fragment = TRUE, out = out, ...)
                    paste(readLines(out), collapse = "\n")
                })
     }
@@ -1048,7 +1043,6 @@ function(...)
 readCitationFile <-
 function(file, meta = NULL)
 {
-    meta <- as.list(meta)
     exprs <- tools:::.parse_CITATION_file(file, meta$Encoding)
 
     rval <- list()
@@ -1087,14 +1081,9 @@ function(package = "base", lib.loc = NULL, auto = NULL)
 {
     ## Allow citation(auto = meta) in CITATION files to include
     ## auto-generated package citation.
-    if(!is.null(auto) &&
-       !is.logical(auto) &&
-       !any(is.na(match(c("Package", "Version", "Title"),
-                        names(meta <- as.list(auto))))) &&
-       !all(is.na(match(c("Authors@R", "Author"),
-                        names(meta))))
-       ) {
+    if(inherits(auto, "packageDescription")) {
         auto_was_meta <- TRUE
+        meta <- auto
         package <- meta$Package
     } else {
         auto_was_meta <- FALSE
@@ -1291,7 +1280,7 @@ function(x)
     footer <- attr(x, "footer")
     x <- sapply(x, .format_person_for_plain_author_spec)
     ## Drop persons with irrelevant roles.
-    x <- x[nzchar(x)]
+    x <- x[x != ""]
     ## And format.
     if(!length(x)) return("")
     ## We need to ensure that the first line has no indentation, whereas

@@ -34,6 +34,7 @@
 #include "rui.h"
 
 #include "Startup.h"
+extern UImode CharacterMode;
 
 typedef struct {
     window wprog;

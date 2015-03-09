@@ -792,8 +792,7 @@ static SEXP processEscapes(SEXP x)
     	
     PROTECT( pattern = mkString("(?<!\\\\)((\\\\\\\\)*)\"") );
     PROTECT( replacement = mkString("\\1\\\\\"") );
-    SEXP s_gsub = install("gsub");
-    PROTECT( expr = lang5(s_gsub, ScalarLogical(1), pattern, replacement, x) );
+    PROTECT( expr = lang5(install("gsub"), ScalarLogical(1), pattern, replacement, x) );
     SET_TAG( CDR(expr), install("perl") );
 
     PROTECT( newval = eval(expr, R_BaseEnv) );

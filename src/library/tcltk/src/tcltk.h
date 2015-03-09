@@ -18,9 +18,7 @@
  */
 
 /* Ouch! - do we *really* need this? */
-#ifndef _GNU_SOURCE
-# define _GNU_SOURCE
-#endif
+#define _GNU_SOURCE
 
 #include <tcl.h>
 #include <stdio.h>

@@ -63,12 +63,6 @@ getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
 #              warning("The package name \"", pkg, "\" was inferred, but not found in that package")
 #         }
     }
-    if (!nzchar(pkg)) {
-        top <- topenv(env)
-        if (!identical(top, env)) {
-            pkg <- getPackageName(top, create=create)
-        }
-    }
     if(!nzchar(pkg) && create) {
         pkg <- as.character(Sys.time())
         warning(gettextf("Created a package name, %s, when none found",

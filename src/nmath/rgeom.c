@@ -30,14 +30,13 @@
  *
  *    We generate lambda as exponential with scale parameter
  *    p / (1 - p).  Return a Poisson deviate with mean lambda.
- *    See Example 1.5 in Devroye (1986), Chapter 10, pages 488f.
  *
  *  REFERENCE
  *
  *    Devroye, L. (1986).
  *    Non-Uniform Random Variate Generation.
  *    New York: Springer-Verlag.
- *    Pages 488f.
+ *    Page 480.
  */
 
 #include "nmath.h"

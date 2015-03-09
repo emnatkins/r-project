@@ -110,5 +110,4 @@ const char *incol2name(unsigned int col);
 unsigned int inR_GE_str2col(const char *s);
 void initPalette(void);
 
-SEXP cairoVersion(void);
-SEXP bmVersion(void);
+

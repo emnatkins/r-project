@@ -1,7 +1,7 @@
 #  File src/library/methods/R/RMethodUtils.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@
         }
         fdef <- fdefault
         body(fdef) <- substitute(standardGeneric(NAME), list(NAME = f))
-        environment(fdef) <- asNamespace(package)
+        environment(fdef) <- .methodsNamespace
     }
     ## give the function a new environment, to cache methods later
     ev <- new.env()
@@ -96,7 +96,7 @@
         stop("no suitable arguments to dispatch methods in this function")
     attr(signature, "simpleOnly") <- simpleInheritanceOnly # usually NULL
     value@signature <- signature
-##    name <- signature[[1L]]
+    name <- signature[[1L]]
     if(is.null(fdefault))
         {} # pre 2.11.0: methods <- MethodsList(name)
     else {
@@ -191,28 +191,39 @@ makeGeneric <-
     value
 }
 
-### FIXME: Not used by methods, but exposed through namespace. Deprecate?
+
 makeStandardGeneric <-
-  ## a utility function that makes a valid function calling
-  ## standardGeneric for name f Works (more or less) even if the
-  ## actual definition, fdef, is not a proper function, that is, it is
-  ## a primitive or internal
+  ## a utility function that makes a valid function calling standardGeneric for name f
+  ## Works (more or less) even if the actual definition, fdef, is not a proper function,
+  ## that is, it is a primitive or internal
   function(f, fdef)
 {
     fgen <- fdef
     body(fgen) <- substitute(standardGeneric(FNAME), list(FNAME=f))
     ## detect R specials and builtins:  these don't provide an argument list
     if(typeof(fdef) != "closure") {
-        ## Look in a list of pre-defined functions (and also of
-        ## functions for which methods are prohibited)
+        ## Look in a list of pre-defined functions (and also of functions for which
+        ## methods are prohibited)
         fgen <- genericForPrimitive(f)
-        message(gettextf("making a generic for special function %s",
-                         sQuote(f)),
-                domain = NA)
-        setPrimitiveMethods(f, fdef, "reset", fgen, NULL)
-        ## Note that the body of the function comes from the list.  In
-        ## a few cases ("$"), this body is not just a call to
-        ## standardGeneric
+        if(identical(fgen, FALSE))
+            stop(gettextf("special function %s is not permitted to have methods",
+                          sQuote(f)),
+                 domain = NA)
+        if(is.null(fgen)) {
+            warning(gettextf("special function %s has no known argument list; will assume '(x, ...)'",
+                             sQuote(f)),
+                    domain = NA)
+            ## unknown
+            fgen <- function(x, ...) {}
+        }
+        else {
+            message(gettextf("making a generic for special function %s",
+                             sQuote(f)),
+                    domain = NA)
+            setPrimitiveMethods(f, fdef, "reset", fgen, NULL)
+        }
+        ## Note that the body of the function comes from the list.  In a few cases ("$"),
+        ## this body is not just a call to standardGeneric
     }
     fgen
 }
@@ -283,7 +294,8 @@ doPrimitiveMethod <-
     cat("called doPrimitiveMethod\n\n")
     ## Store a local version of function 'name' back where the current version was
     ## called.  Restore the previous state there on exit, either removing or re-assigning.
-    if(!is.null(prev <- ev[[name]])) {
+    if(exists(name, envir=ev, inherits=FALSE)) {
+        prev <- get(name, envir=ev)
         on.exit(assign(name, prev, envir = ev))
     }
     else
@@ -435,15 +447,16 @@ getGeneric <-
         if(is(f, "genericFunction"))
             return(f)
         else if(is.primitive(f))
-            return(genericForPrimitive(.primname(f), mustFind=mustFind))
+            return(genericForPrimitive(.primname(f)))
         else
             stop("argument 'f' must be a string, generic function, or primitive: got an ordinary function")
     }
     value <- if(missing(where))
-		  .getGeneric(f,      , package)
-	     else .getGeneric(f, where, package)
-    if(is.null(value) && !is.null(baseDef <- baseenv()[[f]])) {
+	.getGeneric(f, , package) else
+    .getGeneric(f, where, package)
+    if(is.null(value) && exists(f, envir = baseenv(), inherits = FALSE)) {
         ## check for primitives
+        baseDef <- get(f, envir = baseenv())
         if(is.primitive(baseDef)) {
             value <- genericForPrimitive(f)
             if(!is.function(value) && mustFind)
@@ -458,7 +471,9 @@ getGeneric <-
     else {
         if(nzchar(package) && is.na(match(package, c("methods", "base")))) {
             value <- tryCatch({
-                ## load package namespace or error
+                ## try to load package namespace
+                if (!package %in% loadedNamespaces())
+                    loadNamespace(package)
                 ev <- getNamespace(package)
                 .getGeneric(f, ev, package)
             }, error = function(e) NULL)
@@ -492,8 +507,8 @@ getGeneric <-
         value <- .Call(C_R_getGeneric, f, FALSE, as.environment(where), package)
         ## cache public generics (usually these will have been cached already
         ## and we get to this code for non-exported generics)
-        if(!is.null(value) && !is.null(vv <- get0(f, .GlobalEnv)) &&
-           identical(vv, value))
+        if(!is.null(value) && exists(f, .GlobalEnv) &&
+           identical(get(f, .GlobalEnv), value))
             .cacheGeneric(f, value)
     }
     ##     if(is.null(value) && nzchar(package) && !identical(package, "base")) {
@@ -520,8 +535,9 @@ getGeneric <-
 .cacheGenericTable <- function(name, def, table)
 {
     fdef <- def
-    if(!is.null(prev <- table[[name]])) {
+    if(exists(name, envir = table, inherits = FALSE)) {
         newpkg <- def@package
+        prev <- get(name, envir = table)
         if(is.function(prev)) {
             if(identical(prev, def))
                 return(fdef)
@@ -649,18 +665,22 @@ getGeneric <-
 {
     value <- fdef
     ev <- environment(fdef)
-    objs <- lapply(as.list(ev, all.names=TRUE), function(obj) {
+    environment(value) <- newEv <- new.env(TRUE, parent.env(ev))
+    for(what in objects(ev, all.names=TRUE)) {
+        obj <- get(what, envir = ev)
         if(is.environment(obj))
             obj <- .copyEnv(obj)
-        obj
-    })
-    environment(value) <- list2env(objs, hash=TRUE, parent=parent.env(ev))
+        assign(what, obj, envir = newEv)
+    }
     value
 }
 
 .copyEnv <- function(env)
 {
-    list2env(as.list(env, all.names=TRUE), hash=TRUE, parent=parent.env(env))
+    value <- new.env(TRUE, parent.env(env))
+    for(what in objects(env, all.names = TRUE))
+        assign(what, get(what, envir = env), envir = value)
+    value
 }
 
 getGroup <-
@@ -752,16 +772,21 @@ getGenerics <- function(where, searchForm = FALSE)
     if(missing(where)) {
         ## all the packages cached ==? all packages with methods
         ## globally visible.  Assertion based on cacheMetaData + setMethod
-        fdefs <- as.list(.genericTable, all.names=TRUE, sorted=TRUE)
-        fnames <- mapply(function(nm, obj) {
-            if (is.list(obj)) names(obj) else nm
-        }, names(fdefs), fdefs, SIMPLIFY=FALSE)
-        packages <- lapply(fdefs, .packageForGeneric)
+        fnames <- as.list(objects(.genericTable, all.names=TRUE))
+        packages <- vector("list", length(fnames))
+        for(i in seq_along(fnames)) {
+            obj <- get(fnames[[i]], envir = .genericTable)
+            if(is.list(obj))
+                fnames[[i]] <-  names(obj)
+            packages[[i]] <- .packageForGeneric(obj)
+        }
         new("ObjectsWithPackage", unlist(fnames), package=unlist(packages))
     }
     else {
         if(is.environment(where)) where <- list(where)
-        these <- unlist(lapply(where, objects, all.names=TRUE), use.names=FALSE)
+        these <- character()
+        for(i in where)
+            these <- c(these, objects(i, all.names=TRUE))
         metaNameUndo(unique(these), prefix = "T", searchForm = searchForm)
     }
 }
@@ -775,8 +800,9 @@ getGenerics <- function(where, searchForm = FALSE)
 {
     if(missing(where)) where <- .envSearch(topenv(parent.frame()))
     else if(is.environment(where)) where <- list(where)
-    these <- unlist(lapply(where, objects, all.names=TRUE), use.names=FALSE)
-    these <- unique(these)
+    these <- character()
+    for(i in where) these <- c(these, objects(i, all.names=TRUE))
+    these <- allThese <- unique(these)
     these <- these[substr(these, 1L, 6L) == ".__T__"]
     if(length(these) == 0L)
         return(character())
@@ -915,10 +941,12 @@ setPrimitiveMethods <-
     .Call(C_R_M_setPrimitiveMethods, f, fdef, code, generic, mlist)
 
 ### utility to turn ALL primitive methods on or off (to avoid possible inf. recursion)
-.allowPrimitiveMethods <- function(onOff) {
-    code <- if(onOff) "SET" else "CLEAR"
-    .Call(C_R_M_setPrimitiveMethods, "", NULL, code, NULL, NULL)
-}
+.allowPrimitiveMethods <-
+  function(onOff) {
+      if(onOff) code <- "SET"
+      else code <- "CLEAR"
+      .Call(C_R_M_setPrimitiveMethods, "", NULL, code, NULL, NULL)
+  }
 
 
 findUnique <- function(what, message, where = topenv(parent.frame()))
@@ -1104,10 +1132,8 @@ methodSignatureMatrix <- function(object, sigSlots = c("target", "defined"))
     ## include tests for value
     fbody <- body(fdef)
     body(fdef, envir = environment(fdef)) <-
-        substitute({
-            ans <- EXPR
-            .valueClassTest(ans, VALUECLASS, FNAME)
-        }, list(EXPR = fbody, VALUECLASS = valueClass, FNAME = name))
+        substitute(.valueClassTest(EXPR, VALUECLASS, FNAME),
+                   list(EXPR = fbody, VALUECLASS = valueClass, FNAME = name))
     fdef
 }
 
@@ -1585,8 +1611,8 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
     .pasteC <- function(names) paste0('"', names, '"', collapse = ", ")
     found <- character()
     distances <- numeric()
-    methods <- names(mtable)
-    direct <- classes %in% methods
+    methods <- objects(mtable, all.names = TRUE)
+    direct <- match(classes, methods, 0L) > 0L
     if(all(direct)) {
         if(length(classes) > 1L) {
             warning(gettextf("multiple direct matches: %s; using the first of these", .pasteC(classes)), domain = NA)
@@ -1594,7 +1620,7 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
         }
         else if(length(classes) == 0L)
             return( if(is.na(match("ANY", methods))) NULL else get("ANY", envir = mtable))
-        return(mtable[[classes]])
+        return(get(classes,envir = mtable))
     }
     if(is.null(allmtable))
         return(NULL)
@@ -1613,9 +1639,9 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
         extendsi <- defi@contains
         namesi <- c(classi, names(extendsi))
         if(i == 1)
-            namesi <- namesi[namesi %in% methods]
+            namesi <- namesi[match(namesi, methods, 0L) > 0L]
         else { # only the superclass methods matching all arguments are kept
-            namesi <- namesi[namesi %in% found]
+            namesi <- namesi[match(namesi, found, 0L) > 0L]
             found <- namesi
             if(length(found) == 0L) break # no possible non-default match
         }

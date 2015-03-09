@@ -1,7 +1,7 @@
 #  File src/library/stats/R/htest.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,21 +16,21 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-print.htest <- function(x, digits = getOption("digits"), prefix = "\t", ...)
+print.htest <- function(x, digits = 4L, quote = TRUE, prefix = "", ...)
 {
     cat("\n")
-    cat(strwrap(x$method, prefix = prefix), sep = "\n")
+    cat(strwrap(x$method, prefix = "\t"), sep = "\n")
     cat("\n")
     cat("data:  ", x$data.name, "\n", sep = "")
     out <- character()
     if(!is.null(x$statistic))
 	out <- c(out, paste(names(x$statistic), "=",
-			    format(signif(x$statistic, max(1L, digits - 2L)))))
+			    format(round(x$statistic, 4))))
     if(!is.null(x$parameter))
 	out <- c(out, paste(names(x$parameter), "=",
-			    format(signif(x$parameter, max(1L, digits - 2L)))))
+			    format(round(x$parameter, 3))))
     if(!is.null(x$p.value)) {
-	fp <- format.pval(x$p.value, digits = max(1L, digits - 3L))
+	fp <- format.pval(x$p.value, digits = digits)
 	out <- c(out, paste("p-value",
 			    if(substr(fp, 1L, 1L) == "<") fp else paste("=",fp)))
     }
@@ -49,7 +49,7 @@ print.htest <- function(x, digits = getOption("digits"), prefix = "\t", ...)
 	    }
 	    else {
 		cat(x$alternative, "\nnull values:\n", sep = "")
-		print(x$null.value, digits=digits, ...)
+		print(x$null.value, ...)
 	    }
 	}
 	else cat(x$alternative, "\n", sep = "")
@@ -62,7 +62,7 @@ print.htest <- function(x, digits = getOption("digits"), prefix = "\t", ...)
     }
     if(!is.null(x$estimate)) {
 	cat("sample estimates:\n")
-	print(x$estimate, digits=digits, ...)
+	print(x$estimate, ...)
     }
     cat("\n")
     invisible(x)

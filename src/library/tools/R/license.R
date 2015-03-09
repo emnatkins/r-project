@@ -104,7 +104,7 @@ function(ldb)
     pos <- which(lab == "")
     abbrevs <- ldb$Abbrev[pos]
     versions <- ldb$Version[pos]
-    lab[pos] <- ifelse(nzchar(abbrevs), abbrevs, ldb$Name[pos])
+    lab[pos] <- ifelse(abbrevs != "", abbrevs, ldb$Name[pos])
     ind <- nzchar(versions)
     pos <- pos[ind]
     lab[pos] <- sprintf("%s version %s", lab[pos], versions[ind])
@@ -482,7 +482,7 @@ function(x)
              restricts_use = restricts_use)
 
 
-    x <- trimws(x)
+    x <- .strip_whitespace(x)
     if(is.na(x) || (x == "")) {
         ## Not really a lot to check ...
         ## (Note that non-standardizable license specs are dropped by
@@ -498,7 +498,8 @@ function(x)
     restricts_use <- NA
 
     ## Try splitting into the individual components.
-    components <- trimws(unlist(strsplit(x, "|", fixed = TRUE)))
+    components <-
+        .strip_whitespace(unlist(strsplit(x, "|", fixed = TRUE)))
 
     ## Now analyze the individual components.
     ok <- grepl(R_license_db_vars()$re_component, components)
@@ -794,7 +795,7 @@ function(x)
         entries <- ldb[pos, ]
         ## Now determine the entries satisfying the version spec.
         v <- sub("[[:space:]]*\\((.*)\\)[[:space:]]*", "\\1", v)
-        if(nzchar(v)) {
+        if(v != "") {
             constraints <-
                 unlist(strsplit(v, "[[:space:]]*,[[:space:]]*"))
             entries <-

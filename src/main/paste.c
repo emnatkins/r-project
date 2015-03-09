@@ -281,7 +281,7 @@ SEXP attribute_hidden do_filepath(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, sep, x;
     int i, j, k, ln, maxlen, nx, nzero, pwidth, sepw;
-    const char *s, *csep, *cbuf;
+    const char *s, *csep, *cbuf; 
     char *buf;
 
     checkArity(op, args);
@@ -381,7 +381,10 @@ SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
     scikeep = R_print.scipen;
 
     if (isEnvironment(x = CAR(args))) {
-	return mkString(EncodeEnvironment(x));
+	PROTECT(y = allocVector(STRSXP, 1));
+	SET_STRING_ELT(y, 0, mkChar(EncodeEnvironment(x)));
+	UNPROTECT(1);
+	return y;
     }
     else if (!isVector(x))
 	error(_("first argument must be atomic"));
@@ -464,7 +467,7 @@ SEXP attribute_hidden do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 	    w = imax2(w, wd);
 	    PROTECT(y = allocVector(STRSXP, n));
 	    for (i = 0; i < n; i++) {
-		strp = EncodeReal0(REAL(x)[i], w, d, e, OutDec);
+		strp = EncodeReal(REAL(x)[i], w, d, e, OutDec);
 		SET_STRING_ELT(y, i, mkChar(strp));
 	    }
 	    break;

@@ -4,6 +4,8 @@
 % Copyright 2002-2012 The R Foundation
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{Extract}
 \title{Extract or Replace Parts of an Object}
 \alias{Extract}
@@ -11,7 +13,6 @@
 \alias{[}
 \alias{[.listof}
 \alias{[.simple.list}
-\alias{[.Dlist}
 \alias{[[}
 \alias{$}
 \alias{getElement}

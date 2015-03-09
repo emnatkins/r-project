@@ -1,7 +1,7 @@
 #  File src/library/methods/R/NextMethod.R
 #  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,36 +28,32 @@ callNextMethod <- function(...) {
     if(is(maybeMethod, "MethodDefinition")) {
         callEnv <- methodEnv <- parent.frame(1)
         mcall <- sys.call(parent)
-        dotsenv <- parent.frame(2)
         i <- 1
     }
     else {
         callEnv <- parent.frame(1)
         methodEnv <- parent.frame(2)
         mcall <- sys.call(sys.parent(2))
-        dotsenv <- parent.frame(3)
         i <- 2
     }
     ## set up the nextMethod object, load it
     ## into the calling environment, and cache it
-    if(!is.null(method <- methodEnv$.Method)) {
+    if(exists(".Method", envir = methodEnv, inherits = FALSE)) {
         ## call to standardGeneric(f)
-        nextMethod <- callEnv$.nextMethod
-        f <- methodEnv$.Generic
+        method <- get(".Method", envir = methodEnv, inherits = FALSE)
+        if(exists(".nextMethod", envir = callEnv, inherits = FALSE))
+            nextMethod <- get(".nextMethod", envir = callEnv)
+        f <- get(".Generic", envir = methodEnv)
     }
     else if(identical(mcall[[1L]], dotNextMethod)) {
         ## a call from another callNextMethod()
         nextMethodEnv <- parent.frame(i+1)
-        nextMethod <- nextMethodEnv$.nextMethod
-        f <- nextMethodEnv$.Generic
+        nextMethod <- get(".nextMethod", nextMethodEnv)
+        f <- get(".Generic", envir = nextMethodEnv)
     }
     else {
         ## may be a method call for a primitive; not available as .Method
-        if (is.primitive(mcall[[1L]])) {
-            f <- .primname(mcall[[1L]])
-        } else {
-            f <- as.character(mcall[[1L]])
-        }
+        f <- as.character(mcall[[1L]])
         fdef <- genericForPrimitive(f)
         ## check that this could be a basic function with methods
         if(is.null(fdef))
@@ -98,8 +94,6 @@ callNextMethod <- function(...) {
     else
         stop(gettextf("bad object found as method (class %s)",
                       dQuote(class(method))), domain = NA)
-    if (is.null(nextMethod))
-        stop("No next method available")
     subsetCase <- !is.na(match(f, .BasicSubsetFunctions))
     if(nargs()>0) {
       call <- sys.call()
@@ -128,8 +122,7 @@ callNextMethod <- function(...) {
            }
         }
         else
-            call <- match.call(maybeMethod, mcall, expand.dots = FALSE,
-                               envir = dotsenv)
+            call <- match.call(method, mcall, expand.dots = FALSE)
         .Call(C_R_nextMethodCall, call, callEnv)
     }
 }

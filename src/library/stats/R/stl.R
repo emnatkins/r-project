@@ -36,7 +36,7 @@ stl <- function(x, s.window,
     deg.check <- function(deg) {
 	degname <- deparse(substitute(deg))
 	deg <- as.integer(deg)
-	if(deg < 0 || deg > 1) stop(gettextf("%s must be 0 or 1", degname), domain = NA)
+	if(deg < 0 || deg > 1) stop(degname, " must be 0 or 1")
 	deg
     }
     x <- na.action(as.ts(x))

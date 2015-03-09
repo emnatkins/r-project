@@ -216,8 +216,7 @@ void doMouseEvent(pDevDesc dd, R_MouseEvent event,
 	handler = eval(handler, dd->eventEnv);
 
     if (TYPEOF(handler) == CLOSXP) {
-        SEXP s_which = install("which");
-        defineVar(s_which, ScalarInteger(ndevNumber(dd)+1), dd->eventEnv);
+        defineVar(install("which"), ScalarInteger(ndevNumber(dd)+1), dd->eventEnv);
 	// Be portable: see PR#15793
 	int len = ((buttons & leftButton) != 0)
 	  + ((buttons & middleButton) != 0)
@@ -259,8 +258,7 @@ void doKeybd(pDevDesc dd, R_KeyName rkey,
 	handler = eval(handler, dd->eventEnv);
 
     if (TYPEOF(handler) == CLOSXP) {
-        SEXP s_which = install("which");
-        defineVar(s_which, ScalarInteger(ndevNumber(dd)+1), dd->eventEnv);
+        defineVar(install("which"), ScalarInteger(ndevNumber(dd)+1), dd->eventEnv);
 	PROTECT(skey = mkString(keyname ? keyname : keynames[rkey]));
 	PROTECT(temp = lang2(handler, skey));
 	PROTECT(result = eval(temp, dd->eventEnv));

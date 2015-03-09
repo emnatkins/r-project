@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2015-03-01 13:20\n"
+"POT-Creation-Date: 2014-01-26 09:09\n"
 "PO-Revision-Date: 2014-03-26 14:20+0200 \n"
 "Last-Translator: Masafumi  \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -12,16 +12,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit \n"
 "Plural-Forms: nplurals=1; plural=0; \n"
 "X-Generator: Pootle 2.0.5 \n"
-
-#, fuzzy
-msgid "Reading %s failed with message: %s"
-msgstr ""
-" TeXファイル %s のコンパイルに失敗しました。メッセージは以下の通りです: \n"
-" %s "
-
-#, fuzzy
-msgid "Checking %s"
-msgstr " %s をチェックしています... "
 
 msgid "argument 'package' must be of length 1"
 msgstr " 引数 'package' は 長さ 1 でなければなりません "
@@ -249,16 +239,9 @@ msgstr ""
 " パッケージが必要とする優先順位 'base' 'recommended' 'defunct-base' は、R が"
 "既に知らなければならない。 "
 
-msgid "Malformed Title field: should not end in a period."
-msgstr ""
-
 msgid ""
-"Malformed Description field: should contain one or more complete sentences."
-msgstr ""
-
-#, fuzzy
-msgid ""
-"See section 'The DESCRIPTION file' in the 'Writing R Extensions' manual."
+"See the information on DESCRIPTION files in section 'Creating R packages' of "
+"the 'Writing R Extensions' manual."
 msgstr ""
 " マニュアル 'Writing R Extensions' の章 'Creating R packages' 中の "
 "DESCRIPTION ファイルにある情報を参照してください。 "
@@ -278,14 +261,7 @@ msgstr " Authors@Rフィールドに役割が明示されていない人がい�
 msgid "Cannot extract Maintainer field from Authors@R field:"
 msgstr " Authors@R フィールドから Maintainer フィールドを抽出できません: "
 
-#, fuzzy
-msgid "Authors@R field gives more than one person with maintainer role:"
-msgstr " Authors@R フィールドに役割が明示された人がいません "
-
-#, fuzzy
-msgid ""
-"Authors@R field gives no person with maintainer role, valid email address "
-"and non-empty name."
+msgid "Authors@R field gives no person with maintainer role and email address."
 msgstr " Authors@R にメインテナの役割と e-mail アドレスを持った人がいません。 "
 
 msgid "Encoding '%s' is not portable"
@@ -333,8 +309,9 @@ msgstr ""
 msgid "Missing link or links in documentation object '%s':"
 msgstr " ドキュメントオブジェクト '%s' 中に欠損したリンクが見つかりました: "
 
-#, fuzzy
-msgid "See section 'Cross-references' in the 'Writing R Extensions' manual."
+msgid ""
+"See the information in section 'Cross-references' of the 'Writing R "
+"Extensions' manual."
 msgstr ""
 " マニュアル 'Writing R Extensions' の節 'Cross-references' 中の情報を参照して"
 "ください。 "
@@ -369,9 +346,9 @@ msgstr " パッケージのスタートアップ関数は %s を呼び出して�
 msgid "See section %s in '%s'."
 msgstr " セクション %s ('%s' 中) を見てください "
 
-#, fuzzy
 msgid ""
-"Package detach functions should have one argument with name starting with %s."
+"Package detach functions should have one arguments with names starting with "
+"%s."
 msgstr ""
 " パッケージの切り離し関数は %s で始まる名前を持つ一つの引数が必要です。 "
 
@@ -401,16 +378,6 @@ msgid "'library' or 'require' call not declared from: %s"
 msgstr ""
 " 'library' もしくは 'requires' による呼出しが以下から宣言されていません: %s "
 
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' calls not declared from:"
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: "
-
-#, fuzzy
-msgid "'loadNamespace' or 'requireNamespace' call not declared from: %s"
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: %s "
-
 msgid "'library' or 'require' calls to packages already attached by Depends:"
 msgstr ""
 " 'library' もしくは 'requires' により呼び出されたパッケージは、すでに "
@@ -421,16 +388,6 @@ msgid ""
 msgstr ""
 " 'library' もしくは 'requires' により、すでにDepends によりアタッチされた %s "
 "が呼び出されました "
-
-#, fuzzy
-msgid "'library' or 'require' calls in package code:"
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: "
-
-#, fuzzy
-msgid "'library' or 'require' call to %s in package code."
-msgstr ""
-" 'library' もしくは 'requires' による呼出しが以下から宣言されていません: "
 
 msgid "Namespaces in Imports field not imported from:"
 msgstr ""
@@ -524,8 +481,8 @@ msgstr ""
 " %s \n"
 " (NAMESPACE 中に)。 "
 
-msgid "Rd object required"
-msgstr ""
+msgid "argument 'file' must be a character string or connection"
+msgstr " 引数 'file' は文字ベクトルかコネクションでなければなりません "
 
 msgid "missing/empty %s field in '%s'"
 msgstr " 欠如もしくは空の %s 欄があります ('%s' 中) "
@@ -555,16 +512,6 @@ msgstr " 欠損もしくは空の名前を持つ Rd オブジェクトは扱え�
 
 msgid "No help on %s found in RdDB %s"
 msgstr " %s に関するいかなるヘルプも RdDB %s 中にはありません "
-
-msgid "'macros' must be TRUE or must specify existing macros"
-msgstr ""
-
-msgid "Macro file %s should only contain Rd macro definitions and comments"
-msgstr ""
-
-#, fuzzy
-msgid "No Rd macros in package '%s'."
-msgstr " package %s にドキュメントは見つけられませんでした "
 
 msgid "more than one \\examples section, using the first"
 msgstr " 2 つ以上の \\examples 節があります、1 番目を用います "
@@ -606,10 +553,6 @@ msgstr " '%s' に対する不正な値 : %s "
 msgid "Only one Rd section per %s is supported."
 msgstr " %s は Rd セクションを 1 つしか持てません。 "
 
-#, fuzzy
-msgid "DESCRIPTION file is for package '%s', not '%s'"
-msgstr " パッケージ '%s' には 'DESCRIPTION.in' がありません "
-
 msgid "Vignette product %s does not have a known filename extension (%s)"
 msgstr " ビニエットの生成物 %s は既知の拡張子を持っていません( %s ) "
 
@@ -629,9 +572,6 @@ msgstr ""
 
 msgid "unable to create temp directory %s"
 msgstr " 一時ディレクトリ %s を生成することが出来ません "
-
-msgid "Vignette '%s' is non-ASCII but has no declared encoding"
-msgstr ""
 
 msgid "Running"
 msgstr " 実行中 "
@@ -672,6 +612,12 @@ msgid "vignette filename '%s' does not match any of the '%s' filename patterns"
 msgstr ""
 " ビニエットファイル名 '%s' が、ファイル名パターン '%s' のいずれとも一致しませ"
 "ん "
+
+msgid "Inconsistent encoding specifications:"
+msgstr " 一貫していないエンコーディングの指定: "
+
+msgid "with %\\SweaveUTF8"
+msgstr " with %\\SweaveUTF8 "
 
 msgid "In '%s' vignettes '%s' and '%s' have the same vignette name"
 msgstr ""
@@ -900,9 +846,6 @@ msgstr " リンク %s (パッケージ %s 中の) は所在不明です "
 msgid "No docs found for package %s"
 msgstr " package %s にドキュメントは見つけられませんでした "
 
-msgid "URL %s was not found"
-msgstr " URL %s は見つかりませんでした "
-
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
 msgstr ""
@@ -911,6 +854,9 @@ msgstr ""
 
 msgid "unsupported URL %s"
 msgstr " 未サポートのURL %s "
+
+msgid "URL %s was not found"
+msgstr " URL %s は見つかりませんでした "
 
 msgid "httpd server disabled by R_DISABLE_HTTPD"
 msgstr " httpd サーバは R_DISABLE_HTTPD により無効にしました "
@@ -1190,6 +1136,9 @@ msgstr " %s が見つかりました（おそらく %s から） "
 msgid "testing '%s' failed"
 msgstr " '%s' のテストに失敗しました "
 
+msgid "%d of the package tests failed"
+msgstr " パッケージテストのうち %d 個が失敗しました "
+
 msgid "Testing examples for package %s"
 msgstr " %s パッケージに対する例をテストしています "
 
@@ -1238,18 +1187,6 @@ msgstr " 'x' は 1 つの文字でなければなりません "
 msgid "test '%s' is not available"
 msgstr " テスト '%s' は利用出来ません "
 
-msgid ":"
-msgstr " ： "
-
-msgid "latin1"
-msgstr ""
-
-msgid "ASCII"
-msgstr ""
-
-msgid "byte"
-msgstr ""
-
 msgid "argument 'x' must be a character vector"
 msgstr " 引数 'x' は文字型ベクトルでなければいけません "
 
@@ -1271,9 +1208,11 @@ msgstr " '%s' を '%s' に対して実行出来ません "
 msgid "unable to run %s on '%s'"
 msgstr " %s を '%s' に対して実行出来ません "
 
-#, fuzzy
-msgid "cannot coerce %s to logical"
+msgid "cannot coerce"
 msgstr " 強制変換できません "
+
+msgid "to logical"
+msgstr " 論理値へ "
 
 msgid "File 'DESCRIPTION' is missing."
 msgstr " ファイル 'DESCRIPTION' が見当たりません。 "
@@ -1298,10 +1237,6 @@ msgstr " パッケージコードを読み込めません "
 
 msgid "Call sequence:"
 msgstr " 呼び出しシーケンス: "
-
-#, fuzzy
-msgid "'text' must be a character vector"
-msgstr " 引数 'x' は文字型ベクトルでなければいけません "
 
 msgid "parsing '%s'"
 msgstr " '%s' を構文解析中 "
@@ -1431,29 +1366,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] " オブジェクト %s は 1 つ以上のデータ呼び出しにより生成されました "
 
-#, fuzzy
-msgid "%d of the package tests failed"
-msgid_plural "%d of the package tests failed"
-msgstr[0] " パッケージテストのうち %d 個が失敗しました "
-
-#, fuzzy
-#~ msgid "Undeclared package used in Rd xrefs:"
-#~ msgid_plural "Undeclared packages used in Rd xrefs:"
-#~ msgstr[0] " Rd xrefs 中に未知のパッケージ %s があります "
-
-#, fuzzy
-#~ msgid "Inconsistent encoding specifications: %s with %%\\SweaveUTF8"
-#~ msgstr " 一貫していないエンコーディングの指定: "
-
-#~ msgid "argument 'file' must be a character string or connection"
-#~ msgstr " 引数 'file' は文字ベクトルかコネクションでなければなりません "
-
-#~ msgid "with %\\SweaveUTF8"
-#~ msgstr " with %\\SweaveUTF8 "
-
-#~ msgid "to logical"
-#~ msgstr " 論理値へ "
-
 #~ msgid "Vignette product"
 #~ msgstr " ビニエットプロダクト "
 
@@ -1474,6 +1386,9 @@ msgstr[0] " パッケージテストのうち %d 個が失敗しました "
 
 #~ msgid ". The following files exists in directory"
 #~ msgstr " . ディレクトリには以下のファイルがあります "
+
+#~ msgid ":"
+#~ msgstr " ： "
 
 #~ msgid "Located more than one"
 #~ msgstr " 1個以上が見つかりました "
@@ -1964,6 +1879,9 @@ msgstr[0] " パッケージテストのうち %d 個が失敗しました "
 #~ " 想定されるリンクは \\link[pkg]{a} の形で、ここで 'a' はファイル名ではなく"
 #~ "エイリアスとして存在します。こうしたリンクは R < 2.10.0　では使えず、現在"
 #~ "のバージョンでは,  HTML (PDF ではなく) ヘルプ中でのみ有効です。 "
+
+#~ msgid "missing 'DESCRIPTION.in' for package '%s'"
+#~ msgstr " パッケージ '%s' には 'DESCRIPTION.in' がありません "
 
 #~ msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
 #~ msgstr ""

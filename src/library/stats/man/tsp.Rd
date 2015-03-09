@@ -3,6 +3,8 @@
 % Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
+\newcommand{\sspace}{\ifelse{latex}{\out{~}}{ }}
+
 \name{tsp}
 \title{Tsp Attribute of Time-Series-like Objects}
 \alias{tsp}

@@ -10,5 +10,3 @@ importFrom(Matrix, t,mean,colMeans,colSums)
 
 exportClasses("classA")
 exportMethods("plot")
-
-export(nil)

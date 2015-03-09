@@ -1,11 +1,11 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997 Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2015 The R Core Team
+ *  Copyright (C) 1998-2014 The R Core Team
  *
  *  This source code module:
  *  Copyright (C) 1997, 1998 Paul Murrell and Ross Ihaka
- *  Copyright (C) 1998-2015 The R Core Team
+ *  Copyright (C) 1998-2014 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -827,7 +827,7 @@ static int TranslatedSymbol(SEXP expr)
 	code == 0321                    ||   /* nabla */
 	0)
 	return code;
-    else // not translated
+    else
 	return 0;
 }
 
@@ -876,6 +876,7 @@ static int UsingItalics(pGEcontext gc)
 	    gc->fontface == BoldItalicFont);
 }
 
+extern int Rf_AdobeSymbol2ucs2(int n);
 static BBOX GlyphBBox(int chr, pGEcontext gc, pGEDevDesc dd)
 {
     BBOX bbox;
@@ -1664,7 +1665,7 @@ static int AccentAtom(SEXP expr)
     return NameAtom(expr) && (AccentCode(expr) != 0);
 }
 
-static void NORET InvalidAccent(SEXP expr)
+static void InvalidAccent(SEXP expr)
 {
     errorcall(expr, _("invalid accent"));
 }
@@ -1942,8 +1943,8 @@ static int DelimCode(SEXP expr, SEXP head)
     else if (StringAtom(head) && length(head) > 0) {
 	if (StringMatch(head, "|"))
 	    code = '|';
-	else if (StringMatch(head, "||"))  // historical anomaly
-	    code = '|';
+	else if (StringMatch(head, "||"))
+	    code = 2;
 	else if (StringMatch(head, "("))
 	    code = '(';
 	else if (StringMatch(head, ")"))
@@ -1991,14 +1992,22 @@ static BBOX RenderGroup(SEXP expr, int draw, mathContext *mc,
     bbox = NullBBox();
     code = DelimCode(expr, CADR(expr));
     gc->cex = DelimSymbolMag * gc->cex;
-    if (code != '.')
+    if (code == 2) {
+	bbox = RenderSymbolChar('|', draw, mc, gc, dd);
+	bbox = RenderSymbolChar('|', draw, mc, gc, dd);
+    }
+    else if (code != '.')
 	bbox = RenderSymbolChar(code, draw, mc, gc, dd);
     gc->cex = cexSaved;
     bbox = CombineBBoxes(bbox, RenderElement(CADDR(expr), draw, mc, gc, dd));
     bbox = RenderItalicCorr(bbox, draw, mc, gc, dd);
     code = DelimCode(expr, CADDDR(expr));
     gc->cex = DelimSymbolMag * gc->cex;
-    if (code != '.')
+    if (code == 2) {
+	bbox = CombineBBoxes(bbox, RenderSymbolChar('|', draw, mc, gc, dd));
+	bbox = CombineBBoxes(bbox, RenderSymbolChar('|', draw, mc, gc, dd));
+    }
+    else if (code != '.')
 	bbox = CombineBBoxes(bbox, RenderSymbolChar(code, draw, mc, gc, dd));
     gc->cex = cexSaved;
     return bbox;
@@ -2028,6 +2037,7 @@ static BBOX RenderDelim(int which, double dist, int draw, mathContext *mc,
 	return NullBBox();
 	break;
     case '|':
+    case 2:
 	top = 239; ext = 239; bot = 239; mid = 0;
 	break;
     case '(':

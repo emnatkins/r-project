@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2015   The R Core Team.
+ *  Copyright (C) 1998-2014   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -328,16 +328,6 @@ void attribute_hidden InitOptions(void)
 }
 
 
-SEXP attribute_hidden do_getOption(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    SEXP x = CAR(args);
-    if (!isString(x) || LENGTH(x) != 1)
-	error(_("'%s' must be a character string"), "x");
-    return duplicate(GetOption1(install(CHAR(STRING_ELT(x, 0)))));
-}
-
-
 /* This needs to manage R_Visible */
 SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -556,12 +546,10 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarLogical(k)));
 	    }
 	    else if (streql(CHAR(namei), "OutDec")) {
-		if (TYPEOF(argi) != STRSXP || LENGTH(argi) != 1)
+		if (TYPEOF(argi) != STRSXP || LENGTH(argi) != 1 ||
+		    strlen(CHAR(STRING_ELT(argi, 0))) !=1)
 		    error(_("invalid value for '%s'"), CHAR(namei));
-		static char sdec[11];
-		strncpy(sdec, CHAR(STRING_ELT(argi, 0)), 10);
-		sdec[10] = '\0';
-		OutDec = sdec;
+		OutDec = CHAR(STRING_ELT(argi, 0))[0];
 		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));
 	    }
 	    else if (streql(CHAR(namei), "max.contour.segments")) {

@@ -218,8 +218,7 @@ edit.matrix <-
                 call. = FALSE, immediate. = TRUE)
 
     dn <- dimnames(name)
-    ## <FIXME split.matrix>
-    datalist <- split(c(name), col(name))
+    datalist <- split(name, col(name))
     if(!is.null(dn[[2L]])) names(datalist) <- dn[[2L]]
     else names(datalist) <- paste0("col", 1L:ncol(name))
     modes <- as.list(rep.int(mode(name), ncol(name)))

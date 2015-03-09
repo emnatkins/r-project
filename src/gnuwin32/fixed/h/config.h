@@ -153,11 +153,6 @@
 /* Define to 1 if you have the `ctan' function. */
 #define HAVE_CTAN 1
 
-/* Define to 1 if you have the <curl/curl.h> header file.
-   Set on the command line where supported.
-*/
-/* #undef HAVE_CURL_CURL_H */
-
 /* Define to 1 if you have the `ctanh' function. */
 #define HAVE_CTANH 1
 
@@ -677,9 +672,6 @@
 
 /* Define to 1 if you have the `stat' function. */
 #define HAVE_STAT 1
-
-/* Define to 1 if you have the <stdalign.h> header file. */
-/* #undef HAVE_STDALIGN_H */
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #define HAVE_STDARG_H 1
