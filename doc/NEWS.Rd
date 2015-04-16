@@ -5,23 +5,7 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The \code{print} method for \code{methods()} gains a
-      \code{byclass} argument.
-    }
-  }
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item The included versions of \code{zlib}, \code{bzip2},
-      \code{xz} and PCRE have been removed, so system versions are
-      required (see the \sQuote{R Installation and Administration} manual).
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.2.0}{
+\section{\Rlogo CHANGES IN 3.2.0}{
   \subsection{NEW FEATURES}{
     \itemize{
       \item \code{anyNA()} gains a \code{recursive} argument.
@@ -1007,7 +991,7 @@
       dendrogram.
 
       \item The \code{plot} method for \code{"hclust"} objects gets an
-      optional argument \code{check}; when that is true (the default) it
+      optional argument \code{check}; When that is true (the default) it
       checks more carefully for valid input.
 
       \item (Windows only) If a user chose to install 64 bit \R but not

@@ -555,7 +555,7 @@ function(file)
     nms <- db[, 1L]
     ind <- grepl(re_v, nms, ignore.case = TRUE)
     if(!all(ind))
-        warning("Cannot extract version info from the following section titles:\n", paste(unique(nms[!ind]), collapse = "  "), sep = "")
+        warning("Cannot extract version info from the following section titles:\n", paste(unique(nms[!ind]), collapse = ", "), sep = "")
     .make_news_db(cbind(ifelse(ind,
                                sub(re_v, "\\1", nms, ignore.case = TRUE),
                                NA_character_),
@@ -571,13 +571,10 @@ function(file)
 .extract_news_from_Rd <-
 function(x)
 {
-    spaces <- function(n)
-        paste(rep.int(" ", n), collapse = "")
-    
-    get_section_names <- function(x)
+    .get_Rd_section_names <- function(x)
         sapply(x, function(e) .Rd_get_text(e[[1L]]))
 
-    get_item_texts <- function(x) {
+    do_chunk <- function(x) {
         ## Currently, chunks should consist of a single \itemize list
         ## containing the news items.  Notify if there is more than one
         ## such list, and stop if there is none.
@@ -609,28 +606,28 @@ function(x)
 
         ## Try to find the column offset of the top-level bullets.
         pat <- "^( *)\036.*"
-        pos <- grep(pat, out)
-        if(!length(pos)) return(character())
-        off <- min(nchar(sub(pat, "\\1", out[pos])))
-        pat <- sprintf("^%s\036 *", spaces(off))
+        off <- min(nchar(sub(pat, "\\1", out[grepl(pat, out)])))
+        pat <- sprintf("^%s\036 ",
+                       paste(rep.int(" ", off), collapse = ""))
         s <- sub(pat, "\036", out)
         ## Try to remove some indent for nested material.
-        pat <- sprintf("^%s", spaces(off + 2L))
+        pat <- sprintf("^%s",
+                       paste(rep.int(" ", off + 2L), collapse = ""))
         s <- sub(pat, "", s)
-        
-        s <- paste(s, collapse = "\n")
-        s <- trimws(gsub("\036", "*",
-                         unlist(strsplit(s, "\n\036", fixed = TRUE))))
-        s[nzchar(s)]
-    }
 
-    cbind_safely <- function(u, v)
-        cbind(rep_len(u, NROW(v)), v)
+        s <- paste(s, collapse = "\n")
+        s <- sub("^[[:space:]]*\036", "", s)
+        s <- sub("[[:space:]]*$", "", s)
+        ## <FIXME>
+        ## Could be more fancy and use \u2022 "if possible".
+        gsub("\036", "*", unlist(strsplit(s, "\n\036", fixed = TRUE)))
+        ## </FIXME>
+    }
 
     y <- x[RdTags(x) == "\\section"]
     do.call(rbind,
-            Map(cbind_safely,
-                get_section_names(y),
+            Map(cbind,
+                .get_Rd_section_names(y),
                 lapply(y,
                        function(e) {
                            z <- e[[2L]]
@@ -638,14 +635,13 @@ function(x)
                            if(any(ind)) {
                                z <- z[ind]
                                do.call(rbind,
-                                       Map(cbind_safely,
-                                           get_section_names(z),
+                                       Map(cbind,
+                                           .get_Rd_section_names(z),
                                            lapply(z,
                                                   function(e)
-                                                  get_item_texts(e[[2L]]))))
+                                                  do_chunk(e[[2L]]))))
                            } else {
-                               cbind_safely(NA_character_,
-                                            get_item_texts(z))
+                               cbind(NA_character_, do_chunk(z))
                            }
                        })))
 

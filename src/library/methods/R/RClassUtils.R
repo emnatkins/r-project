@@ -1967,12 +1967,12 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     if(length(supers) != length(prevSupers) ||
        any(is.na(match(supers, prevSupers))))
         return(FALSE)
-    verbose <- getOption("verbose")
+    warnLevel <- getOption("warn")
     S3 <- "oldClass" %in% supers
     if(S3) {
         ## it is possible one  of these is inconsistent, but unlikely
         ## and we will get here often from multiple setOldClass(...)'s
-        if(verbose)
+        if(warnLevel)
             message(gettextf("Note: the specification for S3 class %s in package %s seems equivalent to one from package %s: not turning on duplicate class definitions for this class.",
                              dQuote(def@className),
                              sQuote(def@package),
@@ -1986,7 +1986,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     if(dupsExist) {
         dups <- match(supers, multipleClasses(), 0) > 0
         if(any(dups)) {
-            if(verbose)
+            if(warnLevel)
                 message(gettextf("Note: some superclasses of class %s in package %s have duplicate definitions.  This definition is not being treated as equivalent to that from package %s",
                                  dQuote(def@className),
                                  sQuote(def@package),
@@ -2011,7 +2011,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
               as.character(packageSlot(prevWhat)))))
             return(FALSE)
     }
-    if(verbose)
+    if(warnLevel)
         message(gettextf("Note: the specification for class %s in package %s seems equivalent to one from package %s: not turning on duplicate class definitions for this class.",
                          dQuote(def@className),
                          sQuote(def@package),

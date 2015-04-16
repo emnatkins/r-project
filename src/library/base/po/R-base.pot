@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: base 3.3.0\n"
-"POT-Creation-Date: 2015-03-24 20:05\n"
+"Project-Id-Version: base 3.2.0\n"
+"POT-Creation-Date: 2015-03-24 11:51\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1025,9 +1025,6 @@ msgid "cannot add to exports of a sealed namespace"
 msgstr ""
 
 msgid "undefined exports: %s"
-msgstr ""
-
-msgid "re-exports %s not exported by %s"
 msgstr ""
 
 msgid "package %s has no 'NAMESPACE' file"
