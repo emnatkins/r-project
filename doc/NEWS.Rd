@@ -5,101 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
-    \itemize{
-      \item \code{nchar(x, *)} gains a new argument \code{keepNA} which
-      governs how the result for \code{NA}s in \code{x} is determined.
-      The new default \code{keepNA = NA} returns \code{NA} where
-      \code{x} is \code{NA}, unless for \code{type = "width"} which still
-      returns \code{2}, the formatting / printing width of \code{NA}.
-
-      \code{nzchar(x)} gets the same new argument, with default
-      \code{keepNA = FALSE} however.  Consequently \code{nzchar(x)} keeps
-      returning a non-\code{NA} logical vector, back compatibly.
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The \code{print} method for \code{methods()} gains a
-      \code{byclass} argument.
-
-      \item New functions \code{validEnc()} and \code{validUTF8()} to
-      give access to the validity checks for inputs used by
-      \code{grep()} and friends.
-
-      \item Experimental new functionality for S3 method checking, notably
-      \code{isS3method()}.  Also, the \R \sQuote{language element} names
-      are exported as \code{tools::langElts}.
-
-      \item \code{str(x)} now displays \code{"Time-Series"} also for
-      matrix (multivariate) time-series, i.e. when \code{is.ts(x)} is true.
-
-      \item (Windows only)  The GUI menu item to install local packages
-      now accepts \file{*.tar.gz} files as well as \file{*.zip} files
-      (but defaults to the latter).
-
-      \item New programmeR's utility function \code{chkDots()}.
-
-      \item \code{D()} now signals an error when given invalid input,
-      rather than silently returning \code{NA}.  (Request of John Nash.)
-
-      \item \code{formula} objects are slightly more \dQuote{first class}:
-      e.g., \code{formula()} or \code{new("formula", y ~ x)} are now
-      valid.  Similarly, for \code{"table"}, \code{"ordered"} and
-      \code{"summary.table"}.  Packages defining S4 classes with the above
-      S3/S4 classes as slots should be reinstalled.
-      % notably if their classes are reused in other
-      % packages. e.g. re-install arules for arulesSequence, flexmix for betareg
-
-      \item New function \code{strrep()} for repeating the elements of a
-      character vector.
-
-      \item \code{rapply} preserves attributes on the list when
-      \code{how="replace"}.
-
-      \item New S3 generic function \code{sigma()} with methods for
-      extracting the estimated standard deviation aka \dQuote{residual
-	standard deviation} from a fitted model.
-
-      \item \code{news()} now displays \R and package news files within
-      the HTML help system if it is available.  If no news file is found,
-      a visible \code{NULL} is returned to the console.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item \command{R CMD check} has a new option
-      \option{--ignore-vignettes} for use with non-Sweave vignettes
-      whose \samp{VignetteBuilder} package is not available.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item The included versions of \code{zlib}, \code{bzip2},
-      \code{xz} and PCRE have been removed, so system versions are
-      required (see the \sQuote{R Installation and Administration} manual).
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item C-level \code{asChar(x)} is fixed for when \code{x} is not a
-      vector, and it returns \dQuote{TRUE}/\dQuote{FALSE} instead of
-      \dQuote{T}/\dQuote{F} for logical vectors.
-
-      \item \code{.colSums()} etc (with an initial dot) first argument
-      name \code{x} matches \code{colSums()} such that error messages
-      are correct.
-
-      \item A \code{coef.maov()} method has been added to allow
-      \code{vcov()} to work with multivariate results. (\PR{16380})
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.2.1}{
   \subsection{NEW FEATURES}{
     \itemize{
@@ -188,7 +93,7 @@
       correctly propagated from \code{.getRequiredPackages2()}.
 
       \item Under some circumstances using the internal PCRE when
-      building \R from source would cause external libs such as
+      building \R fron source would cause external libs such as
       \code{-llzma} to be omitted from the main link.
 
       \item The .Primitive default methods of the logic operators, i.e.,

@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2015-06-14 r68512) -- "Unsuffered Consequences"
+R version 3.2.1 RC (2015-06-10 r68510) -- "World-Famous Astronaut"
 Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -340,4 +340,4 @@ List of 6
 > 
 > proc.time()
    user  system elapsed 
-  0.177   0.015   0.182 
+  0.186   0.015   0.191 

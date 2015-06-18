@@ -2704,7 +2704,6 @@ BuiltinValues(int all, int intern, SEXP values, int *indx)
     }
 }
 
-// .Internal(ls(envir, all.names, sorted)) :
 SEXP attribute_hidden do_ls(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     checkArity(op, args);
@@ -2728,7 +2727,7 @@ SEXP attribute_hidden do_ls(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_lsInternal3(env, all, sort_nms);
 }
 
-/* takes an environment, a boolean indicating whether to get all
+/* takes a *list* of environments, a boolean indicating whether to get all
    names and a boolean if sorted is desired */
 SEXP R_lsInternal3(SEXP env, Rboolean all, Rboolean sorted)
 {
@@ -2946,27 +2945,14 @@ SEXP attribute_hidden do_eapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     return(ans);
 }
 
-/* Leaks out via inlining in src/library/tools/src/ */
-int Rf_envlength(SEXP rho)
+int envlength(SEXP rho)
 {
     if(IS_USER_DATABASE(rho)) {
         R_ObjectTable *tb = (R_ObjectTable*)
 	    R_ExternalPtrAddr(HASHTAB(rho));
-        return (int) xlength(tb->objects(tb));
+        return(xlength(tb->objects(tb)));
     } else if( HASHTAB(rho) != R_NilValue)
-	return HashTableSize(HASHTAB(rho), 1);
-    else
-	return FrameSize(FRAME(rho), 1);
-}
-
-R_xlen_t Rf_envxlength(SEXP rho)
-{
-    if(IS_USER_DATABASE(rho)) {
-        R_ObjectTable *tb = (R_ObjectTable*)
-	    R_ExternalPtrAddr(HASHTAB(rho));
-        return xlength(tb->objects(tb));
-    } else if( HASHTAB(rho) != R_NilValue)
-	return HashTableSize(HASHTAB(rho), 1);
+        return HashTableSize(HASHTAB(rho), 1);       
     else
 	return FrameSize(FRAME(rho), 1);
 }

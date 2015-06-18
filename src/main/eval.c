@@ -3178,31 +3178,16 @@ static SEXP seq_int(int n1, int n2)
 # ifdef COMPACT_INTSEQ
 #  define INTSEQSXP 9999
 # endif
-#define CACHE_SCALARS
 static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 {
     /* no error checking since only called with tag != 0 */
     SEXP value;
     switch (s->tag) {
     case REALSXP: 
-#ifdef CACHE_SCALARS
-	if (R_CachedScalarReal != NULL) {
-	    value = R_CachedScalarReal;
-	    R_CachedScalarReal = NULL;
-	}
-	else
-#endif
 	value = allocVector(REALSXP, 1);
 	REAL(value)[0] = s->u.dval;
 	break;
     case INTSXP:
-#ifdef CACHE_SCALARS
-	if (R_CachedScalarInteger != NULL) {
-	    value = R_CachedScalarInteger;
-	    R_CachedScalarInteger = NULL;
-	}
-	else
-#endif
 	value = allocVector(INTSXP, 1);
 	INTEGER(value)[0] = s->u.ival;
 	break;
@@ -3298,24 +3283,8 @@ static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 
 #define SETSTACK_LOGICAL(i, v) SETSTACK_LOGICAL_PTR(R_BCNodeStackTop + (i), v)
 
-/* The next two macros will allow reuse a scalar box, if provided. The
-   box is assumed to be of the correct type and size and to have no
-   attributes. */
-#ifdef CACHE_SCALARS
-#define SETSTACK_REAL_EX(idx, dval, ans) do {		\
-	SEXP __ans__ = (ans);				\
-	if (__ans__ && R_CachedScalarReal == NULL)	\
-	    R_CachedScalarReal = __ans__;		\
-	SETSTACK_REAL(idx, dval);			\
-    } while (0)
-
-#define SETSTACK_INTEGER_EX(idx, ival, ans) do {	\
-	SEXP __ans__ = (ans);				\
-	if (__ans__ && R_CachedScalarInteger == NULL)	\
-	    R_CachedScalarInteger = __ans__;		\
-	SETSTACK_INTEGER(idx, ival);			\
-    } while (0)
-#else
+/* The next two macros will reuse a provided scalar box, if
+   provided. The box is assumed to be of the correct typa and size. */
 #define SETSTACK_REAL_EX(idx, dval, ans) do { \
 	if (ans) {			      \
 	    REAL(ans)[0] = dval;	      \
@@ -3331,7 +3300,6 @@ static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 	}					 \
 	else SETSTACK_INTEGER(idx, ival);	 \
     } while (0)
-#endif
 
 typedef union { double dval; int ival; } scalar_value_t;
 
@@ -5195,7 +5163,6 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	case STRSXP:
 	case RAWSXP:
 	    value = allocVector(TYPEOF(seq), 1);
-	    SET_NAMED(value, 1);
 	    BCNPUSH(value);
 	    break;
 	default: BCNPUSH(R_NilValue);

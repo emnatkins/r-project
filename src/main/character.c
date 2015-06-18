@@ -170,9 +170,9 @@ SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
     int keepNA;
     if(nargs >= 4) {
 	keepNA = asLogical(CADDDR(args));
-	if (keepNA == NA_LOGICAL) // default
+	if (keepNA == NA_LOGICAL)
 	    keepNA = (type_ == Width) ? FALSE : TRUE;
-    } else  keepNA = (type_ == Width) ? FALSE : TRUE;
+    } else  keepNA = FALSE; // default
     PROTECT(s = allocVector(INTSXP, len));
     const void *vmax = vmaxget();
     for (R_xlen_t i = 0; i < len; i++) {
@@ -1416,58 +1416,4 @@ SEXP attribute_hidden stringSuffix(SEXP string, int fromIndex) {
 
     UNPROTECT(1); /* res */
     return res;
-}
-
-SEXP attribute_hidden do_strrep(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP d, s, x, n;
-    R_xlen_t is, ix, in, ns, nx, nn;
-    const char *xi;
-    int j, ni, nc;
-    const char *cbuf;
-    char *buf;
-    const void *vmax;
-
-    checkArity(op, args);
-
-    x = CAR(args); args = CDR(args);
-    n = CAR(args);
-
-    nx = XLENGTH(x);
-    nn = XLENGTH(n);
-    if((nx == 0) || (nn == 0))
-	return allocVector(STRSXP, 0);
-
-    ns = (nx > nn) ? nx : nn;
-
-    PROTECT(s = allocVector(STRSXP, ns));
-    vmax = vmaxget();
-    is = ix = in = 0;
-    for(; is < ns; is++) {
-	ni = INTEGER(n)[in];
-	if((STRING_ELT(x, ix) == NA_STRING) || (ni == NA_INTEGER)) {
-	    SET_STRING_ELT(s, is, NA_STRING);
-	    continue;
-	}
-	if(ni < 0)
-	    error(_("invalid '%s' value"), "times");
-	xi = CHAR(STRING_ELT(x, ix));
-	nc = (int) strlen(xi);
-	cbuf = buf = CallocCharBuf(nc * ni);
-	for(j = 0; j < ni; j++) {
-	    strcpy(buf, xi);
-	    buf += nc;
-	}
-	SET_STRING_ELT(s, is, markKnown(cbuf, STRING_ELT(x, ix)));
-	Free(cbuf);
-	vmaxset(vmax);
-	ix = (++ix == nx) ? 0 : ix;
-	in = (++in == nn) ? 0 : in;
-    }
-    /* Copy names if not recycled. */
-    if((ns == nx) &&
-       (d = getAttrib(x, R_NamesSymbol)) != R_NilValue)
-	setAttrib(s, R_NamesSymbol, d);
-    UNPROTECT(1);
-    return s;
 }

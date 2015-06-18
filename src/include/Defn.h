@@ -769,9 +769,6 @@ extern SEXP R_cmpfun(SEXP);
 extern void R_init_jit_enabled(void);
 extern void R_initAsignSymbols(void);
 
-LibExtern SEXP R_CachedScalarReal INI_as(NULL);
-LibExtern SEXP R_CachedScalarInteger INI_as(NULL);
-
 LibExtern int R_num_math_threads INI_as(1);
 LibExtern int R_max_num_math_threads INI_as(1);
 
@@ -859,6 +856,7 @@ LibExtern Rboolean UseInternet2;
 # define EncodeString           Rf_EncodeString
 # define EnsureString 		Rf_EnsureString
 # define endcontext		Rf_endcontext
+# define envlength		Rf_envlength
 # define ErrorMessage		Rf_ErrorMessage
 # define evalList		Rf_evalList
 # define evalListKeepMissing	Rf_evalListKeepMissing
@@ -1060,6 +1058,7 @@ int DispatchGroup(const char *, SEXP,SEXP,SEXP,SEXP,SEXP*);
 SEXP duplicated(SEXP, Rboolean);
 R_xlen_t any_duplicated(SEXP, Rboolean);
 R_xlen_t any_duplicated3(SEXP, SEXP, Rboolean);
+int envlength(SEXP);
 SEXP evalList(SEXP, SEXP, SEXP, int);
 SEXP evalListKeepMissing(SEXP, SEXP);
 int factorsConform(SEXP, SEXP);
