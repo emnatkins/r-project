@@ -1,5 +1,5 @@
 % File src/library/base/man/grep.Rd
-% Part of the R package, https://www.R-project.org
+% Part of the R package, http://www.R-project.org
 % Copyright 1995-2015 R Core Team
 % Distributed under GPL 2 or later
 
@@ -40,7 +40,7 @@ regexpr(pattern, text, ignore.case = FALSE, perl = FALSE,
 gregexpr(pattern, text, ignore.case = FALSE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
 
-regexec(pattern, text, ignore.case = FALSE, perl = FALSE,
+regexec(pattern, text, ignore.case = FALSE,
         fixed = FALSE, useBytes = FALSE)
 }
 \arguments{

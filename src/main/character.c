@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/
+ *  http://www.r-project.org/Licenses/
  */
 
 /* The character functions in this file are
@@ -134,7 +134,7 @@ SEXP attribute_hidden do_nzchar(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 int R_nchar(SEXP string, nchar_type type_,
-	    Rboolean allowNA, Rboolean keepNA, const char* msg_name)
+            Rboolean allowNA, Rboolean keepNA, const char* msg_name)
 {
     if (string == NA_STRING)
 	return keepNA ? NA_INTEGER : 2;
@@ -249,9 +249,9 @@ SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
     int keepNA;
     if(nargs >= 4) {
 	keepNA = asLogical(CADDDR(args));
-	if (keepNA == NA_LOGICAL) // default
+	if (keepNA == NA_LOGICAL)
 	    keepNA = (type_ == Width) ? FALSE : TRUE;
-    } else  keepNA = (type_ == Width) ? FALSE : TRUE;
+    } else  keepNA = FALSE; // default
     PROTECT(s = allocVector(INTSXP, len));
     int *s_ = INTEGER(s);
     for (R_xlen_t i = 0; i < len; i++) {
@@ -1091,13 +1091,13 @@ SEXP attribute_hidden do_chartr(SEXP call, SEXP op, SEXP args, SEXP env)
     _new = CAR(args); args = CDR(args);
     x = CAR(args);
     n = XLENGTH(x);
-    if (!isString(old) || LENGTH(old) < 1 || STRING_ELT(old, 0) == NA_STRING)
+    if (!isString(old) || length(old) < 1 || STRING_ELT(old, 0) == NA_STRING)
 	error(_("invalid '%s' argument"), "old");
-    if (LENGTH(old) > 1)
+    if (length(old) > 1)
 	warning(_("argument '%s' has length > 1 and only the first element will be used"), "old");
-    if (!isString(_new) || LENGTH(_new) < 1 || STRING_ELT(_new, 0) == NA_STRING)
+    if (!isString(_new) || length(_new) < 1 || STRING_ELT(_new, 0) == NA_STRING)
 	error(_("invalid '%s' argument"), "new");
-    if (LENGTH(_new) > 1)
+    if (length(_new) > 1)
 	warning(_("argument '%s' has length > 1 and only the first element will be used"), "new");
     if (!isString(x)) error("invalid '%s' argument", "x");
 
@@ -1395,7 +1395,7 @@ SEXP attribute_hidden do_strtoi(SEXP call, SEXP op, SEXP args, SEXP env)
     x = CAR(args); args = CDR(args);
     b = CAR(args);
 
-    if(!isInteger(b) || (LENGTH(b) < 1))
+    if(!isInteger(b) || (length(b) < 1))
 	error(_("invalid '%s' argument"), "base");
     base = INTEGER(b)[0];
     if((base != 0) && ((base < 2) || (base > 36)))
@@ -1420,63 +1420,9 @@ SEXP attribute_hidden stringSuffix(SEXP string, int fromIndex) {
     SEXP res = PROTECT(allocVector(STRSXP, newLen));
     int i;
     for(i = 0; i < newLen; i++) {
-	SET_STRING_ELT(res, i, STRING_ELT(string, fromIndex++));
+        SET_STRING_ELT(res, i, STRING_ELT(string, fromIndex++));
     }
 
     UNPROTECT(1); /* res */
     return res;
-}
-
-SEXP attribute_hidden do_strrep(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP d, s, x, n;
-    R_xlen_t is, ix, in, ns, nx, nn;
-    const char *xi;
-    int j, ni, nc;
-    const char *cbuf;
-    char *buf;
-    const void *vmax;
-
-    checkArity(op, args);
-
-    x = CAR(args); args = CDR(args);
-    n = CAR(args);
-
-    nx = XLENGTH(x);
-    nn = XLENGTH(n);
-    if((nx == 0) || (nn == 0))
-	return allocVector(STRSXP, 0);
-
-    ns = (nx > nn) ? nx : nn;
-
-    PROTECT(s = allocVector(STRSXP, ns));
-    vmax = vmaxget();
-    is = ix = in = 0;
-    for(; is < ns; is++) {
-	ni = INTEGER(n)[in];
-	if((STRING_ELT(x, ix) == NA_STRING) || (ni == NA_INTEGER)) {
-	    SET_STRING_ELT(s, is, NA_STRING);
-	    continue;
-	}
-	if(ni < 0)
-	    error(_("invalid '%s' value"), "times");
-	xi = CHAR(STRING_ELT(x, ix));
-	nc = (int) strlen(xi);
-	cbuf = buf = CallocCharBuf(nc * ni);
-	for(j = 0; j < ni; j++) {
-	    strcpy(buf, xi);
-	    buf += nc;
-	}
-	SET_STRING_ELT(s, is, markKnown(cbuf, STRING_ELT(x, ix)));
-	Free(cbuf);
-	vmaxset(vmax);
-	ix = (++ix == nx) ? 0 : ix;
-	in = (++in == nn) ? 0 : in;
-    }
-    /* Copy names if not recycled. */
-    if((ns == nx) &&
-       (d = getAttrib(x, R_NamesSymbol)) != R_NilValue)
-	setAttrib(s, R_NamesSymbol, d);
-    UNPROTECT(1);
-    return s;
 }

@@ -1,5 +1,5 @@
 #  File src/library/methods/R/as.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 as <-
   ## Returns the version of this object coerced to be the given `Class'.
@@ -261,7 +261,7 @@ setAs <-
                             domain = NA)
                 }
                 method <- eval(function(from, to, value)NULL)
-                body(method, envir = .GlobalEnv) <- replace
+                functionBody(method, envir = .GlobalEnv) <- replace
             }
             setMethod("coerce<-", c(from, to), method, where = where)
         }

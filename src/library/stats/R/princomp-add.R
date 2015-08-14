@@ -1,5 +1,5 @@
 #  File src/library/stats/R/princomp-add.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 predict.princomp <- function(object, newdata, ...)
 {
@@ -57,7 +57,7 @@ print.summary.princomp <-
         cat("\nLoadings:\n")
         cx <- format(round(x$loadings, digits = digits))
         cx[abs(x$loadings) < cutoff] <-
-            strrep(" ", nchar(cx[1,1], type="w"))
+            paste(rep(" ", nchar(cx[1,1], type="w")), collapse="")
         print(cx, quote = FALSE, ...)
     }
     invisible(x)

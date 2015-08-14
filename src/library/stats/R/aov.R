@@ -1,5 +1,5 @@
 #  File src/library/stats/R/aov.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #  Copyright (C) 1998 B. D. Ripley
@@ -15,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
                 contrasts = NULL, ...)
@@ -407,12 +407,6 @@ coef.aov <- function(object, ...)
     z <- object$coefficients
     z[!is.na(z)]
 }
-
-# For maov objects, the coefficients are a matrix and
-# NAs can't sensibly be removed (PR#16380)
-
-coef.maov <- function(object, ...)
-    object$coefficients
 
 alias <- function(object, ...) UseMethod("alias")
 

@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/
+ *  http://www.r-project.org/Licenses/
  */
 
 /* <UTF8> This does byte-level access, e.g. isspace, but is OK. */
@@ -307,7 +307,7 @@ SEXP attribute_hidden do_readEnviron(SEXP call, SEXP op, SEXP args, SEXP env)
 
     checkArity(op, args);
     SEXP x = CAR(args);
-    if (!isString(x) || LENGTH(x) != 1)
+    if (length(x) != 1 || !isString(x))
 	errorcall(call, _("argument '%s' must be a character string"), "x");
     const char *fn = R_ExpandFileName(translateChar(STRING_ELT(x, 0)));
     int res = process_Renviron(fn);

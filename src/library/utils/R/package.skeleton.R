@@ -1,5 +1,5 @@
 #  File src/library/utils/R/package.skeleton.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 package.skeleton <-
     function(name = "anRpackage", list = character(), environment = .GlobalEnv,
@@ -46,10 +46,10 @@ package.skeleton <-
     if(!is.character(list))
 	stop("'list' must be a character vector naming R objects")
     if(use_code_files || !envIsMissing) {
-        classesList <- methods::getClasses(environment)
+        classesList <- getClasses(environment)
         classes0 <- .fixPackageFileNames(classesList)
         names(classes0) <- classesList
-        methodsList <- methods::getGenerics(environment)
+        methodsList <- getGenerics(environment)
         methods0 <- .fixPackageFileNames(methodsList)
         names(methods0) <- methodsList
     }
@@ -215,14 +215,14 @@ package.skeleton <-
 					  filename =
 					  file.path(docs_dir,
 						    sprintf("%s-methods.Rd", methods0[item])),
-					  methods::findMethods(item, where = environment))
+					  findMethods(item, where = environment))
 	       })
     }))
     ## don't document generic functions from other packages
     for(item in methodsList) {
         if(exists(item, envir = environment, inherits = FALSE)) {
             ff <- get(item, envir = environment)
-            if(methods::is(ff, "genericFunction") && !identical(ff@package, name)) # don't document
+            if(is(ff, "genericFunction") && !identical(ff@package, name)) # don't document
                 file.remove(file.path(docs_dir, sprintf("%s.Rd", list0[item])))
         }
     }

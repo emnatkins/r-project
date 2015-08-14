@@ -1,5 +1,5 @@
 #  File src/library/stats/R/zzModels.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright 1997, 1999 (C) Jose C. Pinheiro and Douglas M. Bates
 #  Copyright 1999-2012 The R Core Team
@@ -15,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ##*## SSasymp - asymptotic regression model
 

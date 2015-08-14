@@ -1,5 +1,5 @@
 % File src/library/base/man/ns-topenv.Rd
-% Part of the R package, https://www.R-project.org
+% Part of the R package, http://www.R-project.org
 % Copyright 1995-2015 R Core Team
 % Distributed under GPL 2 or later
 
@@ -35,10 +35,8 @@ topenv(new.env()) # also global env
 topenv(environment(ls))# namespace:base
 topenv(environment(lm))# namespace:stats
 \dontshow{
-stopifnot(identical(.GlobalEnv,        topenv(new.env())),
-          identical(.GlobalEnv,        topenv(.GlobalEnv)),
-          identical(baseenv(),         topenv(baseenv())),
-          identical(.BaseNamespaceEnv, topenv(.BaseNamespaceEnv)),
+stopifnot(identical(.GlobalEnv, topenv(.GlobalEnv)),
+          identical(.GlobalEnv, topenv(new.env())),
           identical(topenv(environment(ls)), asNamespace("base")),
           identical(topenv(environment(lm)), asNamespace("stats")))
 }

@@ -1,5 +1,5 @@
 #  File src/library/methods/R/makeBasicFunsList.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## the executable code to complete the generics corresponding to primitives,
 ## and to define the group generics for these functions.
@@ -245,19 +245,6 @@ utils::globalVariables(".addBasicGeneric")
 			base::sample(x, size, replace=replace, prob=prob, ...),
 	       signature = c("x", "size"), where = where)
     setGenericImplicit("sample", where, FALSE)
-
-    ## qr.R(): signature should only have "qr", args should have "..."
-    setGeneric("qr.R", function(qr, complete = FALSE, ...) standardGeneric("qr.R"),
-	       useAsDefault= function(qr, complete = FALSE, ...)
-                   base::qr.R(qr, complete=complete),
-	       signature = "qr", where = where)
-    setGenericImplicit("qr.R", where, FALSE)
-
-    ## our toeplitz() only has 'x'; want the generic "here" rather than "out there"
-    setGeneric("toeplitz", function(x, ...) standardGeneric("toeplitz"),
-	       useAsDefault= function(x, ...) stats::toeplitz(x),
-	       signature = "x", where = where)
-    setGenericImplicit("toeplitz", where, FALSE)
 
     ## not implicitGeneric() which is not yet available "here"
     registerImplicitGenerics(where = where)

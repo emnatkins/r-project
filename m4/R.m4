@@ -1693,13 +1693,13 @@ AC_DEFINE_UNQUOTED(R_SOCKLEN_T, ${r_cv_type_socklen},
 AC_DEFUN([R_TYPE_KEYSYM],
 [AC_REQUIRE([R_X11])
 if test "${use_X11}" = yes; then
-  r_save_CPPFLAGS="${CPPFLAGS}"
-  CPPFLAGS="${CPPFLAGS} ${X_CFLAGS}"
+  r_save_CFLAGS="${CFLAGS}"
+  CFLAGS="${CFLAGS} ${X_CFLAGS}"
   AC_CHECK_TYPE([KeySym],
                 r_cv_type_keysym=yes,
                 r_cv_type_keysym=no,
 		[#include <X11/X.h>])
-  CPPFLAGS="${r_save_CPPFLAGS}"
+  CFLAGS="${r_save_CFLAGS}"
   if test "${r_cv_type_keysym}" = yes; then
     AC_DEFINE(HAVE_KEYSYM, 1,
               [Define if you have KeySym defined in X11.])
@@ -1716,10 +1716,10 @@ AC_DEFUN([R_X11],
 use_X11="no"
 if test -z "${no_x}"; then
   ## now we look for Xt and its header: it seems Intrinsic.h is key.
-  r_save_CPPFLAGS="${CPPFLAGS}"
-  CPPFLAGS="${CPPFLAGS} ${X_CFLAGS}"
+  r_save_CFLAGS="${CFLAGS}"
+  CFLAGS="${CFLAGS} ${X_CFLAGS}"
   AC_CHECK_HEADER(X11/Intrinsic.h)
-  CPPFLAGS="${r_save_CPPFLAGS}"
+  CFLAGS="${r_save_CFLAGS}"
   if test "${ac_cv_header_X11_Intrinsic_h}" = yes ; then
     AC_CHECK_LIB(Xt, XtToolkitInitialize, [have_Xt=yes], [have_Xt=no],
                  [${X_LIBS} -lX11])
@@ -1747,10 +1747,10 @@ fi
 ## test for -lXmu and for X11/Xmu/Xatom.h header (for XA_CLIPBOARD).
 AC_DEFUN([R_X11_Xmu],
 [if test "${use_X11}" = yes; then
-  r_save_CPPFLAGS="${CPPFLAGS}"
-  CPPFLAGS="${CPPFLAGS} ${X_CFLAGS}"
+  r_save_CFLAGS="${CFLAGS}"
+  CFLAGS="${CFLAGS} ${X_CFLAGS}"
   AC_CHECK_HEADER(X11/Xmu/Atoms.h)
-  CPPFLAGS="${r_save_CPPFLAGS}"
+  CFLAGS="${r_save_CFLAGS}"
   if test "${ac_cv_header_X11_Xmu_Atoms_h}" = yes ; then
     AC_CHECK_LIB(Xmu, XmuInternAtom, [use_Xmu=yes], [use_Xmu=no], ${X_LIBS})
     if test "${use_Xmu}" = yes; then
@@ -1968,16 +1968,25 @@ AC_DEFUN([R_BSD_NETWORKING],
 [AC_CACHE_CHECK([for BSD networking],
                 [r_cv_bsd_networking],
 [if test "${ac_cv_header_netdb_h}" = yes \
-dnl needed for Rhttpd.c but missed before R 3.3.0
-     && test "${ac_cv_header_arpa_inet_h}" = yes \
      && test "${ac_cv_header_netinet_in_h}" = yes \
      && test "${ac_cv_header_sys_socket_h}" = yes \
      && test "${ac_cv_search_connect}" != no \
      && test "${ac_cv_search_gethostbyname}" !=  no; then
   r_cv_bsd_networking=yes
 else
-  AC_MSG_ERROR([BSD networking functions are required])
+  r_cv_bsd_networking=no
 fi])
+if test "${r_cv_bsd_networking}" = yes; then
+  AC_DEFINE(HAVE_BSD_NETWORKING, 1,
+            [Define if you have BSD networking headers and libraries.])
+  AC_DEFINE(HAVE_SOCKETS, 1,
+            [Define if you have support for sockets.])
+  AC_DEFINE(HAVE_INTERNET, 1,
+            [Define if you have support for ftp/http access.])
+  AC_DEFINE(SUPPORT_LIBXML, 1,
+            [Define if you provide support for the libxml ftp/http
+	     functions.])
+fi
 ])# R_BSD_NETWORKING
 
 ## R_BITMAPS
@@ -2979,22 +2988,27 @@ AC_SUBST(TIRPC_CPPFLAGS)
 ## Try finding zlib library and headers.
 ## We check that both are installed, and that the header >= 1.2.3
 AC_DEFUN([R_ZLIB],
-[AC_CHECK_LIB(z, inflateInit2_, [have_zlib=yes], [have_zlib=no])
-if test "${have_zlib}" = yes; then
-  AC_CHECK_HEADER(zlib.h, [have_zlib=yes], [have_zlib=no])
-fi
-if test "${have_zlib}" = yes; then
-  _R_HEADER_ZLIB
-  have_zlib=${r_cv_header_zlib_h}
-fi
-AC_MSG_CHECKING([whether zlib support suffices])
-if test "${have_zlib}" != yes; then
-  AC_MSG_ERROR([zlib library and headers are required])
+[if test "x${use_system_zlib}" = xyes; then
+  AC_CHECK_LIB(z, inflateInit2_, [have_zlib=yes], [have_zlib=no])
+  if test "${have_zlib}" = yes; then
+    AC_CHECK_HEADER(zlib.h, [have_zlib=yes], [have_zlib=no])
+  fi
+  if test "${have_zlib}" = yes; then
+    _R_HEADER_ZLIB
+    have_zlib=${r_cv_header_zlib_h}
+  fi
 else
+  have_zlib="no"
+fi
+AC_MSG_CHECKING([whether zlib support needs to be compiled])
+if test "${have_zlib}" = yes; then
+  AC_MSG_RESULT([no])
   LIBS="-lz ${LIBS}"
+else
   AC_MSG_RESULT([yes])
   _R_ZLIB_MMAP
 fi
+AM_CONDITIONAL(BUILD_ZLIB, [test "x${have_zlib}" = xno])
 AM_CONDITIONAL(USE_MMAP_ZLIB,
 [test "x${have_zlib}" = xno && test "x${r_cv_zlib_mmap}" = xyes])
 ])# R_ZLIB
@@ -3053,16 +3067,20 @@ caddr_t hello() {
 ## RedHat put the headers in /usr/include/pcre.
 ## There are known problems < 8.10.
 AC_DEFUN([R_PCRE],
-[AC_CHECK_LIB(pcre, pcre_fullinfo, [have_pcre=yes], [have_pcre=no])
-if test "${have_pcre}" = yes; then
-  AC_CHECK_HEADERS(pcre.h pcre/pcre.h)
-  if test "${ac_cv_header_pcre_h}" = no \
-    && test "${ac_cv_header_pcre_pcre_h}" = no; then
-    have_pcre=no
+[if test "x${use_system_pcre}" = xyes; then
+  AC_CHECK_LIB(pcre, pcre_fullinfo, [have_pcre=yes], [have_pcre=no])
+  if test "${have_pcre}" = yes; then
+    AC_CHECK_HEADERS(pcre.h pcre/pcre.h)
+    if test "${ac_cv_header_pcre_h}" = no \
+	&& test "${ac_cv_header_pcre_pcre_h}" = no; then
+      have_pcre=no
+    fi
   fi
+else
+  have_pcre=no
 fi
-if test "x${have_pcre}" = xyes; then
 r_save_LIBS="${LIBS}"
+if test "x${have_pcre}" = xyes; then
 LIBS="-lpcre ${LIBS}"
 AC_CACHE_CHECK([if PCRE version >= 8.10, < 10.0 and has UTF-8 support], [r_cv_have_pcre810],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
@@ -3096,12 +3114,13 @@ if test "x${r_cv_have_pcre810}" != xyes; then
   have_pcre=no
   LIBS="${r_save_LIBS}"
 fi
-AC_MSG_CHECKING([whether PCRE support suffices])
-if test "x${r_cv_have_pcre810}" != xyes; then
-  AC_MSG_ERROR([pcre library and headers are required])
+AC_MSG_CHECKING([whether PCRE support needs to be compiled])
+if test "x${r_cv_have_pcre810}" = xyes; then
+  AC_MSG_RESULT([no])
 else
   AC_MSG_RESULT([yes])
 fi
+AM_CONDITIONAL(BUILD_PCRE, [test "x${r_cv_have_pcre810}" != xyes])
 ])# R_PCRE
 
 ## R_BZLIB
@@ -3110,9 +3129,13 @@ fi
 ## We check that both are installed,
 ## and that BZ2_bzlibVersion is in the library.
 AC_DEFUN([R_BZLIB],
-[AC_CHECK_LIB(bz2, BZ2_bzlibVersion, [have_bzlib=yes], [have_bzlib=no])
-if test "${have_bzlib}" = yes; then
-  AC_CHECK_HEADERS(bzlib.h, [have_bzlib=yes], [have_bzlib=no])
+[if test "x${use_system_bzlib}" = xyes; then
+  AC_CHECK_LIB(bz2, BZ2_bzlibVersion, [have_bzlib=yes], [have_bzlib=no])
+  if test "${have_bzlib}" = yes; then
+    AC_CHECK_HEADERS(bzlib.h, [have_bzlib=yes], [have_bzlib=no])
+  fi
+else
+  have_bzlib=no
 fi
 if test "x${have_bzlib}" = xyes; then
 AC_CACHE_CHECK([if bzip2 version >= 1.0.6], [r_cv_have_bzlib],
@@ -3134,13 +3157,14 @@ fi
 if test "x${r_cv_have_bzlib}" = xno; then
   have_bzlib=no
 fi
-AC_MSG_CHECKING([whether bzip2 support suffices])
+AC_MSG_CHECKING([whether bzip2 support needs to be compiled])
 if test "x${have_bzlib}" = xyes; then
   AC_MSG_RESULT([no])
   LIBS="-lbz2 ${LIBS}"
 else
-  AC_MSG_ERROR([bzip2 library and headers are required])
+  AC_MSG_RESULT([yes])
 fi
+AM_CONDITIONAL(BUILD_BZLIB, [test "x${have_bzlib}" = xno])
 ])# R_BZLIB
 
 ## R_TRE
@@ -3168,10 +3192,11 @@ AM_CONDITIONAL(BUILD_TRE, [test x${have_tre} != xyes])
 ## Try finding liblzma library and headers.
 ## We check that both are installed,
 AC_DEFUN([R_LZMA],
-[AC_CHECK_LIB(lzma, lzma_version_number, [have_lzma=yes], [have_lzma=no])
-if test "${have_lzma}" = yes; then
-  AC_CHECK_HEADERS(lzma.h, [have_lzma=yes], [have_lzma=no])
-fi
+[if test "x${use_system_xz}" = xyes; then
+  AC_CHECK_LIB(lzma, lzma_version_number, [have_lzma=yes], [have_lzma=no])
+  if test "${have_lzma}" = yes; then
+    AC_CHECK_HEADERS(lzma.h, [have_lzma=yes], [have_lzma=no])
+  fi
 if test "x${have_lzma}" = xyes; then
 AC_CACHE_CHECK([if lzma version >= 5.0.3], [r_cv_have_lzma],
 [AC_LANG_PUSH(C)
@@ -3198,9 +3223,11 @@ fi
 if test "x${have_lzma}" = xyes; then
   AC_DEFINE(HAVE_LZMA, 1, [Define if your system has lzma >= 5.0.3.])
   LIBS="-llzma ${LIBS}"
-else
-  AC_MSG_ERROR("liblzma library and headers are required")
 fi
+else
+  have_lzma="no"
+fi
+AM_CONDITIONAL(BUILD_XZ, [test x${have_lzma} != xyes])
 ])# R_LZMA
 
 
@@ -4020,87 +4047,6 @@ AC_ARG_VAR([SHLIB_CXX1XLD],
             files from the C++11 compiler])
 AC_ARG_VAR([SHLIB_CXX1XLDFLAGS], [special flags used by SHLIB_CXX1XLD])
 ])# R_CXX1X
-
-## R_LIBCURL
-## ----------------
-AC_DEFUN([R_LIBCURL],
-[## curl-config might not match the installed libcurl,
-## so we allow the user to set CURL_CPPFLAGS, CURL_LIBS
-## and check the version directly rather than by curl-config --checkfor
-AC_PATH_PROG(CURL_CONFIG, curl-config)
-if test -n "${CURL_CONFIG}"; then
-  echo "checking libcurl version ..." \
-    `${CURL_CONFIG} --version | sed -e 's,^[[^0-9]]*,,'`
-  if test -z "${CURL_CPPFLAGS}"; then
-    CURL_CPPFLAGS=`${CURL_CONFIG} --cflags`
-  fi
-  ## This should be correct for a static-only build, user will
-  ## need to override to specify static linking (see config.site)
-  if test -z "${CURL_LIBS}"; then
-    CURL_LIBS=`${CURL_CONFIG} --libs`
-  fi
-fi
-r_save_CPPFLAGS="${CPPLAGS}"
-CPPFLAGS="${CURL_CPPFLAGS} ${CPPFLAGS}"
-r_save_LIBS="${LIBS}"
-LIBS="${CURL_LIBS} ${LIBS}"
-AC_CHECK_HEADERS(curl/curl.h, [have_libcurl=yes], [have_libcurl=no])
-
-if test "x${have_libcurl}" = "xyes"; then
-AC_CACHE_CHECK([if libcurl is version 7 and >= 7.28.0], [r_cv_have_curl728],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <curl/curl.h>
-int main() 
-{
-#ifdef LIBCURL_VERSION_MAJOR
-#if LIBCURL_VERSION_MAJOR > 7
-  exit(1);
-#elif LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 28
-  exit(0);
-#else
-  exit(1);
-#endif
-#else
-  exit(1);
-#endif
-}
-]])], [r_cv_have_curl728=yes], [r_cv_have_curl728=no], [r_cv_have_curl728=no])])
-fi
-if test "x${r_cv_have_curl728}" = xno; then
-  have_libcurl=no
-fi
-
-if test "x${have_libcurl}" = "xyes"; then
-AC_CACHE_CHECK([if libcurl supports https], [r_cv_have_curl_https],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <string.h>
-#include <curl/curl.h>
-int main()
-{
-    curl_version_info_data *data = curl_version_info(CURLVERSION_NOW);
-    const char * const *p  = data->protocols;
-    int found = 0;
-    for (; *p; p++)
-	if(strcmp(*p, "https") == 0) {found = 1; break;}
-    exit(found ? 0 : 1);
-}
-]])], [r_cv_have_curl_https=yes], [r_cv_have_curl_https=no], [r_cv_have_curl_https=no])])
-fi
-if test "x${r_cv_have_curl_https}" = xno; then
-  have_libcurl=no
-fi
-if test "x${have_libcurl}" = xyes; then
-  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.28.0 with support for https.])
-  CPPFLAGS="${r_save_CPPFLAGS}"
-  LIBS="${r_save_LIBS}"
-  AC_SUBST(CURL_CPPFLAGS)
-  AC_SUBST(CURL_LIBS)
-else
-  AC_MSG_ERROR([libcurl >= 7.28.0 library and headers are required with support for https])
-fi
-])# R_LIBCURL
-
 
 
 ### Local variables: ***

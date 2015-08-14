@@ -1,5 +1,5 @@
 #  File src/library/utils/R/windows/install.packages.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## Unexported helper
 unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE,
@@ -281,16 +281,8 @@ menuInstallPkgs <- function(type = getOption("pkgType"))
 
 menuInstallLocal <- function()
 {
-    files <- choose.files('',filters=Filters[c('zip','tarball', 'All'),])
-    zips <- grepl("[.]zip$", files)
-    tarballs <- grepl("[.]tar[.]gz$", files)
-    bad <- !(zips | tarballs)
-    if (any(bad)) 
-        stop("Only '*.zip' and '*.tar.gz' files can be installed.")
-    if (any(zips)) install.packages(files[zips],
-        .libPaths()[1L], repos = NULL, type = "binary")
-    if (any(tarballs)) install.packages(files[tarballs],
-        .libPaths()[1L], repos = NULL, type = "source")
+    install.packages(choose.files('',filters=Filters[c('zip','All'),]),
+                     .libPaths()[1L], repos = NULL, type = 'binary')
 }
 
 ### Deprecated in 2.13.0, defunct in 2.14.0

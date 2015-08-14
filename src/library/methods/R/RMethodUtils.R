@@ -1,5 +1,5 @@
 #  File src/library/methods/R/RMethodUtils.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## The real version of makeGeneric, to be installed after there are some
 ## generic functions to boot the definition (in particular, coerce and coerce<-)
@@ -351,7 +351,8 @@ conformMethod <- function(signature, mnames, fnames,
         n <- n - 1L
     length(signature) <- n
     length(fsig) <- n
-    setNames(signature, fsig)
+    names(signature) <- fsig
+    signature
 }
 
 rematchDefinition <- function(definition, generic, mnames, fnames, signature)
@@ -480,8 +481,10 @@ getGeneric <-
                         package = "")
 {
     ## do not search the cache if getGeneric() was called with explicit where=
-    value <- if(missing(where))
-        .getGenericFromCache(f, where,  package) ## else NULL
+    if(missing(where))
+        value <- .getGenericFromCache(f, where,  package)
+    else
+        value <- NULL
     if(is.null(value)) {
         if(is.character(f) && f %in% "as.double") f <- "as.numeric"
         if(is.character(f) && !nzchar(f)) {
@@ -1711,7 +1714,8 @@ if(FALSE) {
         classi <- classes[[i]]
         pkgi <- pkgs[[i]]
         classDefi <- getClass(classi, where = where)
-        if(checkDups && classi %in% multipleClasses()) { # hardly ever, we hope
+        if(checkDups &&
+           classi %in% mulipleClasses()) { # hardly ever, we hope
             clDefsi <- get(classi, envir = .classTable)
             if(nzchar(pkgi) && pkgi %in% names(clDefsi))
                 ## use the chosen class, no message

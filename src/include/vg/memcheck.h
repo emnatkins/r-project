@@ -69,7 +69,6 @@
    See comment near the top of valgrind.h on how to use them.
 */
 
-/* R change to ensure that our copy of the header is used */
 #include "vg/valgrind.h"
 
 /* !! ABIWARNING !! ABIWARNING !! ABIWARNING !! ABIWARNING !! 

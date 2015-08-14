@@ -1,5 +1,5 @@
 % File src/library/utils/man/read.table.Rd
-% Part of the R package, https://www.R-project.org
+% Part of the R package, http://www.R-project.org
 % Copyright 1995-2015 R Core Team
 % Distributed under GPL 2 or later
 
@@ -123,8 +123,9 @@ read.delim2(file, header = TRUE, sep = "\t", quote = "\"",
     complex fields.}
 
   \item{colClasses}{character.  A vector of classes to be assumed for
-    the columns.  If unnamed, recycled as necessary.  If named, names
-    are matched with unspecified values being taken to be \code{NA}.
+    the columns.  Recycled as necessary.  If named and shorter than
+    required, names are matched to the column names with unspecified
+    values are taken to be \code{NA}.
 
     Possible values are \code{NA} (the default, when
     \code{\link{type.convert}} is used), \code{"NULL"} (when the column
@@ -318,7 +319,7 @@ read.delim2(file, header = TRUE, sep = "\t", quote = "\"",
   reading files which result in reports of incorrect record lengths (see
   the \sQuote{Examples} below).
 
-  \url{https://tools.ietf.org/html/rfc4180} for the IANA definition of
+  \url{http://tools.ietf.org/html/rfc4180} for the IANA definition of
   CSV files (which requires comma as separator and CRLF line endings).
 }
 

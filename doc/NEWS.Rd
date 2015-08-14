@@ -5,252 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
-    \itemize{
-      \item \code{nchar(x, *)} gains a new argument \code{keepNA} which
-      governs how the result for \code{NA}s in \code{x} is determined.
-      The new default \code{keepNA = NA} returns \code{NA} where
-      \code{x} is \code{NA}, except for \code{type = "width"} which still
-      returns \code{2}, the formatting / printing width of \code{NA}.
-
-      \code{nzchar(x)} gets the same new argument, but with default
-      \code{keepNA = FALSE}.  Hence \code{nzchar(x)} still returns a
-      non-\code{NA} logical vector, back compatibly.
-
-      \item All builds have support for \samp{https:} URLs in the
-      default methods for \code{download.file()}, \code{url()} and code
-      making use of them.
-
-      Unfortunately that cannot guarantee that any particular
-      \samp{https:} URL can be accessed.  For example, server and client
-      have to successfully negotiate a cryptographic protocol (TLS/SSL,
-      \dots) and the server's identity has to be verifiable \emph{via}
-      the available certificates.
-    }
-  }
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The \code{print} method for \code{methods()} gains a
-      \code{byclass} argument.
-
-      \item New functions \code{validEnc()} and \code{validUTF8()} to
-      give access to the validity checks for inputs used by
-      \code{grep()} and friends.
-
-      \item Experimental new functionality for S3 method checking, notably
-      \code{isS3method()}.  Also, the \R \sQuote{language element} names
-      are exported as \code{tools::langElts}.
-
-      \item \code{str(x)} now displays \code{"Time-Series"} also for
-      matrix (multivariate) time-series, i.e. when \code{is.ts(x)} is true.
-
-      \item (Windows only)  The GUI menu item to install local packages
-      now accepts \file{*.tar.gz} files as well as \file{*.zip} files
-      (but defaults to the latter).
-
-      \item New programmeR's utility function \code{chkDots()}.
-
-      \item \code{D()} now signals an error when given invalid input,
-      rather than silently returning \code{NA}.  (Request of John Nash.)
-
-      \item \code{formula} objects are slightly more \dQuote{first class}:
-      e.g., \code{formula()} or \code{new("formula", y ~ x)} are now
-      valid.  Similarly, for \code{"table"}, \code{"ordered"} and
-      \code{"summary.table"}.  Packages defining S4 classes with the above
-      S3/S4 classes as slots should be reinstalled.
-      % notably if their classes are reused in other
-      % packages. e.g. re-install arules for arulesSequence, flexmix for betareg
-
-      \item New function \code{strrep()} for repeating the elements of a
-      character vector.
-
-      \item \code{rapply} preserves attributes on the list when
-      \code{how="replace"}.
-
-      \item New S3 generic function \code{sigma()} with methods for
-      extracting the estimated standard deviation aka \dQuote{residual
-	standard deviation} from a fitted model.
-
-      \item \code{news()} now displays \R and package news files within
-      the HTML help system if it is available.  If no news file is found,
-      a visible \code{NULL} is returned to the console.
-
-      \item \code{as.raster(x)} now also accepts \code{\link{raw}}
-      arrays \code{x} assuming values in \code{0:255}.
-
-      \item Subscripting of matrix/array objects of type
-      \code{"expression"} is now supported.
-
-      \item \code{type.convert("i")} now returns a factor instead of a
-      complex value with zero real part and missing imaginary part.
-
-      \item Graphics devices \code{cairo_pdf()} and \code{cairo_ps()}
-      now allow non-default values of the cairographics \sQuote{fallback
-	resolution} to be set.
-
-      \item \code{file()} gets an explicit \code{method} argument
-      instead of implicitly using
-      \code{getOption("url.method", "default")}.
-
-      \item Thanks to a patch from Tomas Kalibera, \code{x[x != 0]} is
-      now typically \emph{faster} than \code{x[which(x != 0)]} (in the
-      case where \code{x} has no NAs, the two are equivalent).
-
-      \item \code{read.table()} now always uses the names for a named
-      \code{colClasses} argument (previously names were only used when
-      \code{colClasses} was too short). (In part, wish of \PR{16478}.)
-
-      \item (Windows only) \code{download.file()} with default
-      \code{method = "auto"} and a \samp{ftps://} URL chooses
-      \code{"libcurl"} if that is available.
-
-      \item The out-of-the box Bioconductor mirror has been changed to
-      one using \samp{https://}: use \code{chooseBioCmirror()} to choose
-      a \samp{http://} mirror if required.
-
-      \item The data frame and formula methods for \code{aggregate()}
-      gain a \code{drop} argument.
-
-      \item \code{available.packages()} gains a \code{repos} argument.
-
-      \item The undocumented switching of methods for \code{url()} on
-      \samp{https:} and \samp{ftps:} URLs is confined to \code{method =
-	"default"} (and documented).
-
-      \item \code{smoothScatter()} gains a \code{ret.selection} argument.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item \command{R CMD check} has a new option
-      \option{--ignore-vignettes} for use with non-Sweave vignettes
-      whose \samp{VignetteBuilder} package is not available.
-
-      \item \command{R CMD check --as-cran} now checks code usage (via
-      \CRANpkg{codetools}) with only the base package attached, so that
-      functions from default packages other than base which are used in
-      the package code but not imported are reported as undefined
-      globals.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item The previously included versions of \code{zlib}, \code{bzip2},
-      \code{xz} and PCRE have been removed, so system versions are
-      required (see the \sQuote{R Installation and Administration}
-      manual).
-
-      \item The unexported and undocumented Windows-only devices
-      \code{cairo_bmp()}, \code{cairo_png()} and \code{cairo_tiff()}
-      have been removed.  (The devices should be used as e.g.
-      \code{bmp(type = "cairo")}.)
-
-      \item (Windows only)  Function \code{setInternet2()} has no effect
-      and will be removed in due course.  The choice between methods
-      \code{"internal"} and \code{"wininet"} is now made by the
-      \code{method} arguments of \code{url()} and \code{download.file()}
-      and their defaults can be set \emph{via} options.  The
-      out-of-the-box default remains \code{"wininet"} (as it has been
-      since \R 3.2.2).
-    }
-  }
-
-  \subsection{INSTALLATION and INCLUDED SOFTWARE}{
-    \itemize{
-      \item Support for very old versions of \command{valgrind}
-      (e.g. 3.3.0) has been removed.
-
-      \item The included \command{libtool} script (generated by
-      \command{configure}) has been updated to version 2.4.6 (from 2.2.6a).
-
-      \item \code{libcurl} version 7.28.0 or later with support for the
-      \code{https} protocol is required for installation (except on
-      Windows).
-
-      \item BSD networking is now required (except on Windows) and so
-      \code{capabilities("http/ftp")} is always true.
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item The API call \code{logspace_sum} introduced in \R 3.2.0 is
-      now remapped as an entry point to \code{Rf_logspace_sum}, and its
-      first argument has gained a \code{const} qualifier.
-
-      Code using it will need to be reinstalled. (\PR{16470})
-      % no current CRAN packages ....
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item C-level \code{asChar(x)} is fixed for when \code{x} is not a
-      vector, and it returns \dQuote{TRUE}/\dQuote{FALSE} instead of
-      \dQuote{T}/\dQuote{F} for logical vectors.
-
-      \item \code{.colSums()} etc (with an initial dot) first argument
-      name \code{x} matches \code{colSums()} such that error messages
-      are correct.
-
-      \item A \code{coef()} method for class \code{"maov"} has been
-      added to allow \code{vcov()} to work with multivariate
-      results. (\PR{16380})
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.2.2 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item Some Windows time zone names have been added to the
-      conversion table used to convert these to Olson names.  (Including
-      those relating to changes for Russia in Oct 2014, as in \PR{16503}.)
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{regexpr(pat, x, perl = TRUE)} with Python-style named
-      capture did not work correctly when \code{x} contained \code{NA}
-      strings.  (\PR{16484})
-
-      \item The description of dataset \code{ToothGrowth} has been
-      improved/corrected.  (\PR{15953})
-
-      \item \code{model.tables(type = "means")} and hence
-      \code{TukeyHSD()} now support \code{"aov"} fits without an
-      intercept term.  (\PR{16437})
-
-      \item \code{close()} now reports the status of a \code{pipe()}
-      connection opened with an explicit \code{open} argument.
-      (\PR{16481})
-
-      \item Coercing a list without names to a data frame is faster if
-      the elements are very long. (\PR{16467})
-
-      \item (Unix-only) Under some circumstances piping the output from
-      \command{Rscript} or \command{R -f} could result in attempting to
-      close the input file twice, possibly crashing the process.
-      (\PR{16500})
-
-      \item (Windows) \code{Sys.info()} was out of step with
-      \code{win.version()} and did not report Windows 8.
-
-      \item \code{topenv(baseenv())} returns \code{baseenv()} again as
-      in \R 3.1.0 and earlier.  This also fixes \code{compilerJIT(3)}
-      when used in \file{.Rprofile}.
-
-      \item \code{detach()}ing the \pkg{methods} package keeps
-      \code{.isMethodsDispatchOn()} true, as long as the methods
-      namespace is not unloaded.% This keeps a sane state, see the regr-S4 test
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.2.2}{
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
     \itemize{
@@ -260,7 +14,7 @@
       packages can be installed from repositories which offer
       \samp{https://} URLs, and those listed by \code{setRepositories()}
       now do so (for some of their mirrors).
-
+      
       Support for \samp{https://} URLs is available on Windows, and on
       other platforms if support for \code{libcurl} was compiled in and
       if that supports the \code{https} protocol (system installations
@@ -277,7 +31,7 @@
       method (but the previous methods remain available).
     }
   }
-
+  
   \subsection{NEW FEATURES}{
     \itemize{
       \item \code{cmdscale()} gets new option \code{list.} for increased
@@ -290,7 +44,7 @@
       \item (Non-Windows only) \code{download.file()} with default
       \code{method = "auto"} now chooses \code{"libcurl"} if that is
       available and a \samp{https://} or \samp{ftps://} URL is used.
-
+      
       \item (Windows only) \code{setInternet2(TRUE)} is now the default.
       The command-line option \command{--internet2} and environment
       variable \env{R_WIN_INTERNET2} are now ignored.

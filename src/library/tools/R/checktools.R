@@ -1,7 +1,7 @@
 #  File src/library/tools/R/checktools.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 2013-2015 The R Core Team
+#  Copyright (C) 2013-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ### ** check_packages_in_dir
 
@@ -110,21 +110,19 @@ function(dir,
     ## Build a package db from the source packages in the working
     ## directory.
     write_PACKAGES(dir, type = "source")
-    if(dir.exists(depdir <- file.path(dir, "Depends"))) {
-        write_PACKAGES(depdir, type = "source")
-        curl <- c(curl, paste0(curl, "/Depends"))
-    }
+
     ## Determine packages available locally (for checking) and in the
     ## repositories, and merge the information giving preference to the
     ## former.
+    curls <- utils::contrib.url(getOption("repos"), type = "source")
     localones <- utils::available.packages(contriburl = curl,
                                            type = "source")
-    curls <- utils::contrib.url(getOption("repos"), type = "source")
     available <- utils::available.packages(contriburl = curls,
                                            type = "source")
+    pos <- match(localones[, "Package"], available[, "Package"])
+    if(length(pos <- pos[!is.na(pos)]))
+        available <- available[-pos, , drop = FALSE]
     available <- rbind(localones, available)
-    available <-
-        available[!duplicated(available[, "Package"]), , drop = FALSE]
     curls <- c(curl, curls)
 
     ## As of c52164, packages with OS_type different from the current
@@ -201,8 +199,7 @@ function(dir,
             for(i in seq_along(rfiles)) {
                 message(sprintf("downloading %s ... ", rfiles[i]),
                         appendLF = FALSE)
-                status <- if(!utils::download.file(rfurls[i], rfiles[i],
-                                                   quiet = TRUE))
+                status <- if(!utils::download.file(rfurls[i], rfiles[i]))
                     "ok" else "failed"
                 message(status)
             }
@@ -344,7 +341,7 @@ function(dir,
 
     timings <- do.call(rbind, lapply(timings, summary))
     rownames(timings) <- pnames
-    utils::write.table(timings, "timings.tab")
+    write.table(timings, "timings.tab")
 
     file.rename(sprintf("%s.Rcheck", rnames),
                 sprintf("rdepends_%s.Rcheck", rnames))
@@ -585,7 +582,7 @@ function(dir, all = FALSE, full = FALSE)
         tfiles <- Sys.glob(file.path(R_check_outdirs(dir, all = all),
                                      "*-Ex.timings"))
         if(length(tfiles)) message("")
-        timings <- lapply(tfiles, utils::read.table, header = TRUE)
+        timings <- lapply(tfiles, read.table, header = TRUE)
         ## Order by CPU time.
         timings <- lapply(timings,
                           function(x)
@@ -711,8 +708,6 @@ function(log, drop_ok = TRUE)
         lines <- iconv(lines, enc, "UTF-8", sub = "byte")
         ## If the check log uses ASCII, there should be no non-ASCII
         ## characters in the message lines: could check for this.
-        if(any(bad <- !validEnc(lines)))
-            lines[bad] <- iconv(lines[bad], to = "ASCII", sub = "byte")
     } else return()
 
     ## Get header.

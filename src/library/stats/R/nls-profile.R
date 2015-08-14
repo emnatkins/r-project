@@ -1,5 +1,5 @@
 #  File src/library/stats/R/nls-profile.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1999-1999 Saikat DebRoy and Douglas M. Bates
 #  Copyright (C) 1999-2011  The R Core Team
@@ -15,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ###
 ### Profiling nonlinear least squares for R

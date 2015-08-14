@@ -1,5 +1,5 @@
 #  File src/library/utils/R/object.size.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2013 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 object.size <- function(x)
     structure(.Call(C_objectSize, x), class = "object_size")
@@ -23,19 +23,19 @@ format.object_size <-
     function(x, units = "b", ...)
 {
     units <- match.arg(units, c("b", "auto", "Kb", "Mb", "Gb",
-				"B", "KB", "MB", "GB"))
+                                "B", "KB", "MB", "GB"))
     if (units == "auto") {
-	if (x >= 1024^3) units <- "Gb"
-	else if (x >= 1024^2) units <- "Mb"
-	else if (x >= 1024) units <- "Kb"
-	else units <- "b"
+        if (x >= 1024^3) units <- "Gb"
+        else if (x >= 1024^2) units <- "Mb"
+        else if (x >= 1024) units <- "Kb"
+        else units <- "b"
     }
-    switch(units,
-	   "b" =, "B" = paste(x, "bytes"),
-	   "Kb" =, "KB" = paste(round(x/1024, 1L), "Kb"),
-	   "Mb" =, "MB" = paste(round(x/1024^2, 1L), "Mb"),
-	   "Gb" =, "GB" = paste(round(x/1024^3, 1L), "Gb")
-	   )
+     switch(units,
+            "b" =, "B" = paste(x, "bytes"),
+            "Kb" =, "KB" = paste(round(x/1024, 1L), "Kb"),
+            "Mb" =, "MB" = paste(round(x/1024^2, 1L), "Mb"),
+            "Gb" =, "GB" = paste(round(x/1024^3, 1L), "Gb")
+            )
 }
 
 print.object_size <-

@@ -1,5 +1,5 @@
 #  File src/library/tools/R/install.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -16,7 +16,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 #### R based engine for  R CMD INSTALL SHLIB Rprof
 ####
@@ -720,7 +720,7 @@
                 } else { ## no src/Makefile.win
                     srcs <- dir(pattern = "\\.([cfmM]|cc|cpp|f90|f95|mm)$",
                                 all.files = TRUE)
-                    archs <- if (!force_both && !grepl(" x64 ", utils::win.version()))
+                    archs <- if (!force_both && !grepl(" x64 ", win.version()))
                         "i386"
                     else {
                         ## see what is installed
@@ -880,7 +880,7 @@
         if (WINDOWS && "x64" %in% test_archs) {
             ## we cannot actually test x64 unless this is 64-bit
             ## Windows, even if it is installed.
-            if (!grepl(" x64 ", utils::win.version())) test_archs <- "i386"
+            if (!grepl(" x64 ", win.version())) test_archs <- "i386"
         }
 
 
@@ -2007,9 +2007,8 @@
     outman <- file.path(outDir, "help")
     dir.create(outman, showWarnings = FALSE)
     MM <- M[re(M[, 1L]), 1:2]
-    utils::write.table(MM, file.path(outman, "AnIndex"),
-                       quote = FALSE, row.names = FALSE, col.names = FALSE,
-                       sep = "\t")
+    write.table(MM, file.path(outman, "AnIndex"),
+                quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
     a <- structure(MM[, 2L], names=MM[, 1L])
     saveRDS(a, file.path(outman, "aliases.rds"))
 
@@ -2284,7 +2283,7 @@ function(name="", version = "0.0")
         "            VALUE \"FileVersion\", \"", version, "\\0\"\n", sep = "")
     writeLines(c(
                  '            VALUE "Compiled under R Version", R_MAJOR "." R_MINOR " (" R_YEAR "-" R_MONTH "-" R_DAY ")\\0"',
-                 '            VALUE "Project info", "https://www.r-project.org\\0"',
+                 '            VALUE "Project info", "http://www.r-project.org\\0"',
                  '        END',
                  '    END',
                  '    BLOCK "VarFileInfo"',

@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/
+ *  http://www.r-project.org/Licenses/
 
 
  *  This is an extensive reworking by Paul Murrell of an original
@@ -3379,7 +3379,7 @@ double GExpressionHeight(SEXP expr, GUnit units, pGEDevDesc dd)
  * Could be removed if Rgraphics.h ever gets REPLACED by new API
  * NOTE that base graphics code no longer calls this -- the base
  * graphics system directly calls the graphics engine for mathematical
- * annotation (GEMathText in ../../../main/plotmath.c )
+ * annotation (GEMathText)
  */
 void GMathText(double x, double y, int coords, SEXP expr,
 	       double xc, double yc, double rot,

@@ -1,5 +1,5 @@
 #  File src/library/tools/R/build.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 #### R based engine for R CMD build
 
@@ -664,18 +664,16 @@ get_exclude_patterns <- function()
     resave_data_others <- function(pkgname, resave_data)
     {
         if (resave_data == "no") return()
-        ddir <- normalizePath(file.path(pkgname, "data"))
+        ddir <- file.path(pkgname, "data")
         dataFiles <- grep("\\.(rda|RData)$",
                           list_files_with_type(ddir, "data"),
                           invert = TRUE, value = TRUE)
         if (!length(dataFiles)) return()
-        resaved <- character()
-        on.exit(unlink(resaved))
         Rs <- grep("\\.[Rr]$", dataFiles, value = TRUE)
         if (length(Rs)) { # these might use .txt etc
             messageLog(Log, "re-saving .R files as .rda")
             ## ensure utils is visible
-            ##   library("utils")
+            library("utils")
             lapply(Rs, function(x){
                 envir <- new.env(hash = TRUE)
                 sys.source(x, chdir = TRUE, envir = envir)
@@ -683,7 +681,7 @@ get_exclude_patterns <- function()
                      file = sub("\\.[Rr]$", ".rda", x),
                      compress = TRUE, compression_level = 9,
                      envir = envir)
-                resaved <<- c(resaved, x)
+                unlink(x)
             })
             printLog(Log,
                      "  NB: *.R converted to .rda: other files may need to be removed\n")
@@ -698,7 +696,7 @@ get_exclude_patterns <- function()
                     con <- gzfile(paste(nm, "gz", sep = "."), "wb")
                     writeLines(x, con)
                     close(con)
-                    resaved <<- c(resaved, nm)
+                    unlink(nm)
                 })
             } else {
                 OK <- TRUE
@@ -711,7 +709,7 @@ get_exclude_patterns <- function()
                     sizes <- file.size(nm3) * c(0.9, 1, 1)
                     ind <- which.min(sizes)
                     if(ind > 1) OK <<- FALSE
-                    resaved <<- c(resaved, nm, nm3[-ind])
+                    unlink(c(nm, nm3[-ind]))
                 })
                 if (!OK) fixup_R_dep(pkgname, "2.10")
             }

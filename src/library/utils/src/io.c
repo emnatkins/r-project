@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/
+ *  http://www.r-project.org/Licenses/
  */
 
 /* <UTF8>
@@ -185,13 +185,8 @@ strtoc(const char *nptr, char **endptr, Rboolean NA, LocalData *d, int i_exact)
     if (isBlankString(endp)) {
 	z.r = x; z.i = 0;
     } else if (*endp == 'i')  {
-	if (endp == nptr) {
-	    z.r = NA_REAL; z.i = NA_REAL;
-	}
-	else {
-	    z.r = 0; z.i = x;
-	    endp++;
-	}
+	z.r = 0; z.i = x;
+	endp++;
     } else {
 	s = endp;
 	y = Strtod(s, &endp, NA, d, i_exact);
@@ -199,7 +194,7 @@ strtoc(const char *nptr, char **endptr, Rboolean NA, LocalData *d, int i_exact)
 	    z.r = x; z.i = y;
 	    endp++;
 	} else {
-	    z.r = NA_REAL; z.i = NA_REAL;
+	    z.r = 0; z.i = 0;
 	    endp = (char *) nptr; /* -Wall */
 	}
     }

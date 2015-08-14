@@ -1,5 +1,5 @@
 #  File src/library/utils/R/packages.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,12 +14,11 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 available.packages <-
-function(contriburl = contrib.url(repos, type), method,
-         fields = NULL, type = getOption("pkgType"),
-         filters = NULL, repos = getOption("repos"))
+function(contriburl = contrib.url(getOption("repos"), type), method,
+         fields = NULL, type = getOption("pkgType"), filters = NULL)
 {
     requiredFields <-
         c(tools:::.get_standard_repository_db_fields(), "File")
@@ -243,9 +242,9 @@ function(db, predicate, recursive = TRUE)
     ## Now find the recursive reverse dependencies of these and the
     ## non-standard packages missing from the db.
     rdepends <-
-        tools::package_dependencies(db1$Package[ind], db = db1,
-                                    reverse = TRUE,
-                                    recursive = recursive)
+        tools:::package_dependencies(db1$Package[ind], db = db1,
+                                     reverse = TRUE,
+                                     recursive = recursive)
     rdepends <- unique(unlist(rdepends))
     ind[match(rdepends, db1$Package, nomatch = 0L)] <- TRUE
 
@@ -838,8 +837,7 @@ getCRANmirrors <- function(all = FALSE, local.only = FALSE)
     	}
     }
     if (res > 0L) {
-        URL <- m[res, "URL"]
-        names(URL) <- m[res, "Name"]
+        URL <- setNames(m[res, "URL"], m[res, "Name"])
         sub("/$", "", URL[1L])
     } else character()
 }

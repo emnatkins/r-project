@@ -1,5 +1,5 @@
 #  File src/library/stats/R/identify.hclust.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2012 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 rect.hclust <- function(tree, k=NULL, which=NULL,
                         x=NULL, h=NULL, border=2, cluster=NULL)
@@ -78,11 +78,11 @@ identify.hclust <- function(x, FUN = NULL, N = 20, MAXCLUSTER = 20,
     retval <- list()
     oldk <- NULL
     oldx <- NULL
-    DEV.x <- dev.cur()
+    DEV.x <- grDevices::dev.cur()
 
     for(n in 1L:N){
 
-        dev.set(DEV.x)
+        grDevices::dev.set(DEV.x)
         X <- locator(1)
         if(is.null(X))
             break
@@ -98,7 +98,7 @@ identify.hclust <- function(x, FUN = NULL, N = 20, MAXCLUSTER = 20,
                                           border = "red"))
         if(!is.null(FUN)){
             if(!is.null(DEV.FUN)){
-                dev.set(DEV.FUN)
+                grDevices::dev.set(DEV.FUN)
             }
             retval[[n]] <- FUN(retval[[n]], ...)
         }
@@ -106,6 +106,6 @@ identify.hclust <- function(x, FUN = NULL, N = 20, MAXCLUSTER = 20,
         oldx <- X$x
         oldk <- k
     }
-    dev.set(DEV.x)
+    grDevices::dev.set(DEV.x)
     invisible(retval)
 }

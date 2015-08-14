@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/
+ *  http://www.r-project.org/Licenses/
  */
 
 /* <UTF8> the only interpretation of char is ASCII */
@@ -110,7 +110,7 @@ static Rboolean url_open(Rconnection con)
     switch(type) {
 #ifdef Win32
     case HTTPSsh:
-	    warning(_("for https:// URLs use method = \"wininet\""));
+	    warning(_("for https:// URLs use setInternet2(TRUE)"));
 	    return FALSE;
 #endif
     case HTTPsh:
@@ -470,13 +470,12 @@ static SEXP in_do_download(SEXP args)
     cacheOK = asLogical(CAR(args));
     if(cacheOK == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "cacheOK");
-    Rboolean file_URL = (strncmp(url, "file://", 7) == 0);
 #ifdef Win32
     int meth = asLogical(CADR(args));
     if(meth == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "method");
-//    if(meth == 0) meth = UseInternet2;
-    if (!file_URL && R_Interactive && !quiet && !pbar.wprog) {
+    if(meth == 0) meth = UseInternet2;
+    if (R_Interactive && !quiet && !pbar.wprog) {
 	pbar.wprog = newwindow(_("Download progress"), rect(0, 0, 540, 100),
 			       Titlebar | Centered);
 	setbackground(pbar.wprog, dialog_bg());
@@ -485,7 +484,7 @@ static SEXP in_do_download(SEXP args)
 	pbar.pc = 0;
     }
 #endif
-    if(file_URL) {
+    if(strncmp(url, "file://", 7) == 0) {
 	FILE *in, *out;
 	static char buf[CPBUFSIZE];
 	size_t n;
@@ -496,7 +495,7 @@ static SEXP in_do_download(SEXP args)
 	if (strlen(url) > 9 && url[7] == '/' && url[9] == ':') nh = 8;
 #endif
 
-	/* Use binary transfers? */
+	/* Use binary transfers */
 	in = R_fopen(R_ExpandFileName(url+nh), (mode[2] == 'b') ? "rb" : "r");
 	if(!in) {
 	    error(_("cannot open URL '%s', reason '%s'"),
@@ -515,6 +514,7 @@ static SEXP in_do_download(SEXP args)
 	}
 	fclose(out); fclose(in);
 
+#ifdef HAVE_INTERNET
     } else if (strncmp(url, "http://", 7) == 0
 #ifdef Win32
 	       || ((strncmp(url, "https://", 8) == 0) && meth)
@@ -754,12 +754,16 @@ static SEXP in_do_download(SEXP args)
 	R_Busy(0);
 	fclose(out);
 	if (status == 1) error(_("cannot open URL '%s'"), url);
+#endif
+
     } else
 	error(_("unsupported URL scheme"));
 
     return ScalarInteger(status);
 }
 
+
+#if defined(SUPPORT_LIBXML)
 
 void *in_R_HTTPOpen(const char *url, const char *headers, const int cacheOK)
 {
@@ -865,6 +869,7 @@ static void in_R_FTPClose(void *ctx)
 	free(ctx);
     }
 }
+#endif /* SUPPORT_LIBXML */
 
 
 #ifdef Win32
@@ -1030,6 +1035,37 @@ static void *in_R_FTPOpen2(const char *url)
     return (void *)wictxt;
 }
 #endif // Win32
+
+#ifndef HAVE_INTERNET
+static void *in_R_HTTPOpen(const char *url, const char *headers,
+			   const int cacheOK)
+{
+    return NULL;
+}
+
+static int in_R_HTTPRead(void *ctx, char *dest, int len)
+{
+    return -1;
+}
+
+static void in_R_HTTPClose(void *ctx)
+{
+}
+
+static void *in_R_FTPOpen(const char *url)
+{
+    return NULL;
+}
+
+static int in_R_FTPRead(void *ctx, char *dest, int len)
+{
+    return -1;
+}
+
+static void in_R_FTPClose(void *ctx)
+{
+}
+#endif
 
 
 #define MBUFSIZE 8192

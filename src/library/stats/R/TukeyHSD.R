@@ -1,8 +1,8 @@
 #  File src/library/stats/R/TukeyHSD.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 2000-2001  Douglas M. Bates
-#  Copyright (C) 2002-2015  The R Core Team
+#  Copyright (C) 2002-2014  The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ###
 ###               Tukey multiple comparisons for R
@@ -32,8 +32,7 @@ TukeyHSD.aov <-
     mm <- model.tables(x, "means")
     if(is.null(mm$n))
         stop("no factors in the fitted model")
-    tabs <- mm$tables
-    if(names(tabs)[1L] == "Grand mean") tabs <- tabs[-1L]
+    tabs <- mm$tables[-1L]
     tabs <- tabs[which]
     ## mm$n need not be complete -- factors only -- so index by names
     nn <- mm$n[names(tabs)]

@@ -1,5 +1,5 @@
 #  File src/library/utils/R/citation.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## What a silly name ...
 .is_not_nonempty_text <-
@@ -769,6 +769,11 @@ function(x, style = "text", .bibstyle = NULL, ...)
     invisible(x)
 }
 
+## Not vectorized for now: see ?regmatches for a vectorized version.
+.blanks <-
+function(n)
+    paste(rep.int(" ", n), collapse = "")
+
 .format_call_RR <-
 function(cname, cargs)
 {
@@ -778,7 +783,7 @@ function(cname, cargs)
     lens <- lengths(cargs)
     sums <- cumsum(lens)
     starters <- c(sprintf("%s(", cname),
-                  rep.int(strrep(" ", nchar(cname) + 1L), sums[n] - 1L))
+                  rep.int(.blanks(nchar(cname) + 1L), sums[n] - 1L))
     trailers <- c(rep.int("", sums[n] - 1L), ")")
     trailers[sums[-n]] <- ","
     sprintf("%s%s%s", starters, unlist(cargs), trailers)
@@ -817,7 +822,7 @@ function(x, collapse = FALSE)
         n <- length(v)
         if(n > 1L)
             prefix <- c(prefix,
-                        rep.int(strrep(" ", nchar(prefix)), n - 1L))
+                        rep.int(.blanks(nchar(prefix)), n - 1L))
         sprintf("%s%s", prefix, v)
     }
 
@@ -848,10 +853,10 @@ function(x, collapse = FALSE)
 
     if(!is.null(mheader <- attr(x, "mheader")))
         s[[1L]] <- c(s[[1L]],
-                     paste("mheader =", deparse(mheader)))
+                     paste("mheader = ", deparse(mheader)))
     if(!is.null(mfooter <- attr(x, "mfooter")))
         s[[1L]] <- c(s[[1L]],
-                     paste("mfooter =", deparse(mfooter)))
+                     paste("mfooter = ", deparse(mfooter)))
 
     s <- Map(.format_call_RR, "bibentry", s)
     if(collapse && (length(s) > 1L))
@@ -1161,15 +1166,15 @@ function(package = "base", lib.loc = NULL, auto = NULL)
               )
 
     z$url <- if(identical(meta$Repository, "CRAN"))
-        sprintf("https://CRAN.R-project.org/package=%s", package)
+        sprintf("http://CRAN.R-project.org/package=%s", package)
     else
         meta$URL
 
     if(identical(meta$Repository, "R-Forge")) {
         z$url <- if(!is.null(rfp <- meta$"Repository/R-Forge/Project"))
-            sprintf("https://R-Forge.R-project.org/projects/%s/", rfp)
+            sprintf("http://R-Forge.R-project.org/projects/%s/", rfp)
         else
-            "https://R-Forge.R-project.org/"
+            "http://R-Forge.R-project.org/"
         if(!is.null(rfr <- meta$"Repository/R-Forge/Revision"))
             z$note <- paste(z$note, rfr, sep = "/r")
     }

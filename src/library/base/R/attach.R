@@ -1,5 +1,5 @@
 #  File src/library/base/R/attach.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,11 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
-
-## Abstraction for "The fastest way" to do this [no if(), no substr(), ...],
-## to be used in many places:
-.rmpkg <- function(pkg) sub("package:", "", pkg, fixed=TRUE)
+#  http://www.r-project.org/Licenses/
 
 ## also used by library() :
 .maskedMsg <- function(same, pkg, by) {
@@ -52,7 +48,7 @@ attach <- function(what, pos = 2L, name = deparse(substitute(what)),
                 break
             }
         }
-        ob <- names(as.environment(db.pos))
+        ob <- objects(db.pos, all.names = TRUE)
         if(.isMethodsDispatchOn()) { ## {see note in library() about this}
             these <- ob[substr(ob, 1L, 6L) == ".__T__"]
             gen  <- gsub(".__T__(.*):([^:]+)", "\\1", these)
@@ -62,7 +58,7 @@ attach <- function(what, pos = 2L, name = deparse(substitute(what)),
         }
         ipos <- seq_along(sp)[-c(db.pos, match(c("Autoloads", "CheckExEnv"), sp, 0L))]
         for (i in ipos) {
-            obj.same <- match(names(as.environment(i)), ob, nomatch = 0L)
+            obj.same <- match(objects(i, all.names = TRUE), ob, nomatch = 0L)
             if (any(obj.same > 0L)) {
                 same <- ob[obj.same]
                 same <- same[!(same %in% dont.mind)]
@@ -77,8 +73,7 @@ attach <- function(what, pos = 2L, name = deparse(substitute(what)),
                 if(length(same)) {
 		    pkg <- if (sum(sp == sp[i]) > 1L) # 'pos = *' needs no translation
 			sprintf("%s (pos = %d)", sp[i], i) else sp[i]
-		    message(.maskedMsg(sort(same), pkg, by = i < db.pos),
-                            domain = NA)
+		    message(.maskedMsg(same, pkg, by = i < db.pos), domain=NA)
 		}
             }
         }
@@ -103,7 +98,7 @@ attach <- function(what, pos = 2L, name = deparse(substitute(what)),
         checkConflicts(value)
     }
     if (length(names(value)) && .isMethodsDispatchOn() )
-        methods::cacheMetaData(value, TRUE)
+        methods:::cacheMetaData(value, TRUE)
     invisible(value)
 }
 
@@ -129,18 +124,18 @@ detach <- function(name, pos = 2L, unload = FALSE, character.only = FALSE,
         return(invisible(.Internal(detach(pos))))
 
     ## From here down we are detaching a package.
-    pkgname <- .rmpkg(packageName)
+    pkgname <- sub("^package:", "", packageName)
     for(pkg in search()[-1L]) {
         if(grepl("^package:", pkg) &&
            exists(".Depends", pkg, inherits = FALSE) &&
            pkgname %in% get(".Depends", pkg, inherits = FALSE))
             if(force)
                 warning(gettextf("package %s is required by %s, which may no longer work correctly",
-				 sQuote(pkgname), sQuote(.rmpkg(pkg))),
+                                 sQuote(pkgname), sQuote(sub("^package:", "", pkg))),
                      call. = FALSE, domain = NA)
             else
                 stop(gettextf("package %s is required by %s so will not be detached",
-			      sQuote(pkgname), sQuote(.rmpkg(pkg))),
+                              sQuote(pkgname), sQuote(sub("^package:", "", pkg))),
                      call. = FALSE, domain = NA)
     }
     env <- as.environment(pos)
@@ -192,7 +187,7 @@ detach <- function(name, pos = 2L, unload = FALSE, character.only = FALSE,
         }
     } else {
         if(.isMethodsDispatchOn() && methods:::.hasS4MetaData(env))
-            methods::cacheMetaData(env, FALSE)
+            methods:::cacheMetaData(env, FALSE)
         .Internal(lazyLoadDBflush(paste0(libpath, "/R/", pkgname, ".rdb")))
     }
     invisible()

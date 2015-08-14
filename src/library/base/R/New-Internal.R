@@ -1,5 +1,5 @@
 #  File src/library/base/R/New-Internal.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 geterrmessage <- function() .Internal(geterrmessage())
 
@@ -165,7 +165,7 @@ is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
     .Internal(is.unsorted(x, strictly))
 }
 
-nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = NA)
+nchar <- function(x, type = "chars", allowNA = FALSE, keepNA = FALSE)
     .Internal(nchar(x, type, allowNA, keepNA))
 
 polyroot <- function(z) .Internal(polyroot(z))

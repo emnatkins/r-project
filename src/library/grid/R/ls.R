@@ -1,5 +1,5 @@
 #  File src/library/grid/R/ls.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2013 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 
 # Code for listing objects in various grid "namespaces"
@@ -709,7 +709,14 @@ pathListing <- function(x, gvpSep=" | ", gAlign=TRUE) {
     }
 
     padPrefix <- function(path, maxLen) {
-        paste0(path, strrep(" ", maxLen - nchar(path)))
+        numSpaces <- maxLen - nchar(path)
+        if (length(path) == 1L) {
+            paste0(path, paste(rep.int(" ", numSpaces), collapse=""))
+        } else {
+            padding <- rep(" ", length(path))
+            padding <- mapply(rep.int, padding, numSpaces)
+            paste0(path, sapply(padding, paste, collapse=""))
+        }
     }
 
     if (!inherits(x, "flatGridListing"))

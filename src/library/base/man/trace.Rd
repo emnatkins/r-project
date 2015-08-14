@@ -1,5 +1,5 @@
 % File src/library/base/man/trace.Rd
-% Part of the R package, https://www.R-project.org
+% Part of the R package, http://www.R-project.org
 % Copyright (C) 1995-2015 R Core Team
 % Distributed under GPL 2 or later
 
@@ -201,7 +201,7 @@ returnValue(default = NULL)
 }
 \note{
   Using \code{trace()} is conceptually a generalization of
-  \code{\link{debug}}, implemented differently.  Namely by calling
+  \code{\link{debug}}, implemented differently, by calling
   \code{\link{browser}} via its \code{tracer} or \code{exit} argument.
   %% On the other hand, it sometimes triggers less consistently
   %% ?? lacks features of debug()- (which ??)

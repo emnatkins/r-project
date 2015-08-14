@@ -1,5 +1,5 @@
 #  File src/library/grid/R/unit.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2013 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 
 # Create an object of class "unit"
@@ -786,13 +786,7 @@ absolute <- function(unit) {
                  "mm", "points", "picas", "bigpts",
                  "dida", "cicero", "scaledpts",
                  "strwidth", "strheight", "strascent", "strdescent", "char",
-                 "mylines", "mychar", "mystrwidth", "mystrheight",
-                 # pseudonyms (from unit.c)
-                 "centimetre", "centimetres", "centimeter",  "centimeters",
-                 "in", "inch",       
-                 "line",       
-                 "millimetre", "millimetres", "millimeter", "millimeters",
-                 "point", "pt")))
+                 "mylines", "mychar", "mystrwidth", "mystrheight")))
 }
 
 # OLD absolute.unit

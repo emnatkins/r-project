@@ -1,5 +1,5 @@
 #  File src/library/tools/R/Vignettes.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 vignette_is_tex <- function(file, ...) {
     (regexpr("[.]tex$", file, ignore.case = TRUE) != -1L)
@@ -561,7 +561,7 @@ buildVignettes <-
     } else {
         ## Badly-written vignettes open a pdf() device on Rplots.pdf and
         ## fail to close it.
-        grDevices::graphics.off()
+        graphics.off()
 
         keep <- c(outputs, unlist(sourceList))
         if(clean) {

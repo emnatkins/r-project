@@ -1,5 +1,5 @@
 #  File src/library/methods/R/zzz.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## utils::globalVariables("...onLoad")
 
@@ -132,18 +132,20 @@
     if(methods:::.hasS4MetaData(.GlobalEnv)) {
         result <- try(cacheMetaData(.GlobalEnv, TRUE))
         ## still attach  methods package if global env has bad objets
-        if(inherits(result, "try-error"))
+        if(is(result, "try-error"))
           warning("apparently bad method or class metadata in saved environment;\n",
                   "move the file or remove the class/method")
     }
 }
 
-## Q: Why don't we unload "methods" on detach() ?
-## A: Because the user chooses detach(*, unload= .), so detach() will unload if ..
-## .onDetach <- function(libpath) { <nothing> }
+.onDetach <- function(libpath) methods:::.onUnload(libpath)
+
+## redefining it here, invalidates the one above:
+## Why don't we unload "methods" on detach() ?
+.onDetach <- function(libpath) .isMethodsDispatchOn(FALSE)
 
 ## used for .methodsIsLoaded
 .saveImage <- FALSE
 
-## cheap dQuote(): want ASCII quotes, not fancy nor translated ones
+## want ASCII quotes, not fancy nor translated ones
 .dQ <- function (x) paste0('"', x, '"')

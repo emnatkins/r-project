@@ -1,5 +1,5 @@
 #  File src/library/methods/R/trace.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## some temporary (!) hooks to trace the tracing code
 .doTraceTrace <- function(on) {
@@ -634,7 +634,7 @@ utils::globalVariables("fdef")
                                    collapse = ", ")),
                     domain = NA)
     }
-    .rmpkg(names(possible[1L])) # the package name, or .GlobalEnv
+    sub("package:","", names(possible[1L])) # the package name, or .GlobalEnv
 }
 
 ## extract the new definitions from the source file

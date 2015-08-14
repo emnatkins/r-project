@@ -1,5 +1,5 @@
 #  File src/library/methods/R/addedFunctions.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,12 +14,17 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 
-functionBody <- body
+functionBody <- base::body #was get("body", mode = "function")
 
-`functionBody<-` <- `body<-`
+`functionBody<-` <- base::`body<-`
+## was
+## .ff <- function(fun, envir = environment(fun), value) fun
+## body(.ff, envir = .GlobalEnv) <- body(get("body<-"))
+## "functionBody<-" <- .ff
+## rm(.ff)
 
 allNames <-
   ## the character vector of names (unlike names(), never returns NULL)

@@ -1,5 +1,5 @@
 #  File src/library/stats/R/lm.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 
 lm <- function (formula, data, subset, weights, na.action,
@@ -110,7 +110,13 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
     if(method != "qr")
 	warning(gettextf("method = '%s' is not supported. Using 'qr'", method),
                 domain = NA)
-    chkDots(...)
+    dots <- list(...)
+    if(length(dots) > 1L)
+	warning("extra arguments ", paste(sQuote(names(dots)), sep=", "),
+                " are disregarded.", domain = NA)
+    else if(length(dots) == 1L)
+	warning("extra argument ", sQuote(names(dots)),
+                " is disregarded.", domain = NA)
     z <- .Call(C_Cdqrls, x, y, tol, FALSE)
     if(!singular.ok && z$rank < p) stop("singular fit encountered")
     coef <- z$coefficients
@@ -163,7 +169,13 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
     if(method != "qr")
 	warning(gettextf("method = '%s' is not supported. Using 'qr'", method),
                 domain = NA)
-    chkDots(...)
+    dots <- list(...)
+    if(length(dots) > 1L)
+	warning("extra arguments ", paste(sQuote(names(dots)), sep=", "),
+                " are disregarded.", domain = NA)
+    else if(length(dots) == 1L)
+	warning("extra argument ", sQuote(names(dots)),
+                " is disregarded.", domain = NA)
     x.asgn <- attr(x, "assign")# save
     zero.weights <- any(w == 0)
     if (zero.weights) {
@@ -752,6 +764,10 @@ predict.lm <-
 	asgn <- split(order(aa), aaa)
 	if (hasintercept) {
 	    asgn$"(Intercept)" <- NULL
+	    if(!mmDone) {
+                mm <- model.matrix(object)
+                mmDone <- TRUE
+            }
 	    avx <- colMeans(mm)
 	    termsconst <- sum(avx[piv] * beta[piv])
 	}

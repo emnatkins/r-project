@@ -1,5 +1,5 @@
 #  File src/library/methods/R/BasicFunsList.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## Lists of functions and expressions used in dispatch of functions
 ## defined internally (as .Primitive's) for which formal argument lists
@@ -22,8 +22,9 @@
 ## needs to have a special form (e.g., belonging to one of the
 ## predefined groups of functions).
 
-##' The list is expanded in .makeBasicFuns() -> ./makeBasicFunsList.R by 
-##' adding the S4 group generics and the remaining primitives.
+## The list is expanded in .makeBasicFuns by adding the S4 group generics
+## and the remaining primitives.
+
 .BasicFunsList <-
 list(
 ### subset/subassignment ops are regarded as language elements

@@ -1,5 +1,5 @@
 #  File src/library/methods/R/SClasses.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 setClass <-
     ## Define Class to be an S4 class.
@@ -179,9 +179,7 @@ makeClassRepresentation <-
   ## The formal definition of the class is set according to the arguments.
   ##
   ## Users should call setClass instead of this function.
-  function(name, slots = list(), superClasses = character(), prototype = NULL,
-	   package, validity = NULL, access = list(), version = .newExternalptr(),
-	   sealed = FALSE, virtual = NA, where)
+  function(name, slots = list(), superClasses = character(), prototype = NULL, package, validity = NULL, access = list(), version = .newExternalptr(), sealed = FALSE, virtual = NA, where)
 {
     if(any(superClasses %in% .AbnormalTypes))
         superClasses <- .addAbnormalDataType(superClasses)
@@ -195,13 +193,12 @@ makeClassRepresentation <-
     if(nzchar(package))
         packageSlot(name) <- package
     for(what in superClasses) {
-	whatClassDef <-
-	    if(is(what, "classRepresentation"))
-		what
-	    else if(is.null(packageSlot(what)))
-		getClass(what, where = where)
-	    else
-		getClass(what)
+        if(is(what, "classRepresentation"))
+            whatClassDef <- what
+        else if(is.null(packageSlot(what)))
+            whatClassDef <- getClass(what, where = where)
+        else
+            whatClassDef <- getClass(what)
         what <- whatClassDef@className # includes package name as attribute
         ## Create the SClassExtension objects (will be simple, possibly dataPart).
         ## The slots are supplied explicitly, since `name' is currently an undefined class
@@ -248,10 +245,11 @@ getClassDef <-
 	## should be in that package.
 	if(identical(nzchar(package), TRUE)) {
 	    whereP <- .requirePackage(package)
-	    value <- get0(cname, whereP, inherits = inherits) # NULL if not existing
+	    if(exists(cname, whereP, inherits = inherits))
+		value <- get(cname, whereP)
 	}
-	if(is.null(value))
-	    value <- get0(cname, where, inherits = inherits) # NULL if not existing
+	if(is.null(value) && exists(cname, where, inherits = inherits))
+	    value <- get(cname, where)
     }
     value
 }

@@ -2004,7 +2004,7 @@ OpenMP@footnote{@uref{http://www.openmp.org/},
 @example
 SHLIB_OPENMP_CFLAGS
 SHLIB_OPENMP_CXXFLAGS
-SHLIB_OPENMP_FCFLAGS
+Shlib_OPENMP_FCFLAGS
 SHLIB_OPENMP_FFLAGS
 @end example
 
@@ -2016,11 +2016,7 @@ conditioned on the use of OpenMP can be used inside @code{#ifdef
 SUPPORT_OPENMP}, a macro defined in the header @file{Rconfig.h}
 (@pxref{Platform and version information}) or @code{_OPENMP}: note that
 some toolchains used for @R{} (including most of those using
-@command{clang}@footnote{Some builds of @command{clang} 3.7 will have
-support for OpenMP 3.1. Howver, this needs the compiler/linker flag
-@option{-fopenmp=libomp} which is not currently added by
-@command{configure}.}) have no OpenMP support at all, not even
-@file{omp.h}.
+@command{clang}) have no OpenMP support at all, not even @file{omp.h}.
 
 For example, a package with C code written for OpenMP should have in
 @file{src/Makevars} the lines
@@ -2037,8 +2033,10 @@ should do their own @command{configure} checks.
 There is nothing to say what version of OpenMP is supported: version 3.0
 (May 2008) is supported by recent versions of the Linux, Windows and
 Solaris platforms, but portable packages cannot assume that end users
-have recent versions.  OS X currently uses Apple builds of
-@command{clang} with no OpenMP support.
+have recent versions.  OS X nowadays uses @command{clang}, and the Apple
+builds currently@footnote{Projects to add it has been announced, but it
+is unknown when or even if the Apple builds will incorporate them.}
+have no OpenMP support.
 
 The performance of OpenMP varies substantially between platforms.  Both
 the Windows and earlier Apple OS X implementations have substantial
@@ -4390,10 +4388,9 @@ language of the UTF-8 locale, and your users would need to be told how
 to select the @samp{encoding} argument.
 
 If you want to run @command{R CMD check} on a Unix-alike over a package
-that sets a package encoding in its @file{DESCRIPTION} file @emph{and do
-not use a UTF-8 locale} you may need to specify a suitable locale
-@emph{via} environment variable @env{R_ENCODING_LOCALES}.  The default
-is equivalent to the value
+that sets a package encoding in its @file{DESCRIPTION} file you may need
+to specify a suitable locale @emph{via} environment variable
+@env{R_ENCODING_LOCALES}.  The default is equivalent to the value
 
 @example
 "latin1=en_US:latin2=pl_PL:UTF-8=en_US.UTF-8:latin9=fr_FR.iso885915@@euro"
@@ -5500,7 +5497,7 @@ give a description of each column, preferably as a list or table.
 @item \source@{@dots{}@}
 @findex \source
 Details of the original source (a reference or @acronym{URL},
-@pxref{Specifying URLs}).  In addition, section @code{\references} could
+@xref{Specifying URLs}).  In addition, section @code{\references} could
 give secondary sources and usages.
 @end table
 
@@ -12088,7 +12085,7 @@ in @file{Rmath.h}, but is in @file{math.h} which @file{Rmath.h} includes.
 
 @deftypefun double logspace_add (double @var{logx}, double @var{logy})
 @deftypefunx double logspace_sub (double @var{logx}, double @var{logy})
-@deftypefunx double logspace_sum (const double* @var{logx}, int @var{n})
+@deftypefunx double logspace_sum (double* @var{logx}, int @var{n})
 Compute the log of a sum or difference from logs of terms, i.e., ``x +
 y'' as @code{log (exp(@var{logx}) + exp(@var{logy}))} and ``x - y'' as
 @code{log (exp(@var{logx}) - exp(@var{logy}))},

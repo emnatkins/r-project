@@ -1,5 +1,5 @@
 #  File src/library/tools/R/testing.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -16,7 +16,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## functions principally for testing R and packages
 
@@ -228,7 +228,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE,
             list(status = status, out = c(out, readLines(tf)))
         } else system(paste("diff -bw", shQuote(a), shQuote(b)))
     }
-} ## {Rdiff}
+}
 
 testInstalledPackages <-
     function(outDir = ".", errorsAreFatal = TRUE,
@@ -696,7 +696,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
         unl <- unlist(deps)
         for(i in seq_along(deps)) {
             this <- names(deps)[i]
-	    if(.rmpkg(this) %in% unl) next else break
+            if(sub("^package:", "", this) %in% unl) next else break
         }
         ## hopefully force = TRUE is never needed, but it does ensure
         ## that progress gets made

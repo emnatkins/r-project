@@ -1,5 +1,5 @@
 #  File src/library/tools/R/admin.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 
 ### * .install_package_description
@@ -1045,7 +1045,7 @@ compactPDF <-
         }
         unlink(tf)
     }
-    structure(stats::na.omit(ans), class = c("compactPDF", "data.frame"))
+    structure(na.omit(ans), class = c("compactPDF", "data.frame"))
 }
 
 find_gs_cmd <- function(gs_cmd = "")

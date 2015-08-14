@@ -1,5 +1,5 @@
 #  File src/library/parallel/R/snowSOCK.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2014 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 ## Derived from snow 0.3-6 by Luke Tierney
 ## Uses solely Rscript, and a function in the package rather than scripts.
@@ -65,7 +65,7 @@ newPSOCKnode <- function(machine = "localhost", ...,
 
     if (manual) {
         cat("Manually start worker on", machine, "with\n    ", cmd, "\n")
-        utils::flush.console()
+        flush.console()
     } else {
         ## add the remote shell command if needed
         if (machine != "localhost") {

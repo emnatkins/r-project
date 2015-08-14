@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, a copy is available at
-   https://www.R-project.org/Licenses/
+   http://www.r-project.org/Licenses/
 */
 
 #include <R.h>

@@ -1,7 +1,7 @@
 #  File src/library/utils/R/sessionInfo.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 sessionInfo <- function(package = NULL)
 {
@@ -79,9 +79,8 @@ sessionInfo <- function(package = NULL)
     if(is.null(package)){
         package <- grep("^package:", search(), value=TRUE)
         # weed out environments which are not really packages
-        keep <- vapply(package, function(x) x == "package:base"
-                       || !is.null(attr(as.environment(x), "path")), NA)
-        package <- .rmpkg(package[keep])
+        keep <- sapply(package, function(x) x == "package:base" || !is.null(attr(as.environment(x), "path")))
+        package <- sub("^package:", "", package[keep])
     }
 
     ## no need to re-encode given what we extract.

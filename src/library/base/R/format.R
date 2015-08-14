@@ -1,5 +1,5 @@
 #  File src/library/base/R/format.R
-#  Part of the R package, https://www.R-project.org
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 format <- function(x, ...) UseMethod("format")
 
@@ -164,10 +164,10 @@ formatC <- function (x, digits = NULL, width = NULL,
     else if(digits < 0L)
 	digits <- 6L
     else {
-	maxDigits <- if(format != "f") 50L else
-	    ceiling(-(.Machine$double.neg.ulp.digits + .Machine$double.min.exp) / log2(10))
+	maxDigits <- if(format != "f") 50L else ceiling(-(.Machine$double.neg.ulp.digits + .Machine$double.min.exp) / log2(10))
 	if (digits > maxDigits) {
-            warning(gettextf("'digits' reduced to %d", maxDigits), domain = NA)
+            warning(gettextf("'digits' reduced to %d", maxDigits),
+                    domain = NA)
 	    digits <- maxDigits
 	}
     }
@@ -292,8 +292,10 @@ format.AsIs <- function(x, width = 12, ...)
 	nz <- nchar(zero.print, "c")
 	nc <- nchar(x[i0], "c")
 	ind0 <- regexpr("0", x[i0], fixed = TRUE)# first '0' in string
+	blank.chars <- function(no) # as in formatC()
+	    vapply(no+1L, function(n) paste(character(n), collapse=" "), "")
 	substr(x[i0], ind0, (i1 <- ind0+nz-1L)) <- zero.print
-	substr(x[i0], ind0+nz, nc) <- strrep(" ", nc - i1)
+	substr(x[i0], ind0+nz, nc) <- blank.chars(nc - i1)
     }
     x
 }
@@ -343,7 +345,7 @@ prettyNum <-
 	z.sp <- strsplit(sub("([0-9] *)([-+])( *[0-9])",
 			     "\\1::\\2::\\3", x), "::", fixed=TRUE)
 	## be careful, if x had an  "	NA":
-	i3 <- lengths(z.sp) == 3L # those are re + im *i
+	i3 <- vapply(z.sp, length, 0L) == 3L # those are re + im *i
 	if(any(i3)) {
 	    z.sp <- z.sp[i3]
 	    z.im <- vapply(z.sp, `[[`, "", 3L)

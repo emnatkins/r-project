@@ -1,5 +1,5 @@
-#  File src/library/tools/R/packages.R
-#  Part of the R package, https://www.R-project.org
+#  File src/library/tools/R/writePACKAGES.R
+#  Part of the R package, http://www.R-project.org
 #
 #  Copyright (C) 1995-2015 The R Core Team
 #
@@ -14,7 +14,7 @@
 #  GNU General Public License for more details.
 #
 #  A copy of the GNU General Public License is available at
-#  https://www.R-project.org/Licenses/
+#  http://www.r-project.org/Licenses/
 
 write_PACKAGES <-
 function(dir = ".", fields = NULL,
@@ -26,7 +26,7 @@ function(dir = ".", fields = NULL,
         type <- "win.binary"
     type <- match.arg(type)
     nfields <- 0
-    out   <-   file(file.path(dir, "PACKAGES"   ), "wt")
+    out <- file(file.path(dir, "PACKAGES"), "wt")
     outgz <- gzfile(file.path(dir, "PACKAGES.gz"), "wt")
 
     paths <- ""
@@ -200,7 +200,7 @@ function(dir, fields = NULL, verbose = getOption("verbose"))
 dependsOnPkgs <-
 function(pkgs, dependencies = c("Depends", "Imports", "LinkingTo"),
          recursive = TRUE, lib.loc = NULL,
-         installed = utils::installed.packages(lib.loc, fields = "Enhances"))
+         installed = installed.packages(lib.loc, fields = "Enhances"))
 {
     if(identical(dependencies, "all"))
         dependencies <-
@@ -365,20 +365,21 @@ function(packages = NULL, db,
     }
     p_R <- tab[p_L]
     pos <- cbind(rep.int(p_L, lengths(p_R)), unlist(p_R))
-    ctr <- 0L
+    ctr <- 1L
     repeat {
-        if(verbose) cat("Cycle:", (ctr <- ctr + 1L))
+        if(verbose) cat("Cycle:", ctr)
         p_L <- split(pos[, 1L], pos[, 2L])
         new <- do.call(rbind,
                        Map(function(i, k)
                            cbind(rep.int(i, length(k)),
-                                 rep(k, each = length(i))),
+                                     rep(k, each = length(i))),
                            p_L, tab[as.integer(names(p_L))]))
         npos <- unique(rbind(pos, new))
         nnew <- nrow(npos) - nrow(pos)
         if(verbose) cat(" NNew:", nnew, "\n")
         if(!nnew) break
         pos <- npos
+        ctr <- ctr + 1L
     }
     depends <-
         split(all_packages[pos[, 2L]],
