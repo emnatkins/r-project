@@ -1,5 +1,5 @@
 # ============================================================================
-#  https://www.gnu.org/software/autoconf-archive/ax_cxx_compile_stdcxx_11.html
+#  http://www.gnu.org/software/autoconf-archive/ax_cxx_compile_stdcxx_11.html
 # ============================================================================
 #
 # SYNOPSIS

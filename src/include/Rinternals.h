@@ -356,7 +356,6 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
   } while (0)
 # define IS_SCALAR(x, type) (TYPEOF(x) == (type) && SHORT_VEC_LENGTH(x) == 1)
 #else
-# define SHORT_VEC_LENGTH(x) (((VECSEXP) (x))->vecsxp.length)
 # define LENGTH(x)	(((VECSEXP) (x))->vecsxp.length)
 # define TRUELENGTH(x)	(((VECSEXP) (x))->vecsxp.truelength)
 # define XLENGTH(x) LENGTH(x)
@@ -528,7 +527,6 @@ void (SET_TYPEOF)(SEXP x, int v);
 void (SET_NAMED)(SEXP x, int v);
 void SET_ATTRIB(SEXP x, SEXP v);
 void DUPLICATE_ATTRIB(SEXP to, SEXP from);
-void SHALLOW_DUPLICATE_ATTRIB(SEXP to, SEXP from);
 
 /* S4 object testing */
 int (IS_S4_OBJECT)(SEXP x);
@@ -721,7 +719,6 @@ LibExtern SEXP  R_dot_defined;      /* ".defined" */
 LibExtern SEXP  R_dot_Method;       /* ".Method" */
 LibExtern SEXP	R_dot_packageName;// ".packageName"
 LibExtern SEXP  R_dot_target;       /* ".target" */
-LibExtern SEXP  R_dot_Generic;      /* ".Generic" */
 
 /* Missing Values - others from Arith.h */
 #define NA_STRING	R_NaString
@@ -1052,8 +1049,6 @@ SEXP R_Unserialize(R_inpstream_t ips);
 SEXP R_do_slot(SEXP obj, SEXP name);
 SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value);
 int R_has_slot(SEXP obj, SEXP name);
-/* S3-S4 class (inheritance), attrib.c */
-SEXP R_S4_extends(SEXP klass, SEXP useTable);
 
 /* class definition, new objects (objects.c) */
 SEXP R_do_MAKE_CLASS(const char *what);
@@ -1095,9 +1090,7 @@ Rboolean R_compute_identical(SEXP, SEXP, int);
 
 /* C version of R's  indx <- order(..., na.last, decreasing) :
    e.g.  arglist = Rf_lang2(x,y)  or  Rf_lang3(x,y,z) */
-void R_orderVector (int *indx, int n, SEXP arglist, Rboolean nalast, Rboolean decreasing);
-// C version of R's  indx <- order(x, na.last, decreasing) :
-void R_orderVector1(int *indx, int n, SEXP x,       Rboolean nalast, Rboolean decreasing);
+void R_orderVector(int *indx, int n, SEXP arglist, Rboolean nalast, Rboolean decreasing);
 
 #ifndef R_NO_REMAP
 #define acopy_string		Rf_acopy_string

@@ -568,10 +568,10 @@ static Rboolean needsparens(PPinfo mainop, SEXP arg, unsigned int left)
 		    return FALSE;
 		}
 	    } else if (isUserBinop(CAR(arg))) {
-		if (mainop.precedence > PREC_PERCENT
-		    || (mainop.precedence == PREC_PERCENT && left == mainop.rightassoc)) {
-		    return TRUE;
-		}
+	        if (mainop.precedence > PREC_PERCENT
+	            || (mainop.precedence == PREC_PERCENT && left == mainop.rightassoc)) {
+	            return TRUE;
+	        }
 	    }
 	}
     }
@@ -708,18 +708,18 @@ static Rboolean parenthesizeCaller(SEXP s)
 	    if (isUserBinop(op)) return TRUE;   /* %foo% */
 	    sym = SYMVALUE(op);
 	    if (TYPEOF(sym) == BUILTINSXP
-		|| TYPEOF(sym) == SPECIALSXP) {
-		if (PPINFO(sym).precedence >= PREC_DOLLAR
-		    || PPINFO(sym).kind == PP_FUNCALL
-		    || PPINFO(sym).kind == PP_PAREN
-		    || PPINFO(sym).kind == PP_CURLY) return FALSE; /* x$f(z) or x[n](z) or f(z) or (f) or {f} */
-		else return TRUE;		/* (f+g)(z) etc. */
+	        || TYPEOF(sym) == SPECIALSXP) {
+	        if (PPINFO(sym).precedence >= PREC_DOLLAR
+	            || PPINFO(sym).kind == PP_FUNCALL
+	            || PPINFO(sym).kind == PP_PAREN
+	            || PPINFO(sym).kind == PP_CURLY) return FALSE; /* x$f(z) or x[n](z) or f(z) or (f) or {f} */
+	        else return TRUE;		/* (f+g)(z) etc. */
 	    }
 	    return FALSE;			/* regular function call */
 	 } else
 	    return TRUE;			/* something strange, like (1)(x) */
     } else
-	return TYPEOF(s) == CLOSXP;
+        return TYPEOF(s) == CLOSXP;
 }
 
 /* This is the recursive part of deparsing. */
@@ -985,7 +985,7 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 		case PP_FUNCALL:
 		case PP_RETURN:
 		    if (d->backtick)
-			print2buff(quotify(PRINTNAME(op), '`'), d);
+		        print2buff(quotify(PRINTNAME(op), '`'), d);
 		    else
 			print2buff(quotify(PRINTNAME(op), '"'), d);
 		    print2buff("(", d);
@@ -1579,7 +1579,7 @@ static void args2buff(SEXP arglist, int lineb, int formals, LocalParseData *d)
 	    else if(d->backtick)
 		print2buff(quotify(PRINTNAME(s), '`'), d);
 	    else
-		print2buff(quotify(PRINTNAME(s), '"'), d);
+	        print2buff(quotify(PRINTNAME(s), '"'), d);
 
 	    if(formals) {
 		if (CAR(arglist) != R_MissingArg) {

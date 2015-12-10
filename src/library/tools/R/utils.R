@@ -470,7 +470,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.3"))
+    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.2"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 ## Wierdly, 3.0 is the second version (after 2.14) for the 3.1.x series.
@@ -804,20 +804,13 @@ function(primitive = TRUE) # primitive means 'include primitives'
 ### ** .get_namespace_package_depends
 
 .get_namespace_package_depends <-
-function(dir, selective_only = FALSE)
+function(dir)
 {
     nsInfo <- .check_namespace(dir)
-    getter <- if(selective_only) {
-        function(e) {
-            if(is.list(e) && length(e[[2L]])) e[[1L]] else character()
-        }
-    } else {
-        function(e) e[[1L]]
-    }
-    depends <- c(lapply(nsInfo$imports, getter),
-                 lapply(nsInfo$importClasses, getter),
-                 lapply(nsInfo$importMethods, getter))
-    unique(sort(as.character(unlist(depends, use.names = FALSE))))
+    depends <- c(sapply(nsInfo$imports, "[[", 1L),
+                 sapply(nsInfo$importClasses, "[[", 1L),
+                 sapply(nsInfo$importMethods, "[[", 1L))
+    unique(sort(as.character(depends)))
 }
 
 ### ** .get_namespace_S3_methods_db
@@ -1183,28 +1176,6 @@ function(pattern, replacement, x, trafo, count, ...)
     x
 }
 
-### imports_for_undefined_globals
-
-imports_for_undefined_globals <-
-function(txt, lst, selective = TRUE)
-{
-    if(!missing(txt))
-        lst <- scan(what = character(), text = txt, quiet = TRUE)
-    lst <- sort(unique(lst))
-    nms <- lapply(lst, utils::find)
-    ind <- sapply(nms, length) > 0L
-    imp <- split(lst[ind], substring(unlist(nms[ind]), 9L))
-    if(selective) {
-        sprintf("importFrom(%s)",
-                vapply(Map(c, names(imp), imp),
-                       function(e)
-                           paste0("\"", e, "\"", collapse = ", "),
-                       ""))
-    } else {
-        sprintf("import(\"%s\")", names(imp))
-    }
-}
-
 ### ** .is_ASCII
 
 .is_ASCII <-
@@ -1296,25 +1267,6 @@ function(fname, envir, mustMatch = TRUE)
     }
     res <- isUME(body(f))
     if(mustMatch) res == fname else nzchar(res)
-}
-
-### ** .load_namespace_rather_quietly
-
-.load_namespace_rather_quietly <-
-function(package)
-{
-    ## Suppress messages and warnings from loading namespace
-    ## dependencies.
-    .whandler <- function(e) {
-        calls <- sys.calls()
-        if(sum(.call_names(calls) == "loadNamespace") == 1L)
-            signalCondition(e)
-        else
-            invokeRestart("muffleWarning")
-    }
-    expr <- substitute(loadNamespace(package), list(package = package))
-    invisible(withCallingHandlers(suppressMessages(eval(expr)),
-                                  warning = .whandler))
 }
 
 ### ** .load_package_quietly
@@ -1414,7 +1366,6 @@ function(parent = parent.frame(), fixup = FALSE)
 
 ### ** .make_S3_primitive_nongeneric_env
 
-## why not just use  base::.ArgsEnv -- is the parent really important if(is_base)?
 .make_S3_primitive_nongeneric_env <-
 function(parent = parent.frame())
 {
@@ -1424,9 +1375,10 @@ function(parent = parent.frame())
              hash=TRUE, parent=parent)
 }
 
-### ** nonS3methods [was .make_S3_methods_stop_list ]
+### ** .make_S3_methods_stop_list
 
-nonS3methods <- function(package)
+.make_S3_methods_stop_list <-
+function(package)
 {
     ## Return a character vector with the names of the functions in
     ## @code{package} which 'look' like S3 methods, but are not.
@@ -1469,7 +1421,7 @@ nonS3methods <- function(package)
              TeachingDemos = "sigma.test",
              XML = "text.SAX",
              ape = "sort.index",
-             arm = "sigma.hat",
+             arm = "sigma.hat", # lme4 has sigma()
              assist = "chol.new",
              boot = "exp.tilt",
              car = "scatterplot.matrix",
@@ -1541,9 +1493,9 @@ function(packages = NULL, FUN, ...)
     out
 }
 
-### ** .pandoc_md_for_CRAN
+### ** .pandoc_README_md_for_CRAN
 
-.pandoc_md_for_CRAN <-
+.pandoc_README_md_for_CRAN <-
 function(ifile, ofile)
 {
     .system_with_capture("pandoc",
@@ -1591,12 +1543,6 @@ function(con)
     }
     .try_quietly(readLines(con, warn=FALSE))
 }
-
-### ** .read_additional_repositories_field
-
-.read_additional_repositories_field <-
-function(txt)
-    unique(unlist(strsplit(txt, ",[[:space:]]*")))
 
 ### ** .read_citation_quietly
 
@@ -1703,13 +1649,12 @@ function(file)
     db
 }
 
-### default changed to https: for R 3.3.0
 .expand_BioC_repository_URLs <-
 function(x)
 {
     x <- sub("%bm",
              as.character(getOption("BioC_mirror",
-                                    "https://bioconductor.org")),
+                                    "http://bioconductor.org")),
              x, fixed = TRUE)
     sub("%v",
         as.character(.BioC_version_associated_with_R_version()),
@@ -2015,7 +1960,7 @@ toTitleCase <- function(text)
                        tolower(substring(x, 3L)))
             else paste0(toupper(x1), tolower(substring(x, 2L)))
         }
-        xx <- .Call(splitString, x, ' -/"()\n')
+        xx <- .Call(splitString, x, ' -/"()')
         ## for 'alone' we could insist on that exact capitalization
         alone <- xx %in% c(alone, either)
         alone <- alone | grepl("^'.*'$", xx)

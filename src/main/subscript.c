@@ -42,8 +42,7 @@
 #define NINTERRUPT 10000000
 
 /* We might get a call with R_NilValue from subassignment code */
-#define ECALL(call, yy)     if(call == R_NilValue) error(yy);    else errorcall(call, yy);
-#define ECALL3(call, yy, A) if(call == R_NilValue) error(yy, A); else errorcall(call, yy, A);
+#define ECALL(call, yy) if(call == R_NilValue) error(yy); else errorcall(call, yy);
 
 /* This allows for the unusual case where x is of length 2,
    and x[[-m]] selects one element for m = 1, 2.
@@ -56,11 +55,11 @@ static R_INLINE int integerOneIndex(int i, R_xlen_t len, SEXP call)
     if (i > 0) /* a regular 1-based index from R */
 	indx = i - 1;
     else if (i == 0 || len < 2) {
-	ECALL3(call, _("attempt to select less than one element in %s"), "integerOneIndex");
+	ECALL(call, _("attempt to select less than one element"));
     } else if (len == 2 && i > -3)
 	indx = 2 + i;
     else {
-	ECALL3(call, _("attempt to select more than one element in %s"), "integerOneIndex");
+	ECALL(call, _("attempt to select more than one element"));
     }
     return indx;
 }
@@ -75,10 +74,10 @@ OneIndex(SEXP x, SEXP s, R_xlen_t len, int partial, SEXP *newname,
     const void *vmax;
 
     if (pos < 0 && length(s) > 1) {
-	ECALL3(call, _("attempt to select more than one element in %s"), "OneIndex");
+	ECALL(call, _("attempt to select more than one element"));
     }
     if (pos < 0 && length(s) < 1) {
-	ECALL3(call, _("attempt to select less than one element in %s"), "OneIndex");
+	ECALL(call, _("attempt to select less than one element"));
     }
 
     if(pos < 0) pos = 0;
@@ -148,7 +147,11 @@ OneIndex(SEXP x, SEXP s, R_xlen_t len, int partial, SEXP *newname,
 	vmaxset(vmax);
 	break;
     default:
-	ECALL3(call, _("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	if (call == R_NilValue)
+	    error(_("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	else
+	    errorcall(call, _("invalid subscript type '%s'"),
+		      type2char(TYPEOF(s)));
     }
     return indx;
 }
@@ -180,9 +183,9 @@ get1index(SEXP s, SEXP names, R_xlen_t len, int pok, int pos, SEXP call)
 
     if (pos < 0 && length(s) != 1) {
 	if (length(s) > 1) {
-	    ECALL3(call, _("attempt to select more than one element in %s"), "get1index");
+	    ECALL(call, _("attempt to select more than one element"));
 	} else {
-	    ECALL3(call, _("attempt to select less than one element in %s"), "get1index");
+	    ECALL(call, _("attempt to select less than one element"));
 	}
     } else
 	if(pos >= length(s)) {
@@ -206,11 +209,11 @@ get1index(SEXP s, SEXP names, R_xlen_t len, int pok, int pos, SEXP call)
 	    /* see comment above integerOneIndex */
 	    if (dblind > 0) indx = (R_xlen_t)(dblind - 1);
 	    else if (dblind == 0 || len < 2) {
-		ECALL3(call, _("attempt to select less than one element in %s"), "get1index <real>");
+		ECALL(call, _("attempt to select less than one element"));
 	    } else if (len == 2 && dblind > -3)
 		indx = (R_xlen_t)(2 + dblind);
 	    else {
-		ECALL3(call, _("attempt to select more than one element in %s"), "get1index <real>");
+		ECALL(call, _("attempt to select more than one element"));
 	    }
 	}
 	break;
@@ -275,7 +278,11 @@ get1index(SEXP s, SEXP names, R_xlen_t len, int pok, int pos, SEXP call)
 		break;
 	    }
     default:
-	ECALL3(call, _("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	if (call == R_NilValue)
+	    error(_("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	else
+	    errorcall(call, _("invalid subscript type '%s'"),
+		      type2char(TYPEOF(s)));
     }
     return indx;
 }
@@ -302,12 +309,12 @@ vectorIndex(SEXP x, SEXP thesub, int start, int stop, int pok, SEXP call,
 	    if (i)
 		errorcall(call, _("recursive indexing failed at level %d\n"), i+1);
 	    else
-		errorcall(call, _("attempt to select more than one element in %s"), "vectorIndex");
+		errorcall(call, _("attempt to select more than one element"));
 	}
 	PROTECT(x);
 	SEXP names = PROTECT(getAttrib(x, R_NamesSymbol));
 	offset = get1index(thesub, names,
-			   xlength(x), pok, i, call);
+		           xlength(x), pok, i, call);
 	UNPROTECT(2); /* x, names */
 	if(offset < 0 || offset >= xlength(x))
 	    errorcall(call, _("no such index at level %d\n"), i+1);
@@ -451,20 +458,20 @@ SEXP attribute_hidden strmat2intmat(SEXP s, SEXP dnamelist, SEXP call)
     PROTECT(si = allocVector(INTSXP, xlength(s)));
     dimgets(si, getAttrib(s, R_DimSymbol));
     for (i = 0; i < length(dnamelist); i++) {
-	dnames = VECTOR_ELT(dnamelist, i);
-	for (j = 0; j < nr; j++)
-	    SET_STRING_ELT(snames, j, STRING_ELT(s, j + (i * NR)));
-	PROTECT(sicol = match(dnames, snames, 0));
-	for (j = 0; j < nr; j++) {
-	    v = INTEGER(sicol)[j];
-	    idx = j + (i * NR);
-	    s_elt = STRING_ELT(s, idx);
-	    if (s_elt == NA_STRING) v = NA_INTEGER;
-	    if (!CHAR(s_elt)[0]) v = 0; /* disallow "" match */
-	    if (v == 0) errorcall(call, _("subscript out of bounds"));
-	    INTEGER(si)[idx] = v;
-	}
-	UNPROTECT(1);
+        dnames = VECTOR_ELT(dnamelist, i);
+        for (j = 0; j < nr; j++)
+            SET_STRING_ELT(snames, j, STRING_ELT(s, j + (i * NR)));
+        PROTECT(sicol = match(dnames, snames, 0));
+        for (j = 0; j < nr; j++) {
+            v = INTEGER(sicol)[j];
+            idx = j + (i * NR);
+            s_elt = STRING_ELT(s, idx);
+            if (s_elt == NA_STRING) v = NA_INTEGER;
+            if (!CHAR(s_elt)[0]) v = 0; /* disallow "" match */
+            if (v == 0) errorcall(call, _("subscript out of bounds"));
+            INTEGER(si)[idx] = v;
+        }
+        UNPROTECT(1);
     }
     UNPROTECT(2);
     return si;
@@ -504,29 +511,12 @@ logicalSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, R_xlen_t *stretch, SEXP call)
     if (ns == 0) return(allocVector(INTSXP, 0));
 #ifdef LONG_VECTOR_SUPPORT
     if (nmax > R_SHORT_LEN_MAX) {
-	if (ns == nmax) { /* no recycling - use fast single-index code */
-	    const void *vmax = vmaxget();
-	    double *buf = (double *) R_alloc(nmax, sizeof(double));
-	    count = 0;
-	    R_ITERATE_CHECK(NINTERRUPT, nmax, i,                    \
-		if (LOGICAL(s)[i]) {                                \
-		    if (LOGICAL(s)[i] == NA_LOGICAL)		    \
-			buf[count++] = NA_REAL;		    \
-		    else					    \
-			buf[count++] = (double)(i + 1);	    \
-		});
-	    PROTECT(indx = allocVector(REALSXP, count));
-	    memcpy(REAL(indx), buf, sizeof(double) * count);
-	    vmaxset(vmax);
-	    UNPROTECT(1);
-	    return indx;
-	}
 	count = 0;
 	/* we only need to scan s once even if we recycle,
 	   just remember the total count as well as
 	   the count for the last incomplete chunk (if any) */
 	i1 = (ns < nmax) ? (nmax % ns) : 0;
-	if (i1 > 0) { /* last recycling chunk is incomplete -
+	if (i1 > 0) { /* last recycling chunk is incomple -
 			 we have to get the truncated count as well */
 	    R_xlen_t rem = 0;
 	    for (i = 0; i < ns; i++) {
@@ -541,43 +531,33 @@ logicalSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, R_xlen_t *stretch, SEXP call)
 	}
 	PROTECT(indx = allocVector(REALSXP, count));
 	count = 0;
-	MOD_ITERATE_CHECK(NINTERRUPT, nmax, ns, nmax, i, i1, i2, \
-	    if (LOGICAL(s)[i1]) {				 \
-		if (LOGICAL(s)[i1] == NA_LOGICAL)		 \
-		    REAL(indx)[count++] = NA_REAL;		 \
-		else						 \
-		    REAL(indx)[count++] = (double)(i + 1);	 \
-	    });
+	if (ns == nmax) { /* no recycling - use fast single-index code */
+	    R_ITERATE_CHECK(NINTERRUPT, nmax, i,		\
+		if (LOGICAL(s)[i]) {		                \
+		    if (LOGICAL(s)[i] == NA_LOGICAL)		\
+			REAL(indx)[count++] = NA_REAL;		\
+		    else					\
+			REAL(indx)[count++] = (double)(i + 1);	\
+		});
+	} else /* otherwise iter-macro */
+	    MOD_ITERATE_CHECK(NINTERRUPT, nmax, ns, nmax, i, i1, i2,	\
+		    if (LOGICAL(s)[i1]) {				\
+			if (LOGICAL(s)[i1] == NA_LOGICAL)		\
+			    REAL(indx)[count++] = NA_REAL;		\
+			else						\
+			    REAL(indx)[count++] = (int)(i + 1);		\
+		    });							\
 
 	UNPROTECT(1);
 	return indx;
     }
 #endif
-// else --- the same code for  non-long vectors --------------------------
-    if (ns == nmax) {  /* no recycling - use fast single-index code */
-	const void *vmax = vmaxget();
-	int *buf = (int *) R_alloc(nmax, sizeof(int));
-	count = 0;
-	R_ITERATE_CHECK(NINTERRUPT, nmax, i,                    \
-	    if (LOGICAL(s)[i]) {                                \
-		if (LOGICAL(s)[i] == NA_LOGICAL)	        \
-		    buf[count++] = NA_INTEGER;		\
-		else                                            \
-		    buf[count++] = (int)(i + 1);		\
-	    });
-	PROTECT(indx = allocVector(INTSXP, count));
-	memcpy(INTEGER(indx), buf, sizeof(int) * count);
-	vmaxset(vmax);
-	UNPROTECT(1);
-	return indx;
-    }
-
     count = 0;
     /* we only need to scan s once even if we recycle,
        just remember the total count as well as
        the count for the last incomplete chunk (if any) */
     i1 = (ns < nmax) ? (nmax % ns) : 0;
-    if (i1 > 0) { /* last recycling chunk is incomplete -
+    if (i1 > 0) { /* last recycling chunk is incomple -
 		     we have to get the truncated count as well */
 	R_xlen_t rem = 0;
 	for (i = 0; i < ns; i++) {
@@ -585,20 +565,30 @@ logicalSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, R_xlen_t *stretch, SEXP call)
 	    if (LOGICAL(s)[i]) count++;
 	}
 	count = count * (nmax / ns) + rem;
-    } else { /* nested recycling, total is sufficient */
+    } else {
 	for (i = 0; i < ns; i++)
 	    if (LOGICAL(s)[i]) count++;
 	count *= nmax / ns;
     }
     PROTECT(indx = allocVector(INTSXP, count));
     count = 0;
-    MOD_ITERATE_CHECK(NINTERRUPT, nmax, ns, nmax, i, i1, i2,	\
-	if (LOGICAL(s)[i1]) {				\
-	    if (LOGICAL(s)[i1] == NA_LOGICAL)			\
-		INTEGER(indx)[count++] = NA_INTEGER;		\
-	    else						\
-		INTEGER(indx)[count++] = (int)(i + 1);		\
-	});
+    if (ns == nmax) { /* no recycling - use fast single-index code */
+	R_ITERATE_CHECK(NINTERRUPT, nmax, i,                    \
+	    if (LOGICAL(s)[i]) {                                \
+		if (LOGICAL(s)[i] == NA_LOGICAL)	        \
+		    INTEGER(indx)[count++] = NA_INTEGER;        \
+		else                                            \
+		    INTEGER(indx)[count++] = (int)(i + 1);      \
+	    });
+    } else /* otherwise iter-macro */
+	MOD_ITERATE_CHECK(NINTERRUPT, nmax, ns, nmax, i, i1, i2, {	\
+		if (LOGICAL(s)[i1]) {			        \
+		    if (LOGICAL(s)[i1] == NA_LOGICAL)		\
+			INTEGER(indx)[count++] = NA_INTEGER;	\
+		    else					\
+			INTEGER(indx)[count++] = (int)(i + 1);	\
+		}						\
+	    });
 
     UNPROTECT(1);
     return indx;
@@ -900,7 +890,11 @@ int_arraySubscript(int dim, SEXP s, SEXP dims, SEXP x, SEXP call)
 	if (s == R_MissingArg)
 	    return nullSubscript(nd);
     default:
-	ECALL3(call, _("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	if (call == R_NilValue)
+	    error(_("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	else
+	    errorcall(call, _("invalid subscript type '%s'"),
+		      type2char(TYPEOF(s)));
     }
     return R_NilValue;
 }
@@ -956,6 +950,10 @@ makeSubscript(SEXP x, SEXP s, R_xlen_t *stretch, SEXP call)
 	}
     }
 
+    PROTECT(s = duplicate(s));
+    SET_ATTRIB(s, R_NilValue);
+    SET_OBJECT(s, 0);
+
     SEXP ans = R_NilValue;
     switch (TYPEOF(s)) {
     case NILSXP:
@@ -966,24 +964,16 @@ makeSubscript(SEXP x, SEXP s, R_xlen_t *stretch, SEXP call)
 	ans = logicalSubscript(s, ns, nx, stretch, call);
 	break;
     case INTSXP:
-	PROTECT(s = duplicate(s));
-	SET_ATTRIB(s, R_NilValue);
-	SET_OBJECT(s, 0);
 	ans = integerSubscript(s, ns, nx, stretch, call);
-	UNPROTECT(1);
 	break;
     case REALSXP:
 	ans = realSubscript(s, ns, nx, stretch, call);
 	break;
     case STRSXP:
     {
-	PROTECT(s = duplicate(s));
-	SET_ATTRIB(s, R_NilValue);
-	SET_OBJECT(s, 0);
 	SEXP names = getAttrib(x, R_NamesSymbol);
 	/* *stretch = 0; */
 	ans = stringSubscript(s, ns, nx, names, stretch, call);
-	UNPROTECT(1);
 	break;
     }
     case SYMSXP:
@@ -993,7 +983,12 @@ makeSubscript(SEXP x, SEXP s, R_xlen_t *stretch, SEXP call)
 	    break;
 	}
     default:
-	ECALL3(call, _("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	if (call == R_NilValue)
+	    error(_("invalid subscript type '%s'"), type2char(TYPEOF(s)));
+	else
+	    errorcall(call, _("invalid subscript type '%s'"),
+		      type2char(TYPEOF(s)));
     }
+    UNPROTECT(1);
     return ans;
 }

@@ -16,7 +16,6 @@
 \alias{PossibleMethod-class}
 \alias{optionalMethod-class}
 \alias{derivedDefaultMethod-class}
-\alias{internalDispatchMethod-class}
 %%
 \alias{substituteFunctionArgs}
 \alias{makeGeneric}
@@ -62,7 +61,7 @@ getGroup(fdef, recursive, where)
 getGroupMembers(group, recursive = FALSE, character = TRUE)
 
 getMethodsMetaData(f, where)
-assignMethodsMetaData (f, value, fdef, where)
+assignMethodsMetaData (f, value, fdef, where, deflt)
 
 makeGeneric(f, fdef, fdefault =, group=list(), valueClass=character(),
             package =, signature = NULL, genericFunction = NULL,

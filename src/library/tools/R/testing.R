@@ -696,7 +696,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
         unl <- unlist(deps)
         for(i in seq_along(deps)) {
             this <- names(deps)[i]
-	    if(.rmpkg(this) %in% unl) next else break
+            if(sub("^package:", "", this) %in% unl) next else break
         }
         ## hopefully force = TRUE is never needed, but it does ensure
         ## that progress gets made

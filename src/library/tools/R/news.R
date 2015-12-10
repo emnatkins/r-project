@@ -286,7 +286,9 @@ function(file)
     exdent <- exdent[exdent > 1L]
     if(length(exdent)) {
         out[, 4L] <-
-            gsub(sprintf("\n%s", strrep(" ", min(exdent) - 1L)),
+            gsub(sprintf("\n%s",
+                         paste(rep.int(" ", min(exdent) - 1L),
+                               collapse = "")),
                  "\n", entries)
     }
 
@@ -386,37 +388,17 @@ function(file, out = stdout(), codify = FALSE)
     ## can use the DESCRIPTION metadata to obtain the package name and
     ## encoding.
 
-    format <- "default"    
-
     file <- file_path_as_absolute(file)
-
-    if(file_test("-d", file)) {
-        dir <- file
-        dfile <- file.path(dir, "DESCRIPTION")
-        if(!file_test("-f", dfile))
-            stop("DESCRIPTION file not found")
-        file <- file.path(dir, "inst", "NEWS")
-        if(!file_test("-f", file)) {
-            file <- file.path(dir, "NEWS")
-            if(!file_test("-f", file))
-                stop("NEWS file not found")
-        }
-    } else {
-        dir <- dirname(file)
-        dfile <- file.path(dir, "DESCRIPTION")
-        if(!file_test("-f", dfile)) {
-            if((basename(dir) != "inst") ||
-               !file_test("-f",
-                          dfile <- file.path(dirname(dir),
-                                             "DESCRIPTION")))
-                stop("DESCRIPTION file not found")
-        }
-    }
-
-    ## No longer support taking NEWS files without correponding
-    ## DESCRIPTION file as being from R itself (PR #16556).
-
-    meta <- .read_description(dfile)
+    dir <- dirname(file)
+    format <- "default"
+    if(file_test("-f", dfile <- file.path(dir, "DESCRIPTION")))
+        meta <- .read_description(dfile)
+    else if(basename(dir) == "inst" &&
+            file_test("-f", dfile <- file.path(dirname(dir),
+                                               "DESCRIPTION")))
+        meta <- .read_description(dfile)
+    else
+        format <- "R"
 
     wto <- function(x) writeLines(x, con = out, useBytes = TRUE)
     cre <- "(\\W|^)(\"[[:alnum:]_.]*\"|[[:alnum:]_.:]+\\(\\))(\\W|$)"
@@ -594,6 +576,9 @@ function(file)
 .extract_news_from_Rd <-
 function(x)
 {
+    spaces <- function(n)
+        paste(rep.int(" ", n), collapse = "")
+
     get_section_names <- function(x)
         sapply(x, function(e) .Rd_get_text(e[[1L]]))
 
@@ -632,10 +617,10 @@ function(x)
         pos <- grep(pat, out)
         if(!length(pos)) return(character())
         off <- min(nchar(sub(pat, "\\1", out[pos])))
-        pat <- sprintf("^%s\036 *", strrep(" ", off))
+        pat <- sprintf("^%s\036 *", spaces(off))
         s <- sub(pat, "\036", out)
         ## Try to remove some indent for nested material.
-        pat <- sprintf("^%s", strrep(" ", off + 2L))
+        pat <- sprintf("^%s", spaces(off + 2L))
         s <- sub(pat, "", s)
 
         s <- paste(s, collapse = "\n")

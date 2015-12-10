@@ -1,7 +1,7 @@
 #  File src/library/utils/R/head.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -78,13 +78,10 @@ tail.matrix <- function(x, n = 6L, addrownums = TRUE, ...)
     stopifnot(length(n) == 1L)
     nrx <- nrow(x)
     n <- if (n < 0L) max(nrx + n, 0L) else min(n, nrx)
-    sel <- as.integer(seq.int(to = nrx, length.out = n))
-    ## TODO: Once we allow "LONG_DIM" for matrices, need
-    ## sel <- seq.int(to = nrx, length.out = n)
-    ## if(nrx <= .Machine$integer.max) sel <- as.integer(sel)
+    sel <- seq.int(to = nrx, length.out = n)
     ans <- x[sel, , drop = FALSE]
     if (addrownums && is.null(rownames(x)))
-	rownames(ans) <- format(sprintf("[%d,]", sel), justify="right")
+    	rownames(ans) <- paste0("[", sel, ",]")
     ans
 }
 tail.table  <- function(x, n = 6L, addrownums = TRUE, ...) {

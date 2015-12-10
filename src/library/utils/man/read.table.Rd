@@ -123,8 +123,9 @@ read.delim2(file, header = TRUE, sep = "\t", quote = "\"",
     complex fields.}
 
   \item{colClasses}{character.  A vector of classes to be assumed for
-    the columns.  If unnamed, recycled as necessary.  If named, names
-    are matched with unspecified values being taken to be \code{NA}.
+    the columns.  Recycled as necessary.  If named and shorter than
+    required, names are matched to the column names with unspecified
+    values are taken to be \code{NA}.
 
     Possible values are \code{NA} (the default, when
     \code{\link{type.convert}} is used), \code{"NULL"} (when the column

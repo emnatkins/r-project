@@ -2472,7 +2472,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    if (s != arg) {
 		PROTECT(s);
-		SHALLOW_DUPLICATE_ATTRIB(s, arg);
+		DUPLICATE_ATTRIB(s, arg);
 		SET_VECTOR_ELT(ans, na, s);
 		UNPROTECT(1);
 	    }

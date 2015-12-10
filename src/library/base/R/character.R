@@ -40,19 +40,21 @@ abbreviate <-
     function(names.arg, minlength = 4L, use.classes = TRUE, dot = FALSE,
              strict = FALSE, method = c("left.kept", "both.sides"))
 {
+    ## we just ignore use.classes
     if(minlength <= 0L) {
-        x <- rep.int("", length(names.arg))
-        names(x) <- names.arg
+        x <- rep.int("", length(names.arg)); names(x) <- names.arg
         return(x)
     }
     ## need to remove leading/trailing spaces before we check for dups
+    ## This is inefficient but easier than modifying do_abbrev (=> FIXME !)
     names.arg <- sub("^ +", "", sub(" +$", "", as.character(names.arg)))
     dups <- duplicated(names.arg)
     old <- names.arg
-    if(any(dups)) names.arg <- names.arg[!dups]
+    if(any(dups))
+	names.arg <- names.arg[!dups]
     x <- names.arg
     if(strict) {
-        x[] <- .Internal(abbreviate(x, minlength, use.classes))
+	x[] <- .Internal(abbreviate(x, minlength, use.classes))
     } else {
 	method <- match.arg(method)
 	if(method == "both.sides")
@@ -191,10 +193,3 @@ dQuote <- function(x)
 strtoi <-
 function(x, base = 0L)
     .Internal(strtoi(as.character(x), as.integer(base)))
-
-strrep <-
-function(x, times)
-{
-    if(!is.character(x)) x <- as.character(x)
-    .Internal(strrep(x, as.integer(times)))
-}

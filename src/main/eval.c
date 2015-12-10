@@ -463,7 +463,7 @@ static SEXP forcePromise(SEXP e)
 	R_PendingPromises = prstack.next;
 	SET_PRSEEN(e, 0);
 	SET_PRVALUE(e, val);
-	SET_NAMED (val, 2);
+        SET_NAMED (val, 2);
 	SET_PRENV(e, R_NilValue);
     }
     return PRVALUE(e);
@@ -950,13 +950,13 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedvars)
     /*  Fix up any extras that were supplied by usemethod. */
 
     if (suppliedvars != R_NilValue)
-	addMissingVarsToNewEnv(newrho, suppliedvars);
+        addMissingVarsToNewEnv(newrho, suppliedvars);
 
     if (R_envHasNoSpecialSymbols(newrho))
 	SET_NO_SPECIAL_SYMBOLS(newrho);
 
     /*  Terminate the previous context and start a new one with the
-	correct environment. */
+        correct environment. */
 
     endcontext(&cntxt);
 
@@ -1256,7 +1256,7 @@ SEXP R_execMethod(SEXP op, SEXP rho)
 	R_varloc_t loc;
 	int missing;
 	loc = R_findVarLocInFrame(rho,symbol);
-	if(R_VARLOC_IS_NULL(loc))
+	if(loc == NULL)
 	    error(_("could not find symbol \"%s\" in environment of the generic function"),
 		  CHAR(PRINTNAME(symbol)));
 	missing = R_GetVarLocMISSING(loc);
@@ -1464,8 +1464,8 @@ static R_INLINE SEXP GET_BINDING_CELL(SEXP symbol, SEXP rho)
     if (rho == R_BaseEnv || rho == R_BaseNamespace)
 	return R_NilValue;
     else {
-	R_varloc_t loc = R_findVarLocInFrame(rho, symbol);
-	return (! R_VARLOC_IS_NULL(loc)) ? loc.cell : R_NilValue;
+	SEXP loc = (SEXP) R_findVarLocInFrame(rho, symbol);
+	return (loc != NULL) ? loc : R_NilValue;
     }
 }
 
@@ -1498,7 +1498,6 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     RCNTXT cntxt;
     PROTECT_INDEX vpi;
 
-    checkArity(op, args);
     sym = CAR(args);
     val = CADR(args);
     body = CADDR(args);
@@ -1513,6 +1512,8 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(args);
     PROTECT(rho);
     PROTECT(val = eval(val, rho));
+    defineVar(sym, R_NilValue, rho);
+    PROTECT(cell = GET_BINDING_CELL(sym, rho));
 
     /* deal with the case where we are iterating over a factor
        we need to coerce to character - then iterate */
@@ -1530,8 +1531,6 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     val_type = TYPEOF(val);
 
-    defineVar(sym, R_NilValue, rho);
-    PROTECT(cell = GET_BINDING_CELL(sym, rho));
     dbg = RDEBUG(rho);
     bgn = BodyHasBraces(body);
 
@@ -1640,7 +1639,7 @@ SEXP attribute_hidden do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
     begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_BaseEnv, R_NilValue,
 		 R_NilValue);
     if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
-	while (asLogicalNoNA(eval(CAR(args), rho), call)) {
+        while (asLogicalNoNA(eval(CAR(args), rho), call)) {
 	    if (RDEBUG(rho) && !bgn && !R_GlobalContext->browserfinish) {
 		SrcrefPrompt("debug", R_Srcref);
 		PrintValue(body);
@@ -1692,7 +1691,6 @@ SEXP attribute_hidden do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP attribute_hidden NORET do_break(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    checkArity(op, args);
     findcontext(PRIMVAL(op), rho, R_NilValue);
 }
 
@@ -1994,10 +1992,9 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (rho == R_BaseEnv)
 	errorcall(call, _("cannot do complex assignments in base environment"));
     defineVar(R_TmpvalSymbol, R_NilValue, rho);
-    tmploc = R_findVarLocInFrame(rho, R_TmpvalSymbol);
-    PROTECT(tmploc.cell);
-    DISABLE_REFCNT(tmploc.cell);
-    DECREMENT_REFCNT(CDR(tmploc.cell));
+    PROTECT((SEXP) (tmploc = R_findVarLocInFrame(rho, R_TmpvalSymbol)));
+    DISABLE_REFCNT((SEXP) tmploc);
+    DECREMENT_REFCNT(CDR((SEXP) tmploc));
 
     /* Now set up a context to remove it when we are done, even in the
      * case of an error.  This all helps error() provide a better call.
@@ -2810,7 +2807,7 @@ static void findmethod(SEXP Class, const char *group, const char *generic,
 static SEXP classForGroupDispatch(SEXP obj) {
 
     return IS_S4_OBJECT(obj) ? R_data_class2(obj)
-	    : getAttrib(obj, R_ClassSymbol);
+            : getAttrib(obj, R_ClassSymbol);
 }
 
 attribute_hidden
@@ -2935,19 +2932,19 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	t = classForGroupDispatch(CAR(s));
 	if (isString(t) && (stringPositionTr(t, dispatchClassName) >= 0))
 	    SET_STRING_ELT(m, i, PRINTNAME(lmeth));
-	else
+        else
 	    SET_STRING_ELT(m, i, R_BlankString);
 	s = CDR(s);
     }
     vmaxset(vmax);
 
     newvars = PROTECT(createS3Vars(
-	PROTECT(mkString(generic)),
-	lgr,
-	PROTECT(stringSuffix(lclass, lwhich)),
-	m,
-	rho,
-	R_BaseEnv
+        PROTECT(mkString(generic)),
+        lgr,
+        PROTECT(stringSuffix(lclass, lwhich)),
+        m,
+        rho,
+        R_BaseEnv
     ));
 
     PROTECT(t = LCONS(lmeth, CDR(call)));
@@ -3182,31 +3179,16 @@ static SEXP seq_int(int n1, int n2)
 # ifdef COMPACT_INTSEQ
 #  define INTSEQSXP 9999
 # endif
-#define CACHE_SCALARS
 static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 {
     /* no error checking since only called with tag != 0 */
     SEXP value;
     switch (s->tag) {
     case REALSXP:
-#ifdef CACHE_SCALARS
-	if (R_CachedScalarReal != NULL) {
-	    value = R_CachedScalarReal;
-	    R_CachedScalarReal = NULL;
-	}
-	else
-#endif
 	value = allocVector(REALSXP, 1);
 	REAL(value)[0] = s->u.dval;
 	break;
     case INTSXP:
-#ifdef CACHE_SCALARS
-	if (R_CachedScalarInteger != NULL) {
-	    value = R_CachedScalarInteger;
-	    R_CachedScalarInteger = NULL;
-	}
-	else
-#endif
 	value = allocVector(INTSXP, 1);
 	INTEGER(value)[0] = s->u.ival;
 	break;
@@ -3302,24 +3284,8 @@ static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 
 #define SETSTACK_LOGICAL(i, v) SETSTACK_LOGICAL_PTR(R_BCNodeStackTop + (i), v)
 
-/* The next two macros will allow reuse a scalar box, if provided. The
-   box is assumed to be of the correct type and size and to have no
-   attributes. */
-#ifdef CACHE_SCALARS
-#define SETSTACK_REAL_EX(idx, dval, ans) do {		\
-	SEXP __ans__ = (ans);				\
-	if (__ans__ && R_CachedScalarReal == NULL)	\
-	    R_CachedScalarReal = __ans__;		\
-	SETSTACK_REAL(idx, dval);			\
-    } while (0)
-
-#define SETSTACK_INTEGER_EX(idx, ival, ans) do {	\
-	SEXP __ans__ = (ans);				\
-	if (__ans__ && R_CachedScalarInteger == NULL)	\
-	    R_CachedScalarInteger = __ans__;		\
-	SETSTACK_INTEGER(idx, ival);			\
-    } while (0)
-#else
+/* The next two macros will reuse a provided scalar box, if
+   provided. The box is assumed to be of the correct typa and size. */
 #define SETSTACK_REAL_EX(idx, dval, ans) do { \
 	if (ans) {			      \
 	    REAL(ans)[0] = dval;	      \
@@ -3335,7 +3301,6 @@ static R_INLINE SEXP GETSTACK_PTR_TAG(R_bcstack_t *s)
 	}					 \
 	else SETSTACK_INTEGER(idx, ival);	 \
     } while (0)
-#endif
 
 typedef union { double dval; int ival; } scalar_value_t;
 
@@ -5199,7 +5164,6 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	case STRSXP:
 	case RAWSXP:
 	    value = allocVector(TYPEOF(seq), 1);
-	    SET_NAMED(value, 1);
 	    BCNPUSH(value);
 	    break;
 	default: BCNPUSH(R_NilValue);
@@ -5451,7 +5415,6 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	if (ftype != SPECIALSXP) {
 	  SEXP h = findVar(R_DotsSymbol, rho);
 	  if (TYPEOF(h) == DOTSXP || h == R_NilValue) {
-	    PROTECT(h);
 	    for (; h != R_NilValue; h = CDR(h)) {
 	      SEXP val;
 	      if (ftype == BUILTINSXP) val = eval(CAR(h), rho);
@@ -5459,7 +5422,6 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	      PUSHCALLARG(val);
 	      SETCALLARG_TAG(TAG(h));
 	    }
-	    UNPROTECT(1); /* h */
 	  }
 	  else if (h != R_MissingArg)
 	    error(_("'...' used in an incorrect context"));
@@ -6184,7 +6146,6 @@ SEXP attribute_hidden do_disassemble(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP attribute_hidden do_bcversion(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-  checkArity(op, args);
   SEXP ans = allocVector(INTSXP, 1);
   INTEGER(ans)[0] = R_bcVersion;
   return ans;
@@ -6358,7 +6319,6 @@ SEXP do_bcprofcounts(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP val;
     int i;
 
-    checkArity(op, args);
     val = allocVector(INTSXP, OPCOUNT);
     for (i = 0; i < OPCOUNT; i++)
 	INTEGER(val)[i] = opcode_counts[i];
@@ -6379,7 +6339,6 @@ SEXP do_bcprofstart(SEXP call, SEXP op, SEXP args, SEXP env)
     double dinterval = 0.02;
     int i;
 
-    checkArity(op, args);
     if (R_Profiling)
 	error(_("profile timer in use"));
     if (bc_profiling)
@@ -6417,7 +6376,6 @@ SEXP do_bcprofstop(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     struct itimerval itv;
 
-    checkArity(op, args);
     if (! bc_profiling)
 	error(_("not byte code profiling"));
 
@@ -6434,15 +6392,12 @@ SEXP do_bcprofstop(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 #else
 SEXP NORET do_bcprofcounts(SEXP call, SEXP op, SEXP args, SEXP env) {
-    checkArity(op, args);
     error(_("byte code profiling is not supported in this build"));
 }
 SEXP NORET do_bcprofstart(SEXP call, SEXP op, SEXP args, SEXP env) {
-    checkArity(op, args);
     error(_("byte code profiling is not supported in this build"));
 }
 SEXP NORET do_bcprofstop(SEXP call, SEXP op, SEXP args, SEXP env) {
-    checkArity(op, args);
     error(_("byte code profiling is not supported in this build"));
 }
 #endif
@@ -6477,8 +6432,8 @@ SEXP attribute_hidden do_returnValue(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP val;
     checkArity(op, args);
     if (R_ExitContext && (val = R_ExitContext->returnValue)){
-	MARK_NOT_MUTABLE(val);
-	return val;
+        MARK_NOT_MUTABLE(val);
+        return val;
     }
     return CAR(args); /* default */
 }

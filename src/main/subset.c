@@ -172,16 +172,16 @@ static SEXP VectorSubset(SEXP x, SEXP s, SEXP call)
     /* If we do, make a real subscript vector and protect it. */
 
     if (isMatrix(s) && isArray(x) && ncols(s) == length(attrib)) {
-	if (isString(s)) {
-	    s = strmat2intmat(s, GetArrayDimnames(x), call);
-	    UNPROTECT(1);
-	    PROTECT(s);
-	}
-	if (isInteger(s) || isReal(s)) {
-	    s = mat2indsub(attrib, s, call);
-	    UNPROTECT(1);
-	    PROTECT(s);
-	}
+        if (isString(s)) {
+            s = strmat2intmat(s, GetArrayDimnames(x), call);
+            UNPROTECT(1);
+            PROTECT(s);
+        }
+        if (isInteger(s) || isReal(s)) {
+            s = mat2indsub(attrib, s, call);
+            UNPROTECT(1);
+            PROTECT(s);
+        }
     }
 
     /* Convert to a vector of integer subscripts */
@@ -296,7 +296,6 @@ static SEXP MatrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 		    SET_STRING_ELT(result, ij, NA_STRING);
 		    break;
 		case VECSXP:
-		case EXPRSXP:
 		    SET_VECTOR_ELT(result, ij, R_NilValue);
 		    break;
 		case RAWSXP:
@@ -326,7 +325,6 @@ static SEXP MatrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 		    SET_STRING_ELT(result, ij, STRING_ELT(x, iijj));
 		    break;
 		case VECSXP:
-		case EXPRSXP:
 		    SET_VECTOR_ELT(result, ij, VECTOR_ELT_FIX_NAMED(x, iijj));
 		    break;
 		case RAWSXP:
@@ -477,7 +475,6 @@ static SEXP ArraySubset(SEXP x, SEXP s, SEXP call, int drop)
 		SET_STRING_ELT(result, i, NA_STRING);
 	    break;
 	case VECSXP:
-	case EXPRSXP:
 	    if (ii != NA_INTEGER)
 		SET_VECTOR_ELT(result, i, VECTOR_ELT_FIX_NAMED(x, ii));
 	    else
@@ -664,22 +661,18 @@ SEXP attribute_hidden do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 static R_INLINE R_xlen_t scalarIndex(SEXP s)
 {
-    if (ATTRIB(s) == R_NilValue) {
-	if (IS_SCALAR(s, INTSXP)) {
-	    int ival = INTEGER(s)[0];
-	    if (ival != NA_INTEGER)
-		return ival;
+    if (ATTRIB(s) == R_NilValue)
+	switch (TYPEOF(s)) {
+	case REALSXP: // treat infinite indices as NA, like asInteger
+	    if (XLENGTH(s) == 1 && R_FINITE(REAL(s)[0]))
+		return (R_xlen_t) REAL(s)[0];
 	    else return -1;
-	}
-	else if (IS_SCALAR(s, REALSXP)) {
-	    double rval = REAL(s)[0];
-	    // treat infinite indices as NA, like asInteger
-	    if (R_FINITE(rval))
-		return (R_xlen_t) rval;
+	case INTSXP:
+	    if (XLENGTH(s) == 1 && INTEGER(s)[0] != NA_INTEGER)
+		return INTEGER(s)[0];
 	    else return -1;
+	default: return -1;
 	}
-	else return -1;
-    }
     else return -1;
 }
 
@@ -955,7 +948,7 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     /* code to allow classes to extend environment */
     if(TYPEOF(x) == S4SXP) {
-	x = R_getS4DataSlot(x, ANYSXP);
+        x = R_getS4DataSlot(x, ANYSXP);
 	if(x == R_NilValue)
 	  errorcall(call, _("this S4 class is not subsettable"));
     }
@@ -1194,7 +1187,7 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
     slen = strlen(translateChar(input));
      /* The mechanism to allow a class extending "environment" */
     if( IS_S4_OBJECT(x) && TYPEOF(x) == S4SXP ){
-	x = R_getS4DataSlot(x, ANYSXP);
+        x = R_getS4DataSlot(x, ANYSXP);
 	if(x == R_NilValue)
 	    errorcall(call, "$ operator not defined for this S4 class");
     }
@@ -1206,13 +1199,13 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
     if (isPairList(x)) {
 	SEXP xmatch = R_NilValue;
 	int havematch;
+	UNPROTECT(2); /* input, x */
 	havematch = 0;
 	for (y = x ; y != R_NilValue ; y = CDR(y)) {
 	    switch(pstrmatch(TAG(y), input, slen)) {
 	    case EXACT_MATCH:
 		y = CAR(y);
 		if (NAMED(x) > NAMED(y)) SET_NAMED(y, NAMED(x));
-		UNPROTECT(2); /* input, x */
 		return y;
 	    case PARTIAL_MATCH:
 		havematch++;
@@ -1239,17 +1232,15 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
 	    }
 	    y = CAR(xmatch);
 	    if (NAMED(x) > NAMED(y)) SET_NAMED(y, NAMED(x));
-	    UNPROTECT(2); /* input, x */
 	    return y;
 	}
-	UNPROTECT(2); /* input, x */
 	return R_NilValue;
     }
     else if (isVectorList(x)) {
 	R_xlen_t i, n, imatch = -1;
 	int havematch;
 	nlist = getAttrib(x, R_NamesSymbol);
-
+	UNPROTECT(2); /* input, x */
 	n = xlength(nlist);
 	havematch = 0;
 	for (i = 0 ; i < n ; i = i + 1) {
@@ -1258,7 +1249,6 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
 		y = VECTOR_ELT(x, i);
 		if (NAMED(x) > NAMED(y))
 		    SET_NAMED(y, NAMED(x));
-		UNPROTECT(2); /* input, x */
 		return y;
 	    case PARTIAL_MATCH:
 		havematch++;
@@ -1293,10 +1283,8 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
 	    }
 	    y = VECTOR_ELT(x, imatch);
 	    if (NAMED(x) > NAMED(y)) SET_NAMED(y, NAMED(x));
-	    UNPROTECT(2); /* input, x */
 	    return y;
 	}
-	UNPROTECT(2); /* input, x */
 	return R_NilValue;
     }
     else if( isEnvironment(x) ){

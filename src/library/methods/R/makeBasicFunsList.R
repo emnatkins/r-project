@@ -158,11 +158,6 @@ utils::globalVariables(".addBasicGeneric")
     setGroupGeneric(where=where,"Complex", function(z)NULL,
 		    knownMembers = members, package = "base")
 
-    funs <- .addBasicGeneric(funs, "unlist", internal=TRUE)
-    funs <- .addBasicGeneric(funs, "is.unsorted", internal=TRUE,
-                             internalArgs=c("x", "strictly"))
-    funs <- .addBasicGeneric(funs, "as.vector", internal=TRUE)
-    
     assign(".BasicFunsList", funs, envir=where)
     rm(.addBasicGeneric, envir=where)
 }
@@ -250,19 +245,6 @@ utils::globalVariables(".addBasicGeneric")
 			base::sample(x, size, replace=replace, prob=prob, ...),
 	       signature = c("x", "size"), where = where)
     setGenericImplicit("sample", where, FALSE)
-
-    ## qr.R(): signature should only have "qr", args should have "..."
-    setGeneric("qr.R", function(qr, complete = FALSE, ...) standardGeneric("qr.R"),
-	       useAsDefault= function(qr, complete = FALSE, ...)
-                   base::qr.R(qr, complete=complete),
-	       signature = "qr", where = where)
-    setGenericImplicit("qr.R", where, FALSE)
-
-    ## our toeplitz() only has 'x'; want the generic "here" rather than "out there"
-    setGeneric("toeplitz", function(x, ...) standardGeneric("toeplitz"),
-	       useAsDefault= function(x, ...) stats::toeplitz(x),
-	       signature = "x", where = where)
-    setGenericImplicit("toeplitz", where, FALSE)
 
     ## not implicitGeneric() which is not yet available "here"
     registerImplicitGenerics(where = where)

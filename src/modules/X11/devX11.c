@@ -1700,10 +1700,10 @@ X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
 	    XMapWindow(display, xd->window);
 	    XSync(display, 0);
 
-	    /* Gobble MapNotify events */
+	    /* Gobble expose events */
 
 	    while ( XPeekEvent(display, &event),
-		    !XCheckTypedEvent(display, MapNotify, &event))
+		    !XCheckTypedEvent(display, Expose, &event))
 		;
 	    /* XNextEvent(display, &event);
 	       if (event.xany.type == Expose) {

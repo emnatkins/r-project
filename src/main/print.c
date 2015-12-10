@@ -119,6 +119,13 @@ SEXP attribute_hidden do_invisible(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
 }
 
+#if 0
+SEXP attribute_hidden do_visibleflag(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    return ScalarLogical(R_Visible);
+}
+#endif
+
 /* This is *only* called via outdated R_level prmatrix() : */
 SEXP attribute_hidden do_prmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -160,7 +167,6 @@ SEXP attribute_hidden do_prmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* .Internal( print.function(f, useSource, ...)) */
 SEXP attribute_hidden do_printfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    checkArity(op,args);
     SEXP s = CAR(args);
     switch (TYPEOF(s)) {
     case CLOSXP:
@@ -450,7 +456,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		    */
 		    const char *ss = EncodeChar(STRING_ELT(names, i));
 		    if (taglen + strlen(ss) > TAGBUFLEN) {
-		    	if (taglen <= TAGBUFLEN)
+			if (taglen <= TAGBUFLEN)
 			    sprintf(ptag, "$...");
 		    } else {
 			/* we need to distinguish character NA from "NA", which
@@ -466,7 +472,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		}
 		else {
 		    if (taglen + IndexWidth(i) > TAGBUFLEN) {
-		    	if (taglen <= TAGBUFLEN)
+			if (taglen <= TAGBUFLEN)
 			    sprintf(ptag, "$...");
 		    } else
 			sprintf(ptag, "[[%d]]", i+1);

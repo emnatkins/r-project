@@ -16,6 +16,8 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
+## utils::globalVariables("...onLoad")
+
 ## Initial version of .onLoad
 ...onLoad  <-
   ## Initialize the methods package.
@@ -110,14 +112,14 @@
     ## assign to baseenv also, signalling methods loaded
     assign(".methodsNamespace", where, baseenv())
     if(Sys.getenv("R_S4_BIND") == "active")
-        bind_activation(TRUE)
+        methods:::bind_activation(TRUE)
 }
 
 .onUnload <- function(libpath)
 {
     message("unloading 'methods' package ...") # see when this is called
     .isMethodsDispatchOn(FALSE)
-    bind_activation(FALSE)
+    methods:::bind_activation(FALSE)
     library.dynam.unload("methods", libpath)
 }
 
@@ -127,7 +129,7 @@
     env <- environment(sys.function())
     ## unlock some bindings that must be modifiable
     unlockBinding(".BasicFunsList", env)
-    if(.hasS4MetaData(.GlobalEnv)) {
+    if(methods:::.hasS4MetaData(.GlobalEnv)) {
         result <- try(cacheMetaData(.GlobalEnv, TRUE))
         ## still attach  methods package if global env has bad objets
         if(inherits(result, "try-error"))

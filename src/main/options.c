@@ -360,7 +360,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
        would apply to R_SetOption* too.
     */
 
-    checkArity(op, args);
     if (args == R_NilValue) {
 	/* This is the zero argument case.
 	   We alloc up a vector list and write the system values into it.
@@ -474,13 +473,13 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 	    else if (streql(CHAR(namei), "editor") && isString(argi)) {
 		SEXP s =  asChar(argi);
-		if (s == NA_STRING || LENGTH(s) == 0)
+		if (s == NA_STRING || length(s) == 0)
 		    error(_("invalid value for '%s'"), CHAR(namei));
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarString(s)));
 	    }
 	    else if (streql(CHAR(namei), "continue")) {
 		SEXP s =  asChar(argi);
-		if (s == NA_STRING || LENGTH(s) == 0)
+		if (s == NA_STRING || length(s) == 0)
 		    error(_("invalid value for '%s'"), CHAR(namei));
 		/* We want to make sure these are in the native encoding */
 		SET_VECTOR_ELT(value, i,
@@ -488,7 +487,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 	    else if (streql(CHAR(namei), "prompt")) {
 		SEXP s =  asChar(argi);
-		if (s == NA_STRING || LENGTH(s) == 0)
+		if (s == NA_STRING || length(s) == 0)
 		    error(_("invalid value for '%s'"), CHAR(namei));
 		/* We want to make sure these are in the native encoding */
 		SET_VECTOR_ELT(value, i,
@@ -507,7 +506,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarLogical(k)));
 	    }
 	    else if (streql(CHAR(namei), "warn")) {
-		if (!isNumeric(argi) || LENGTH(argi) != 1)
+		if (!isNumeric(argi) || length(argi) != 1)
 		    error(_("invalid value for '%s'"), CHAR(namei));
 		SET_VECTOR_ELT(value, i, SetOption(tag, argi));
 	    }
@@ -544,7 +543,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 /* handle this here to avoid GetOption during error handling */
 	    else if ( streql(CHAR(namei), "show.error.messages") ) {
-		if( !isLogical(argi) && LENGTH(argi) != 1 )
+		if( !isLogical(argi) && length(argi) != 1 )
 		    error(_("invalid value for '%s'"), CHAR(namei));
 		SET_VECTOR_ELT(value, i, SetOption(tag, argi));
 		R_ShowErrorMessages = LOGICAL(argi)[0];

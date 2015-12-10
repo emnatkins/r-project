@@ -718,7 +718,7 @@ void setup_Rmainloop(void)
 	char *p, Rlocale[1000]; /* Windows' locales can be very long */
 	p = getenv("LC_ALL");
 	strncpy(Rlocale, p ? p : "", 1000);
-	Rlocale[1000 - 1] = '\0';
+        Rlocale[1000 - 1] = '\0';
 	if(!(p = getenv("LC_CTYPE"))) p = Rlocale;
 	/* We'd like to use warning, but need to defer.
 	   Also cannot translate. */
@@ -811,7 +811,6 @@ void setup_Rmainloop(void)
     R_Toplevel.nextcontext = NULL;
     R_Toplevel.callflag = CTXT_TOPLEVEL;
     R_Toplevel.cstacktop = 0;
-    R_Toplevel.gcenabled = R_GCEnabled;
     R_Toplevel.promargs = R_NilValue;
     R_Toplevel.callfun = R_NilValue;
     R_Toplevel.call = R_NilValue;
@@ -824,15 +823,10 @@ void setup_Rmainloop(void)
     R_Toplevel.intstack = R_BCIntStackTop;
 #endif
     R_Toplevel.cend = NULL;
-    R_Toplevel.cenddata = NULL;
     R_Toplevel.intsusp = FALSE;
     R_Toplevel.handlerstack = R_HandlerStack;
     R_Toplevel.restartstack = R_RestartStack;
     R_Toplevel.srcref = R_NilValue;
-    R_Toplevel.prstack = NULL;
-    R_Toplevel.returnValue = NULL;
-    R_Toplevel.evaldepth = 0;
-    R_Toplevel.browserfinish = 0;
     R_GlobalContext = R_ToplevelContext = R_SessionContext = &R_Toplevel;
     R_ExitContext = NULL;
 
@@ -985,9 +979,6 @@ void setup_Rmainloop(void)
 	REprintf(_("During startup - "));
 	PrintWarnings();
     }
-    if(R_Verbose)
-	REprintf(" ending setup_Rmainloop(): R_Interactive = %d {main.c}\n",
-		 R_Interactive);
 
     /* trying to do this earlier seems to run into bootstrapping issues. */
     R_init_jit_enabled();
@@ -1126,9 +1117,6 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     int savestack, browselevel;
     SEXP ap, topExp, argList;
 
-    /* Cannot call checkArity(op, args), because "op" may be a closure  */
-    /* or a primitive other than "browser".  */
-
     /* argument matching */
     PROTECT(ap = list4(R_NilValue, R_NilValue, R_NilValue, R_NilValue));
     SET_TAG(ap,  install("text"));
@@ -1150,8 +1138,8 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     /* return if 'expr' is not TRUE */
     if( !asLogical(CADDR(argList)) ) {
-	UNPROTECT(1);
-	return R_NilValue;
+        UNPROTECT(1);
+        return R_NilValue;
     }
 
     /* Save the evaluator state information */
@@ -1164,17 +1152,17 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     saveGlobalContext = R_GlobalContext;
 
     if (!RDEBUG(rho)) {
-	int skipCalls = asInteger(CADDDR(argList));
+        int skipCalls = asInteger(CADDDR(argList));
 	cptr = R_GlobalContext;
 	while ( ( !(cptr->callflag & CTXT_FUNCTION) || skipCalls--)
 		&& cptr->callflag )
 	    cptr = cptr->nextcontext;
 	Rprintf("Called from: ");
-	if( cptr != R_ToplevelContext ) {
+        if( cptr != R_ToplevelContext ) {
 	    PrintCall(cptr->call, rho);
 	    SET_RDEBUG(cptr->cloenv, 1);
-	} else
-	    Rprintf("top level \n");
+        } else
+            Rprintf("top level \n");
 
 	R_BrowseLines = 0;
     }
@@ -1248,7 +1236,6 @@ SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
     SA_TYPE ask=SA_DEFAULT;
     int status, runLast;
 
-    checkArity(op, args);
     /* if there are any browser contexts active don't quit */
     if(countContexts(CTXT_BROWSER, 1)) {
 	warning(_("cannot quit from browser"));
@@ -1547,7 +1534,6 @@ R_taskCallbackRoutine(SEXP expr, SEXP value, Rboolean succeeded,
     }
 
     val = R_tryEval(e, NULL, &errorOccurred);
-    UNPROTECT(1); /* e */
     if(!errorOccurred) {
 	PROTECT(val);
 	if(TYPEOF(val) != LGLSXP) {

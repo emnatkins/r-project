@@ -47,11 +47,8 @@
             stop(gettextf("must supply either a generic function or a function as default for %s",
                           sQuote(f)),
                  domain = NA)
-        else if(isBaseFun(fdefault)) {
-            fun <- genericForBasic(f)
-            if (is.function(fun)) {
-                return(fun)
-            }
+        else if(is.primitive(fdefault)) {
+            return(genericForPrimitive(f))
         }
         fdef <- fdefault
         body(fdef) <- substitute(standardGeneric(NAME), list(NAME = f))
@@ -209,7 +206,7 @@ makeStandardGeneric <-
     if(typeof(fdef) != "closure") {
         ## Look in a list of pre-defined functions (and also of
         ## functions for which methods are prohibited)
-        fgen <- genericForBasic(f)
+        fgen <- genericForPrimitive(f)
         message(gettextf("making a generic for special function %s",
                          sQuote(f)),
                 domain = NA)
@@ -354,7 +351,8 @@ conformMethod <- function(signature, mnames, fnames,
         n <- n - 1L
     length(signature) <- n
     length(fsig) <- n
-    setNames(signature, fsig)
+    names(signature) <- fsig
+    signature
 }
 
 rematchDefinition <- function(definition, generic, mnames, fnames, signature)
@@ -439,7 +437,7 @@ getGeneric <-
         if(is(f, "genericFunction"))
             return(f)
         else if(is.primitive(f))
-            return(genericForBasic(.primname(f), mustFind=mustFind))
+            return(genericForPrimitive(.primname(f), mustFind=mustFind))
         else
             stop("argument 'f' must be a string, generic function, or primitive: got an ordinary function")
     }
@@ -447,8 +445,12 @@ getGeneric <-
 		  .getGeneric(f,      , package)
 	     else .getGeneric(f, where, package)
     if(is.null(value) && !is.null(baseDef <- baseenv()[[f]])) {
-        if(is.function(baseDef)) {
-            value <- genericForBasic(f, mustFind=FALSE)
+        ## check for primitives
+        if(is.primitive(baseDef)) {
+            value <- genericForPrimitive(f)
+            if(!is.function(value) && mustFind)
+                stop(gettextf("methods cannot be defined for the primitive function %s",
+                              sQuote(f)), domain = NA)
             if(is(value, "genericFunction"))
                 value <- .cacheGeneric(f, value)
         }
@@ -479,8 +481,10 @@ getGeneric <-
                         package = "")
 {
     ## do not search the cache if getGeneric() was called with explicit where=
-    value <- if(missing(where))
-        .getGenericFromCache(f, where,  package) ## else NULL
+    if(missing(where))
+        value <- .getGenericFromCache(f, where,  package)
+    else
+        value <- NULL
     if(is.null(value)) {
         if(is.character(f) && f %in% "as.double") f <- "as.numeric"
         if(is.character(f) && !nzchar(f)) {
@@ -631,7 +635,7 @@ getGeneric <-
         fdef <- getFunction(name, TRUE, FALSE, penv)
         if(!is(fdef, "genericFunction")) {
             if(is.primitive(fdef))
-                fdef <- genericForBasic(name, penv)
+                fdef <- genericForPrimitive(name, penv)
             else
                 fdef <- implicitGeneric(name, penv)
         }
@@ -716,7 +720,7 @@ assignMethodsMetaData <-
   ## assign value to be the methods metadata for generic f on database where.
   ## as of R 2.7.0 the mlist metadata is deprecated.
   ## If value is not a MethodsList,  only turns on primitives & groups
-  function(f, value, fdef, where)
+  function(f, value, fdef, where, deflt)
 {
     where <- as.environment(where)
     if(is(value, "MethodsList")) {
@@ -728,8 +732,8 @@ assignMethodsMetaData <-
         else
           assign(mname, value, where)
     }
-    if(dispatchIsInternal(fdef))
-        setPrimitiveMethods(f, fdef@default, "reset", fdef, NULL)
+    if(is.primitive(deflt))
+        setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
     if(is(fdef, "groupGenericFunction")) # reset or turn on members of group
         cacheGenericsMetaData(f, fdef, where = where, package = fdef@package)
 }
@@ -889,7 +893,7 @@ cacheGenericsMetaData <- function(f, fdef, attach = TRUE,
 ### Assertion: methods argument unused except for primitives
 ### and then only for the old non-table case.
     deflt <- finalDefaultMethod(fdef@default) #only to detect primitives
-    if(dispatchIsInternal(fdef)) {
+    if(is.primitive(deflt)) {
 	if(missing(methods)) ## "reset"
 	    setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
 	else ## "set"
@@ -1367,14 +1371,10 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 }
 
 ## Mark the method as derived from a non-generic.
-.derivedDefaultMethod <- function(fdef, internal = NULL)
+.derivedDefaultMethod <- function(fdef)
 {
     if(is.function(fdef) && !is.primitive(fdef)) {
-        if (!is.null(internal)) {
-            value <- new("internalDispatchMethod", internal = internal)
-        } else {
-            value <- new("derivedDefaultMethod")
-        }
+        value <- new("derivedDefaultMethod")
         value@.Data <- fdef
         value@target <- value@defined <- .newSignature(.anyClassName, formalArgs(fdef))
         value
@@ -1557,8 +1557,6 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
 
 utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
 
-## NB this is used with a modified environment in .dotsGeneric,
-## so methods::: calls are necessary.
 .standardGenericDots <- function(name)
 {
     env <- sys.frame(sys.parent())
@@ -1576,7 +1574,7 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
 .quoteCall <- quote(.Method(...))
 .makeDotsCall <- function(formals)
 {
-    call <- .quoteCall
+    call <- methods:::.quoteCall
     if(length(formals)  > 1L) {
         idots <- match("...", formals)
         for(what in formals[-idots]) {
@@ -1716,7 +1714,8 @@ if(FALSE) {
         classi <- classes[[i]]
         pkgi <- pkgs[[i]]
         classDefi <- getClass(classi, where = where)
-        if(checkDups && classi %in% multipleClasses()) { # hardly ever, we hope
+        if(checkDups &&
+           classi %in% mulipleClasses()) { # hardly ever, we hope
             clDefsi <- get(classi, envir = .classTable)
             if(nzchar(pkgi) && pkgi %in% names(clDefsi))
                 ## use the chosen class, no message
@@ -1792,6 +1791,11 @@ if(FALSE) {
     if(!exists(actionListName, envir = where, inherits = FALSE))
         return(list())
     actions <- get(actionListName, envir = where)
+    ## check sanity:  methods must be loaded
+    if(! "package:methods" %in% search()) {
+        warning("trying to execute load actions without 'methods' package")
+        library(methods)
+    }
     for(what in actions) {
         aname <- .actionMetaName(what)
         if(!exists(aname, envir = where, inherits = FALSE)) {

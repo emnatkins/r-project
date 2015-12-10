@@ -41,12 +41,10 @@
 }
 \usage{
 file(description = "", open = "", blocking = TRUE,
-     encoding = getOption("encoding"), raw = FALSE,
-     method = getOption("url.method", "default"))
+     encoding = getOption("encoding"), raw = FALSE)
 
 url(description, open = "", blocking = TRUE,
-    encoding = getOption("encoding"),
-    method = getOption("url.method", "default"))
+    encoding = getOption("encoding"), method)
 
 gzfile(description, open = "", encoding = getOption("encoding"),
        compression = 6)
@@ -96,7 +94,6 @@ isIncomplete(con)
     \sQuote{file} may not be seekable.}
   \item{method}{character string, partially matched to
     \code{c("default", "internal", "wininet", "libcurl")}:
-%% FIXME:  Consider  "auto", as in download.file()
     see \sQuote{Details}.}
   \item{compression}{integer in 0--9.  The amount of compression to be
     applied when writing, from none to maximal available.  For
@@ -134,16 +131,21 @@ isIncomplete(con)
   (such as \samp{http://}, \samp{https://}, \samp{ftp://} or
   \samp{file://}).  Method \code{"internal"} is that available since
   connections were introduced, method \code{"wininet"} is only available
-  on Windows (it uses the WinInet functions of that OS) and method
-  \code{"libcurl"} (using the library of that name:
-  \url{http://curl.haxx.se/libcurl/}) is required on a Unix-alike but
-  optional on Windows.  Method \code{"default"} uses method
-  \code{"internal"} for \samp{file:} URLs and \code{"libcurl"} for
-  \code{ftps:} URLs.  On a Unix-alike it uses \code{"internal"} for
-  \samp{http:} and \code{ftp:} URLs and \code{"libcurl"} for
-  \samp{https:} URLs; on Windows \code{"wininet"} for \samp{http:},
-  \code{ftp:} and \samp{https:} URLs.  Proxies can be specified: see
+  on Windows and method \code{"libcurl"} is optionally supported as from
+  \R 3.2.0.  Method \code{"default"} (as from \R 3.2.0) selects a
+  suitable method depending on the URL scheme, e.g.\sspace{} method
+  \code{"libcurl"} for \samp{https://} and \samp{ftps://} URLs and
+  \code{"internal"} otherwise.  The default method can be changed
+  \emph{via} \code{\link{options}(url.method = )} (including for when
+  URLs are passed to \code{file}): if unset it is method
+  \code{"default"}.  Proxies can be specified: see
   \code{\link{download.file}}.
+  
+#ifdef windows
+  (See \code{\link{setInternet2}}, which chooses whether the
+  \code{"internal"} method is mapped to \code{"wininet"}: this is
+  true by default as from \R 3.2.2.)
+#endif
 
   For \code{gzfile} the description is the path to a file compressed by
   \command{gzip}: it can also open for reading uncompressed files and
@@ -164,9 +166,13 @@ isIncomplete(con)
   from.  This is run in a shell, on Windows that specified by the
   \env{COMSPEC} environment variable.
 
-  For \code{fifo} the description is the path of the fifo.  (Support for
-  \code{fifo} connections is optional but they are available on most
-  Unix platforms and on Windows.)
+  For \code{fifo} the description is the path of the fifo.
+
+  All platforms support \code{file}, \code{pipe}, \code{gzfile},
+  \code{bzfile}, \code{xzfile}, \code{unz} and \code{url("file://")}
+  connections.  The other connections may be partially implemented or
+  not implemented at all.  (They do work on most Unix platforms, and all
+  on Windows.)
 
   The intention is that \code{file} and \code{gzfile} can be used
   generally for text input (from files, \samp{http://} and
@@ -200,13 +206,13 @@ isIncomplete(con)
 }
 
 \section{URLs}{
-  \code{url} and \code{file} support URL schemes \samp{file://},
-  \samp{http://}, \samp{https://} and \samp{ftp://}.
+  \code{url} and \code{file} support URL schemes \samp{http://},
+  \samp{https://}, \samp{ftp://} and \samp{file://}: the first three
+  require OS support (which all known \R platforms have).
 
   \code{method = "libcurl"} allows more schemes: exactly which schemes
-  is platform-dependent (see \code{\link{libcurlVersion}}), but all
-  Unix-alike platforms will support \samp{https://} and most platforms
-  will support \samp{ftps://}.
+  is platform-dependent (see \code{\link{libcurlVersion}}), but most
+  platforms will support \samp{https://} and \samp{ftps://}.
 
   Most methods do not percent-encode special characters such as spaces
   in \samp{http://} URLs (see \code{\link{URLencode}}), but it seems the
@@ -524,8 +530,8 @@ isIncomplete(con)
   \code{\link{writeBin}}, \code{\link{writeChar}}, \code{\link{load}}
   and \code{\link{save}}.
 
-  \code{\link{capabilities}} to see if \code{fifo} connections are
-  supported by this build of \R.
+  \code{\link{capabilities}} to see if HTTP/FTP \code{url},
+  \code{fifo} and \code{socketConnection} are supported by this build of \R.
 
   \code{\link{gzcon}} to wrap \command{gzip} (de)compression around a
   connection.

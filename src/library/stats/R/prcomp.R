@@ -21,7 +21,6 @@ prcomp <- function (x, ...) UseMethod("prcomp")
 prcomp.default <-
     function(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL, ...)
 {
-    chkDots(...)
     x <- as.matrix(x)
     x <- scale(x, center = center, scale = scale.)
     cen <- attr(x, "scaled:center")
@@ -96,7 +95,6 @@ print.prcomp <- function(x, print.x = FALSE, ...) {
 
 summary.prcomp <- function(object, ...)
 {
-    chkDots(...)
     vars <- object$sdev^2
     vars <- vars/sum(vars)
     importance <- rbind("Standard deviation" = object$sdev,
@@ -118,7 +116,6 @@ function(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 predict.prcomp <- function(object, newdata, ...)
 {
-    chkDots(...)
     if (missing(newdata)) {
         if(!is.null(object$x)) return(object$x)
         else stop("no scores are available: refit with 'retx=TRUE'")

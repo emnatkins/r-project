@@ -18,7 +18,7 @@
 ###
 ### You should have received a copy of the GNU General Public License
 ### along with R; if not, a copy is available at
-### https://www.r-project.org/Licenses/
+### http://www.r-project.org/Licenses/
 
 AC_PREREQ(2.62)
 
@@ -76,13 +76,13 @@ AC_DEFINE_UNQUOTED(R_OS, "${host_os}",
 ## exclude some unsupported OSes
 case "${host_os}" in
    ## Darwin 1.3.1 was OS X 10.0, 1.4.1 was 10.1, 5 is 10.2 etc
-   ## with 13 being 10.9.  We no longer support < 10.6 (Snow Leopard)
-   ## https://en.wikipedia.org/wiki/Darwin_OS
+   ## with 13 being 10.9.  We no longer support < 10.4 (Tiger)
+   ## http://en.wikipedia.org/wiki/Darwin_OS
    darwin1.*)
-     AC_MSG_ERROR([The earliest supported OS X is 10.6.]
+     AC_MSG_ERROR([The earliest supported OS X is 10.4.]
      ;; 
-  darwin[[56789]]*)
-     AC_MSG_ERROR([The earliest supported OS X is 10.6.]
+  darwin[[567]]*)
+     AC_MSG_ERROR([The earliest supported OS X is 10.4.]
      ;; 
   aix[123]*|aix4.[01]*)
     ## These need a form of linking we no longer support
@@ -224,7 +224,7 @@ AC_ARG_ENABLE([R-framework],
 [AS_HELP_STRING([--enable-R-framework@<:@=DIR@:>@],[OS X only: build R framework (if possible), and specify
                  its installation prefix @<:@yes, /Library/Frameworks@:>@])],
 [want_R_framework="${enableval}"],
-[want_R_framework=no])
+[want_R_framework=yes])
 ## Can only build frameworks on Darwin.
 if test "${want_R_framework}" != no; then
   case "${host_os}" in
@@ -416,10 +416,26 @@ AC_ARG_WITH([libtiff],
 [AS_HELP_STRING([--with-libtiff],[use libtiff library (if available) @<:@yes@:>@])],
 [R_ARG_USE(libtiff)],
 [use_libtiff=yes])
+AC_ARG_WITH([system-zlib],
+[AS_HELP_STRING([--with-system-zlib],[use system zlib library (if available) @<:@yes@:>@])],
+[R_ARG_USE_SYSTEM(zlib)],
+[use_system_zlib=yes])
+AC_ARG_WITH([system-bzlib],
+[AS_HELP_STRING([--with-system-bzlib],[use system bzlib library (if available) @<:@yes@:>@])],
+[R_ARG_USE_SYSTEM(bzlib)],
+[use_system_bzlib=yes])
+AC_ARG_WITH([system-pcre],
+[AS_HELP_STRING([--with-system-pcre],[use system PCRE library (if available) @<:@yes@:>@])],
+[R_ARG_USE_SYSTEM(pcre)],
+[use_system_pcre=yes])
 AC_ARG_WITH([system-tre],
 [AS_HELP_STRING([--with-system-tre],[use system tre library (if available) @<:@no@:>@])],
 [R_ARG_USE_SYSTEM(tre)],
 [use_system_tre=no])
+AC_ARG_WITH([system-xz],
+[AS_HELP_STRING([--with-system-xz],[use system xz (lzma) library (if available) @<:@yes@:>@])],
+[R_ARG_USE_SYSTEM(xz)],
+[use_system_xz=yes])
 
 ## Valgrind instrumentation
 AC_ARG_WITH([valgrind-instrumentation],
@@ -613,9 +629,6 @@ AC_PATH_PROG(REALPATH, realpath, false)
 ## cairographics needs pkg-config
 AC_PATH_PROG(PKGCONF, pkg-config , [], 
 	     [$PATH:/usr/local/bin:/ext/bin:/ext:/sw/bin:/opt/bin])
-AC_ARG_VAR([PKGCONF], [path to pkg-config utility])
-AC_ARG_VAR([PKG_CONFIG_PATH], [directories to add to pkg-config's search path])
-AC_ARG_VAR([PKG_CONFIG_LIBDIR], [path overriding pkg-config's default search path])
 
 AC_PROG_CC
 
@@ -732,16 +745,16 @@ AC_SUBST(LIBM)
 AC_CHECK_LIB(m, sin)
 case "${host_os}" in
   darwin*)
-    ## OS X >= 10.3 include dlcompat in libSystem
-    ## This is ancient history
+    ## OS X <= 10.2 dlcompat, >= 10.3 included dlcompat in libSystem
+    AC_SEARCH_LIBS(dlopen, dl,,[AC_MSG_ERROR([Your OS X is too old.])])
     ## SI says we want '-lcc_dynamic' on Darwin, although currently
-    ## https://developer.apple.com/documentation/MacOSX/ has nothing
+    ## http://developer.apple.com/documentation/MacOSX/ has nothing
     ## official.  Bill Northcott <w.northcott@unsw.edu.au> points out
     ## that it is only needed for GCC 3.x (and earlier) ...
     if test "${GCC}" = yes; then
       case "${CC_VERSION}" in
         2.*|3.*)
-	  AC_MSG_ERROR([Your gcc is too old.])
+          AC_CHECK_LIB(cc_dynamic, main) ;;
       esac
     fi
     ;;
@@ -1330,21 +1343,49 @@ case "${host_os}" in
     darwin_pic="-fPIC"
     dylib_undefined_allowed=no
     darwin_dylib_ldflags="-dynamiclib"
-    shlib_ldflags="-dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress"
-    ## * recent ld has -single_module so it doesn't need -fno-common
-    ##   we have to use dylib instead of a bundle
-    ## * dylib+single_module+flat_namespace=pretty much what other platforms call .so
-    ##   but there can be no multiple symbols (due to flat namespace)
-    ## * since 10.3 we can also use -undefined dynamic_lookup which allows us to
-    ##   use two-level namespace and still have undefined symbols
+    ## Want '-mdynamic-no-pic' for GCC 3, says Jan de Leeuw.
+    if test "${GCC}" = yes; then
+      case "${CC_VERSION}" in
+        3.*)
+          R_SH_VAR_ADD(main_ldflags, [-mdynamic-no-pic]) ;;
+      esac
+    fi
+    ## some linkers are broken and need to be set to a specific
+    ## OS X version to work better
+    case "${host_os}" in
+       darwin8*)
+          # this is the 'old' way and it doesn't work with recent gcc as the driver
+	  # prepends its own version
+	  ### darwin_min_flag='Wl,-macosx_version_min -Wl,10.4'
+	  # this is the 'new' way, but it's not clear which driver version
+	  # started to support it (Xcode 2.5 is known to work and 2.4 should)
+	  # A work-around for older Xcode is to set MACOSX_DEPLOYMENT_TARGET
+	  # environment variable. It has its own problems, but we may as well
+	  # honor it, assuming that it fixes things.
+	  if test -z "${MACOSX_DEPLOYMENT_TARGET}"; then
+	      darwin_min_flag='-mmacosx-version-min=10.4'
+	  fi
+	  ;;
+       *)
+	  darwin_min_flag=''
+	  ;;
+    esac
+    case "${host_os}" in
+      ## * recent ld has -single_module so it doesn't need -fno-common
+      ##   we have to use dylib instead of a bundle
+      ## * dylib+single_module+flat_namespace=pretty much what other platforms call .so
+      ##   but there can be no multiple symbols (due to flat namespace)
+      ## * since 10.3 we can also use -undefined dynamic_lookup which allows us to
+      ##   use two-level namespace and still have undefined symbols
+      *)
+        ## FIXME: strictly speaking it should be "yes" but libRblas still
+	## needs -lgfortran because the sharing is a one-way street
+        ## dylib_undefined_allowed=yes
 
-    ## FIXME: strictly speaking it should be "yes" but libRblas still
-    ## needs -lgfortran because the sharing is a one-way street
-    ## dylib_undefined_allowed=yes
-
-    ## we have to test this in case an outdated linker or non-Apple compiler is used
-    AC_MSG_CHECKING([whether linker supports dynamic lookup])
-    AC_CACHE_VAL([r_cv_has_dynlookup],[
+	## we have to test this in case an outdated linker or non-Apple compiler is used
+	AC_MSG_CHECKING([whether linker supports dynamic lookup])
+	shlib_ldflags="-dynamiclib -Wl,-headerpad_max_install_names ${darwin_min_flag} -undefined dynamic_lookup -single_module -multiply_defined suppress"
+	AC_CACHE_VAL([r_cv_has_dynlookup],[
 [cat > conftest.c <<EOF
   void dummy() { }
 EOF]
@@ -1359,30 +1400,34 @@ else
 fi
 rm -f libconftest${DYLIB_EXT} conftest.c
 ])
-    if test -n "${FORCE_FLAT_NAMESPACE}"; then
-       AC_MSG_WARN([Use of flat namespace is requested by user.])
-       r_cv_has_dynlookup=forced-no
-    fi
-    if test "${r_cv_has_dynlookup}" != "yes"; then
-       shlib_ldflags="-dynamiclib -flat_namespace -undefined suppress -single_module -multiply_defined suppress"
-       dylib_undefined_allowed=yes
-    fi
+	if test -n "${FORCE_FLAT_NAMESPACE}"; then
+	   AC_MSG_WARN([Use of flat namespace is requested by user.])
+	   r_cv_has_dynlookup=forced-no
+	fi
+	if test "${r_cv_has_dynlookup}" != "yes"; then
+	   shlib_ldflags="-dynamiclib -flat_namespace -undefined suppress -single_module -multiply_defined suppress"
+	   dylib_undefined_allowed=yes
+	fi
 	
-    ## we use the same method for shlib and dylib now
-    darwin_dylib_ldflags="${shlib_ldflags}"
-    ## side note: we could use flat namespace instead, but there is an exception:
-    ## * libRblas must be 2-level, dyn lookup because of xerbla which is undefined
+	## we use the same method for shlib and dylib now
+	darwin_dylib_ldflags="${shlib_ldflags}"
+	## side note: we could use flat namespace instead, but there is an exception:
+	## * libRblas must be 2-level, dyn lookup because of xerbla which is undefined
+        ;;
+    esac
     cpicflags="${darwin_pic}"
     cxxpicflags="${darwin_pic}"
-    ## OS X does not have a Fortran compiler, so this is speculative
     fpicflags="${darwin_pic}"
     shlib_cxxldflags="${shlib_ldflags}"
+    if test "${ac_cv_lib_cc_dynamic_main}" = yes; then
+      ## Could also try grepping LIBS for '-lcc_dynamic' ...
+      SHLIB_LIBADD="-lcc_dynamic"
+    fi
     ;;
   freebsd*)
     ## maybe this needs to depend on the compiler:
     ## -export-dynamic used to work, but does not with clang.
     ## Seems FreeBSD has used the GNU linker since at least 3.0 (Oct 1998)
-    ## We could also use -rdynamic, which seems to work with clang and gcc.
     main_ldflags="-Wl,--export-dynamic"
     shlib_ldflags="-shared"
     ;;
@@ -1490,22 +1535,6 @@ rm -f libconftest${DYLIB_EXT} conftest.c
       main_ldflags="${wl}-export-dynamic"
       shlib_ldflags="-shared -fPIC"
     fi
-    case "${host_cpu}" in 
-      powerpc*)
-	## GCC -fpic limits to 2**16 on OpenBSD powerpc.
-	## Error message without -fPIC:
-	##   relocation truncated to fit: R_PPC_GOT16...
-        if test "${GCC}" = yes; then
-          cpicflags="-fPIC"
-        fi  
-        if test "${G77}" = yes; then
-          fpicflags="-fPIC"
-        fi
-        if test "${GXX}" = yes; then
-          cxxpicflags="-fPIC"
-        fi
-        ;;
-    esac
     ;;
   osf*)
     cpicflags=
@@ -1580,8 +1609,8 @@ if test -z "${MAIN_LD}"; then
   else
      MAIN_LD="${main_ld}"
   fi
+  R_SH_VAR_ADD(MAIN_LDFLAGS, [${main_ldflags}])
 fi
-R_SH_VAR_ADD(MAIN_LDFLAGS, [${main_ldflags}])
 
 : ${CPICFLAGS="${cpicflags}"}
 if test -z "${CPICFLAGS}"; then
@@ -1881,7 +1910,6 @@ R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
 if test "${ac_cv_have_decl_popen}" = "no"; then
    AC_MSG_ERROR([Building R requires the 'popen' system call])
 fi
-R_CHECK_FUNCS([getline], [#include <stdio.h>])
 ## Windows has neither setenv nor unsetenv
 R_CHECK_FUNCS([setenv unsetenv], [#include <stdlib.h>])
 R_CHECK_FUNCS([getrlimit getrusage getpriority], [#include <sys/resource.h>])
@@ -2291,6 +2319,9 @@ R_TCLTK
 ## BSD networking.
 R_BSD_NETWORKING
 
+## Bitmap headers and libraries.
+R_BITMAPS
+
 ## XDR headers and library routines.
 R_XDR
 
@@ -2310,15 +2341,55 @@ R_PCRE
 R_TRE
 
 ## libcurl
-R_LIBCURL
-
-
-## Bitmap headers and libraries.
-if test -n "${PKGCONF}"; then
-R_BITMAPS2
-else
-R_BITMAPS
+## curl-config might not match the installed libcurl,
+## so we allow the user to set CURL_CPPFLAGS, CURL_LIBS
+## and check the version directly rather than by curl-config --checkfor
+AC_PATH_PROG(CURL_CONFIG, curl-config)
+if test -n "${CURL_CONFIG}"; then
+  echo `${CURL_CONFIG} --version`
+  if test -z "${CURL_CPPFLAGS}"; then
+    CURL_CPPFLAGS=`${CURL_CONFIG} --cflags`
+  fi
+  ## This should be correct for a static-only build, user will
+  ## need to override to specify static linking (see config.site)
+  if test -z "${CURL_LIBS}"; then
+    CURL_LIBS=`${CURL_CONFIG} --libs`
+  fi
 fi
+r_save_CPPFLAGS="${CPPLAGS}"
+CPPFLAGS="${CURL_CPPFLAGS} ${CPPFLAGS}"
+r_save_LIBS="${LIBS}"
+LIBS="${CURL_LIBS} ${LIBS}"
+AC_CACHE_CHECK([if libcurl version >= 7.28.0], [r_cv_have_curl728],
+[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <stdlib.h>
+#include <curl/curl.h>
+int main() 
+{
+#ifdef LIBCURL_VERSION_MAJOR
+#if LIBCURL_VERSION_MAJOR > 7
+  exit(0);
+#elif LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 28
+  exit(0);
+#else
+  exit(1);
+#endif
+#else
+  exit(1);
+#endif
+}
+]])], [r_cv_have_curl728=yes], [r_cv_have_curl728=no], [r_cv_have_curl728=no])])
+if test "x${r_cv_have_curl728}" != xyes; then
+  ac_cv_have_curl_curl_h=0
+  CURL_CPPFLAGS=
+  CURL_LIBS=
+else
+  AC_CHECK_HEADERS(curl/curl.h)
+fi
+CPPFLAGS="${r_save_CPPFLAGS}"
+LIBS="${r_save_LIBS}"
+AC_SUBST(CURL_CPPFLAGS)
+AC_SUBST(CURL_LIBS)
 
 ## POSIX times.
 R_SYS_POSIX_LEAPSECONDS
@@ -2679,16 +2750,21 @@ case "${host_os}" in
     AC_DEFINE(HAVE_ICONV, 1, [Define if you have the iconv() function.])
     AC_DEFINE(HAVE_ICONVLIST, 1, [Define if you have the `iconvlist' function.])
     AC_DEFINE(HAVE_ICONV_H, 1, [Define to 1 if you have the <iconv.h> header file.])
+    AC_DEFINE(HAVE_INTERNET, 1, [Define if you have support for ftp/http
+                                 access.])
     AC_DEFINE(HAVE_JPEG, 1,[Define if you have the JPEG headers and libraries.])
     AC_DEFINE(HAVE_PNG, 1, [Define if you have the PNG headers and libraries.])
     AC_DEFINE(HAVE_POSIX_SETJMP, 1, [Define if you have POSIX.1 compatible
                                      sigsetjmp/siglongjmp.])
+    AC_DEFINE(HAVE_SOCKETS, 1, [Define if you have support for sockets.])
     AC_DEFINE(HAVE_TCLTK, 1, [Define if you have the Tcl/Tk headers and 
                               libraries and want Tcl/Tk support to be built.] )
     AC_DEFINE(HAVE_TIFF, 1, [Define this if libtiff is available.])
     AC_DEFINE(HAVE_TIMES, 1, [Define to 1 if you have the `times' function.])
     want_R_profiling=yes
     AC_DEFINE(R_PROFILING, 1, [Define this to enable R-level profiling.])
+    AC_DEFINE(SUPPORT_LIBXML, 1, [Define if you provide support for the libxml
+                                  ftp/http functions.])
     ;;
 esac
 
@@ -2713,10 +2789,14 @@ AC_CONFIG_FILES(
   src/appl/Makefile
   src/extra/Makefile
   src/extra/blas/Makefile
+  src/extra/bzip2/Makefile
   src/extra/intl/Makefile
+  src/extra/pcre/Makefile
   src/extra/tre/Makefile
   src/extra/tzone/Makefile
   src/extra/xdr/Makefile
+  src/extra/xz/Makefile
+  src/extra/zlib/Makefile
   src/include/Makefile
   src/include/Rmath.h0
   src/include/R_ext/Makefile
@@ -2846,6 +2926,18 @@ if test "${acx_lapack_ok}" = "yes"; then
   esac
   R_SH_VAR_ADD(r_external_libs, [LAPACK(${r_lapack})], [, ])
 fi
+if test "${have_zlib}" = yes; then
+  R_SH_VAR_ADD(r_external_libs, [zlib], [, ])
+fi
+if test "${have_bzlib}" = yes; then
+  R_SH_VAR_ADD(r_external_libs, [bzlib], [, ])
+fi
+if test "${have_lzma}" = yes; then
+  R_SH_VAR_ADD(r_external_libs, [lzma], [, ])
+fi
+if test "${have_pcre}" = yes; then
+  R_SH_VAR_ADD(r_external_libs, [PCRE], [, ])
+fi
 if test "${have_tre}" = yes; then
   R_SH_VAR_ADD(r_external_libs, [tre], [, ])
 fi
@@ -2931,7 +3023,7 @@ R is now configured for ${host}
   Fortran 77 compiler:       ${r_f77_compiler}
 
   C++ compiler:              ${r_cxx_compiler}
-  C++11 compiler:            ${r_cxx1x_compiler}
+  C++ 11 compiler:           ${r_cxx1x_compiler}
   Fortran 90/95 compiler:    ${r_f95_compiler}
   Obj-C compiler:	     ${r_objc_compiler}
 
@@ -2968,9 +3060,6 @@ if test -n "${warn_fcpicflags}"; then
 fi
 if test -n "${warn_tcltk_version}"; then
   AC_MSG_WARN([${warn_tcltk_version}])
-fi
-if test -n "${warn_pcre_version}"; then
-  AC_MSG_WARN([${warn_pcre_version}])
 fi
 if test -n "${warn_info}"; then
   AC_MSG_WARN([${warn_info}])

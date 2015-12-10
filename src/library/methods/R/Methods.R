@@ -16,10 +16,6 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-## copy here to avoid importing from stats and hence loading stats
-## namespace when methods if loaded
-setNames <- stats::setNames
-
 
 setGeneric <-
   ## Define `name' to be a generic  function, for which methods will be defined.
@@ -41,13 +37,12 @@ setGeneric <-
     if(is.character(.isSingleName(name)))
         stop(gettextf("invalid argument 'name': %s",
                       .isSingleName(name)), domain = NA)
-    if(exists(name, "package:base") && inBasicFuns(name)) {
+    if(exists(name, "package:base") &&
+       is.primitive(get(name, "package:base"))) { # primitives
 
         name <- switch(name, "as.double" = "as.numeric", name)
         fdef <- getGeneric(name) # will fail if this can't have methods
-        compatibleSignature <- nargs() == 2L && !missing(signature) &&
-            identical(signature, fdef@signature)
-        if(nargs() <= 1 || compatibleSignature) {
+        if(nargs() <= 1) {
             ## generics for primitives are global, so can & must always be cached
             .cacheGeneric(name, fdef)
             return(name)
@@ -55,7 +50,7 @@ setGeneric <-
         ## you can only conflict with a primitive if you supply
         ## useAsDefault to signal you really mean a different function
         if(!is.function(useAsDefault) && !identical(useAsDefault, FALSE)) {
-            msg <- gettextf("%s dispatches internally;  methods can be defined, but the generic function is implicit, and cannot be changed.", sQuote(name))
+            msg <- gettextf("%s is a primitive function;  methods can be defined, but the generic function is implicit, and cannot be changed.", sQuote(name))
             stop(msg, domain = NA)
         }
     }
@@ -221,7 +216,7 @@ setGeneric <-
     assign(name, fdef, where)
     .cacheGeneric(name, fdef)
     methods <- fdef@default # empty or containing the default
-    assignMethodsMetaData(name, methods, fdef, where)
+    assignMethodsMetaData(name, methods, fdef, where, finalDefaultMethod(fdef@default))
     .assignMethodsTableMetaData(name, fdef, where)
     name
 }
@@ -273,11 +268,11 @@ isGeneric <-
     if(is.null(fdef))
       return(FALSE)
     ## check primitives. These are never found as explicit generic functions.
-    if(isBaseFun(fdef)) {
+    if(is.primitive(fdef)) {
         if(is.character(f) && f %in% "as.double") f <- "as.numeric"
-        ## the definition of isGeneric() for a base function is that methods are defined
+        ## the definition of isGeneric() for a primitive is that methods are defined
         ## (other than the default primitive)
-        gen <- genericForBasic(f, mustFind = FALSE)
+        gen <- genericForPrimitive(f, mustFind = FALSE)
         return(is.function(gen) && length(names(.getMethodsTable(gen))) > 1L)
     }
     if(!is(fdef, "genericFunction"))
@@ -443,7 +438,7 @@ setMethod <-
     else if(is.function(f)) {
         if(is.primitive(f)) {
             f <- .primname(f)
-            fdef <- genericForBasic(f)
+            fdef <- genericForPrimitive(f)
             gwhere <- .genEnv(f)
         }
         else
@@ -608,7 +603,7 @@ setMethod <-
     }
     ## assigns the methodslist object
     ## and deals with flags for primitives & for updating group members
-    assignMethodsMetaData(f, whereMethods, fdef, where)
+    assignMethodsMetaData(f, whereMethods, fdef, where, deflt)
     f
 }
 
@@ -617,7 +612,7 @@ removeMethod <- function(f, signature = character(), where = topenv(parent.frame
       if(is(f, "genericFunction"))
          { fdef <- f; f <- f@generic}
       else if(is.primitive(f))
-        { f <- .primname(f); fdef <- genericForBasic(f, mustFind=FALSE)}
+        { f <- .primname(f); fdef <- genericForPrimitive(f, mustFind=FALSE)}
       else
         stop("function supplied as argument 'f' must be a generic")
     }
@@ -896,12 +891,11 @@ signature <-
     for(i in seq_along(value)) {
         sigi <- el(value, i)
         if(!is.character(sigi) || length(sigi) != 1L)
-            stop(gettextf(
-		"bad class specified for element %d (should be a single character string)",
-		i), domain = NA)
-
+            stop(gettextf("bad class specified for element %d (should be a single character string)", i), domain = NA)
     }
-    setNames(as.character(value), names)
+      value <- as.character(value)
+      names(value) <- names
+      value
 }
 
 showMethods <-
@@ -1001,32 +995,37 @@ showMethods <-
     if (is.null(def))
         return(.methods_info())
 
+    mtable <- ".MTable"
     classes <- c(class, names(getClass(class)@contains))
-    generics <- as.vector(getGenerics(where=search()))
-    nms <- setNames(generics, generics)
+    generics <- getGenerics(where=search())
+    nms <- setNames(as.vector(generics), as.vector(generics))
 
     packages <- lapply(nms, function(generic) {
-	table <- environment(getGeneric(generic))[[".MTable"]]
-	lapply(table, function(m) environmentName(environment(m)))
+        table <- get(mtable, environment(getGeneric(generic)))
+        lapply(names(table), function(nm, table) {
+            environmentName(environment(table[[nm]]))
+        }, table)
     })
-    methods <- lapply(nms, function(generic) {
-	table <- environment(getGeneric(generic))[[".MTable"]]
-	lapply(table, function(m) {
+    methods <- lapply(nms, function(generic, classes) {
+        table <- get(mtable, environment(getGeneric(generic)))
+        methods <- names(table)
+        lapply(methods, function(method, classes) {
+            m <- table[[method]]
             if (is(m, "MethodDefinition") && any(m@defined %in% classes))
                 setNames(as.vector(m@defined), names(m@defined))
-            ## else NULL
-        })
-    })
+            else
+                NULL
+        }, classes)
+    }, classes)
 
     geom <- lapply(methods, function(method) {
         !vapply(method, is.null, logical(1))
     })
     filter <- function(elt, geom) elt[geom]
     packages <- Map(filter, packages, geom)
-    methods  <- Map(filter, methods,  geom)
-    non0 <- lengths(methods) != 0L
-    packages <- packages[non0]
-    methods  <-  methods[non0]
+    methods <- Map(filter, methods, geom)
+    packages <- packages[lengths(methods) != 0L]
+    methods <- methods[lengths(methods) != 0L]
 
     ## only derived methods
     geom <- lapply(methods, function(method, classes) {
@@ -1049,9 +1048,9 @@ showMethods <-
             lapply(split(score, sig0), function(elt) elt == min(elt))
         score == 1
     }, classes)
-
+    filter <- function(elt, geom) elt[geom]
     packages <- Map(filter, packages, geom)
-    methods  <- Map(filter, methods,  geom)
+    methods <- Map(filter, methods, geom)
 
     generic <- rep(names(methods), lengths(methods))
     signature <- unlist(lapply(methods, function(method) {
@@ -1260,8 +1259,11 @@ getGenericFromCall <- function(call, methodEnv) {
     generic <- methodEnv$.Generic
     if(is.null(generic)) {
         fdef <- if (is.name(call[[1L]]))
-            getGeneric(as.character(call[[1L]]), mustFind=TRUE, where=methodEnv)
+            get(as.character(call[[1L]]), envir = methodEnv)
         else call[[1L]]
+        if (is.primitive(fdef)) {
+            fdef <- getGeneric(fdef, mustFind=TRUE)
+        }
         generic <- environment(fdef)$.Generic
     }
     generic
@@ -1387,15 +1389,13 @@ implicitGeneric <- function(...) NULL
             return(NULL)  # no implicit generic
           env <- environment(fdefault) # the environment for an implicit generic table
           fdefault <- .derivedDefaultMethod(fdefault)
-          if(isBaseFun(fdefault)) {
-              value <- genericForBasic(name)
-              if (is.function(value)) {
-                  if(!missing(generic) && !identical(value, generic))
-                      stop(gettextf("%s is a primitive function; its generic form cannot be redefined",
-                                    sQuote(name)),
-                           domain = NA)
-                  generic <- value
-              }
+          if(is.primitive(fdefault)) {
+              value <- genericForPrimitive(name)
+              if(!missing(generic) && !identical(value, generic))
+                  stop(gettextf("%s is a primitive function; its generic form cannot be redefined",
+                                sQuote(name)),
+                       domain = NA)
+              generic <- value
               package <- "base"
           }
           else

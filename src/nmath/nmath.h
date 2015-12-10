@@ -104,15 +104,7 @@ void R_CheckUserInterrupt(void);
 #define MATHLIB_WARNING5(fmt,x,x2,x3,x4,x5) printf(fmt,x,x2,x3,x4,x5)
 
 #define ISNAN(x) (isnan(x)!=0)
-// Arith.h defines it
-#ifndef R_FINITE
-#ifdef HAVE_WORKING_ISFINITE
-/* isfinite is defined in <math.h> according to C99 */
-# define R_FINITE(x)    isfinite(x)
-#else
-# define R_FINITE(x)    R_finite(x)
-#endif
-#endif
+#define R_FINITE(x)    R_finite(x)
 int R_finite(double);
 
 #define ML_POSINF	(1.0 / 0.0)

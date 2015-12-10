@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2015-12-02 r69719) -- "Unsuffered Consequences"
+R version 3.2.3 RC (2015-12-02 r69719) -- "Wooden Christmas-Tree"
 Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -114,4 +114,4 @@ In ks.test(round(ds2, 1), "pnorm", exact = TRUE) :
 > 
 > proc.time()
    user  system elapsed 
-  0.149   0.017   0.157 
+  0.127   0.017   0.135 
