@@ -17,8 +17,6 @@
  *  https://www.R-project.org/Licenses/
  */
 
-/* Internal header, not installed */
-
 #ifndef STARTUP_H_
 #define STARTUP_H_
 

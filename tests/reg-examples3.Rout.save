@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2016-02-23 r70212) -- "Unsuffered Consequences"
+R version 3.2.4 RC (2016-03-02 r70281) -- "Very Secure Dishes"
 Copyright (C) 2016 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -552,12 +552,5 @@ $R
 [1] "R (>= 3.0.0)"
 
 attr(,"class")
-[1] "DependsList"
-Warning messages:
-1: 'getDepList' is deprecated.
-Use 'dependsOnPkgs() or package_dependencies()' instead.
-See help("Deprecated") 
-2: 'package.dependencies' is deprecated.
-Use 'package_dependencies' instead.
-See help("Deprecated") 
+[1] "DependsList" "list"       
 > 

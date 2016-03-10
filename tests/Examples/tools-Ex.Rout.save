@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2016-02-23 r70212) -- "Unsuffered Consequences"
+R version 3.2.4 RC (2016-03-02 r70281) -- "Very Secure Dishes"
 Copyright (C) 2016 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -44,7 +44,7 @@ Type 'q()' to quit R.
 <link rel="stylesheet" type="text/css" href="/doc/html/R.css" />
 </head><body>
 <h1> This is a sample header
-<img class="toplogo" src="/doc/html/Rlogo.svg" alt="[R logo]" />
+<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]" />
 </h1>
 <hr/>
 <div style="text-align: center;">
@@ -188,7 +188,7 @@ Error in assertWarning(ff()) :
 > bibstyle("unsorted", sortKeys = function(refs) seq_along(refs),
 +     fmtPrefix = function(paper) paste0("[", paper$.index, "]"),
 +        .init = TRUE)
-<environment: 0x1d26a28>
+<environment: 0x152dad0>
 > print(refs, .bibstyle = "unsorted")
 [1] R Core Team (2013). _R: A Language and Environment for Statistical
 Computing_. R Foundation for Statistical Computing, Vienna, Austria.
@@ -604,15 +604,6 @@ attr(,"match.length")
 > ### ** Examples
 > 
 > pkgDepends("tools", local = FALSE)
-Warning: 'pkgDepends' is deprecated.
-Use 'package_dependencies()' instead.
-See help("Deprecated")
-Warning: 'package.dependencies' is deprecated.
-Use 'package_dependencies' instead.
-See help("Deprecated")
-Warning: 'getDepList' is deprecated.
-Use 'dependsOnPkgs() or package_dependencies()' instead.
-See help("Deprecated")
 $Depends
 character(0)
 
@@ -629,7 +620,7 @@ $R
 character(0)
 
 attr(,"class")
-[1] "DependsList"
+[1] "DependsList" "list"       
 > 
 > 
 > 
@@ -667,18 +658,7 @@ attr(,"class")
 > dir.create(tmp)
 > 
 > pDL <- pkgDepends("tools", local = FALSE)
-Warning: 'pkgDepends' is deprecated.
-Use 'package_dependencies()' instead.
-See help("Deprecated")
-Warning: 'package.dependencies' is deprecated.
-Use 'package_dependencies' instead.
-See help("Deprecated")
-Warning: 'getDepList' is deprecated.
-Use 'dependsOnPkgs() or package_dependencies()' instead.
-See help("Deprecated")
 > installFoundDepends(pDL$Found, destdir = tmp)
-Warning: 'installFoundDepends()' is deprecated: It is misleading nowadays
- since it has never taken 'Imports' into consideration
 NULL
 > 
 > 
@@ -851,7 +831,7 @@ function (x, ...)
 <link rel="stylesheet" type="text/css" href="/doc/html/R.css" />
 </head><body>
 <h1> R
-<img class="toplogo" src="/doc/html/Rlogo.svg" alt="[R logo]" />
+<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]" />
 </h1>
 <hr/>
 <div style="text-align: center;">
@@ -863,7 +843,7 @@ function (x, ...)
  <td style="text-align: left; vertical-align: top; width: 10%;">
 error.catching
  </td>
- <td style="text-align: left; vertical-align: top; width: 90%;">
+ <td style="text-align: left" vertical-align: top; width: 90%;">
 More examples on catching and handling errors
  </td>
 </tr>
@@ -872,7 +852,7 @@ More examples on catching and handling errors
  <td style="text-align: left; vertical-align: top; width: 10%;">
 is.things
  </td>
- <td style="text-align: left; vertical-align: top; width: 90%;">
+ <td style="text-align: left" vertical-align: top; width: 90%;">
 Explore some properties of R objects and is.FOO() functions. Not for newbies!
  </td>
 </tr>
@@ -881,7 +861,7 @@ Explore some properties of R objects and is.FOO() functions. Not for newbies!
  <td style="text-align: left; vertical-align: top; width: 10%;">
 recursion
  </td>
- <td style="text-align: left; vertical-align: top; width: 90%;">
+ <td style="text-align: left" vertical-align: top; width: 90%;">
 Using recursion for adaptive integration
  </td>
 </tr>
@@ -890,7 +870,7 @@ Using recursion for adaptive integration
  <td style="text-align: left; vertical-align: top; width: 10%;">
 scoping
  </td>
- <td style="text-align: left; vertical-align: top; width: 90%;">
+ <td style="text-align: left" vertical-align: top; width: 90%;">
 An illustration of lexical scoping.
  </td>
 </tr>
@@ -1001,7 +981,7 @@ List of 6
 > ###
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.19 0.007 0.196 0 0 
+Time elapsed:  0.197 0.006 0.204 0 0 
 > grDevices::dev.off()
 null device 
           1 

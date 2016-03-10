@@ -1694,9 +1694,13 @@ findGrobinChildren <- function(name, children) {
 #   temp <- function() { grid.lines(); grid.rect() }
 #   temp()
 grid.draw <- function(x, recording=TRUE) {
-    # If 'x' is NULL, draw nothing
-    if (!is.null(x))
-        UseMethod("grid.draw")
+  UseMethod("grid.draw")
+}
+
+grid.draw.default <- function(x, recording) {
+  # Allow for "holes" in the DL if a grob has been removed
+  if (!is.null(x))
+    stop("invalid element in the display list")
 }
 
 grid.draw.viewport <- function(x, recording) {

@@ -214,11 +214,7 @@ double R_pow(double x, double y) /* = x ^ y */
 	/* There was a special case for y == 0.5 here, but
 	   gcc 4.3.0 -g -O2 mis-compiled it.  Showed up with
 	   100^0.5 as 3.162278, example(pbirthday) failed. */
-#ifdef USE_POWL_IN_R_POW
-    return powl(x, y);
-#else
-    return pow(x, y);
-#endif
+	return pow(x, y);
     }
     if (ISNAN(x) || ISNAN(y))
 	return(x + y);
@@ -257,7 +253,7 @@ double R_pow_di(double x, int n)
 	    if(n & 01) xn *= x;
 	    if(n >>= 1) x *= x; else break;
 	}
-	if(is_neg) xn = 1. / xn;
+        if(is_neg) xn = 1. / xn;
     }
     return xn;
 }
@@ -343,7 +339,7 @@ static R_INLINE int R_integer_times(int x, int y, Rboolean *pnaflag)
     if (x == NA_INTEGER || y == NA_INTEGER)
 	return NA_INTEGER;
     else {
-	int z = x * y;  // UBSAN will warn if this overflows (happens in bda)
+	int z = x * y;
 	if (GOODIPROD(x, y, z) && z != NA_INTEGER)
 	    return z;
 	else {
@@ -690,7 +686,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
     }
 
     if(xS4 || yS4) {   /* Only set the bit:  no method defined! */
-	val = asS4(val, TRUE, TRUE);
+        val = asS4(val, TRUE, TRUE);
     }
     UNPROTECT(nprotect);
     return val;
@@ -787,6 +783,16 @@ static SEXP real_unary(ARITHOP_TYPE code, SEXP s1, SEXP lcall)
     return s1;			/* never used; to keep -Wall happy */
 }
 
+/* i1 = i % n1; i2 = i % n2;
+ * this macro is quite a bit faster than having real modulo calls
+ * in the loop (tested on Intel and Sparc)
+ */
+#define mod_iterate(n1,n2,i1,i2) for (i=i1=i2=0; i<n; \
+	i1 = (++i1 == n1) ? 0 : i1,\
+	i2 = (++i2 == n2) ? 0 : i2,\
+	++i)
+
+
 static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 {
     R_xlen_t i, i1, i2, n, n1, n2;
@@ -808,7 +814,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 
     switch (code) {
     case PLUSOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		INTEGER(ans)[i] = R_integer_plus(x1, x2, &naflag);
@@ -817,7 +823,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    warningcall(lcall, INTEGER_OVERFLOW_WARNING);
 	break;
     case MINUSOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		INTEGER(ans)[i] = R_integer_minus(x1, x2, &naflag);
@@ -826,7 +832,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    warningcall(lcall, INTEGER_OVERFLOW_WARNING);
 	break;
     case TIMESOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		INTEGER(ans)[i] = R_integer_times(x1, x2, &naflag);
@@ -835,14 +841,14 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    warningcall(lcall, INTEGER_OVERFLOW_WARNING);
 	break;
     case DIVOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		REAL(ans)[i] = R_integer_divide(x1, x2);
 	    });
 	break;
     case POWOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		if((x1 = INTEGER(s1)[i1]) == 1 || (x2 = INTEGER(s2)[i2]) == 0)
 		    REAL(ans)[i] = 1.;
 		else if (x1 == NA_INTEGER || x2 == NA_INTEGER)
@@ -852,7 +858,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    });
 	break;
     case MODOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		if (x1 == NA_INTEGER || x2 == NA_INTEGER || x2 == 0)
@@ -865,7 +871,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    });
 	break;
     case IDIVOP:
-	MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
+	MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2, {
 		x1 = INTEGER(s1)[i1];
 		x2 = INTEGER(s2)[i2];
 		/* This had x %/% 0 == 0 prior to 2.14.1, but
@@ -916,25 +922,25 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 	    double *da = REAL(ans);
 	    double *dx = REAL(s1);
 	    double *dy = REAL(s2);
-	    if (n2 == 1) {
+            if (n2 == 1) {
 		double tmp = dy[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] + tmp;);
 	    }
-	    else if (n1 == 1) {
+            else if (n1 == 1) {
 		double tmp = dx[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = tmp + dy[i];);
 	    }
-	    else if (n1 == n2)
+            else if (n1 == n2)
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] + dy[i];);
-	    else
-		MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+            else
+		MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 				  da[i] = dx[i1] + dy[i2];);
 	}
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_INTEGER(s1, i1) + REAL(s2)[i2];);
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = REAL(s1)[i1] + R_INTEGER(s2, i2););
 	break;
     case MINUSOP:
@@ -942,25 +948,25 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 	    double *da = REAL(ans);
 	    double *dx = REAL(s1);
 	    double *dy = REAL(s2);
-	    if (n2 == 1) {
-		double tmp = dy[0];
+            if (n2 == 1) {
+                double tmp = dy[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] - tmp;);
-	    }
-	    else if (n1 == 1) {
-		double tmp = dx[0];
+            }
+            else if (n1 == 1) {
+                double tmp = dx[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = tmp - dy[i];);
-	    }
-	    else if (n1 == n2)
+            }
+            else if (n1 == n2)
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] - dy[i];);
-	    else
-		MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+            else
+		MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 				  da[i] = dx[i1] - dy[i2];);
 	}
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_INTEGER(s1, i1) - REAL(s2)[i2];);
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = REAL(s1)[i1] - R_INTEGER(s2, i2););
 	break;
     case TIMESOP:
@@ -968,25 +974,25 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 	    double *da = REAL(ans);
 	    double *dx = REAL(s1);
 	    double *dy = REAL(s2);
-	    if (n2 == 1) {
-		double tmp = dy[0];
+            if (n2 == 1) {
+                double tmp = dy[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] * tmp;);
-	    }
-	    else if (n1 == 1) {
-		double tmp = REAL(s1)[0];
+            }
+            else if (n1 == 1) {
+                double tmp = REAL(s1)[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = tmp * dy[i];);
-	    }
-	    else if (n1 == n2)
+            }
+            else if (n1 == n2)
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] * dy[i];);
-	    else
-		MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+            else
+		MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 				  da[i] = dx[i1] * dy[i2];);
 	}
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_INTEGER(s1, i1) * REAL(s2)[i2];);
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = REAL(s1)[i1] * R_INTEGER(s2, i2););
 	break;
     case DIVOP:
@@ -994,25 +1000,25 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 	    double *da = REAL(ans);
 	    double *dx = REAL(s1);
 	    double *dy = REAL(s2);
-	    if (n2 == 1) {
-		double tmp = dy[0];
+            if (n2 == 1) {
+                double tmp = dy[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] / tmp;);
-	    }
-	    else if (n1 == 1) {
-		double tmp = dx[0];
+            }
+            else if (n1 == 1) {
+                double tmp = dx[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = tmp / dy[i];);
-	    }
-	    else if (n1 == n2)
+            }
+            else if (n1 == n2)
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = dx[i] / dy[i];);
-	    else
-		MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+            else
+		MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 				  da[i] = dx[i1] / dy[i2];);
 	}
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_INTEGER(s1, i1) / REAL(s2)[i2];);
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = REAL(s1)[i1] / R_INTEGER(s2, i2););
 	break;
     case POWOP:
@@ -1020,54 +1026,54 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 	    double *da = REAL(ans);
 	    double *dx = REAL(s1);
 	    double *dy = REAL(s2);
-	    if (n2 == 1) {
-		double tmp = dy[0];
+            if (n2 == 1) {
+                double tmp = dy[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = R_POW(dx[i], tmp););
-	    }
-	    else if (n1 == 1) {
-		double tmp = dx[0];
+            }
+            else if (n1 == 1) {
+                double tmp = dx[0];
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = R_POW(tmp, dy[i]););
-	    }
-	    else if (n1 == n2)
+            }
+            else if (n1 == n2)
 		R_ITERATE_CHECK(NINTERRUPT, n, i, da[i] = R_POW(dx[i], dy[i]););
-	    else
-		MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+            else
+		MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 				  da[i] = R_POW(dx[i1], dy[i2]););
 	}
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_POW( R_INTEGER(s1, i1),
 						    REAL(s2)[i2]););
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = R_POW(REAL(s1)[i1],
 						   R_INTEGER(s2, i2)););
 	break;
     case MODOP:
 	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP)
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfmod(REAL(s1)[i1],
 						    REAL(s2)[i2]););
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfmod( R_INTEGER(s1, i1),
 						     REAL(s2)[i2]););
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfmod(REAL(s1)[i1],
 						    R_INTEGER(s2, i2)););
 	break;
     case IDIVOP:
 	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP)
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfloor(REAL(s1)[i1],
 						     REAL(s2)[i2]););
 	else if(TYPEOF(s1) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfloor(R_INTEGER(s1, i1),
 						     REAL(s2)[i2]););
 	else if(TYPEOF(s2) == INTSXP )
-	    MOD_ITERATE2_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
+	    MOD_ITERATE_CHECK(NINTERRUPT, n, n1, n2, i, i1, i2,
 			      REAL(ans)[i] = myfloor(REAL(s1)[i1],
 						     R_INTEGER(s2,i2)););
 	break;
@@ -1109,22 +1115,18 @@ static SEXP math1(SEXP sa, double(*f)(double), SEXP lcall)
     y = REAL(sy);
     naflag = 0;
     for (i = 0; i < n; i++) {
-	double x = a[i]; /* in case y == a */
-	/* This code assumes that ISNAN(x) implies ISNAN(f(x)), so we
-	   only need to check ISNAN(x) if ISNAN(f(x)) is true. */
-	y[i] = f(x);
-	if (ISNAN(y[i])) {
-	    if (ISNAN(x))
-		y[i] = x; /* make sure the incoming NaN is preserved */
-	    else
-		naflag = 1;
+	if (ISNAN(a[i]))
+	    y[i] = a[i];
+	else {
+	    y[i] = f(a[i]);
+	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
     /* These are primitives, so need to use the call */
     if(naflag) warningcall(lcall, R_MSG_NA);
 
     if (sa != sy && ATTRIB(sa) != R_NilValue)
-	SHALLOW_DUPLICATE_ATTRIB(sy, sa);
+	DUPLICATE_ATTRIB(sy, sa);
     UNPROTECT(2);
     return sy;
 }
@@ -1181,10 +1183,10 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
 	*/
     case 47: return MATH1(cospi);
     case 48: return MATH1(sinpi);
-#if defined(HAVE_TANPI) || defined(HAVE___TANPI)
-    case 49: return MATH1(Rtanpi);
-#else
+#ifndef HAVE_TANPI
     case 49: return MATH1(tanpi);
+#else
+    case 49: return MATH1(Rtanpi);
 #endif
 
     default:
@@ -1231,22 +1233,22 @@ SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
 	PROTECT(s);
 	/* Note: relying on INTEGER(.) === LOGICAL(.) : */
 	for(i = 0 ; i < n ; i++) {
-	    int xi = INTEGER(x)[i];
+            int xi = INTEGER(x)[i];
 	    INTEGER(s)[i] = (xi == NA_INTEGER) ? xi : abs(xi);
-	}
+        }
     } else if (TYPEOF(x) == REALSXP) {
 	R_xlen_t i, n = XLENGTH(x);
 	PROTECT(s = NO_REFERENCES(x) ? x : allocVector(REALSXP, n));
 	for(i = 0 ; i < n ; i++)
 	    REAL(s)[i] = fabs(REAL(x)[i]);
     } else if (isComplex(x)) {
-	SET_TAG(args, R_NilValue); /* cmathfuns want "z"; we might have "x" PR#16047 */
+        SET_TAG(args, R_NilValue); /* cmathfuns want "z"; we might have "x" PR#16047 */
 	return do_cmathfuns(call, op, args, env);
     } else
 	errorcall(call, R_MSG_NONNUM_MATH);
 
     if (x != s && ATTRIB(x) != R_NilValue)
-	SHALLOW_DUPLICATE_ATTRIB(s, x);
+	DUPLICATE_ATTRIB(s, x);
     UNPROTECT(1);
     return s;
 }
@@ -1274,27 +1276,27 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
 
     /* for 0-length a we want the attributes of a, not those of b
        as no recycling will occur */
-#define SETUP_Math2					\
-    na = XLENGTH(sa);					\
-    nb = XLENGTH(sb);					\
-    if ((na == 0) || (nb == 0))	{			\
-	PROTECT(sy = allocVector(REALSXP, 0));		\
-	if (na == 0) SHALLOW_DUPLICATE_ATTRIB(sy, sa);	\
-	UNPROTECT(1);					\
-	return(sy);					\
-    }							\
-    n = (na < nb) ? nb : na;				\
-    PROTECT(sa = coerceVector(sa, REALSXP));		\
-    PROTECT(sb = coerceVector(sb, REALSXP));		\
-    PROTECT(sy = allocVector(REALSXP, n));		\
-    a = REAL(sa);					\
-    b = REAL(sb);					\
-    y = REAL(sy);					\
+#define SETUP_Math2				\
+    na = XLENGTH(sa);				\
+    nb = XLENGTH(sb);				\
+    if ((na == 0) || (nb == 0))	{		\
+	PROTECT(sy = allocVector(REALSXP, 0));	\
+	if (na == 0) DUPLICATE_ATTRIB(sy, sa);	\
+	UNPROTECT(1);				\
+	return(sy);				\
+    }						\
+    n = (na < nb) ? nb : na;			\
+    PROTECT(sa = coerceVector(sa, REALSXP));	\
+    PROTECT(sb = coerceVector(sb, REALSXP));	\
+    PROTECT(sy = allocVector(REALSXP, n));	\
+    a = REAL(sa);				\
+    b = REAL(sb);				\
+    y = REAL(sy);				\
     naflag = 0
 
     SETUP_Math2;
 
-    MOD_ITERATE2(n, na, nb, i, ia, ib, {
+    mod_iterate(na, nb, ia, ib) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1303,12 +1305,12 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
 	    y[i] = f(ai, bi);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
-#define FINISH_Math2					\
-    if(naflag) warning(R_MSG_NA);			\
-    if (n == na)  SHALLOW_DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) SHALLOW_DUPLICATE_ATTRIB(sy, sb);	\
+#define FINISH_Math2				\
+    if(naflag) warning(R_MSG_NA);		\
+    if (n == na)  DUPLICATE_ATTRIB(sy, sa);	\
+    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
     UNPROTECT(3)
 
     FINISH_Math2;
@@ -1331,7 +1333,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
     SETUP_Math2;
     m_opt = asInteger(sI);
 
-    MOD_ITERATE2(n, na, nb, i, ia, ib, {
+    mod_iterate(na, nb, ia, ib) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1340,7 +1342,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
 	    y[i] = f(ai, bi, m_opt);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
     FINISH_Math2;
     return sy;
 } /* math2_1() */
@@ -1360,7 +1362,7 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
     i_1 = asInteger(sI1);
     i_2 = asInteger(sI2);
 
-    MOD_ITERATE2(n, na, nb, i, ia, ib, {
+    mod_iterate(na, nb, ia, ib) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1369,7 +1371,7 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
 	    y[i] = f(ai, bi, i_1, i_2);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
     FINISH_Math2;
     return sy;
 } /* math2_2() */
@@ -1409,7 +1411,7 @@ static SEXP math2B(SEXP sa, SEXP sb, double (*f)(double, double, double *),
     nw = 1 + (size_t)floor(amax);
     work = (double *) R_alloc(nw, sizeof(double));
 
-    MOD_ITERATE2(n, na, nb, i, ia, ib, {
+    mod_iterate(na, nb, ia, ib) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1418,7 +1420,7 @@ static SEXP math2B(SEXP sa, SEXP sb, double (*f)(double, double, double *),
 	    y[i] = f(ai, bi, work);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
     vmaxset(vmax);
     FINISH_Math2;
@@ -1508,9 +1510,9 @@ SEXP attribute_hidden do_Math2(SEXP call, SEXP op, SEXP args, SEXP env)
 
     n = length(args);
     if (n != 1 && n != 2)
-	error(ngettext("%d argument passed to '%s' which requires 1 or 2 arguments",
-		       "%d arguments passed to '%s'which requires 1 or 2 arguments", n),
-	      n, PRIMNAME(op));
+        error(ngettext("%d argument passed to '%s' which requires 1 or 2 arguments",
+                       "%d arguments passed to '%s'which requires 1 or 2 arguments", n),
+              n, PRIMNAME(op));
 
     if (! DispatchGroup("Math", call2, op, args, env, &res)) {
 	if(n == 1) {
@@ -1520,8 +1522,8 @@ SEXP attribute_hidden do_Math2(SEXP call, SEXP op, SEXP args, SEXP env)
 	} else {
 	    /* If named, do argument matching by name */
 	    if (TAG(args) != R_NilValue || TAG(CDR(args)) != R_NilValue) {
-		if (do_Math2_formals == NULL)
-		    do_Math2_formals = allocFormalsList2(install("x"),
+	        if (do_Math2_formals == NULL)
+                    do_Math2_formals = allocFormalsList2(install("x"),
 							 install("digits"));
 		PROTECT(args = matchArgs(do_Math2_formals, args, call));
 		nprotect++;
@@ -1669,6 +1671,12 @@ SEXP attribute_hidden do_log_builtin(SEXP call, SEXP op, SEXP args, SEXP env)
 	if      (ISNA (a) || ISNA (b)|| ISNA (c)) y = NA_REAL;	\
 	else if (ISNAN(a) || ISNAN(b)|| ISNAN(c)) y = R_NaN;
 
+#define mod_iterate3(n1,n2,n3,i1,i2,i3) for (i=i1=i2=i3=0; i<n; \
+	i1 = (++i1==n1) ? 0 : i1,				\
+	i2 = (++i2==n2) ? 0 : i2,				\
+	i3 = (++i3==n3) ? 0 : i3,				\
+	++i)
+
 #define SETUP_Math3						\
     if (!isNumeric(sa) || !isNumeric(sb) || !isNumeric(sc))	\
 	errorcall(lcall, R_MSG_NONNUM_MATH);			\
@@ -1691,12 +1699,12 @@ SEXP attribute_hidden do_log_builtin(SEXP call, SEXP op, SEXP args, SEXP env)
     y = REAL(sy);						\
     naflag = 0
 
-#define FINISH_Math3					\
-    if(naflag) warning(R_MSG_NA);			\
-							\
-    if (n == na) SHALLOW_DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) SHALLOW_DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) SHALLOW_DUPLICATE_ATTRIB(sy, sc);	\
+#define FINISH_Math3				\
+    if(naflag) warning(R_MSG_NA);		\
+						\
+    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
+    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
+    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
     UNPROTECT(4)
 
 static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
@@ -1711,7 +1719,7 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
     SETUP_Math3;
     i_1 = asInteger(sI);
 
-    MOD_ITERATE3(n, na, nb, nc, i, ia, ib, ic, {
+    mod_iterate3 (na, nb, nc, ia, ib, ic) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1721,7 +1729,7 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
 	    y[i] = f(ai, bi, ci, i_1);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
     FINISH_Math3;
     return sy;
@@ -1740,7 +1748,7 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
     i_1 = asInteger(sI);
     i_2 = asInteger(sJ);
 
-    MOD_ITERATE3 (n, na, nb, nc, i, ia, ib, ic, {
+    mod_iterate3 (na, nb, nc, ia, ib, ic) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1750,7 +1758,7 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
 	    y[i] = f(ai, bi, ci, i_1, i_2);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
     FINISH_Math3;
     return sy;
@@ -1781,7 +1789,7 @@ static SEXP math3B(SEXP sa, SEXP sb, SEXP sc,
     nw = 1 + (size_t)floor(amax);
     work = (double *) R_alloc(nw, sizeof(double));
 
-    MOD_ITERATE3 (n, na, nb, nc, i, ia, ib, ic, {
+    mod_iterate3 (na, nb, nc, ia, ib, ic) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1791,7 +1799,7 @@ static SEXP math3B(SEXP sa, SEXP sb, SEXP sc,
 	    y[i] = f(ai, bi, ci, work);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
     FINISH_Math3;
     vmaxset(vmax);
@@ -1888,6 +1896,13 @@ SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
 	if      (ISNA (a)|| ISNA (b)|| ISNA (c)|| ISNA (d)) y = NA_REAL;\
 	else if (ISNAN(a)|| ISNAN(b)|| ISNAN(c)|| ISNAN(d)) y = R_NaN;
 
+#define mod_iterate4(n1,n2,n3,n4,i1,i2,i3,i4) for (i=i1=i2=i3=i4=0; i<n; \
+	i1 = (++i1==n1) ? 0 : i1,					\
+	i2 = (++i2==n2) ? 0 : i2,					\
+	i3 = (++i3==n3) ? 0 : i3,					\
+	i4 = (++i4==n4) ? 0 : i4,					\
+	++i)
+
 static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 		  double (*f)(double, double, double, double), SEXP lcall)
 {
@@ -1924,7 +1939,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 
     SETUP_Math4;
 
-    MOD_ITERATE4 (n, na, nb, nc, nd, i, ia, ib, ic, id, {
+    mod_iterate4 (na, nb, nc, nd, ia, ib, ic, id) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1935,15 +1950,15 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 	    y[i] = f(ai, bi, ci, di);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
-#define FINISH_Math4					\
-    if(naflag) warning(R_MSG_NA);			\
-							\
-    if (n == na) SHALLOW_DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) SHALLOW_DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) SHALLOW_DUPLICATE_ATTRIB(sy, sc);	\
-    else if (n == nd) SHALLOW_DUPLICATE_ATTRIB(sy, sd);	\
+#define FINISH_Math4				\
+    if(naflag) warning(R_MSG_NA);		\
+						\
+    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
+    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
+    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
+    else if (n == nd) DUPLICATE_ATTRIB(sy, sd);	\
     UNPROTECT(5)
 
     FINISH_Math4;
@@ -1962,7 +1977,7 @@ static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(dou
     SETUP_Math4;
     i_1 = asInteger(sI);
 
-    MOD_ITERATE4 (n, na, nb, nc, nd, i, ia, ib, ic, id, {
+    mod_iterate4 (na, nb, nc, nd, ia, ib, ic, id) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -1973,7 +1988,7 @@ static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(dou
 	    y[i] = f(ai, bi, ci, di, i_1);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
     FINISH_Math4;
     return sy;
 } /* math4_1() */
@@ -1991,7 +2006,7 @@ static SEXP math4_2(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, SEXP sJ,
     i_1 = asInteger(sI);
     i_2 = asInteger(sJ);
 
-    MOD_ITERATE4 (n, na, nb, nc, nd, i, ia, ib, ic, id, {
+    mod_iterate4 (na, nb, nc, nd, ia, ib, ic, id) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -2002,7 +2017,7 @@ static SEXP math4_2(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, SEXP sJ,
 	    y[i] = f(ai, bi, ci, di, i_1, i_2);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
     FINISH_Math4;
     return sy;
 } /* math4_2() */
@@ -2062,6 +2077,15 @@ SEXP attribute_hidden do_math4(SEXP call, SEXP op, SEXP args, SEXP env)
 	else if(ISNAN(a)|| ISNAN(b)|| ISNAN(c)|| ISNAN(d)|| ISNAN(e))	\
 		y = R_NaN;
 
+#define mod_iterate5(n1,n2,n3,n4,n5, i1,i2,i3,i4,i5)	\
+ for (i=i1=i2=i3=i4=i5=0; i<n;				\
+	i1 = (++i1==n1) ? 0 : i1,			\
+	i2 = (++i2==n2) ? 0 : i2,			\
+	i3 = (++i3==n3) ? 0 : i3,			\
+	i4 = (++i4==n4) ? 0 : i4,			\
+	i5 = (++i5==n5) ? 0 : i5,			\
+	++i)
+
 static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 {
     SEXP sy;
@@ -2101,8 +2125,8 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 
     SETUP_Math5;
 
-    MOD_ITERATE5 (n, na, nb, nc, nd, ne,
-		  i, ia, ib, ic, id, ie, {
+    mod_iterate5 (na, nb, nc, nd, ne,
+		  ia, ib, ic, id, ie) {
 //	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	ai = a[ia];
 	bi = b[ib];
@@ -2114,16 +2138,16 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 	    y[i] = f(ai, bi, ci, di, ei);
 	    if (ISNAN(y[i])) naflag = 1;
 	}
-    });
+    }
 
-#define FINISH_Math5					\
-    if(naflag) warning(R_MSG_NA);			\
-							\
-    if (n == na) SHALLOW_DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) SHALLOW_DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) SHALLOW_DUPLICATE_ATTRIB(sy, sc);	\
-    else if (n == nd) SHALLOW_DUPLICATE_ATTRIB(sy, sd);	\
-    else if (n == ne) SHALLOW_DUPLICATE_ATTRIB(sy, se);	\
+#define FINISH_Math5				\
+    if(naflag) warning(R_MSG_NA);		\
+						\
+    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
+    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
+    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
+    else if (n == nd) DUPLICATE_ATTRIB(sy, sd);	\
+    else if (n == ne) DUPLICATE_ATTRIB(sy, se);	\
     UNPROTECT(6)
 
     FINISH_Math5;

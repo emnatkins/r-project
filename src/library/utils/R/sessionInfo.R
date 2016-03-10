@@ -1,7 +1,7 @@
 #  File src/library/utils/R/sessionInfo.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -36,10 +36,10 @@ sessionInfo <- function(package = NULL)
                    "Linux" = if(file.exists("/etc/os-release")) {
     ## http://www.freedesktop.org/software/systemd/man/os-release.html
                        tmp <- readLines("/etc/os-release")
-                       t2 <- if (any(startsWith(tmp, "PRETTY_NAME=")))
+                       t2 <- if (any(grepl("^PRETTY_NAME=", tmp)))
                            sub("^PRETTY_NAME=", "",
                                grep("^PRETTY_NAME=", tmp, value = TRUE)[1L])
-                       else if (any(startsWith(tmp, "NAME")))
+                       else if (any(grepl("^NAME", tmp)))
                            ## could check for VERSION or VERSION_ID
                            sub("^NAME=", "",
                                grep("^NAME=", tmp, value = TRUE)[1L])
@@ -79,9 +79,8 @@ sessionInfo <- function(package = NULL)
     if(is.null(package)){
         package <- grep("^package:", search(), value=TRUE)
         # weed out environments which are not really packages
-        keep <- vapply(package, function(x) x == "package:base"
-                       || !is.null(attr(as.environment(x), "path")), NA)
-        package <- .rmpkg(package[keep])
+        keep <- sapply(package, function(x) x == "package:base" || !is.null(attr(as.environment(x), "path")))
+        package <- sub("^package:", "", package[keep])
     }
 
     ## no need to re-encode given what we extract.

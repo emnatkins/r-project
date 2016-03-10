@@ -593,10 +593,8 @@ static void sigactionSegv(int signum, siginfo_t *ip, void *context)
 		if(ConsoleBuf[0] == '4') R_CleanUp(SA_SAVE, 71, 0);
 	    }
 	}
-	REprintf("R is aborting now ...\n");
     }
-    else // non-interactively :
-	REprintf("An irrecoverable exception occurred. R is aborting now ...\n");
+    REprintf("aborting ...\n");
     R_CleanTempDir();
     /* now do normal behaviour, e.g. core dump */
     signal(signum, SIG_DFL);
@@ -813,7 +811,6 @@ void setup_Rmainloop(void)
     R_Toplevel.nextcontext = NULL;
     R_Toplevel.callflag = CTXT_TOPLEVEL;
     R_Toplevel.cstacktop = 0;
-    R_Toplevel.gcenabled = R_GCEnabled;
     R_Toplevel.promargs = R_NilValue;
     R_Toplevel.callfun = R_NilValue;
     R_Toplevel.call = R_NilValue;
@@ -826,15 +823,10 @@ void setup_Rmainloop(void)
     R_Toplevel.intstack = R_BCIntStackTop;
 #endif
     R_Toplevel.cend = NULL;
-    R_Toplevel.cenddata = NULL;
     R_Toplevel.intsusp = FALSE;
     R_Toplevel.handlerstack = R_HandlerStack;
     R_Toplevel.restartstack = R_RestartStack;
     R_Toplevel.srcref = R_NilValue;
-    R_Toplevel.prstack = NULL;
-    R_Toplevel.returnValue = NULL;
-    R_Toplevel.evaldepth = 0;
-    R_Toplevel.browserfinish = 0;
     R_GlobalContext = R_ToplevelContext = R_SessionContext = &R_Toplevel;
     R_ExitContext = NULL;
 
@@ -987,9 +979,6 @@ void setup_Rmainloop(void)
 	REprintf(_("During startup - "));
 	PrintWarnings();
     }
-    if(R_Verbose)
-	REprintf(" ending setup_Rmainloop(): R_Interactive = %d {main.c}\n",
-		 R_Interactive);
 
     /* trying to do this earlier seems to run into bootstrapping issues. */
     doneit = 0;
@@ -1135,9 +1124,6 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     int savestack, browselevel;
     SEXP ap, topExp, argList;
 
-    /* Cannot call checkArity(op, args), because "op" may be a closure  */
-    /* or a primitive other than "browser".  */
-
     /* argument matching */
     PROTECT(ap = list4(R_NilValue, R_NilValue, R_NilValue, R_NilValue));
     SET_TAG(ap,  install("text"));
@@ -1257,7 +1243,6 @@ SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
     SA_TYPE ask=SA_DEFAULT;
     int status, runLast;
 
-    checkArity(op, args);
     /* if there are any browser contexts active don't quit */
     if(countContexts(CTXT_BROWSER, 1)) {
 	warning(_("cannot quit from browser"));
@@ -1556,7 +1541,6 @@ R_taskCallbackRoutine(SEXP expr, SEXP value, Rboolean succeeded,
     }
 
     val = R_tryEval(e, NULL, &errorOccurred);
-    UNPROTECT(1); /* e */
     if(!errorOccurred) {
 	PROTECT(val);
 	if(TYPEOF(val) != LGLSXP) {

@@ -1,7 +1,7 @@
 #  File src/library/base/R/character.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,9 +30,6 @@ substring <- function(text, first, last=1000000L)
     .Internal(substr(text, as.integer(first), as.integer(last)))
 }
 
-startsWith <- function(x, prefix) .Internal(startsWith(x, prefix))
-endsWith   <- function(x, suffix) .Internal(endsWith  (x, suffix))
-
 `substr<-` <- function(x, start, stop, value)
     .Internal(`substr<-`(x, as.integer(start), as.integer(stop), value))
 
@@ -43,19 +40,21 @@ abbreviate <-
     function(names.arg, minlength = 4L, use.classes = TRUE, dot = FALSE,
              strict = FALSE, method = c("left.kept", "both.sides"))
 {
+    ## we just ignore use.classes
     if(minlength <= 0L) {
-        x <- rep.int("", length(names.arg))
-        names(x) <- names.arg
+        x <- rep.int("", length(names.arg)); names(x) <- names.arg
         return(x)
     }
     ## need to remove leading/trailing spaces before we check for dups
+    ## This is inefficient but easier than modifying do_abbrev (=> FIXME !)
     names.arg <- sub("^ +", "", sub(" +$", "", as.character(names.arg)))
     dups <- duplicated(names.arg)
     old <- names.arg
-    if(any(dups)) names.arg <- names.arg[!dups]
+    if(any(dups))
+	names.arg <- names.arg[!dups]
     x <- names.arg
     if(strict) {
-        x[] <- .Internal(abbreviate(x, minlength, use.classes))
+	x[] <- .Internal(abbreviate(x, minlength, use.classes))
     } else {
 	method <- match.arg(method)
 	if(method == "both.sides")
@@ -194,10 +193,3 @@ dQuote <- function(x)
 strtoi <-
 function(x, base = 0L)
     .Internal(strtoi(as.character(x), as.integer(base)))
-
-strrep <-
-function(x, times)
-{
-    if(!is.character(x)) x <- as.character(x)
-    .Internal(strrep(x, as.integer(times)))
-}

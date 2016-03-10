@@ -1,7 +1,7 @@
 #  File src/library/tools/R/Rd2pdf.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2015 The R Core Team
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -84,13 +84,12 @@
 .Rdfiles2tex <-
     function(files, outfile, encoding = "unknown", outputEncoding = "UTF-8",
              append = FALSE, extraDirs = NULL, internals = FALSE,
-             silent = FALSE, pkglist = NULL)
+             silent = FALSE)
 {
     if (dir.exists(files))
         .pkg2tex(files, outfile, encoding = encoding, append = append,
                  asChapter = FALSE, extraDirs = extraDirs,
-                 internals = internals, silent = silent,
-                 pkglist = pkglist)
+                 internals = internals, silent = silent)
     else {
         files <- strsplit(files, "[[:space:]]+")[[1L]]
         latexdir <- tempfile("ltx")
@@ -102,7 +101,6 @@
         }
         latexEncodings <- character()
         hasFigures <- FALSE
-        macros <- initialRdMacros(pkglist = pkglist)
         for(f in files) {
             if (!silent) cat("  ", basename(f), "\n", sep="")
             if (!internals) {
@@ -114,8 +112,7 @@
             ## people have file names with quotes in them.
             res <- Rd2latex(f, out, encoding = encoding,
                             outputEncoding = outputEncoding,
-                            stages = c("build", "install", "render"),
-                            macros = macros)
+                            stages = c("build", "install", "render"))
             latexEncodings <- c(latexEncodings,
                                 attr(res,"latexEncoding"))
             lines <- readLines(out)
@@ -138,8 +135,7 @@
 .pkg2tex <-
     function(pkgdir, outfile, internals = FALSE, asChapter = TRUE,
              encoding = "unknown", outputEncoding = "UTF-8",
-             extraDirs = NULL, append = FALSE, silent = FALSE,
-             pkglist = NULL)
+             extraDirs = NULL, append = FALSE, silent = FALSE)
 {
     ## sort order for topics, a little tricky
     re <- function(x) x[order(toupper(x), x)]
@@ -172,7 +168,6 @@
                 return(invisible(character()))
             }
             cnt <- 0L
-            macros <- initialRdMacros(pkglist)
             for(f in names(Rd)) {
 ##                bf <- basename(f)
                 cnt <- cnt + 1L
@@ -185,8 +180,7 @@
 				  encoding = encoding,
 				  outputEncoding = outputEncoding,
 				  defines = NULL,
-				  writeEncoding = !asChapter,
-				  macros = macros)
+				  writeEncoding = !asChapter)
                 latexEncodings <- c(latexEncodings,
                                     attr(res, "latexEncoding"))
                 if (attr(res, "hasFigures")) {
@@ -238,8 +232,6 @@
             if (!silent) message("Converting Rd files to LaTeX ",
                                  appendLF = FALSE, domain = NA)
             cnt <- 0L
-            macros <- loadPkgRdMacros(pkgdir)
-            macros <- initialRdMacros(pkglist, macros)
             for(i in seq_along(paths)) {
                 cnt <- cnt + 1L
                 if(!silent && cnt %% 10L == 0L)
@@ -249,8 +241,7 @@
                 res <- Rd2latex(files[[i]], outfilename,
                                 stages = c("build", "install", "render"),
                                 encoding = encoding,
-                                outputEncoding = outputEncoding,
-                                macros = macros)
+                                outputEncoding = outputEncoding)
                 latexEncodings <-
                     c(latexEncodings, attr(res, "latexEncoding"))
                 if (attr(res, "hasFigures")) {
@@ -348,8 +339,6 @@
             "  -o, --output=OUT	use 'OUT' as the output file",
             "      --os=NAME		assume OS 'NAME' (unix or windows)",
             "      --OS=NAME		the same as '--os'",
-            "  --RdMacros=pkglist",
-            "             		packages from which to get Rd macros",
             "",
             "Possible format specifications are 'txt' (plain text), 'html', 'latex',",
             "and 'example' (extract R code in the examples).",
@@ -368,7 +357,6 @@
     pkg <- ""
     out <- NULL
     os <- ""
-    pkglist <- NULL
 
     if (is.null(args)) {
         args <- commandArgs(TRUE)
@@ -409,8 +397,6 @@
             out <- substr(a, 10, 1000)
         } else if (substr(a, 1, 5) %in% c("--os=", "--OS=")) {
             os <- substr(a, 6, 1000)
-        } else if (substr(a, 1, 11) == "--RdMacros=") {
-            pkglist <- substr(a, 12, 1000)
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else files <- c(files, a)
@@ -425,33 +411,28 @@
         out <- paste0(bf,  exts[type])
     } else if (is.null(out)) out <- ""
     if (!nzchar(os)) os <- .Platform$OS.type
-    macros <- initialRdMacros(pkglist = pkglist)
     switch(type,
            "txt" = {
                Rd2txt(files, out, package=pkg, defines=os,
                       outputEncoding = enc,
-                      stages = c("build", "install", "render"),
-                      macros = macros)
+                      stages = c("build", "install", "render"))
            },
            "html" = {
                if (!nzchar(enc)) enc <- "UTF-8"
                Rd2HTML(files, out, package = pkg, defines = os,
                        outputEncoding = enc, no_links = TRUE,
-                       stages = c("build", "install", "render"), 
-                       macros = macros)
+                       stages = c("build", "install", "render"))
            },
            "latex" = {
                if (!nzchar(enc)) enc <- "UTF-8"
                Rd2latex(files, out, defines = os,
                         outputEncoding = enc,
-                        stages = c("build", "install", "render"),
-                        macros = macros)
+                        stages = c("build", "install", "render"))
            },
            "example" = {
                if (!nzchar(enc)) enc <- "UTF-8"
                Rd2ex(files, out, defines = os, outputEncoding = enc,
-                     stages = c("build", "install", "render"),
-                     macros = macros)
+                     stages = c("build", "install", "render"))
            },
            "unknown" = stop("no 'type' specified", call. = FALSE),
            stop("'type' must be one of 'txt', 'html', 'latex' or 'example'",
@@ -466,7 +447,7 @@
 function(pkgdir, outfile, title, batch = FALSE,
          description = TRUE, only_meta = FALSE,
          enc = "unknown", outputEncoding = "UTF-8", files_or_dir, OSdir,
-         internals = FALSE, index = TRUE, pkglist = NULL)
+         internals = FALSE, index = TRUE)
 {
     ## Write directly to the final location.  Encodings and figures
     ## may mean we need to make edits, but for most files one pass
@@ -560,7 +541,7 @@ function(pkgdir, outfile, title, batch = FALSE,
         if (nzchar(toc)) writeLines(toc, out)
         res <- .Rdfiles2tex(files_or_dir, out, encoding = enc, append = TRUE,
                          extraDirs = OSdir, internals = internals,
-                         silent = batch, pkglist = pkglist)
+                         silent = batch)
         if(length(res)) {
             latexEncodings <- res$latexEncodings
             hasFigures <- res$hasFigures
@@ -701,8 +682,6 @@ setEncoding2, "
             "      --no-description	do not typeset the description of a package",
             "      --internals	typeset 'internal' documentation (usually skipped)",
             "      --build_dir=DIR	use DIR as the working directory",
-            "      --RdMacros=pkglist",
-            "             		packages from which to get Rd macros",
             "",
             "The output papersize is set by the environment variable R_PAPERSIZE.",
             "The PDF previewer is set by the environment variable R_PDFVIEWER.",
@@ -737,7 +716,6 @@ setEncoding2, "
     files <- character()
     dir <- ""
     force <- FALSE
-    pkglist <- NULL
 
     WINDOWS <- .Platform$OS.type == "windows"
 
@@ -792,8 +770,6 @@ setEncoding2, "
             description <- FALSE
         } else if (a == "--internals") {
             internals <- TRUE
-        } else if (substr(a, 1, 11) == "--RdMacros=") {
-            pkglist <- substr(a, 12, 1000)
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else files <- c(files, a)
@@ -846,8 +822,7 @@ setEncoding2, "
     res <-
         try(.Rd2pdf(files[1L], file.path(build_dir, "Rd2.tex"),
                     title, batch, description, only_meta,
-                    enc, outenc, dir, OSdir, internals, index,
-                    pkglist))
+                    enc, outenc, dir, OSdir, internals, index))
     if (inherits(res, "try-error"))
         q("no", status = 11L, runLast = FALSE)
 

@@ -17,9 +17,14 @@
 #  https://www.R-project.org/Licenses/
 
 
-functionBody <- body
+functionBody <- base::body #was get("body", mode = "function")
 
-`functionBody<-` <- `body<-`
+`functionBody<-` <- base::`body<-`
+## was
+## .ff <- function(fun, envir = environment(fun), value) fun
+## body(.ff, envir = .GlobalEnv) <- body(get("body<-"))
+## "functionBody<-" <- .ff
+## rm(.ff)
 
 allNames <-
   ## the character vector of names (unlike names(), never returns NULL)
@@ -85,7 +90,7 @@ elNamed <-
         else NULL
     }
     else
-        x[[i]]
+        el(x,i)
 }
 
 "elNamed<-" <-

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2009-2015 The R Core Team.
+ *  Copyright (C) 2009-12 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,10 +64,12 @@
 # ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 # endif
-# include <netdb.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
+# ifdef HAVE_BSD_NETWORKING
+#  include <netdb.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <arpa/inet.h>
+# endif
 # include <errno.h>
 
 # define sockerrno errno
@@ -956,11 +958,7 @@ static void worker_input_handler(void *data) {
 			    }
 			    if (!strcmp(bol, "content-type")) {
 				char *l = k;
-				/* convert content-type to lowercase to facilitate comparison
-				   since MIME types are case-insensitive.
-				   However, we have to stop at ; since parameters
-				   may be case-sensitive (see PR 16541) */
-				while (*l && *l != ';') { if (*l >= 'A' && *l <= 'Z') *l |= 0x20; l++; }
+				while (*l) { if (*l >= 'A' && *l <= 'Z') *l |= 0x20; l++; }
 				c->attr |= CONTENT_TYPE;
 				if (c->content_type) free(c->content_type);
 				c->content_type = strdup(k);
