@@ -50,11 +50,11 @@
    assignment functions when possible, since the write barrier (and
    possibly cache behavior on some architectures) makes assigning more
    costly than dereferencing. */
-#define SHALLOW_DUPLICATE_ATTRIB(to, from) do {\
+#define DUPLICATE_ATTRIB(to, from) do {\
   SEXP __from__ = (from); \
   if (ATTRIB(__from__) != R_NilValue) { \
     SEXP __to__ = (to); \
-    (SHALLOW_DUPLICATE_ATTRIB)(__to__, __from__);	\
+    (DUPLICATE_ATTRIB)(__to__, __from__);	\
   } \
 } while (0)
 
@@ -201,8 +201,6 @@ RealFromComplex(Rcomplex x, int *warn)
 {
     if (ISNAN(x.r) || ISNAN(x.i))
 	return NA_REAL;
-    if (ISNAN(x.r)) return x.r;
-    if (ISNAN(x.i)) return NA_REAL;
     if (x.i != 0)
 	*warn |= WARN_IMAG;
     return x.r;
@@ -257,18 +255,14 @@ Rcomplex attribute_hidden
 ComplexFromReal(double x, int *warn)
 {
     Rcomplex z;
-#ifdef PRE_R_3_3_0
     if (ISNAN(x)) {
 	z.r = NA_REAL;
 	z.i = NA_REAL;
     }
     else {
-#endif
 	z.r = x;
 	z.i = 0;
-#ifdef PRE_R_3_3_0
     }
-#endif
     return z;
 }
 
@@ -322,8 +316,7 @@ SEXP attribute_hidden StringFromComplex(Rcomplex x, int *warn)
 {
     int wr, dr, er, wi, di, ei;
     formatComplex(&x, 1, &wr, &dr, &er, &wi, &di, &ei, 0);
-    if (ISNA(x.r) || ISNA(x.i)) // "NA" if Re or Im is (but not if they're just NaN)
-	return NA_STRING;
+    if (ISNA(x.r) || ISNA(x.i)) return NA_STRING;
     else /* EncodeComplex has its own anti-trailing-0 care :*/
 	return mkChar(EncodeComplex(x, wr, dr, er, wi, di, ei, OutDec));
 }
@@ -440,7 +433,7 @@ static SEXP coerceToLogical(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case INTSXP:
 	for (i = 0; i < n; i++) {
@@ -492,7 +485,7 @@ static SEXP coerceToInteger(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case LGLSXP:
 	for (i = 0; i < n; i++) {
@@ -544,7 +537,7 @@ static SEXP coerceToReal(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case LGLSXP:
 	for (i = 0; i < n; i++) {
@@ -596,7 +589,7 @@ static SEXP coerceToComplex(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case LGLSXP:
 	for (i = 0; i < n; i++) {
@@ -649,7 +642,7 @@ static SEXP coerceToRaw(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case LGLSXP:
 	for (i = 0; i < n; i++) {
@@ -727,7 +720,7 @@ static SEXP coerceToString(SEXP v)
        SET_RTRACE(ans,1);
     }
 #endif
-    SHALLOW_DUPLICATE_ATTRIB(ans, v);
+    DUPLICATE_ATTRIB(ans, v);
     switch (TYPEOF(v)) {
     case LGLSXP:
 	for (i = 0; i < n; i++) {
@@ -1190,7 +1183,7 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
 	    /* Can this actually happen? */
 	    UNPROTECT(1);
 	    break;
-	}
+        }
 	i = 0;
 	op = CAR(v);
 	/* The case of practical relevance is "lhs ~ rhs", which
@@ -1327,8 +1320,14 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     else if (isVector(u) || isList(u) || isLanguage(u)
 	     || (isSymbol(u) && type == EXPRSXP)) {
 	v = u;
+	/* this duplication may appear not to be needed in all cases,
+	   but beware that other code relies on it.
+	   (E.g  we clear attributes in do_asvector and do_asatomic.)
+
+	   Generally coerceVector will copy over attributes.
+	*/
 	if (type != ANYSXP && TYPEOF(u) != type) v = coerceVector(u, type);
-	else v = u;
+	else if (MAYBE_REFERENCED(u)) v = duplicate(u);
 
 	/* drop attributes() and class() in some cases for as.pairlist:
 	   But why?  (And who actually coerces to pairlists?)
@@ -1336,7 +1335,6 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
 	if ((type == LISTSXP) &&
 	    !(TYPEOF(u) == LANGSXP || TYPEOF(u) == LISTSXP ||
 	      TYPEOF(u) == EXPRSXP || TYPEOF(u) == VECSXP)) {
-      if (MAYBE_REFERENCED(v)) v = shallow_duplicate(v);
 	    CLEAR_ATTRIB(v);
 	}
 	return v;
@@ -1353,16 +1351,6 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     else errorcall(call, _(COERCE_ERROR_STRING),
 		   type2char(TYPEOF(u)), type2char(type));
     return u;/* -Wall */
-}
-
-SEXP attribute_hidden do_asCharacterFactor(SEXP call, SEXP op, SEXP args,
-                                           SEXP rho)
-{
-    SEXP x;
-    checkArity(op, args);
-    check1arg(args, call, "x");
-    x = CAR(args);
-    return asCharacterFactor(x);
 }
 
 /* used in attrib.c, eval.c and unique.c */
@@ -1926,7 +1914,6 @@ SEXP attribute_hidden do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
  * It seems to make more sense to check for a dim attribute.
  */
 
-// is.vector(x, mode) :
 SEXP attribute_hidden do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, a, x;
@@ -2041,8 +2028,8 @@ SEXP attribute_hidden do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    LOGICAL(ans)[i] = (STRING_ELT(s, 0) == NA_STRING);	\
 		    break;						\
 		case CPLXSXP:						\
-		    LOGICAL(ans)[i] = (ISNAN(COMPLEX(s)[0].r) || 	\
-				       ISNAN(COMPLEX(s)[0].i));		\
+		    LOGICAL(ans)[i] = (ISNAN(COMPLEX(s)[0].r)		\
+				       || ISNAN(COMPLEX(s)[0].i));	\
 		    break;						\
 		default:						\
 		    LOGICAL(ans)[i] = 0;				\
@@ -2151,8 +2138,8 @@ static Rboolean anyNA(SEXP call, SEXP op, SEXP args, SEXP env)
     case LISTSXP:
     {
 	SEXP call2, args2, ans;
-	args2 = PROTECT(shallow_duplicate(args));
-	call2 = PROTECT(shallow_duplicate(call));
+	args2 = PROTECT(duplicate(args));
+	call2 = PROTECT(duplicate(call));
 	for (i = 0; i < n; i++, x = CDR(x)) {
 	    SETCAR(args2, CAR(x)); SETCADR(call2, CAR(x));
 	    if ((DispatchOrEval(call2, op, "anyNA", args2, env, &ans, 0, 1)
@@ -2167,8 +2154,8 @@ static Rboolean anyNA(SEXP call, SEXP op, SEXP args, SEXP env)
     case VECSXP:
     {
 	SEXP call2, args2, ans;
-	args2 = PROTECT(shallow_duplicate(args));
-	call2 = PROTECT(shallow_duplicate(call));
+	args2 = PROTECT(duplicate(args));
+	call2 = PROTECT(duplicate(call));
 	for (i = 0; i < n; i++) {
 	    SETCAR(args2, VECTOR_ELT(x, i)); SETCADR(call2, VECTOR_ELT(x, i));
 	    if ((DispatchOrEval(call2, op, "anyNA", args2, env, &ans, 0, 1)
@@ -2264,8 +2251,7 @@ SEXP attribute_hidden do_isnan(SEXP call, SEXP op, SEXP args, SEXP rho)
 			       R_IsNaN(COMPLEX(x)[i].i));
 	break;
     default:
-	errorcall(call, _("default method not implemented for type '%s'"),
-		  type2char(TYPEOF(x)));
+	errorcall(call, _("default method not implemented for type '%s'"), type2char(TYPEOF(x)));
     }
     if (dims != R_NilValue)
 	setAttrib(ans, R_DimSymbol, dims);
@@ -2328,8 +2314,7 @@ SEXP attribute_hidden do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    LOGICAL(ans)[i] = (R_FINITE(COMPLEX(x)[i].r) && R_FINITE(COMPLEX(x)[i].i));
 	break;
     default:
-	errorcall(call, _("default method not implemented for type '%s'"),
-		  type2char(TYPEOF(x)));
+	errorcall(call, _("default method not implemented for type '%s'"), type2char(TYPEOF(x)));
     }
     if (dims != R_NilValue)
 	setAttrib(ans, R_DimSymbol, dims);
@@ -2400,8 +2385,7 @@ SEXP attribute_hidden do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	break;
     default:
-	errorcall(call, _("default method not implemented for type '%s'"),
-		  type2char(TYPEOF(x)));
+	errorcall(call, _("default method not implemented for type '%s'"), type2char(TYPEOF(x)));
     }
     if (!isNull(dims))
 	setAttrib(ans, R_DimSymbol, dims);
@@ -2433,11 +2417,12 @@ SEXP attribute_hidden do_call(SEXP call, SEXP op, SEXP args, SEXP rho)
     const char *str = translateChar(STRING_ELT(rfun, 0));
     if (streql(str, ".Internal")) error("illegal usage");
     PROTECT(rfun = install(str));
-    PROTECT(evargs = shallow_duplicate(CDR(args)));
+    PROTECT(evargs = duplicate(CDR(args)));
     for (rest = evargs; rest != R_NilValue; rest = CDR(rest)) {
-	tmp = eval(CAR(rest), rho);
-	if (NAMED(tmp)) MARK_NOT_MUTABLE(tmp);
+	PROTECT(tmp = eval(CAR(rest), rho));
+	if (MAYBE_REFERENCED(tmp)) tmp = duplicate(tmp);
 	SETCAR(rest, tmp);
+	UNPROTECT(1);
     }
     rfun = LCONS(rfun, evargs);
     UNPROTECT(3);
@@ -2460,15 +2445,15 @@ SEXP attribute_hidden do_docall(SEXP call, SEXP op, SEXP args, SEXP rho)
        zero-length string check used to be here but install gives
        better error message.
      */
-    if(!(isFunction(fun) || (isString(fun) && length(fun) == 1)))
-	error(_("'what' must be a function or character string"));
+    if( !(isString(fun) && length(fun) == 1) && !isFunction(fun) )
+	error(_("'what' must be a character string or a function"));
 
 #ifdef __maybe_in_the_future__
     if (!isNull(args) && !isVectorList(args))
 	error(_("'args' must be a list or expression"));
 #else
     if (!isNull(args) && !isNewList(args))
-	error(_("'%s' must be a list"), "args");
+        error(_("'%s' must be a list"), "args");
 #endif
 
     if (!isEnvironment(envir))
@@ -2613,7 +2598,7 @@ SEXP attribute_hidden do_substitute(SEXP call, SEXP op, SEXP args, SEXP rho)
     static SEXP do_substitute_formals = NULL;
 
     if (do_substitute_formals == NULL)
-	do_substitute_formals = allocFormalsList2(install("expr"),
+        do_substitute_formals = allocFormalsList2(install("expr"),
 						  install("env"));
 
     /* argument matching */
@@ -2835,7 +2820,7 @@ SEXP attribute_hidden do_storage_mode(SEXP call, SEXP op, SEXP args, SEXP env)
     if(isFactor(obj))
 	error(_("invalid to change the storage mode of a factor"));
     PROTECT(ans = coerceVector(obj, type));
-    SHALLOW_DUPLICATE_ATTRIB(ans, obj);
+    DUPLICATE_ATTRIB(ans, obj);
     UNPROTECT(1);
     return ans;
 }

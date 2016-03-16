@@ -24,8 +24,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
-#include <limits.h>
 #include <R.h>
 
 #ifdef ENABLE_NLS

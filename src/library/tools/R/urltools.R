@@ -1,7 +1,7 @@
 #  File src/library/tools/R/urltools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2015-2016 The R Core Team
+#  Copyright (C) 2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,16 +19,25 @@
 get_IANA_URI_scheme_db <-
 function()
 {
-    ## See
-    ## <http://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml>.
+    ## See <http://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml>.
     baseurl <- "http://www.iana.org/assignments/uri-schemes/"
-    db <- utils::read.csv(url(paste0(baseurl, "uri-schemes-1.csv")),
-                          stringsAsFactors = FALSE)
+    permanent <- utils::read.csv(url(paste0(baseurl, "uri-schemes-1.csv")),
+                                 stringsAsFactors = FALSE)
+    provisional <- utils::read.csv(url(paste0(baseurl, "uri-schemes-2.csv")),
+                                   stringsAsFactors = FALSE)
+    historical <- utils::read.csv(url(paste0(baseurl, "uri-schemes-3.csv")),
+                                  stringsAsFactors = FALSE)
+    db <- rbind(permanent, provisional, historical)
+    db$Category <-
+        rep.int(c("permanent", "provisional", "historical"),
+                c(nrow(permanent),
+                  nrow(provisional),
+                  nrow(historical)))
     names(db) <- chartr(".", "_", names(db))
     db
 }
 
-parse_URI_reference <-
+parse_URL_reference <-
 function(x)
 {
     ## See RFC_3986 <http://www.ietf.org/rfc/rfc3986.txt>.
@@ -69,9 +78,23 @@ function(x)
 .get_urls_from_HTML_file <-
 function(f)
 {
-    nodes <- xml2::xml_find_all(xml2::read_html(f), "//a")
-    hrefs <- xml2::xml_attr(nodes, "href")
-    unique(hrefs[!is.na(hrefs) & !startsWith(hrefs, "#")])
+    hrefs <- character()
+    XML::htmlParse(f,
+                   handlers =
+                       list(a = function(node) {
+                           href <- XML::xmlAttrs(node)["href"]
+                           ## <FIXME>
+                           ## ? XML::xmlAttrs says the value is always a
+                           ## named character vector, but
+                           ##   XML::xmlAttrs(XML::xmlNode("a", "foobar"))
+                           ## gives NULL ...
+                           ## Hence, use an extra is.null() test.
+                           if(!is.null(href) && !is.na(href))
+                               hrefs <<- c(hrefs, href)
+                           ## </FIXME>
+                       })
+                   )
+    unique(unname(hrefs[!grepl("^#", hrefs)]))
 }
 
 url_db <-
@@ -97,6 +120,16 @@ function(db)
 url_db_from_package_metadata <-
 function(meta)
 {
+    gregexec_at_pos <- function(pattern, v, m, pos) {
+        unlist(lapply(regmatches(v, m),
+                      function(e)
+                          do.call(rbind,
+                                  regmatches(e,
+                                             regexec(pattern, e)))[, 3L]
+                      ),
+               use.names = FALSE)
+    }
+
     urls <- character()
     fields <- c("URL", "BugReports")
     for(v in meta[fields]) {
@@ -104,11 +137,11 @@ function(meta)
         pattern <-
             "<(URL: *)?((https?|ftp)://[^[:space:],]*)[[:space:]]>"
         m <- gregexpr(pattern, v)
-        urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
+        urls <- c(urls, gregexec_at_pos(pattern, v, m, 3L))
         regmatches(v, m) <- ""
         pattern <- "(^|[^>\"])((https?|ftp)://[^[:space:],]*)"
         m <- gregexpr(pattern, v)
-        urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
+        urls <- c(urls, gregexec_at_pos(pattern, v, m, 3L))
     }
 
     url_db(urls, rep.int("DESCRIPTION", length(urls)))
@@ -135,7 +168,8 @@ function(dir, installed = FALSE)
     path <- if(installed) "NEWS.Rd" else file.path("inst", "NEWS.Rd")
     nfile <- file.path(dir, path)
     if(file.exists(nfile)) {
-        macros <- initialRdMacros()
+        macros <- loadRdMacros(file.path(R.home("share"),
+                                         "Rd", "macros", "system.Rd"))
         urls <- .get_urls_from_Rd(prepare_Rd(tools::parse_Rd(nfile,
                                                              macros = macros),
                                              stages = "install"))
@@ -166,43 +200,20 @@ function(dir, installed = FALSE)
 }
 
 url_db_from_package_README_md <-
-function(dir, installed = FALSE)
+function(dir)
 {
-    urls <- path <- character()
-    rfile <- Filter(file.exists,
-                    c(if(!installed)
-                          file.path(dir, "inst", "README.md"),
-                      file.path(dir, "README.md")))[1L]
-    if(!is.na(rfile) && nzchar(Sys.which("pandoc"))) {
-        path <- .file_path_relative_to_dir(rfile, dir)
-        tfile <- tempfile("README", fileext = ".html")
+    urls <- character()
+    if(file.exists(rfile <- file.path(dir, "README.md")) &&
+       nzchar(Sys.which("pandoc"))) {
+        tfile <- tempfile("README", fileext=".html")
         on.exit(unlink(tfile))
-        out <- .pandoc_md_for_CRAN(rfile, tfile)
+        out <- .pandoc_README_md_for_CRAN(rfile, tfile)
         if(!out$status) {
             urls <- .get_urls_from_HTML_file(tfile)
         }
     }
-    url_db(urls, rep.int(path, length(urls)))
-}
+    url_db(urls, rep.int("README.md", length(urls)))
 
-url_db_from_package_NEWS_md <-
-function(dir, installed = FALSE)
-{
-    urls <- path <- character()
-    nfile <- Filter(file.exists,
-                    c(if(!installed)
-                          file.path(dir, "inst", "NEWS.md"),
-                      file.path(dir, "NEWS.md")))[1L]
-    if(!is.na(nfile) && nzchar(Sys.which("pandoc"))) {
-        path <- .file_path_relative_to_dir(nfile, dir)
-        tfile <- tempfile("NEWS", fileext = ".html")
-        on.exit(unlink(tfile))
-        out <- .pandoc_md_for_CRAN(nfile, tfile)
-        if(!out$status) {
-            urls <- .get_urls_from_HTML_file(tfile)
-        }
-    }
-    url_db(urls, rep.int(path, length(urls)))
 }
 
 url_db_from_package_sources <-
@@ -212,12 +223,10 @@ function(dir, add = FALSE) {
                 url_db_from_package_Rd_db(Rd_db(dir = dir)),
                 url_db_from_package_citation(dir, meta),
                 url_db_from_package_news(dir))
-    if(requireNamespace("xml2", quietly = TRUE)) {
+    if(requireNamespace("XML", quietly = TRUE)) {
         db <- rbind(db,
                     url_db_from_package_HTML_files(dir),
-                    url_db_from_package_README_md(dir),
-                    url_db_from_package_NEWS_md(dir)
-                    )
+                    url_db_from_package_README_md(dir))
     }
     if(add)
         db$Parent <- file.path(basename(dir), db$Parent)
@@ -240,15 +249,10 @@ function(packages, lib.loc = NULL, verbose = FALSE)
                     url_db_from_package_citation(dir, meta,
                                                  installed = TRUE),
                     url_db_from_package_news(dir, installed = TRUE))
-        if(requireNamespace("xml2", quietly = TRUE)) {
+        if(requireNamespace("XML", quietly = TRUE)) {
             db <- rbind(db,
                         url_db_from_package_HTML_files(dir,
-                                                       installed = TRUE),
-                        url_db_from_package_README_md(dir,
-                                                      installed = TRUE),
-                        url_db_from_package_NEWS_md(dir,
-                                                    installed = TRUE)
-                        )
+                                                       installed = TRUE))
         }
         db$Parent <- file.path(p, db$Parent)
         db
@@ -374,9 +378,8 @@ function(db, verbose = FALSE)
         ## A mis-configured site
         if (s == "503" && any(grepl("www.sciencedirect.com", c(u, newLoc))))
             s <- "405"
-        cran <- (grepl("https?://cran.r-project.org/web/packages/[.[:alnum:]]+(|/|/index.html)$",
-                       u, ignore.case = TRUE) ||
-                 any(substring(tolower(u), 1L, nchar(mirrors)) == mirrors))
+        cran <- grepl("https?://cran.r-project.org/web/packages/[.[:alnum:]]+(|/|/index.html)$",
+                      u, ignore.case = TRUE)
         spaces <- grepl(" ", u)
         c(s, msg, newLoc, if(cran) u else "", if(spaces) u else "")
     }
@@ -385,17 +388,9 @@ function(db, verbose = FALSE)
 
     if(!NROW(db)) return(bad)
 
-    ## Could also use utils::getCRANmirrors(local.only = TRUE).
-    mirrors <- c(utils::read.csv(file.path(R.home("doc"),
-                                           "CRAN_mirrors.csv"),
-                                 as.is = TRUE, encoding = "UTF-8")$URL,
-                 "http://cran.rstudio.com/",
-                 "https://cran.rstudio.com/")
-    mirrors <- tolower(sub("/$", "", mirrors))
-
     parents <- split(db$Parent, db$URL)
     urls <- names(parents)
-    parts <- parse_URI_reference(urls)
+    parts <- parse_URL_reference(urls)
 
     ## Empty URLs.
     ind <- apply(parts == "", 1L, all)
@@ -409,21 +404,13 @@ function(db, verbose = FALSE)
 
     ## Invalid URI schemes.
     schemes <- parts[, 1L]
-    ind <- is.na(match(schemes,
-                       c("",
-                         IANA_URI_scheme_db$URI_Scheme,
-                         ## Also allow 'javascript' scheme, see
-                         ## <https://tools.ietf.org/html/draft-hoehrmann-javascript-scheme-03>
-                         ## (but apparently never registered with IANA).
-                         "javascript")))
+    ind <- is.na(match(schemes, c("", IANA_URI_scheme_db$URI_Scheme)))
     if(any(ind)) {
         len <- sum(ind)
-        msg <- rep.int("Invalid URI scheme", len)
-        doi <- schemes[ind] == "doi"
-        if(any(doi))
-            msg[doi] <- paste(msg[doi], "(use \\doi for DOIs)")
         bad <- rbind(bad,
-                     .gather(urls[ind], parents[ind], m = msg))
+                     .gather(urls[ind],
+                             parents[ind],
+                             m = rep.int("Invalid URI scheme", len)))
     }
 
     ## ftp.

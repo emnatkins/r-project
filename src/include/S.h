@@ -38,7 +38,7 @@
 #endif
 
 #ifdef __cplusplus
-# error S.h can not be used from C++ code: use R.h instead
+extern "C" {
 #endif
 
 #include <stddef.h>
@@ -81,6 +81,11 @@ typedef struct {
 /* Not quite full compatibility: beware! */
 /* void	call_R(char*, long, void**, char**, long*, char**, long, char**);*/
 #define call_S call_R
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* !R_S_H */

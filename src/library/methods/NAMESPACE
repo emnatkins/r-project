@@ -4,6 +4,7 @@ useDynLib(methods, .registration = TRUE, .fixes = "C_")
 ## (if in R_DEFAULT_PACKAGES), so adding other namespaces here has the
 ## undesirable effect of loading them early too (e.g. onLoad hooks are
 ## likely to be not yet set).
+importFrom(utils, find)
 
 
 exportPattern("^\\.__C__")
@@ -64,7 +65,7 @@ export(defaultPrototype)
 export(doPrimitiveMethod)
 export(dumpMethod)
 export(dumpMethods)
-export(el, "el<-")# (now unused)
+export(el, "el<-")
 export(elNamed, "elNamed<-")
 export(empty.dump)
 export(emptyMethodsList)
@@ -74,7 +75,6 @@ export(evalSource)
 export(existsFunction)
 export(existsMethod)
 export(extends)
-export(externalRefMethod)
 export(finalDefaultMethod)
 export(findClass)
 export(findFunction)

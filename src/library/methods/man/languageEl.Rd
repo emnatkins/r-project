@@ -15,6 +15,7 @@
 languageEl(object, which)
 
 isGrammarSymbol(symbol)
+
 }
 \section{Summary of Functions}{
   \describe{

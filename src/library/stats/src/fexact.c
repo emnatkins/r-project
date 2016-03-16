@@ -30,10 +30,9 @@
 
 /* <UTF8> chars are handled as whole strings */
 
+#include <R.h>
 #include <stdio.h>
 #include <limits.h>
-#include <math.h>
-#include <R.h>
 
 static void f2xact(int nrow, int ncol, int *table, int ldtabl,
 		   double *expect, double *percnt, double *emin,

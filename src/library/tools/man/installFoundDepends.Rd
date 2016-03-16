@@ -10,8 +10,6 @@
   This function will take the \code{Found} element of a
   \code{pkgDependsList} object and attempt to install
   all of the listed packages from the specified repositories.
-
-  \emph{This function is deprecated since \code{pkgDependsList} objects are.}
 }
 \usage{
 installFoundDepends(depPkgList, ...)

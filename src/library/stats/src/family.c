@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2005-2016  The R Core Team
+ *  Copyright (C) 2005-10  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 #include <Rconfig.h>
 #include <R_ext/Constants.h>
 #include <float.h>
-#include <math.h>
 #include "stats.h"
 #include "statsR.h"
 
@@ -59,7 +58,7 @@ static R_INLINE double x_d_opx(double x) {return x/(1 + x);}
 SEXP logit_link(SEXP mu)
 {
     int i, n = LENGTH(mu);
-    SEXP ans = PROTECT(shallow_duplicate(mu));
+    SEXP ans = PROTECT(duplicate(mu));
     double *rans = REAL(ans), *rmu=REAL(mu);
 
     if (!n || !isReal(mu))
@@ -72,7 +71,7 @@ SEXP logit_link(SEXP mu)
 
 SEXP logit_linkinv(SEXP eta)
 {
-    SEXP ans = PROTECT(shallow_duplicate(eta));
+    SEXP ans = PROTECT(duplicate(eta));
     int i, n = LENGTH(eta);
     double *rans = REAL(ans), *reta = REAL(eta);
 
@@ -90,7 +89,7 @@ SEXP logit_linkinv(SEXP eta)
 
 SEXP logit_mu_eta(SEXP eta)
 {
-    SEXP ans = PROTECT(shallow_duplicate(eta));
+    SEXP ans = PROTECT(duplicate(eta));
     int i, n = LENGTH(eta);
     double *rans = REAL(ans), *reta = REAL(eta);
 
@@ -121,7 +120,7 @@ SEXP binomial_dev_resids(SEXP y, SEXP mu, SEXP wt)
 
     if (!isReal(y)) {y = PROTECT(coerceVector(y, REALSXP)); nprot++;}
     ry = REAL(y);
-    ans = PROTECT(shallow_duplicate(y));
+    ans = PROTECT(duplicate(y));
     rans = REAL(ans);
     if (!isReal(mu)) {mu = PROTECT(coerceVector(mu, REALSXP)); nprot++;}
     if (!isReal(wt)) {wt = PROTECT(coerceVector(wt, REALSXP)); nprot++;}

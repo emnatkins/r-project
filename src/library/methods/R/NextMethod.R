@@ -1,7 +1,7 @@
 #  File src/library/methods/R/NextMethod.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -29,14 +29,14 @@ callNextMethod <- function(...) {
         callEnv <- methodEnv <- parent.frame(1)
         mcall <- sys.call(parent)
         dotsenv <- parent.frame(2)
-        i <- 1L
+        i <- 1
     }
     else {
         callEnv <- parent.frame(1)
         methodEnv <- parent.frame(2)
         mcall <- sys.call(sys.parent(2))
         dotsenv <- parent.frame(3)
-        i <- 2L
+        i <- 2
     }
     ## set up the nextMethod object, load it
     ## into the calling environment, and cache it
@@ -47,7 +47,7 @@ callNextMethod <- function(...) {
     }
     else if(identical(mcall[[1L]], dotNextMethod)) {
         ## a call from another callNextMethod()
-        nextMethodEnv <- parent.frame(i+1L)
+        nextMethodEnv <- parent.frame(i+1)
         nextMethod <- nextMethodEnv$.nextMethod
         f <- nextMethodEnv$.Generic
     }
@@ -58,7 +58,7 @@ callNextMethod <- function(...) {
         } else {
             f <- as.character(mcall[[1L]])
         }
-        fdef <- genericForBasic(f)
+        fdef <- genericForPrimitive(f)
         ## check that this could be a basic function with methods
         if(is.null(fdef))
             stop(gettextf("a call to callNextMethod() appears in a call to %s, but the call does not seem to come from either a generic function or another 'callNextMethod'",
@@ -119,12 +119,10 @@ callNextMethod <- function(...) {
                if(is.na(i) || i > length(call))
                    length(fnames) <- length(call)
                else {
-                   i <- i-1L
+                   i <- i-1
                    length(fnames) <- i
                    fnames <- c(fnames, rep("", length(call) - i))
                }
-               if (substring(f, nchar(f)-1L) == "<-")
-                   fnames[length(fnames)] <- "value"
                names(call) <- fnames
                call <- as.call(call)
            }

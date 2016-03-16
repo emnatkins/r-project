@@ -1,6 +1,5 @@
 /*  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2010	The R Foundation
- *  Copyright (C) 2016	The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +17,6 @@
  */
 
 #include "modreg.h"
-#include <math.h>
 
 /* To be "exported" (as part of R's C API): */
 /**
