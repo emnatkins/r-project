@@ -75,10 +75,9 @@ flush.connection <- function (con)
     .Internal(flush(con))
 
 file <- function(description = "", open = "", blocking = TRUE,
-                 encoding = getOption("encoding"), raw = FALSE,
-                 method = getOption("url.method", "default")) {
-    .Internal(file(description, open, blocking, encoding, method, raw))
-}
+                 encoding = getOption("encoding"), raw = FALSE)
+    .Internal(file(description, open, blocking, encoding, raw))
+
 pipe <- function(description, open = "", encoding = getOption("encoding"))
     .Internal(pipe(description, open, encoding))
 
@@ -87,9 +86,10 @@ fifo <- function(description, open = "", blocking = FALSE,
     .Internal(fifo(description, open, blocking, encoding))
 
 url <- function(description, open = "", blocking = TRUE,
-                encoding = getOption("encoding"),
-                method = getOption("url.method", "default"))
+                encoding = getOption("encoding"), method)
 {
+    if(missing(method))
+        method <- getOption("url.method", "default")
     method <- match.arg(method, c("default", "internal", "libcurl", "wininet"))
     .Internal(url(description, open, blocking, encoding, method))
 }
@@ -162,7 +162,7 @@ pushBack <- function(data, connection, newLine = TRUE,
 {
     # match.arg doesn't work on "" default
     if (length(encoding) > 1L) encoding <- encoding[1]
-    if (nzchar(encoding)) encoding <- match.arg(encoding)
+    if (nchar(encoding)) encoding <- match.arg(encoding)
     type <- match(encoding, c("", "bytes", "UTF-8"))
     .Internal(pushBack(data, connection, newLine, type))
 }
@@ -267,8 +267,8 @@ writeChar <- function(object, con, nchars = nchar(object, type="chars"),
     .Internal(writeChar(object, con, as.integer(nchars), eos, useBytes))
 }
 
-gzcon <- function(con, level = 6, allowNonCompressed = TRUE, text = FALSE)
-    .Internal(gzcon(con, level, allowNonCompressed, text))
+gzcon <- function(con, level = 6, allowNonCompressed = TRUE)
+    .Internal(gzcon(con, level, allowNonCompressed))
 
 socketSelect <- function(socklist, write = FALSE, timeout = NULL) {
     if (is.null(timeout))

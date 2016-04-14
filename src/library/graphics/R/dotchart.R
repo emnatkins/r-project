@@ -17,8 +17,7 @@
 #  https://www.R-project.org/Licenses/
 
 dotchart <-
-function(x, labels = NULL, groups = NULL, gdata = NULL,
-         cex = par("cex"), pt.cex = cex,
+function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	 pch = 21, gpch = 21, bg = par("bg"), color = par("fg"),
 	 gcolor = par("fg"), lcolor = "gray",
 	 xlim = range(x[is.finite(x)]),
@@ -98,7 +97,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL,
               col = color, las = 2, cex = cex, ...)
     }
     abline(h = y, lty = "dotted", col = lcolor)
-    points(x, y, pch = pch, col = color, bg = bg, cex = pt.cex/cex)
+    points(x, y, pch = pch, col = color, bg = bg)
     if (!is.null(groups)) {
 	gpos <- rev(cumsum(rev(tapply(groups, groups, length)) + 2) - 1)
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
@@ -107,8 +106,7 @@ function(x, labels = NULL, groups = NULL, gdata = NULL,
               adj = 0, col = gcolor, las = 2, cex = cex, ...)
 	if (!is.null(gdata)) {
 	    abline(h = gpos, lty = "dotted")
-	    points(gdata, gpos, pch = gpch, col = gcolor, bg = bg,
-                   cex = pt.cex/cex, ...)
+	    points(gdata, gpos, pch = gpch, col = gcolor, bg = bg, ...)
 	}
     }
     axis(1)

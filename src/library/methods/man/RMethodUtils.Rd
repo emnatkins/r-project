@@ -16,7 +16,6 @@
 \alias{PossibleMethod-class}
 \alias{optionalMethod-class}
 \alias{derivedDefaultMethod-class}
-\alias{internalDispatchMethod-class}
 %%
 \alias{substituteFunctionArgs}
 \alias{makeGeneric}
@@ -41,7 +40,6 @@
 \alias{balanceMethodsList}
 \alias{sigToEnv}
 \alias{rematchDefinition}
-\alias{isRematched}
 \alias{unRematchDefinition}
 \alias{addNextMethod,MethodDefinition-method}
 \alias{addNextMethod,MethodWithNext-method}
@@ -63,7 +61,7 @@ getGroup(fdef, recursive, where)
 getGroupMembers(group, recursive = FALSE, character = TRUE)
 
 getMethodsMetaData(f, where)
-assignMethodsMetaData (f, value, fdef, where)
+assignMethodsMetaData (f, value, fdef, where, deflt)
 
 makeGeneric(f, fdef, fdefault =, group=list(), valueClass=character(),
             package =, signature = NULL, genericFunction = NULL,
@@ -99,7 +97,6 @@ sigToEnv(signature, generic)
 
 rematchDefinition(definition, generic, mnames, fnames, signature)
 unRematchDefinition(definition)
-isRematched(definition)
 
 asMethodDefinition(def, signature, sealed = FALSE, fdef)
 
@@ -261,17 +258,14 @@ balanceMethodsList(mlist, args, check = TRUE) # <- deprecated since R 3.2.0
     }
 
     \item{\code{rematchDefinition},
-      \code{unRematchDefinition},
-      \code{isRematched}:}{
+      \code{unRematchDefinition}:}{
       If the specified method in a call to \code{\link{setMethod}}
       specializes the argument list (by replacing \dots), then
       \code{rematchDefinition} constructs the actual method stored.
       Using knowledge of how \code{rematchDefinition} works,
       \code{unRematchDefinition} reverses the procedure; if given a
       function or method definition that does not correspond to this
-      form, it just returns its argument. \code{isRematched} returns a
-      logical value indicating whether rematching was used when
-      constructing a given method.
+      form, it just returns its argument.
     }
 
     \item{\code{asMethodDefinition}:}{

@@ -17,6 +17,7 @@
  *  https://www.R-project.org/Licenses/
  */
 
+#include <R.h>
 #include "modreg.h" /* for declarations for registration */
 
 void kmeans_Lloyd(double *x, int *pn, int *pp, double *cen, int *pk, int *cl,

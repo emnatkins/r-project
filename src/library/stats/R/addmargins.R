@@ -129,9 +129,9 @@ addmargins <-
 	newdim <- d
 	newdim[margin] <- newdim[margin] + n.mar
 	if(is.null(dnA <- dimnames(A))) dnA <- vector("list", n.dim)
-	dnA[[margin]] <-
-	    c(if(is.null(dnA[[margin]])) rep("", d[[margin]]) else dnA[[margin]],
-	      fnames)
+	for(i in intersect(margin, which(vapply(dnA, is.null, NA))))
+	    dnA[[i]] <- rep("", d[[i]])
+	dnA[[margin]] <- c(dnA[[margin]], fnames)
 
 	## Number of elements in the expanded array
 	n.new <- prod(newdim)
@@ -166,8 +166,12 @@ addmargins <-
 	    values[mpos] <- as.vector(mtab)
 	}
 
-	## the new table with contents and margins
-	array(values, dim=newdim, dimnames=dnA)
+	## Then define the new table with contents and margins
+	##
+	new.A <- array(values, dim=newdim, dimnames=dnA)
+	if(inherits(A, "table")) # result shall be table, too
+	    class(new.A) <- c("table", class(new.A))
+	new.A
     }
 
     ## Once defined, we can use the expand.one function repeatedly
@@ -175,8 +179,6 @@ addmargins <-
     for(i in 1L:n.sid)
 	new.A <- expand.one(A = new.A, margin = margin[i], FUN = FUN[[i]],
 			    fnames = fnames[[i]])
-    if(inherits(A, "table")) # result shall be table, too
-        class(new.A) <- c("table", class(new.A))
 
     ## Done! Now print it.
     ##

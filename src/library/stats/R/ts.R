@@ -90,13 +90,10 @@ tsp <- function(x) attr(x, "tsp")
 {
     cl <- oldClass(x)
     attr(x, "tsp") <- value # does error-checking internally
-    if (is.null(value)) {
-        if (inherits(x, "ts"))
-	    cl <- cl["ts" != cl]
-        if (inherits(x, "mts"))
-	    cl <- cl["mts" != cl]
-        class(x) <- cl
-    }
+    if (inherits(x, "ts") && is.null(value))
+        class(x) <- if(!identical(cl,"ts")) cl["ts" != cl]
+    else if (inherits(x, "mts") && is.null(value))
+        class(x) <- if(!identical(cl,"mts")) cl["mts" != cl]
     x
 }
 

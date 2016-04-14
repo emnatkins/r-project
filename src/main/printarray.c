@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2000--2016	The R Core Team
+ *  Copyright (C) 2000--2014	The R Core Team
  *  Copyright (C) 2001--2012	The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -37,10 +37,8 @@
 
 #include <stdlib.h> /* for div() */
 
-/* We need display width of a string.
-   Used only for row/column names found by GetMatrixDimnames,
-   so in native encoding.  (NULL ones from do_prmatrix are skipped.)
-*/
+/* FIXME: sort out encodings */
+/* We need display width of a string */
 int Rstrwid(const char *str, int slen, int enc, int quote);  /* from printutils.c */
 #define strwidth(x) Rstrwid(x, (int) strlen(x), CE_NATIVE, 0)
 
@@ -271,11 +269,9 @@ static void printComplexMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 		   if (ISNA(x[i + j * r].r) || ISNA(x[i + j * r].i))
 		       Rprintf("%s", EncodeReal0(NA_REAL, w[j], 0, 0, OutDec));
 		   else
-		       /* Note that the label printing may modify w[j], so wr[j] is not 
-		          necessarily still valid, and we use w[j] - wi[j] - 2  */
 		       Rprintf("%s",
 			       EncodeComplex(x[i + j * r],
-					     w[j] - wi[j] - 2, dr[j], er[j],
+					     wr[j] + R_print.gap, dr[j], er[j],
 					     wi[j], di[j], ei[j], OutDec)) )
 }
 
@@ -316,7 +312,6 @@ static void printRawMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 		   Rprintf("%*s%s", w[j]-2, "", EncodeRaw(x[i + j * r], "")) );
 }
 
-/* rm and cn are found by GetMatrixDimnames so in native encoding */
 attribute_hidden
 void printMatrix(SEXP x, int offset, SEXP dim, int quote, int right,
 		 SEXP rl, SEXP cl, const char *rn, const char *cn)
@@ -492,4 +487,3 @@ void printArray(SEXP x, SEXP dim, int quote, int right, SEXP dimnames)
     }
     vmaxset(vmax);
 }
-

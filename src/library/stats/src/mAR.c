@@ -1,6 +1,5 @@
 /*
  *  Copyright (C) 1999 Martyn Plummer
- *  Copyright (C) 1999-2016 The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,8 +16,6 @@
  *  https://www.R-project.org/Licenses/.
  */
 
-#include <math.h>
-#include <string.h>
 #include <R.h>
 #include <R_ext/Applic.h>	/* Fortran routines */
 #include "ts.h"

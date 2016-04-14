@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C)  2001-2015   The R Core Team.
+ *  Copyright (C)  2001-12   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#ifdef HAVE_SOCKETS
 
 
 /* ------------------- socket connections  --------------------- */
@@ -102,7 +104,7 @@ static void sock_close(Rconnection con)
     con->isopen = FALSE;
 }
 
-static ssize_t sock_read_helper(Rconnection con, void *ptr, size_t size)
+static size_t sock_read_helper(Rconnection con, void *ptr, size_t size)
 {
     Rsockconn this = (Rsockconn)con->private;
     ssize_t res;
@@ -146,7 +148,7 @@ static ssize_t sock_read_helper(Rconnection con, void *ptr, size_t size)
 static int sock_fgetc_internal(Rconnection con)
 {
     unsigned char c;
-    ssize_t n;
+    size_t n;
 
     n = sock_read_helper(con, (char *)&c, 1);
     return (n == 1) ? c : R_EOF;
@@ -155,17 +157,15 @@ static int sock_fgetc_internal(Rconnection con)
 static size_t sock_read(void *ptr, size_t size, size_t nitems,
 			Rconnection con)
 {
-    ssize_t n = sock_read_helper(con, ptr, size * nitems)/size;
-    return n > 0 ? n : 0;
+    return sock_read_helper(con, ptr, size * nitems)/size;
 }
 
 static size_t sock_write(const void *ptr, size_t size, size_t nitems,
 			 Rconnection con)
 {
     Rsockconn this = (Rsockconn)con->private;
-    ssize_t n = R_SockWrite(this->fd, ptr, (int)(size * nitems),
-			    this->timeout)/size;
-    return n > 0 ? n : 0;
+
+    return R_SockWrite(this->fd, ptr, (int)(size * nitems), this->timeout)/size;
 }
 
 Rconnection in_R_newsock(const char *host, int port, int server,
@@ -204,3 +204,5 @@ Rconnection in_R_newsock(const char *host, int port, int server,
     ((Rsockconn)new->private)-> timeout = timeout;
     return new;
 }
+
+#endif /* HAVE_SOCKETS */

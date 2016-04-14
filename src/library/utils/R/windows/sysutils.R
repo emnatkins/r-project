@@ -115,7 +115,7 @@ readRegistry <-
     .External2(C_readRegistry, key, match.arg(hive), maxdepth, view)
 }
 
-setInternet2 <- function(use = TRUE) .Defunct()
+setInternet2 <- function(use = TRUE) .Internal(useInternet2(use))
 
 
 win.version <- function() .Call(C_winver)

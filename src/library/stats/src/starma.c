@@ -20,6 +20,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+/* do this first to get the right options for math.h */
+#include <R_ext/Arith.h>
 
 #include <R.h>
 #include "ts.h"

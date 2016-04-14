@@ -23,7 +23,6 @@
 
 #include <R.h>
 #include <Rinternals.h>
-#include <string.h> // for memcpy
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -239,12 +238,9 @@ const static R_CallMethodDef R_CallDef[] = {
 
 
 void
-#ifdef HAVE_VISIBILITY_ATTRIBUTE
-__attribute__ ((visibility ("default")))
-#endif
 R_init_splines(DllInfo *dll)
 {
     R_registerRoutines(dll, NULL, R_CallDef, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
-//    R_forceSymbols(dll, TRUE); // too few to worry about
+//    R_forceSymbols(dll, TRUE); // too few to worry about, used in cobs*
 }

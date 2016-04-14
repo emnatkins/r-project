@@ -1,7 +1,7 @@
 #  File src/library/stats/R/prcomp.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,36 +19,26 @@
 prcomp <- function (x, ...) UseMethod("prcomp")
 
 prcomp.default <-
-    function(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL,
-             rank. = NULL, ...)
+    function(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL, ...)
 {
-    chkDots(...)
     x <- as.matrix(x)
     x <- scale(x, center = center, scale = scale.)
     cen <- attr(x, "scaled:center")
     sc <- attr(x, "scaled:scale")
     if(any(sc == 0))
         stop("cannot rescale a constant/zero column to unit variance")
-    n <- nrow(x)
-    p <- ncol(x)
-    k <- if(!is.null(rank.)) {
-	     stopifnot(length(rank.) == 1, is.finite(rank.), as.integer(rank.) > 0)
-	     min(as.integer(rank.), n, p)
-	     ## Note that La.svd() *still* needs a (n x p) and a (p x p) auxiliary
-	 } else
-	     min(n, p)
-    s <- svd(x, nu = 0, nv = k)
-    j <- seq_len(k)
-    s$d <- s$d / sqrt(max(1, n - 1))
+    s <- svd(x, nu = 0)
+    s$d <- s$d / sqrt(max(1, nrow(x) - 1))
     if (!is.null(tol)) {
         ## we get rank at least one even for a 0 matrix.
         rank <- sum(s$d > (s$d[1L]*tol))
-        if (rank < k) {
-            j <- seq_len(k <- rank)
-            s$v <- s$v[,j , drop = FALSE]
+        if (rank < ncol(x)) {
+            s$v <- s$v[, 1L:rank, drop = FALSE]
+            s$d <- s$d[1L:rank]
         }
     }
-    dimnames(s$v) <- list(colnames(x), paste0("PC", j))
+    dimnames(s$v) <-
+        list(colnames(x), paste0("PC", seq_len(ncol(s$v))))
     r <- list(sdev = s$d, rotation = s$v,
               center = if(is.null(cen)) FALSE else cen,
               scale = if(is.null(sc)) FALSE else sc)
@@ -92,10 +82,9 @@ plot.prcomp <- function(x, main = deparse(substitute(x)), ...)
     screeplot.default(x, main = main, ...)
 
 print.prcomp <- function(x, print.x = FALSE, ...) {
-    cat(sprintf("Standard deviations (1, .., p=%d):\n", length(x$sdev)))
+    cat("Standard deviations:\n")
     print(x$sdev, ...)
-    d <- dim(x$rotation)
-    cat(sprintf("\nRotation (n x k) = (%d x %d):\n", d[1], d[2]))
+    cat("\nRotation:\n")
     print(x$rotation, ...)
     if (print.x && length(x$x)) {
         cat("\nRotated variables:\n")
@@ -106,14 +95,12 @@ print.prcomp <- function(x, print.x = FALSE, ...) {
 
 summary.prcomp <- function(object, ...)
 {
-    chkDots(...)
     vars <- object$sdev^2
     vars <- vars/sum(vars)
     importance <- rbind("Standard deviation" = object$sdev,
                         "Proportion of Variance" = round(vars, 5),
                         "Cumulative Proportion" = round(cumsum(vars), 5))
-    k <- ncol(object$rotation)
-    colnames(importance) <- c(colnames(object$rotation), rep("", length(vars) - k))
+    colnames(importance) <- colnames(object$rotation)
     object$importance <- importance
     class(object) <- "summary.prcomp"
     object
@@ -122,21 +109,13 @@ summary.prcomp <- function(object, ...)
 print.summary.prcomp <-
 function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
-    dr <- dim(x$rotation); k <- dr[2]
-    p <- length(x$sdev)
-    if(k < p) {
-	cat(sprintf("Importance of first k=%d (out of %d) components:\n", k, p))
-	print(x$importance[, 1:k, drop=FALSE], digits = digits, ...)
-    } else {
-	cat("Importance of components%s:\n")
-	print(x$importance, digits = digits, ...)
-    }
+    cat("Importance of components:\n")
+    print(x$importance, digits = digits, ...)
     invisible(x)
 }
 
 predict.prcomp <- function(object, newdata, ...)
 {
-    chkDots(...)
     if (missing(newdata)) {
         if(!is.null(object$x)) return(object$x)
         else stop("no scores are available: refit with 'retx=TRUE'")

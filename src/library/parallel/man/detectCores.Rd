@@ -10,36 +10,38 @@
   Attempt to detect the number of CPU cores on the current host.
 }
 \usage{
+#ifdef windows
 detectCores(all.tests = FALSE, logical = TRUE)
+#endif
+#ifdef unix
+detectCores(all.tests = FALSE, logical = FALSE)
+#endif
 }
 \arguments{
   \item{all.tests}{Logical: if true apply all known tests.}
   \item{logical}{Logical: if possible, use the number of physical CPUs/cores
-    (if \code{FALSE}) or logical CPUs (if \code{TRUE}).  Currently this
-    is honoured only on Linux, OS X, Sparc Solaris and Windows.}
+    (if \code{FALSE}) or logical CPUs (if \code{TRUE}).  The default is
+    \code{TRUE} on Windows and \code{FALSE} elsewhere.}
 }
 \details{
-  This attempts to detect the number of available CPU cores.
+  This attempts to detect the number of CPU cores in the current
+  machine.
 
   It has methods to do so for Linux, OS X, FreeBSD, OpenBSD, Solaris,
   Irix and Windows.  \code{detectCores(TRUE)} could be tried on other
   Unix-alike systems.
 
-  Prior to \R 3.3.0 the default was \code{logical = FALSE} except on
-  Windows, but \code{logical = TRUE} had an effect only on Sparc Solaris
-  and Windows (where it was the default).
+  Currently \code{logical} is supported on Solaris and Windows only.
 }
 \value{
   An integer, \code{NA} if the answer is unknown.
 
   Exactly what this represents is OS-dependent: where possible by
-  default it counts logical (e.g., hyperthreaded) CPUs and not physical
-  cores or packages.
+  default it counts physical cores and not logical (e.g., hyperthreaded)
+  CPUs.  However, on Linux, OS X, FreeBSD and OpenBSD it currently
+  returns the number of logical CPUs.
 
-  Under OS X there is a further distinction between \sQuote{available in
-    the current power management mode} and \sQuote{could be available
-    this boot}, and this function returns the first.
-
+  On Windows the default is the number of logical CPUs.
 #ifdef windows
   Only versions of Windows since XP SP3 are supported.  Microsoft
   documents that \code{logical = FALSE} it will report the number of
@@ -49,13 +51,14 @@ detectCores(all.tests = FALSE, logical = TRUE)
 #endif
 % https://msdn.microsoft.com/en-us/library/ms683194%28v=VS.85%29.aspx
 
-  On Sparc Solaris \code{logical = FALSE} returns the number of physical
-  cores and \code{logical = TRUE} returns the number of available
-  hardware threads. (Some Sparc CPUs which do have multiple cores per
-  CPU, others have multiple threads per core and some have both.)  For
-  example, the UltraSparc T2 CPU in the CRAN check server is a single
-  physical CPU with 8 cores, and each core supports 8 hardware threads.
-  So \code{detectCores(logical = FALSE)} returns 8, and
+  Currently \code{logical} makes a difference on Sparc Solaris: there
+  \code{logical = FALSE} returns the number of physical cores and
+  \code{logical = TRUE} returns the number of available hardware
+  threads. (Some Sparc CPUs which do have multiple cores per CPU, others
+  have multiple threads per core and some have both.)  For example, the
+  UltraSparc T2 CPU in the CRAN check server is a single physical CPU
+  with 8 cores, and each core supports 8 hardware threads.  So
+  \code{detectCores(logical = FALSE)} returns 8, and
   \code{detectCores(logical = TRUE)} returns 64.
 
   Where virtual machines are in use, one would hope that the result
@@ -68,12 +71,15 @@ detectCores(all.tests = FALSE, logical = TRUE)
 \note{
   This is not suitable for use directly for the \code{mc.cores} argument
   of \code{mclapply} nor specifying the number of cores in
-  \code{makeCluster}.  First because it may return \code{NA}, second
-  because it does not give the number of \emph{allowed} cores, and third
-  because on Sparc Solaris and some Windows boxes it is not reasonable
-  to try to use all the logical CPUs at once.
+  \code{makeCluster}.  First because it may return \code{NA}, and second
+  because it does not give the number of \emph{allowed} cores.
 }
 \examples{
 detectCores()
+#ifdef unix
+detectCores(logical = TRUE)
+#endif
+#ifdef windows
 detectCores(logical = FALSE)
+#endif
 }

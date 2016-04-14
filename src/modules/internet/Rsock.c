@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
 
  *  Copyright (C) 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2015   The R Core Team
+ *  Copyright (C) 1998-2012   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -150,6 +150,7 @@ void in_Rsockwrite(int *sockp, char **buf, int *start, int *end, int *len)
 
 /* --------- for use in socket connections ---------- */
 
+#ifdef HAVE_SOCKETS
 #include <R_ext/R-ftp-http.h>
 
 #ifdef Win32
@@ -157,10 +158,12 @@ void in_Rsockwrite(int *sockp, char **buf, int *start, int *end, int *len)
 #include <io.h>
 #define EWOULDBLOCK             WSAEWOULDBLOCK
 #define EINPROGRESS             WSAEINPROGRESS
-#else
-# include <netdb.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
+#endif
+
+#ifdef HAVE_BSD_NETWORKING
+#  include <netdb.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
 #endif
 
 #ifdef HAVE_FCNTL_H
@@ -257,7 +260,7 @@ static int R_SocketWait(int sockfd, int write, int timeout)
 	howmany = R_SelectEx(maxfd+1, &rfd, &wfd, NULL, &tv, NULL);
 
 	if (howmany < 0) {
-	    return -socket_errno();
+	    return -1;
 	}
 	if (howmany == 0) {
 	    if(used >= timeout) return 1;
@@ -342,7 +345,7 @@ int R_SocketWaitMultiple(int nsock, int *insockfd, int *ready, int *write,
 	howmany = R_SelectEx(maxfd+1, &rfd, &wfd, NULL, &tv, NULL);
 
 	if (howmany < 0) {
-	    return -socket_errno();
+	    return -1;
 	}
 	if (howmany == 0) {
 	    if(mytimeout >= 0 && used >= mytimeout) {
@@ -517,8 +520,7 @@ ssize_t R_SockRead(int sockp, void *buf, size_t len, int blocking, int timeout)
 {
     ssize_t res;
 
-    if(blocking && (res = R_SocketWait(sockp, 0, timeout)) != 0)
-        return res < 0 ? res : 0; /* socket error or timeout */
+    if(blocking && R_SocketWait(sockp, 0, timeout) != 0) return 0;
     res = recv(sockp, buf, len, 0);
     return (res >= 0) ? res : -socket_errno();
 }
@@ -535,12 +537,7 @@ int R_SockListen(int sockp, char *buf, int len, int timeout)
     /* inserting a wait here will eliminate most blocking, but there
        are scenarios under which the Sock_listen call might block
        after the wait has completed. LT */
-    int res = 0;
-    do {
-        res = R_SocketWait(sockp, 0, timeout);
-    } while (res < 0 && -res == EINTR);
-    if(res != 0)
-        return -1;              /* socket error or timeout */
+    R_SocketWait(sockp, 0, timeout);
     return Sock_listen(sockp, buf, len, NULL);
 }
 
@@ -555,8 +552,7 @@ ssize_t R_SockWrite(int sockp, const void *buf, size_t len, int timeout)
        interface since there is no way to tell how much, if anything,
        has been written.  LT */
     do {
-	if((res = R_SocketWait(sockp, 1, timeout)) != 0)
-	    return res < 0 ? res : 0; /* socket error or timeout */
+	if(R_SocketWait(sockp, 1, timeout) != 0) return out;
 	res = send(sockp, buf, len, 0);
 	if (res < 0 && socket_errno() != EWOULDBLOCK)
 	    return -socket_errno();
@@ -569,3 +565,4 @@ ssize_t R_SockWrite(int sockp, const void *buf, size_t len, int timeout)
     return out;
 }
 
+#endif

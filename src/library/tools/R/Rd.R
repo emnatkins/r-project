@@ -352,14 +352,13 @@ function(x, ...)
 }
 
 .build_Rd_db <-
-function(dir = NULL, files = NULL,
-         encoding = "unknown", db_file = NULL,
-         stages = c("build", "install"), os = .OStype(), step = 3L,
-         built_file = NULL, macros = character())
+function(dir = NULL, files = NULL, encoding = "unknown", db_file = NULL,
+         stages = c("build", "install"), os = .OStype(), step = 3L, built_file = NULL)
 {
+    macros <- file.path(R.home("share"), "Rd", "macros", "system.Rd")
     if(!is.null(dir)) {
         dir <- file_path_as_absolute(dir)
-        macros0 <- loadPkgRdMacros(dir)
+        macros <- loadPkgRdMacros(dir, macros)
         man_dir <- file.path(dir, "man")
         if(!dir.exists(man_dir))
             return(structure(list(), names = character()))
@@ -367,18 +366,8 @@ function(dir = NULL, files = NULL,
             files <- list_files_with_type(man_dir, "docs", OS_subdirs=os)
         encoding <- .get_package_metadata(dir, FALSE)["Encoding"]
         if(is.na(encoding)) encoding <- "unknown"
-    } else if(!is.null(files))
-        macros0 <- initialRdMacros()
-    else
+    } else if(is.null(files))
         stop("you must specify 'dir' or 'files'")
-
-    if(length(macros)) {
-        con <- textConnection(macros)
-        macros <- loadRdMacros(con, macros0)
-        close(con)
-    } else {
-        macros <- macros0
-    }
 
     .fetch_Rd_object <- function(f) {
         ## This calls parse_Rd if f is a filename
@@ -878,11 +867,14 @@ loadRdMacros <- function(file, macros = TRUE) {
     attr(Rd, "macros")
 }
 
-initialRdMacros <- function(pkglist = NULL,
-                            macros = file.path(R.home("share"), "Rd", "macros", "system.Rd")
-                            ) {
-    if (length(pkglist)) {
-    	others <- trimws(unlist(strsplit(pkglist, ",")))
+
+loadPkgRdMacros <- function(pkgdir, macros) {
+    others <- try(.read_description(file.path(pkgdir, "DESCRIPTION"))["RdMacros"], silent=TRUE)
+    if (inherits(others, "try-error"))
+    	others <- .read_description(file.path(pkgdir, "DESCRIPTION.in"))["RdMacros"]
+
+    if (!is.na(others)) {
+    	others <- trimws(unlist(strsplit(others, ",")))
 
     	for (p in others) {
     	    if (dir.exists(system.file("help/macros", package = p)))
@@ -890,32 +882,7 @@ initialRdMacros <- function(pkglist = NULL,
     	    else
     	    	warning(gettextf("No Rd macros in package '%s'.", p), call. = FALSE)
         }
-    } else if (is.character(macros))
-    	macros <- loadRdMacros(file = macros)
-    macros
-}
-
-loadPkgRdMacros <- function(pkgdir, macros = NULL) {
-    ## this does get called on any directory,
-    ## e.g. a man directory in package 'diveMove'.
-    pkglist <- try(.read_description(file.path(pkgdir, "DESCRIPTION")),
-                   silent = TRUE)
-    if (inherits(pkglist, "try-error"))
-    	pkglist <-  try(.read_description(file.path(pkgdir, "DESCRIPTION.in")),
-                        silent = TRUE)
-    ## may check for 'macros' subdirectory?
-    if (inherits(pkglist, "try-error")) return(macros)
-
-    pkglist <- pkglist["RdMacros"]
-
-    if (is.na(pkglist))
-        pkglist <- NULL
-
-    if (is.null(macros))
-        macros <- initialRdMacros(pkglist)
-    else
-        macros <- initialRdMacros(pkglist, macros)
-
+    }
     files <- c(list.files(file.path(pkgdir, "man", "macros"), pattern = "\\.Rd$", full.names = TRUE),
                list.files(file.path(pkgdir, "help", "macros"), pattern = "\\.Rd$", full.names = TRUE))
 

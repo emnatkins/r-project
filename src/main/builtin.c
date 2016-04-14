@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2016  The R Core Team.
+ *  Copyright (C) 1999-2015  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP name = R_NilValue /* -Wall */, expr, eenv, aenv;
     checkArity(op, args);
 
-    if (!isString(CAR(args)) || LENGTH(CAR(args)) == 0)
+    if (!isString(CAR(args)) || length(CAR(args)) == 0)
 	error(_("invalid first argument"));
     else
 	name = installTrChar(STRING_ELT(CAR(args), 0));
@@ -136,9 +136,8 @@ SEXP attribute_hidden do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
     int addit = 0;
     static SEXP do_onexit_formals = NULL;
 
-    checkArity(op, args);
     if (do_onexit_formals == NULL)
-	do_onexit_formals = allocFormalsList2(install("expr"), install("add"));
+        do_onexit_formals = allocFormalsList2(install("expr"), install("add"));
 
     PROTECT(argList =  matchArgs(do_onexit_formals, args, call));
     if (CAR(argList) == R_MissingArg) code = R_NilValue;
@@ -190,7 +189,7 @@ SEXP attribute_hidden do_args(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP s;
 
     checkArity(op,args);
-    if (TYPEOF(CAR(args)) == STRSXP && LENGTH(CAR(args)) == 1) {
+    if (TYPEOF(CAR(args)) == STRSXP && length(CAR(args))==1) {
 	PROTECT(s = installTrChar(STRING_ELT(CAR(args), 0)));
 	SETCAR(args, findFun(s, rho));
 	UNPROTECT(1);
@@ -244,12 +243,8 @@ SEXP attribute_hidden do_formals(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     if (TYPEOF(CAR(args)) == CLOSXP)
 	return duplicate(FORMALS(CAR(args)));
-    else {
-	if(!(TYPEOF(CAR(args)) == BUILTINSXP ||
-	     TYPEOF(CAR(args)) == SPECIALSXP))
-	    warningcall(call, _("argument is not a function"));
+    else
 	return R_NilValue;
-    }
 }
 
 SEXP attribute_hidden do_body(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -257,12 +252,7 @@ SEXP attribute_hidden do_body(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     if (TYPEOF(CAR(args)) == CLOSXP)
 	return duplicate(BODY_EXPR(CAR(args)));
-    else {
-	if(!(TYPEOF(CAR(args)) == BUILTINSXP ||
-	     TYPEOF(CAR(args)) == SPECIALSXP))
-	    warningcall(call, _("argument is not a function"));
-	return R_NilValue;
-    }
+    else return R_NilValue;
 }
 
 SEXP attribute_hidden do_bodyCode(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -369,19 +359,19 @@ SEXP attribute_hidden do_parentenv(SEXP call, SEXP op, SEXP args, SEXP rho)
 static Rboolean R_IsImportsEnv(SEXP env)
 {
     if (isNull(env) || !isEnvironment(env))
-	return FALSE;
+        return FALSE;
     if (ENCLOS(env) != R_BaseNamespace)
-	return FALSE;
+        return FALSE;
     SEXP name = getAttrib(env, R_NameSymbol);
-    if (!isString(name) || LENGTH(name) != 1)
-	return FALSE;
+    if (!isString(name) || length(name) != 1)
+        return FALSE;
 
     const char *imports_prefix = "imports:";
     const char *name_string = CHAR(STRING_ELT(name, 0));
     if (!strncmp(name_string, imports_prefix, strlen(imports_prefix)))
-	return TRUE;
+        return TRUE;
     else
-	return FALSE;
+        return FALSE;
 }
 
 SEXP attribute_hidden do_parentenvgets(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -565,7 +555,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CDR(args);
 
     fill = CAR(args);
-    if ((!isNumeric(fill) && !isLogical(fill)) || (LENGTH(fill) != 1))
+    if ((!isNumeric(fill) && !isLogical(fill)) || (length(fill) != 1))
 	error(_("invalid '%s' argument"), "fill");
     if (isLogical(fill)) {
 	if (asLogical(fill) == 1)
@@ -697,9 +687,10 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP attribute_hidden do_makelist(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int n, havenames;
+    SEXP list, names, next;
+    int i, n, havenames;
+
     /* compute number of args and check for names */
-    SEXP next;
     for (next = args, n = 0, havenames = FALSE;
 	 next != R_NilValue;
 	 next = CDR(next)) {
@@ -708,9 +699,9 @@ SEXP attribute_hidden do_makelist(SEXP call, SEXP op, SEXP args, SEXP rho)
 	n++;
     }
 
-    SEXP list = PROTECT(allocVector(VECSXP, n));
-    SEXP names = PROTECT(havenames ? allocVector(STRSXP, n) : R_NilValue);
-    for (int i = 0; i < n; i++) {
+    PROTECT(list = allocVector(VECSXP, n));
+    PROTECT(names = havenames ? allocVector(STRSXP, n) : R_NilValue);
+    for (i = 0; i < n; i++) {
 	if (havenames) {
 	    if (TAG(args) != R_NilValue)
 		SET_STRING_ELT(names, i, PRINTNAME(TAG(args)));
@@ -947,7 +938,7 @@ SEXP attribute_hidden do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 #ifdef LONG_VECTOR_SUPPORT
 	return xlengthgets(x, len);
 #else
-	error(_("vector size specified is too large"));
+        error(_("vector size specified is too large"));
 	return x; /* -Wall */
 #endif
     }
@@ -1031,7 +1022,7 @@ SEXP attribute_hidden do_switch(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (nargs < 1) errorcall(call, _("'EXPR' is missing"));
     check1arg(args, call, "EXPR");
     PROTECT(x = eval(CAR(args), rho));
-    if (!isVector(x) || LENGTH(x) != 1)
+    if (!isVector(x) || length(x) != 1)
 	errorcall(call, _("EXPR must be a length 1 vector"));
     if (isFactor(x))
 	warningcall(call,
@@ -1091,8 +1082,7 @@ SEXP attribute_hidden do_switch(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    /* fall through to error */
 	}
 	UNPROTECT(1); /* w */
-    } else
-	warningcall(call, _("'switch' with no alternatives"));
+    }
     /* an error */
     UNPROTECT(1); /* x */
     R_Visible = FALSE;

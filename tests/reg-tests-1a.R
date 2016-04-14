@@ -2241,9 +2241,8 @@ a9 <- strsplit(a, "NA", perl = TRUE)
 stopifnot(identical(a9, list("", na ,c("BA",""))))
 a10 <- strsplit(a, na)
 stopifnot(identical(a10, as.list(a)))
-## nchar() differs a bit
-stopifnot(identical(is.na(a), is.na(nchar(a))),
-          all(!is.na(nchar(a, type = "width"))))
+## but nchar doesn't fit this pattern
+stopifnot(all(!is.na(nchar(a))))
 ## NA and "NA" were not distinguished in 1.7.x
 
 
@@ -3820,10 +3819,9 @@ aggregate(as.ts(c(1,2,3,4,5,6,7,8,9,10)),1/5,mean)
 
 
 ## prcomp(tol=1e-6)
-set.seed(16)
 x <- matrix(runif(30),ncol=10)
 s <- prcomp(x, tol=1e-6)
-stopifnot(length(s$sdev) == 3, ncol(s$rotation) == 2)
+stopifnot(length(s$sdev) == ncol(s$rotation))
 summary(s)
 ## last failed in 2.2.0
 

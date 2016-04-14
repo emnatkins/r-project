@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# Copyright (C) YEAR The R Core Team
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: tools 3.4.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-01 10:28-0700\n"
+"Project-Id-Version: R 3.2.0\n"
+"Report-Msgid-Bugs-To: bugs.r-project.org\n"
+"POT-Creation-Date: 2015-06-06 13:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Rmd5.c:36
+#: Rmd5.c:37
 msgid "argument 'files' must be character"
 msgstr ""
 
-#: Rmd5.c:50
+#: Rmd5.c:51
 #, c-format
 msgid "md5 failed on file '%s'"
 msgstr ""
@@ -136,27 +136,27 @@ msgstr ""
 msgid "invalid bind address specification"
 msgstr ""
 
-#: install.c:112 install.c:131 install.c:133
+#: install.c:112 install.c:133 install.c:135
 #, c-format
 msgid "invalid '%s' argument"
 msgstr ""
 
-#: install.c:162
+#: install.c:163
 msgid "write error during file append"
 msgstr ""
 
-#: signals.c:42
+#: signals.c:43
 msgid "pskill() is not supported on this platform"
 msgstr ""
 
-#: signals.c:139
+#: signals.c:140
 msgid "psnice() is not supported on this platform"
 msgstr ""
 
-#: text.c:67
+#: text.c:66
 msgid "invalid argument type"
 msgstr ""
 
-#: text.c:225 text.c:247
+#: text.c:223 text.c:245
 msgid "out of memory"
 msgstr ""
