@@ -21,7 +21,8 @@ getClasses(where, inherits = missing(where))
 
 findClass(Class, where, unique = "")
 
-removeClass(Class, where)
+removeClass(Class, where,
+            resolve.msg = getOption("removeClass.msg", default=TRUE))
 
 resetClass(Class, classDef, where)
 
@@ -56,6 +57,9 @@ sealClass(Class, where)
     environment only?  Defaults to \code{TRUE} if \code{where} is
     omitted, and to \code{FALSE} otherwise.
   }
+  \item{resolve.msg}{\code{\link{logical}} indicating if \R should
+    \code{\link{message}()} its decision if \code{Class} is found in
+    multiple namespaces and one is chosen.}
   \item{classDef}{ For \code{resetClass}, the optional class
     definition (but usually it's better for \code{Class} to be the
     class definition, and to omit \code{classDef}).

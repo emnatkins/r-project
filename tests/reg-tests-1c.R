@@ -1,7 +1,6 @@
 ## Regression tests for R >= 3.0.0
 
 pdf("reg-tests-1c.pdf", encoding = "ISOLatin1.enc")
-.pt <- proc.time()
 
 ## mapply with classed objects with length method
 ## was not documented to work in 2.x.y
@@ -583,7 +582,6 @@ stopifnot(identical(crossprod(2, v), t(2) %*% v),
 	  identical(5 %*% v, 5 %*% t(v)),
           identical(tcrossprod(m, 1:2), m %*% 1:2) )
 ## gave error "non-conformable arguments" in R <= 3.2.0
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## list <--> environment
@@ -780,7 +778,6 @@ if(.Platform$OS.type == "unix" &&
 				    "[1] 1 2 3")))
 }
 ## (failed for < 1 hr, in R-devel only)
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## Parsing large exponents of floating point numbers, PR#16358
@@ -966,20 +963,16 @@ df <- data.frame(.id = 1:3 %% 3 == 2, a = 1:3)
 d2 <- within(df, {d = a + 2})
 stopifnot(identical(names(d2), c(".id", "a", "d")))
 ## lost the '.id' column in R <= 3.2.2
-proc.time() - .pt; .pt <- proc.time()
 
 ## system() truncating and splitting long lines of output, PR#16544
 ## only works when platform has getline() in stdio.h, and Solaris does not.
-known.POSIX_2008 <- .Platform$OS.type == "unix" &&
-     (Sys.info()[["sysname"]] != "SunOS")
-## ^^^ explicitly exclude *non*-working platforms above
-if(known.POSIX_2008) {
-    cat("testing system(\"echo\", <large>) : "); op <- options(warn = 2)# no warnings allowed
-    cn <- paste(1:2222, collapse=" ")
-    rs <- system(paste("echo", cn), intern=TRUE)
-    stopifnot(identical(rs, cn))
-    cat("[Ok]\n"); options(op)
-}
+## op <- options(warn = 2)# no warnings allowed
+## if(.Platform$OS.type == "unix") { # only works when platform has getline() in stdio.h
+##     cn <- paste(1:2222, collapse=" ")
+##     rs <- system(paste("echo", cn), intern=TRUE)
+##     stopifnot(identical(rs, cn))
+## }
+## options(op)
 
 
 ## tail.matrix()
@@ -1088,7 +1081,6 @@ tools::assertError(cov(1:6, f <- gl(2,3)))# was ok already
 tools::assertWarning(var(f))
 tools::assertWarning( sd(f))
 ## var() "worked" in R <= 3.2.2  using the underlying integer codes
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## loess(*, .. weights) - PR#16587
@@ -1314,7 +1306,6 @@ stopifnot(all.equal(coef(flm), cf[,"tear"]),
                     cbind(rate = 3:2, additive = 3:4,
                           `rate:additive` = c(3L, 8L))))
 ## dummy.coef() were missing coefficients in R <= 3.2.3
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## format.POSIXlt() with modified 'zone' or length-2 format
@@ -1455,7 +1446,7 @@ stopifnot(
     identical(chkPretty(MTbd +  0:1), p1) ,
     identical(chkPretty(MTbd + -1:1), p1) ,
     identical(chkPretty(MTbd +  0:3), seqDp("1960-02-09", "1960-02-14")) )
-## all pretty() above gave length >= 5 answer (with duplicated values!) in R <= 3.2.3!
+## all pretty() above gave length >= 5 answer (with duplicated values!) in R <= 3.2.3
 ## and length 1 or 2 instead of about 6 in R 3.2.4
 (p2 <- chkPretty(as.POSIXct("2002-02-02 02:02", tz = "GMT-1"), n = 5, min.n = 5))
 stopifnot(length(p2) >= 5+1,
@@ -1569,17 +1560,3 @@ tsp(z) <- NULL
 stopifnot(identical(class(z), "matrix"))
 ## kept "mts" in 3.2.4, PR#16769
 
-
-## body() / formals() notably the replacement versions
-x <- NULL; tools::assertWarning(   body(x) <-    body(mean))	# to be error
-x <- NULL; tools::assertWarning(formals(x) <- formals(mean))	# to be error
-x <- NULL; tools::assertWarning(f <-    body(x)); stopifnot(is.null(f))
-x <- NULL; tools::assertWarning(f <- formals(x)); stopifnot(is.null(f))
-## these all silently coerced NULL to a function in R <= 3.2.x
-
-
-
-
-## keep at end
-rbind(last =  proc.time() - .pt,
-      total = proc.time())

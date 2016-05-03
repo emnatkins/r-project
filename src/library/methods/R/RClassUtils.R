@@ -31,7 +31,7 @@ testVirtual <-
             return(TRUE)
         ## does the class extend a known non-virtual class?
         for(what in en) {
-            enDef <- getClassDef(what, package=packageSlot(extends[[what]]))
+            enDef <- getClassDef(what, where)
             if(!is.null(enDef) && identical(enDef@virtual, FALSE))
                 return(FALSE)
         }
@@ -84,8 +84,8 @@ makePrototypeFromClassDef <-
         if(identical(what, "VIRTUAL")) {
             ## the class is virtual, and the prototype usually NULL
 ##            virtual <- TRUE
-        } else if(isClass(what, where=packageSlot(exti))) {
-            cli <- getClassDef(what, package=packageSlot(exti))
+        } else if(isClass(what, where = where)) {
+            cli <- getClass(what, where = where)
             slotsi <- names(cli@slots)
             pri <- cli@prototype
             ## once in a while
@@ -170,7 +170,7 @@ makePrototypeFromClassDef <-
                          paste(extra, collapse=", ")),
                 domain = NA)
     ## now check the elements of the prototype against the class definition
-    slotDefs <- ClassDef@slots; slotNames <- names(slotDefs)
+    slotDefs <- getSlots(ClassDef); slotNames <- names(slotDefs)
     pnames <- names(attributes(prototype))
     pnames <- pnames[!is.na(match(pnames, slotNames))]
     check <- rep.int(FALSE, length(pnames))
@@ -458,8 +458,8 @@ selectSuperClasses <-
     addCond <- function(xpr, prev)
         if(length(prev)) substitute(P && N, list(P = prev, N = xpr)) else xpr
     C <- if(dropVirtual) {
-             isVirtualExt <- function(x)
-                 getClassDef(x@superClass, package=packageSlot(x))@virtual
+        ## NB the default 'where' in getClass() may depend on specific superClass:
+        isVirtualExt <- function(x) getClass(x@superClass)@virtual
         quote(!isVirtualExt(exti))
     } else expression()
     if(directOnly) C <- addCond(quote(length(exti@by) == 0), C)
@@ -477,11 +477,8 @@ inheritedSlotNames <- function(Class, where = topenv(parent.frame()))
         Class@contains
     else if(isClass(Class, where = where))
         getClass(Class, where = where)@contains
-    supcl <- .selectSuperClasses(ext, namesOnly=FALSE) ## maybe  simpleOnly = FALSE or use as argument?
-    supdefs <- lapply(supcl, function(s) {
-        getClassDef(s@superClass, package=packageSlot(s))
-    })
-    unique(unlist(lapply(supdefs, slotNames), use.names=FALSE))
+    supcl <- .selectSuperClasses(ext) ## maybe  simpleOnly = FALSE or use as argument?
+    unique(unlist(lapply(lapply(supcl, getClassDef), slotNames), use.names=FALSE))
     ## or just the non-simplified part (*with* names):
     ##     lapply(sapply(supcl, getClassDef, simplify=FALSE), slotNames)
 }
@@ -1076,7 +1073,7 @@ completeSubclasses <-
         for(i in seq_along(contains)) {
             obji <- contains[[i]]
             cli <- contains[[i]]@superClass
-            cliDef <- getClassDef(cli, package=packageSlot(obji))
+            cliDef <- getClassDef(cli, where)
             ## don't override existing relations
             ## TODO:  have a metric that picks the "closest" relationship
             if(!extends(classDef2, cliDef))
@@ -1101,8 +1098,8 @@ completeSubclasses <-
     what <- names(ext)
     for(i in seq_along(ext)) { # note that this loops only over the original ext
         by <- what[[i]]
-        if(isClass(by, where = packageSlot(ext[[i]]))) {
-            byDef <- getClassDef(by, package=packageSlot(ext[[i]]))
+        if(isClass(by, where = where)) {
+            byDef <- getClass(by, where = where)
             exti <-  slot(byDef, slotName)
             coni <- attr(exti, "conflicts") # .resolveSuperclasses makes this
             if(superClassCase && length(coni) > 0) {
@@ -1167,9 +1164,8 @@ completeSubclasses <-
     for(i in seq_along(ext)) {
         by <- what[[i]]
         ## report only the direct superclass from which inconsistencies are inherited
-        wherei <- packageSlot(ext[[i]])
-        if(identical(ext[[i]]@distance, 1) && isClass(by, where = wherei)) {
-            byDef <- getClassDef(by, package=wherei)
+        if(identical(ext[[i]]@distance, 1) && isClass(by, where = where)) {
+            byDef <- getClass(by, where = where)
             exti <-  byDef@contains
             coni <- attr(exti, "conflicts") # .resolveSuperclasses makes this
             if( length(coni) > 0) {
@@ -2054,13 +2050,10 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
 		switch(resolve.confl,
 		       "none" = NULL,
 		       "first" = {
-			   if(resolve.msg) {
+			   if(resolve.msg)
 			       message(gettextf(
 				"Found more than one class \"%s\" in cache; using the first, from namespace '%s'",
 				name, pkgs[1]), domain=NA)
-                               message("Also defined by ",
-                                       paste(sQuote(pkgs[-1]), collapse = " "))
-                           }
 			   value[[1]]
 		       },
 		       "all" = value) # return all, a list
@@ -2078,7 +2071,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     subNames <- names(subs)
     for(i in seq_along(subs)) {
         what <- subNames[[i]]
-        subDef <- getClassDef(what, package=packageSlot(subs[[i]]))
+        subDef <- getClassDef(what, env)
         if(is.null(subDef))
             warning(gettextf("undefined subclass %s of class %s; definition not updated",
                              .dQ(what), .dQ(def@className)))
@@ -2140,7 +2133,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     if(length(classDef@contains)) {
         superclasses <- names(classDef@contains)
         for(what in superclasses) {
-            cdef <- .getClassFromCache(what, classWhere, resolve.confl = "all")
+            cdef <- .getClassFromCache(what, resolve.confl = "all")
 	    if(is(cdef, "classRepresentation"))
 		.removeSubClass(what, Class, cdef)
 	    else if(is.list(cdef))
@@ -2210,8 +2203,8 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
 
 ## remove superclass from  definition of class in the cache & in environments
 ## on search list
-.removeSuperClass <- function(class, superclass) {
-    cdef <- getClassDef(class)
+.removeSuperClass <- function(class, superclass, resolve.msg = TRUE) {
+    cdef <- .getClassFromCache(class, where, resolve.msg=resolve.msg)
     if(is.null(cdef)) {}
     else {
         newdef <- .deleteSuperClass(cdef, superclass)
@@ -2227,7 +2220,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     mname <- classMetaName(class)
     for(where in evv) {
         if(!is.null(cdef <- where[[mname]])) {
-            newdef <- .deleteSuperClass(cdef, superclass)
+            newdef <- .deleteSuperClass(cdef, superclass, resolve.msg=resolve.msg)
             if(!is.null(newdef)) {
               assignClassDef(class, newdef,  where, TRUE)
               ## message("deleted ",superclass, " from ",class, "in environment")
@@ -2237,13 +2230,13 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     NULL
 }
 
-.deleteSuperClass <- function(cdef, superclass) {
+.deleteSuperClass <- function(cdef, superclass, resolve.msg = TRUE) {
     superclasses <- cdef@contains
     ii <- match(superclass, names(superclasses), 0L)
     if(ii) {
 	cdef@contains <- superclasses[-ii]
 	for(subclass in names(cdef@subclasses))
-	    .removeSuperClass(subclass, superclass)
+	    .removeSuperClass(subclass, superclass, resolve.msg=resolve.msg)
 	cdef
     }
     else
@@ -2289,7 +2282,7 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
         superclasses <- names(extensions)
         edges <- numeric()
         for(what in superclasses) {
-            whatDef <- getClassDef(what, package=packageSlot(extensions[[what]]))
+            whatDef <- getClassDef(what)
             ifrom <- match(what, nodes)
             if(is.null(whatDef) || is.na(ifrom))
               next

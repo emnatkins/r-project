@@ -15,10 +15,6 @@ vector("list", 2^30+2)
 }
 
 ## bad infinite recursion / on.exit / ... interactions
-##   catch the error to permit different error messages emitted
-##   (handling of infinite recursion is different in the AST interpreter
-##   and the byte-code interpreter)
-
 bar <- function() 1+1
 foo <- function() { on.exit(bar()); foo() }
-tryCatch(foo(), error=function(x) TRUE) # now simple "infinite recursion"
+foo() # now simple "infinite recursion"

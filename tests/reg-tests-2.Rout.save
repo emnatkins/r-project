@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2016-04-20 r70521) -- "Unsuffered Consequences"
+R version 3.3.0 beta (2016-04-19 r70517) -- "Supposedly Educational"
 Copyright (C) 2016 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -6405,15 +6405,15 @@ function ()
 > print.function
 function (x, ...)  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 19 1 63 19 63 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x28c3348> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3162d60> 
 > f
 function ()  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 17 1 28 17 28 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x256b520> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3154fc0> 
  - attr(*, "note")= chr "just a note"
  - attr(*, "yada")=function ()  
   ..- attr(*, "srcref")=Class 'srcref'  atomic [1:8] 2 24 2 48 24 48 2 2
-  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x256b520> 
+  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x3154fc0> 
 > rm(print.function)
 > ## auto-printing and printing differed up to R 2.9.x
 > 
@@ -7808,18 +7808,4 @@ structure(list(one = 1, two = ), .Names = c("one", "two"))
  Max.   :1969-12-28   Max.   :7.0   Max.   :6.00  
  NA's   :3                          NA's   :1     
 > ## 2 of 4  summary(.) above did not show NA's  in R <= 3.2.3
-> 
-> 
-> ## Printing complex matrix 
-> matrix(1i,2,13)
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13]
-[1,] 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i  0+1i  0+1i  0+1i  0+1i
-[2,] 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i 0+1i  0+1i  0+1i  0+1i  0+1i
-> ## Spacing was wrong in R <= 3.2.4
-> 
-> 
-> E <- expression(poly = x^3 - 3 * x^2)
-> str(E)
-  expression(poly = x^3 - 3 * x^2)
-> ## no longer shows "structure(...., .Names = ..)"
 > 

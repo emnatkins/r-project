@@ -5,94 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item User errors such as \code{integrate(f, 0:1, 2)} are now caught.
-
-      \item Add \code{signature} argument to \code{debug()},
-      \code{debugonce()}, \code{undebug()} and \code{isdebugged()} for
-      more conveniently debugging S3 and S4 methods. Based on a patch by
-      Gabe Becker.
-
-      \item Add \code{utils::debugcall()} and
-      \code{utils::undebugcall()} for debugging the function that would
-      be called by evaluating the given expression. When the call is to
-      an S4 generic or standard S3 generic, \code{debugcall()} debugs the
-      method that would be dispatched. A number of internal utilities
-      were added to support this, most notably
-      \code{utils::isS3stdGeneric()}. Based on a patch by Gabe Becker.
-
-      \item Add \code{utils::strcapture()}. Given a character vector and
-      a regular expression containing capture expressions,
-      \code{strcapture()} will extract the captured tokens into a
-      tabular data structure, typically a data.frame.
-
-      \item \code{str()} and \code{strOptions()} get a new option
-      \code{drop.deparse.attr} with improved but \emph{changed} default
-      behaviour for expressions.% plan: backport to 3.3.1
-
-      \item \code{isSymmetric(m)} is much faster for large asymmetric
-      matrices \code{m} via pre-tests and a new option \code{tol1}
-      (with which strict back compatibility is possible but not the
-      default).% plan: backport
-
-      \item The result of \code{eigen()} now is of class \code{"eigen"}
-      in the default case when eigenvectors are computed.
-
-      \item Zero-length date and datetime objects (\code{"POSIX[cl]?t"})
-      now \code{print()} \dQuote{recognizably}.
-
-      \item \code{xy.coords()} and \code{xyz.coords()} get new
-      \code{setLab} option.
-
-      \item \code{sort.list()}, \code{order()} and \code{sort.int()}
-      \code{method} argument gains an \code{"auto"} option (the default)
-      which should behave the same as before when \code{method} was left
-      missing.
-
-      \item \code{stopifnot(E, ..)} now reports differences when
-      \code{E} is a call to \code{all.equal()} and that is not true.
-    }
-  }
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item The deprecated support for PCRE versions 8.10 to 8.31 will
-      be removed prior to \R 3.4.0.
-
-      \item (Windows only) Function \code{setInternet2()} is defunct.
-    }
-  }
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Getting or setting \code{body()} or \code{formals()} on
-      non-functions for now signals a warning and may become an error
-      for setting.
-
-      \item In \code{text.default(x, y, labels)}, the rarely(?) used
-      default for \code{labels} is now correct also for the case of a
-      2-column matrix \code{x} and missing \code{y}.
-
-      \item When a class name matches multiple classes in the cache,
-      perform a dynamic search in order to obey namespace imports. This
-      should eliminate annoying messages about multiple hits in the
-      class cache. Also, pass along the package from the
-      \code{ClassExtends} object when looking up superclasses in the
-      cache.
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 3.3.0 patched}{
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \command{R CMD INSTALL} and hence \code{install.packages()}
-      gave an internal error installing a package called
-      \pkg{description} from a tarball on a case-insensitive file system.
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.3.0}{
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
     \itemize{
@@ -412,7 +324,7 @@
       \item \code{gzcon()} gains a new option \code{text}, which marks
       the connection as text-oriented (so e.g.\sspace{}\code{pushBack()}
       works).  It is still always opened in binary mode.
-
+      
       \item The \code{import()} namespace directive now accepts an
       argument \code{except} which names symbols to exclude from the
       imports. The \code{except} expression should evaluate to a
@@ -664,7 +576,7 @@
       \item \code{install.packages()} could give false errors when
       \code{options("pkgType")} was \code{"binary"}.  (Reported by
       Jose Claudio Faria.)
-
+      
       \item A bug fix in \R 3.0.2 fixed problems with \code{locator()}
       in X11, but introduced problems in Windows.  Now both should be
       fixed.  (\PR{15700})
@@ -672,7 +584,7 @@
       \item \code{download.file()} with \code{method = "wininet"}
       incorrectly warned of download file length difference when
       reported length was unknown. (\PR{16805})
-
+      
       \item \code{diag(NULL, 1)} crashed because of missed type
       checking.  (\PR{16853})
     }
