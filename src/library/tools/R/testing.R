@@ -168,12 +168,9 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE,
             ## not entirely safe ...
             txt <- gsub("(\x91|\x92)", "'", txt, perl = TRUE, useBytes = TRUE)
             txt <- gsub("(\x93|\x94)", '"', txt, perl = TRUE, useBytes = TRUE)
+            txt <- txt[!grepl('options(pager = "console")', txt,
+                              fixed = TRUE, useBytes = TRUE)]
         }
-        ## massageExamples() adds options(pager = "console") only for
-        ## Windows, but we should ignore a corresponding diff on all
-        ## platforms.
-        txt <- txt[!grepl('options(pager = "console")', txt,
-                          fixed = TRUE, useBytes = TRUE)]
         pat <- '(^Time |^Loading required package|^Package [A-Za-z][A-Za-z0-9]+ loaded|^<(environment|promise|pointer|bytecode):|^/CreationDate |^/ModDate |^/Producer |^End.Don\'t show)'
         txt[!grepl(pat, txt, perl = TRUE, useBytes = TRUE)]
     }
@@ -329,22 +326,10 @@ testInstalledPackage <-
                    message(gettextf("  comparing %s to %s ...",
                                     sQuote(outfile), sQuote(basename(savefile))),
                            appendLF = FALSE, domain = NA)
-                   cmd <-
-                       sprintf("invisible(tools::Rdiff('%s','%s',TRUE,TRUE))",
-                               outfile, savefile)
-                   out <- R_runR(cmd, "--vanilla --slave")
-                   if(length(out)) {
-                       if(strict)
-                           message(" ERROR")
-                       else
-                           message(" NOTE")
-                       writeLines(paste0("  ", out))
-                       if(strict)
-                           stop("  ",
-                                "results differ from reference results")
-                   } else {
-                       message(" OK")
-                   }
+                    res <- Rdiff(outfile, savefile)
+                    if (!res) message(" OK")
+                    else if(strict)
+                        stop("  ", "results differ from reference results")
                 }
             } else {
                 prevfile <- paste(outfile, "prev", sep = "." )
@@ -352,16 +337,8 @@ testInstalledPackage <-
                     message(gettextf("  comparing %s to %s ...",
                             sQuote(outfile), sQuote(basename(prevfile))),
                             appendLF = FALSE, domain = NA)
-                    cmd <-
-                        sprintf("invisible(tools::Rdiff('%s','%s',TRUE,TRUE))",
-                                outfile, prevfile)
-                    out <- R_runR(cmd, "--vanilla --slave")
-                    if(length(out)) {
-                        message(" NOTE")
-                        writeLines(paste0("  ", out))
-                    } else {
-                        message(" OK")
-                    }
+                    res <- Rdiff(outfile, prevfile)
+                    if (!res) message(" OK")
                 }
             }
         } else

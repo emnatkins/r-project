@@ -463,8 +463,7 @@ constantFoldCall <- function(e, cntxt) {
             modes <- unlist(lapply(args, mode))
             if (all(modes %in% constModes)) {
                 tryCatch(checkConst(do.call(ffun, args)),
-                         error = function(e) NULL, warning = function(w) NULL)
-                ## **** issue warning??
+                         error = function(e) NULL) ## **** issue warning??
             }
             else NULL
         }
@@ -1067,20 +1066,23 @@ cmpConstArg <- function(a, cb, cntxt) {
     }
 }
 
+## **** clean up to use tryCatch
 ## **** figure out how to handler multi-line deparses
 ## ****     e.g. checkCall(`{`, quote({}))
 ## **** better design would capture error object, wrap it up, and pass it on
-## **** use approach from codetools to capture partial argument match
-## ****     warnings if enabled?
 checkCall <- function(def, call, signal = warning) {
     if (typeof(def) %in% c("builtin", "special"))
         def <- args(def)
     if (typeof(def) != "closure" || any.dots(call))
         NA
     else {
-        msg <- tryCatch({match.call(def, call); NULL},
-                        error = function(e) conditionMessage(e))
+        old <- getOption("show.error.messages")
+        if (is.null(old)) old <- TRUE
+        options(show.error.messages=FALSE)
+        msg <- try({match.call(def, call); NULL})
+        options(show.error.messages=old)
         if (! is.null(msg)) {
+            msg <- sub("\n$", "", sub("^E.*: ", "", msg))
             emsg <- gettextf("possible error in '%s': %s",
                              deparse(call, 20)[1], msg)
             if (! is.null(signal)) signal(emsg)
@@ -1198,10 +1200,9 @@ tryInline <- function(e, cb, cntxt) {
 setInlineHandler("function", function(e, cb, cntxt) {
     forms <- e[[2]]
     body <- e[[3]]
-    sref <- e[[4]]
     ncntxt <- make.functionContext(cntxt, forms, body)
     cbody <- genCode(body, ncntxt)
-    ci <- cb$putconst(list(forms, cbody, sref))
+    ci <- cb$putconst(list(forms, cbody))
     cb$putcode(MAKECLOSURE.OP, ci)
     if (cntxt$tailcall) cb$putcode(RETURN.OP)
     TRUE

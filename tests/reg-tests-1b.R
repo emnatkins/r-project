@@ -717,11 +717,11 @@ stopifnot(length(lf <- levels(fi)) == 3, lf[1] == "a.b.c",
 ## interaction() failed to produce unique levels before 2.9.1
 
 levs <- c("A","A")
-## warnings since 2009; errors since R 3.4.0 (R-devel, June 2016):
+## warnings for now {errors in the future}
 local({
-    assertError(gl(2,3, labels = levs))
-    assertError(factor(levs, levels=levs))
-    assertError(factor(1:2,  labels=levs))
+    assertWarning(gl(2,3, labels = levs))
+    assertWarning(factor(levs, levels=levs))
+    assertWarning(factor(1:2,	 labels=levs))
     })
 ## failed in R < 2.10.0
 L <- c("no", "yes")

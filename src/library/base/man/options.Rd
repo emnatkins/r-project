@@ -414,7 +414,7 @@ getOption(x, default = NULL)
     \item{\code{bitmapType}:}{(Unix-only) character.  The default type for the
       bitmap devices such as \code{\link{png}}.  Defaults to
       \code{"cairo"} on systems where that is available, or to
-      \code{"quartz"} on macOS where that is available.}
+      \code{"quartz"} on OS X where that is available.}
 #endif
 
     \item{\code{device}:}{a character string giving
@@ -435,7 +435,7 @@ getOption(x, default = NULL)
 
       The search logic for \sQuote{the normal screen device} is that
       this is \code{windows} on Windows, and \code{quartz} if available
-      on macOS (running at the console, and compiled into the build).
+      on OS X (running at the console, and compiled into the build).
       Otherwise \code{X11} is used if environment variable \env{DISPLAY}
       is set.
     }
@@ -478,8 +478,7 @@ getOption(x, default = NULL)
       \code{c("unordered", "ordered")}, but the names are unused.}
 
     \item{\code{na.action}:}{the name of a function for treating missing
-      values (\code{\link{NA}}'s) for certain situations, see
-      \code{\link{na.action}} and \code{\link{na.pass}}.}
+      values (\code{\link{NA}}'s) for certain situations.}
 
     \item{\code{show.coef.Pvalues}:}{logical, affecting whether P
       values are printed in summary tables of coefficients.  See
@@ -556,10 +555,10 @@ getOption(x, default = NULL)
       requests.  If \code{NULL}, requests will be made without a
       user agent header.
       The default is \code{R (<version> <platform> <arch> <os>)} .}
-
+    
     \item{\code{install.lock}:}{logical: should per-directory package
       locking be used by \code{\link{install.packages}}?  Most useful
-      for binary installs on macOS and Windows, but can be used in a
+      for binary installs on OS X and Windows, but can be used in a
       startup file for source installs \emph{via}
       \command{R CMD \link{INSTALL}}.  For binary installs, can also be
       the character string \code{"pkgloack"}.}
@@ -604,14 +603,14 @@ getOption(x, default = NULL)
       and installed -- see \code{\link{install.packages}}.
 #ifdef windows
       Possible values are \code{"win.binary"}, \code{"source"} and
-      \code{"both"} (the default).  Some macOS builds use
+      \code{"both"} (the default).  Some OS X builds use
       \code{"mac.binary"} and \code{"mac.binary.mavericks"}.
 #endif
 #ifdef unix
       Possible values are \code{"source"} (the default except under a
-      CRAN macOS build), \code{"mac.binary."},
+      CRAN OS X build), \code{"mac.binary."},
       \code{"mac.binary.mavericks"} and \code{"both"} (the default for
-      CRAN macOS builds).  Windows uses
+      CRAN OS X builds).  Windows uses
       \code{"win.binary"}. (\code{"mac.binary.leopard"} and
       \code{"mac.binary.universal"} are no longer in use.)
 #endif
@@ -649,7 +648,7 @@ getOption(x, default = NULL)
       used.
 #endif
     }
-
+      
     \item{\code{useHTTPS}:}{logical.  Used by \code{\link{chooseCRANmirror}}:
       are secure mirrors preferred?  If not set, \code{TRUE} is assumed.}
   }

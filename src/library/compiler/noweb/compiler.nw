@@ -563,20 +563,23 @@ else {
 @ 
 and [[checkCall]] is defined as
 <<[[checkCall]] function>>=
+## **** clean up to use tryCatch
 ## **** figure out how to handler multi-line deparses
 ## ****     e.g. checkCall(`{`, quote({}))
 ## **** better design would capture error object, wrap it up, and pass it on
-## **** use approach from codetools to capture partial argument match
-## ****     warnings if enabled?
 checkCall <- function(def, call, signal = warning) {
     if (typeof(def) %in% c("builtin", "special"))
         def <- args(def)
     if (typeof(def) != "closure" || any.dots(call))
         NA
     else {
-        msg <- tryCatch({match.call(def, call); NULL},
-                        error = function(e) conditionMessage(e))
+        old <- getOption("show.error.messages")
+        if (is.null(old)) old <- TRUE
+        options(show.error.messages=FALSE)
+        msg <- try({match.call(def, call); NULL})
+        options(show.error.messages=old)
         if (! is.null(msg)) {
+            msg <- sub("\n$", "", sub("^E.*: ", "", msg))
             emsg <- gettextf("possible error in '%s': %s",
                              deparse(call, 20)[1], msg)
             if (! is.null(signal)) signal(emsg)
@@ -2073,10 +2076,9 @@ versions of the compiler.
 setInlineHandler("function", function(e, cb, cntxt) {
     forms <- e[[2]]
     body <- e[[3]]
-    sref <- e[[4]]
     ncntxt <- make.functionContext(cntxt, forms, body)
     cbody <- genCode(body, ncntxt)
-    ci <- cb$putconst(list(forms, cbody, sref))
+    ci <- cb$putconst(list(forms, cbody))
     cb$putcode(MAKECLOSURE.OP, ci)
     if (cntxt$tailcall) cb$putcode(RETURN.OP)
     TRUE
@@ -2168,26 +2170,8 @@ essentially the same as
 (function() expr)()
 \end{verbatim}
 There may be some minor differences related to what the [[sys.xyz]]
-functions return. An instance of this was found in the [[RefManageR]]
-package which used [[parent.frame(2)]] to access the environment from which
-[[local]] was invoked. In this case, the use of [[parent.frame]] was
-unnecessary (and [[local]] was not needed either); the maintainer
-accepted a patch fixing this. The code pattern in the package was
-\begin{verbatim}
-MakeBibLaTeX <- function(docstyle = "text") local({
-  docstyle <- get("docstyle", parent.frame(2))
-  sortKeys <- function() 42
-  environment()
-})
-\end{verbatim}
-and the suggested fix was
-\begin{verbatim}
-MakeBibLaTeX <- function(docstyle = "text") {
-  sortKeys <- function() 42
-  environment()
-}
-\end{verbatim}
-So the compiler handles one argument [[local]] calls by making this
+functions return but these do not seem to be important. So the
+compiler handles one argument [[local]] calls by making this
 conversion and compiling the result.
 %% **** add to language manual?
 <<inlining handler for [[local]] function>>=
@@ -2200,8 +2184,7 @@ setInlineHandler("local", function(e, cb, cntxt) {
     else FALSE
 })
 @ %def
-The interpreter couls, and probably should, be modified to handle this
-case of a [[local]] call expression in the same way as the compiler.
+
 
 \subsection{The [[return]] function}
 \label{subsec:return}
@@ -4562,7 +4545,7 @@ constNames <- c("pi", "T", "F")
 Call expressions are handled by determining whether the function
 called is eligible for constant folding, attempting to constant fold
 the arguments, and calling the folding function.  The result is the
-passed to [[checkConst]].  If an error or a warning occurs in the call to the
+passed to [[checkConst]].  If an error occurs in the call to the
 folding function then [[constantFoldCall]] returns [[NULL]].
 <<[[constantFoldCall]] function>>=
 constantFoldCall <- function(e, cntxt) {
@@ -4583,8 +4566,7 @@ constantFoldCall <- function(e, cntxt) {
             modes <- unlist(lapply(args, mode))
             if (all(modes %in% constModes)) {
                 tryCatch(checkConst(do.call(ffun, args)),
-                         error = function(e) NULL, warning = function(w) NULL)
-                ## **** issue warning??
+                         error = function(e) NULL) ## **** issue warning??
             }
             else NULL
         }

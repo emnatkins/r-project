@@ -554,12 +554,12 @@ static void sigactionSegv(int signum, siginfo_t *ip, void *context)
 		s = "invalid alignment";
 		break;
 #endif
-#ifdef BUS_ADRERR /* not on macOS, apparently */
+#ifdef BUS_ADRERR /* not on MacOS X, apparently */
 	    case BUS_ADRERR:
 		s = "non-existent physical address";
 		break;
 #endif
-#ifdef BUS_OBJERR /* not on macOS, apparently */
+#ifdef BUS_OBJERR /* not on MacOS X, apparently */
 	    case BUS_OBJERR:
 		s = "object specific hardware error";
 		break;
@@ -1136,17 +1136,8 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
 	    rval = 2;
 	    printwhere();
 	    /* SET_RDEBUG(rho, 1); */
-	} else if (!strcmp(expr, "r")) {
-	    SEXP hooksym = install(".tryResumeInterrupt");
-	    if (SYMVALUE(hooksym) != R_UnboundValue) {
-		SEXP hcall;
-		PROTECT(hcall = LCONS(hooksym, R_NilValue));
-		eval(hcall, R_GlobalEnv);
-		UNPROTECT(1);
-	    }
 	}
     }
-
     return rval;
 }
 

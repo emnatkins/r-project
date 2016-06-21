@@ -51,7 +51,7 @@
   items are passed to the linker.
 
   Objective C(++) support is optional when \R was configured: their main
-  usage is on macOS.
+  usage is on OS X.
 
   Note that the appropriate run-time libraries will be used when linking
   if C++, Fortran or Objective C(++) sources are supplied, but not for

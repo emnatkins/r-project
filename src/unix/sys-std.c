@@ -417,54 +417,25 @@ getSelectedHandler(InputHandler *handlers, fd_set *readMask)
 }
 
 
+
 #ifdef HAVE_LIBREADLINE
-/* As from R 3.4.0, this implies we have the headers too.
-   We use entry points
 
-   rl_callback_handler_install
-   rl_callback_handler_remove
-   rl_callback_read_char
-   rl_readline_name
-
-   , if HAVE_RL_COMPLETION_MATCHES (>= 4.2)
-
-   rl_attempted_completion_function
-   rl_attempted_completion_over
-   rl_basic_word_break_characters
-   rl_completer_word_break_characters
-   rl_completion_append_character
-   rl_completion_matches
-   rl_line_buffer
-
-   and others conditionally:
-
-   rl_cleanup_after_signal (>= 4.0)
-   rl_done
-   rl_end
-   rl_free_line_state (>= 4.0)
-   rl_line_buffer
-   rl_mark
-   rl_point
-   rl_readline_state (>= 4.2)
-   rl_resize_terminal (>= 4.0)
-   rl_sort_completion_matches (>= 6.0)
- */
-
-# include <readline/readline.h>
-
+# ifdef HAVE_READLINE_READLINE_H
+#  include <readline/readline.h>
 /* For compatibility with pre-readline-4.2 systems, 
    also missing in Apple's emulation via the NetBSD editline library.*/
-# if !defined (_RL_FUNCTION_TYPEDEF)
+#  if !defined (_RL_FUNCTION_TYPEDEF)
 typedef void rl_vcpfunc_t (char *);
-# endif /* _RL_FUNCTION_TYPEDEF */
-
-# if defined(RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0603
-/* readline 6.3's rl_callback_handler_install() no longer installs
-   signal handlers, so as from that version we need an explicit
-   one. (PR#16604)  (This could have been controlled in earlier versions
-   by setting rl_catch_sigwinch.)
- */
-#  define NEED_INT_HANDLER
+#  endif /* _RL_FUNCTION_TYPEDEF */
+# else
+typedef void rl_vcpfunc_t (char *);
+extern void rl_callback_handler_install(const char *, rl_vcpfunc_t *);
+extern void rl_callback_handler_remove(void);
+extern void rl_callback_read_char(void);
+extern char *tilde_expand (const char *);
+extern const char *rl_readline_name;
+/* Other externals are used, but only if the readline >= 6.3 is detected,
+   and that requires the header. */
 # endif
 
 attribute_hidden
@@ -542,15 +513,6 @@ static struct {
   rl_vcpfunc_t *fun[MAX_READLINE_NESTING];
 } ReadlineStack = {-1, MAX_READLINE_NESTING - 1};
 
-#ifdef NEED_INT_HANDLER
-static volatile Rboolean caught_sigwinch = FALSE;
-
-static RETSIGTYPE
-R_readline_sigwinch_handler(int sig)
-{
-    caught_sigwinch = TRUE;
-}
-#endif
 
 /*
   Registers the specified routine and prompt with readline
@@ -565,11 +527,6 @@ pushReadline(const char *prompt, rl_vcpfunc_t f)
      ReadlineStack.fun[++ReadlineStack.current] = f;
 
    rl_callback_handler_install(prompt, f);
-
-#ifdef NEED_INT_HANDLER
-   signal(SIGWINCH, R_readline_sigwinch_handler);
-#endif
-
    /* flush stdout in case readline wrote the prompt, but didn't flush
       stdout to make it visible. (needed for Apple's readline emulation). */
    fflush(stdout);
@@ -577,7 +534,7 @@ pushReadline(const char *prompt, rl_vcpfunc_t f)
 
 #if defined(RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0600
 /*
-  Fix for PR#16603, for readline >= 6.0.
+  Fix for PR#16603.
 
   The readline interface is somewhat messy. readline contains the
   function rl_free_line_state(), which its internal SIGINT handler
@@ -591,13 +548,6 @@ pushReadline(const char *prompt, rl_vcpfunc_t f)
 static void resetReadline(void)
 {
     rl_free_line_state();
-/* This might be helpful/needed in future, but we cannot tell until
-   readline 7.0 is released.  Only info so far:
-   https://lists.gnu.org/archive/html/bug-readline/2016-02/msg00000.html
-#ifdef HAVE_RL_CALLBACK_SIGCLEANUP
-    rl_callback_sigcleanup();
-#endif
-*/
     rl_cleanup_after_signal();
     RL_UNSETSTATE(RL_STATE_ISEARCH | RL_STATE_NSEARCH | RL_STATE_VIMOTION |
 		  RL_STATE_NUMERICARG | RL_STATE_MULTIKEY);
@@ -766,8 +716,9 @@ static void initialize_rlcompletion(void)
     /* Tell the completer that we want a crack first. */
     rl_attempted_completion_function = R_custom_completion;
 
-// This was added in readline 6.0
-#ifdef HAVE_RL_SORT_COMPLETION_MATCHES
+    /* Disable sorting of possible completions; only readline >= 6 */
+#if RL_READLINE_VERSION >= 0x0600
+    /* if (rl_readline_version >= 0x0600) */
     rl_sort_completion_matches = 0;
 #endif
 
@@ -1003,16 +954,6 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	    if (Rg_wait_usec > 0 && (wt < 0 || wt > Rg_wait_usec))
 		wt = Rg_wait_usec;
 	    what = R_checkActivityEx(wt, 0, handleInterrupt);
-#ifdef NEED_INT_HANDLER
-            if (UsingReadline && caught_sigwinch) {
-		caught_sigwinch = FALSE;
-		// introduced in readline 4.0: only used for >= 6.3
-#ifdef HAVE_RL_RESIZE_TERMINAL
-		rl_resize_terminal();
-#endif
-            }
-#endif
-
 	    /* This is slightly clumsy. We have advertised the
 	     * convention that R_wait_usec == 0 means "wait forever",
 	     * but we also need to enable R_checkActivity to return
@@ -1167,7 +1108,8 @@ void attribute_hidden NORET Rstd_CleanUp(SA_TYPE saveact, int status, int runLas
     case SA_SAVE:
 	if(runLast) R_dot_Last();
 	if(R_DirtyImage) R_SaveGlobalEnv();
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
+#ifdef HAVE_LIBREADLINE
+# ifdef HAVE_READLINE_HISTORY_H
 	if(R_Interactive && UsingReadline) {
 	    int err;
 	    R_setupHistory(); /* re-read the history size and filename */
@@ -1176,7 +1118,8 @@ void attribute_hidden NORET Rstd_CleanUp(SA_TYPE saveact, int status, int runLas
 	    if(err) warning(_("problem in saving the history file '%s'"),
 			    R_HistoryFile);
 	}
-#endif
+# endif /* HAVE_READLINE_HISTORY_H */
+#endif /* HAVE_LIBREADLINE */
 	break;
     case SA_NOSAVE:
 	if(runLast) R_dot_Last();
@@ -1293,11 +1236,13 @@ void attribute_hidden Rstd_ShowMessage(const char *s)
 
 void attribute_hidden Rstd_read_history(const char *s)
 {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
+#ifdef HAVE_LIBREADLINE
+# ifdef HAVE_READLINE_HISTORY_H
     if(R_Interactive && UsingReadline) {
 	read_history(s);
     }
-#endif
+# endif /* HAVE_READLINE_HISTORY_H */
+#endif /* HAVE_LIBREADLINE */
 }
 
 void attribute_hidden Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)

@@ -47,18 +47,6 @@ factor <- function(x = character(), levels, labels = levels,
     f
 }
 
-
-## Also used for methods::validObject(<factor>) :
-.valid.factor <- function(object) {
-    levs <- levels(object)
-    if (!is.character(levs))
-        return("factor levels must be \"character\"")
-    if (d <- anyDuplicated(levs))
-	return(sprintf("duplicated level [%d] in factor", d))
-    ## 'else'	ok :
-    TRUE
-}
-
 is.factor <- function(x) inherits(x, "factor")
 
 as.factor <- function(x) {
@@ -167,8 +155,6 @@ print.factor <- function (x, quote = FALSE, max.levels = NULL,
                       else lev, collapse = colsep),
             "\n", sep = "")
     }
-    if(!isTRUE(val <- .valid.factor(x)))
-	warning(val) # stop() in the future
     invisible(x)
 }
 
@@ -356,9 +342,8 @@ Summary.ordered <- function(..., na.rm)
 addNA <- function(x, ifany=FALSE)
 {
     if (!is.factor(x)) x <- factor(x)
-    if (ifany && !anyNA(x)) return(x)
+    if (ifany & !anyNA(x)) return(x)
     ll <- levels(x)
     if (!anyNA(ll)) ll <- c(ll, NA)
-    else if (!ifany && !anyNA(x)) return(x)
     factor(x, levels=ll, exclude=NULL)
 }

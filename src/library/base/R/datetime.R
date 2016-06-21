@@ -23,7 +23,7 @@ Sys.timezone <- function(location = TRUE)
 {
     tz <- Sys.getenv("TZ", names = FALSE)
     if(!location || nzchar(tz)) return(Sys.getenv("TZ", unset = NA_character_))
-    lt <- normalizePath("/etc/localtime") # Linux, macOS, ...
+    lt <- normalizePath("/etc/localtime") # Linux, OS X, ...
     if (grepl(pat <- "^/usr/share/zoneinfo/", lt)) sub(pat, "", lt)
     else NA_character_
 }
@@ -211,8 +211,18 @@ format.POSIXct <- function(x, format = "", tz = "", usetz = FALSE, ...)
               names = names(x))
 }
 
-## could handle arrays for max.print; cf print.Date() in ./dates.R
-print.POSIXct <-
+## could handle arrays for max.print
+print.POSIXct <- function(x, ...)
+{
+    max.print <- getOption("max.print", 9999L)
+    if(max.print < length(x)) {
+        print(format(x[seq_len(max.print)], usetz = TRUE), ...)
+        cat(' [ reached getOption("max.print") -- omitted',
+            length(x) - max.print, 'entries ]\n')
+    } else print(format(x, usetz = TRUE), ...)
+    invisible(x)
+}
+
 print.POSIXlt <- function(x, ...)
 {
     max.print <- getOption("max.print", 9999L)
@@ -220,11 +230,9 @@ print.POSIXlt <- function(x, ...)
         print(format(x[seq_len(max.print)], usetz = TRUE), ...)
         cat(' [ reached getOption("max.print") -- omitted',
             length(x) - max.print, 'entries ]\n')
-    } else print(if(length(x)) format(x, usetz = TRUE)
-		 else paste(class(x)[1L], "of length 0"), ...)
+   } else print(format(x, usetz = TRUE), ...)
     invisible(x)
 }
-
 
 summary.POSIXct <- function(object, digits = 15L, ...)
 {
@@ -444,16 +452,16 @@ difftime <-
     z <- unclass(time1) - unclass(time2)
     attr(z, "tzone") <- NULL # it may get copied from args of `-`
     units <- match.arg(units)
-    if(units == "auto")
-	units <-
-	    if(all(is.na(z))) "secs"
-	    else {
-		zz <- min(abs(z), na.rm = TRUE)
-		if(!is.finite(zz) || zz < 60) "secs"
-		else if(zz < 3600) "mins"
-		else if(zz < 86400) "hours"
-		else "days"
-	    }
+    if(units == "auto") {
+        if(all(is.na(z))) units <- "secs"
+        else {
+            zz <- min(abs(z),na.rm = TRUE)
+            if(is.na(zz) || zz < 60) units <- "secs"
+            else if(zz < 3600) units <- "mins"
+            else if(zz < 86400) units <- "hours"
+            else units <- "days"
+        }
+    }
     switch(units,
            "secs" = .difftime(z, units = "secs"),
            "mins" = .difftime(z/60, units = "mins"),
@@ -469,9 +477,9 @@ difftime <-
 as.difftime <- function(tim, format = "%X", units = "auto")
 {
     if (inherits(tim, "difftime")) return(tim)
-    if (is.character(tim)) {
+    if (is.character(tim)){
         difftime(strptime(tim, format = format),
-                 strptime("0:0:0", format = "%X"), units = units)
+             strptime("0:0:0", format = "%X"), units = units)
     } else {
         if (!is.numeric(tim)) stop("'tim' is not character or numeric")
 	if (units == "auto") stop("need explicit units for numeric conversion")
@@ -516,7 +524,7 @@ print.difftime <- function(x, digits = getOption("digits"), ...)
     if(is.array(x) || length(x) > 1L) {
         cat("Time differences in ", attr(x, "units"), "\n", sep = "")
         y <- unclass(x); attr(y, "units") <- NULL
-	print(y, digits=digits, ...)
+        print(y)
     }
     else
         cat("Time difference of ", format(unclass(x), digits = digits), " ",
@@ -639,7 +647,7 @@ Summary.difftime <- function (..., na.rm)
     if(Nargs == 0) {
         .difftime(do.call(.Generic), "secs")
     } else {
-        units <- sapply(x, attr, "units")
+        units <- sapply(x, function(x) attr(x, "units"))
         if(all(units == units[1L])) {
             args <- c(lapply(x, as.vector), na.rm = na.rm)
         } else {
@@ -873,8 +881,6 @@ julian.POSIXt <- function(x, origin = as.POSIXct("1970-01-01", tz = "GMT"), ...)
     structure(res, "origin" = origin)
 }
 
-## Note that  'abbreviate' works *vectorized* here :
-
 weekdays <- function(x, abbreviate) UseMethod("weekdays")
 weekdays.POSIXt <- function(x, abbreviate = FALSE)
 {
@@ -1003,7 +1009,7 @@ is.numeric.POSIXt <- function(x) FALSE
 
 split.POSIXct <-
 function(x, f, drop = FALSE, ...)
-    lapply(split.default(as.double(x), f, drop = drop, ...), .POSIXct,
+    lapply(split.default(as.double(x), f, drop = drop), .POSIXct,
            tz = attr(x, "tzone"))
 
 xtfrm.POSIXct <- function(x) as.numeric(x)
@@ -1044,7 +1050,7 @@ OlsonNames <- function()
     else {
         tzdirs <- c(Sys.getenv("TZDIR"),
                     file.path(R.home("share"), "zoneinfo"),
-                    "/usr/share/zoneinfo", # Linux, macOS, FreeBSD
+                    "/usr/share/zoneinfo", # Linux, OS X, FreeBSD
                     "/usr/share/lib/zoneinfo", # Solaris, AIX
                     "/usr/lib/zoneinfo",   # early glibc
                     "/usr/local/etc/zoneinfo", # tzcode default

@@ -43,7 +43,7 @@ make.names(names, unique = FALSE, allow_ = TRUE)
   Some OSes, notably FreeBSD, report extremely incorrect information about
   which characters are alphabetic in some locales (typically, all
   multi-byte locales including UTF-8 locales).  However, \R provides
-  substitutes on Windows, macOS and AIX.
+  substitutes on Windows, OS X and AIX.
 }
 \note{
   Prior to \R version 1.9.0, underscores were not valid in variable names,

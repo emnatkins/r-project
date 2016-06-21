@@ -1,7 +1,6 @@
 ## Regression tests for R >= 3.0.0
 
 pdf("reg-tests-1c.pdf", encoding = "ISOLatin1.enc")
-.pt <- proc.time()
 
 ## mapply with classed objects with length method
 ## was not documented to work in 2.x.y
@@ -583,7 +582,6 @@ stopifnot(identical(crossprod(2, v), t(2) %*% v),
 	  identical(5 %*% v, 5 %*% t(v)),
           identical(tcrossprod(m, 1:2), m %*% 1:2) )
 ## gave error "non-conformable arguments" in R <= 3.2.0
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## list <--> environment
@@ -780,7 +778,6 @@ if(.Platform$OS.type == "unix" &&
 				    "[1] 1 2 3")))
 }
 ## (failed for < 1 hr, in R-devel only)
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## Parsing large exponents of floating point numbers, PR#16358
@@ -966,20 +963,16 @@ df <- data.frame(.id = 1:3 %% 3 == 2, a = 1:3)
 d2 <- within(df, {d = a + 2})
 stopifnot(identical(names(d2), c(".id", "a", "d")))
 ## lost the '.id' column in R <= 3.2.2
-proc.time() - .pt; .pt <- proc.time()
 
 ## system() truncating and splitting long lines of output, PR#16544
 ## only works when platform has getline() in stdio.h, and Solaris does not.
-known.POSIX_2008 <- .Platform$OS.type == "unix" &&
-     (Sys.info()[["sysname"]] != "SunOS")
-## ^^^ explicitly exclude *non*-working platforms above
-if(known.POSIX_2008) {
-    cat("testing system(\"echo\", <large>) : "); op <- options(warn = 2)# no warnings allowed
-    cn <- paste(1:2222, collapse=" ")
-    rs <- system(paste("echo", cn), intern=TRUE)
-    stopifnot(identical(rs, cn))
-    cat("[Ok]\n"); options(op)
-}
+## op <- options(warn = 2)# no warnings allowed
+## if(.Platform$OS.type == "unix") { # only works when platform has getline() in stdio.h
+##     cn <- paste(1:2222, collapse=" ")
+##     rs <- system(paste("echo", cn), intern=TRUE)
+##     stopifnot(identical(rs, cn))
+## }
+## options(op)
 
 
 ## tail.matrix()
@@ -1088,7 +1081,6 @@ tools::assertError(cov(1:6, f <- gl(2,3)))# was ok already
 tools::assertWarning(var(f))
 tools::assertWarning( sd(f))
 ## var() "worked" in R <= 3.2.2  using the underlying integer codes
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## loess(*, .. weights) - PR#16587
@@ -1314,7 +1306,6 @@ stopifnot(all.equal(coef(flm), cf[,"tear"]),
                     cbind(rate = 3:2, additive = 3:4,
                           `rate:additive` = c(3L, 8L))))
 ## dummy.coef() were missing coefficients in R <= 3.2.3
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## format.POSIXlt() with modified 'zone' or length-2 format
@@ -1403,7 +1394,6 @@ stopifnot(
     identical(c(smooth(y, "3RS3R", do.ends=FALSE, endrule="copy")),
               c(4, 4, 3, 3, 5, 6, 6, 6, 6, 6)))
 ## do.ends=TRUE was not obeyed for the "3RS*" kinds, for 3.0.0 <= R <= 3.2.3
-proc.time() - .pt; .pt <- proc.time()
 
 
 ## prettyDate() for subsecond ranges
@@ -1455,7 +1445,7 @@ stopifnot(
     identical(chkPretty(MTbd +  0:1), p1) ,
     identical(chkPretty(MTbd + -1:1), p1) ,
     identical(chkPretty(MTbd +  0:3), seqDp("1960-02-09", "1960-02-14")) )
-## all pretty() above gave length >= 5 answer (with duplicated values!) in R <= 3.2.3!
+## all pretty() above gave length >= 5 answer (with duplicated values!) in R <= 3.2.3
 ## and length 1 or 2 instead of about 6 in R 3.2.4
 (p2 <- chkPretty(as.POSIXct("2002-02-02 02:02", tz = "GMT-1"), n = 5, min.n = 5))
 stopifnot(length(p2) >= 5+1,
@@ -1543,7 +1533,6 @@ if(FALSE) { # save 0.4 sec
 nn <- c(1:33,10*(4:9),100*(1+unique(sort(rpois(20,4)))))
 pzn <- lengths(lapply(nn, pretty, x=tOz))
 stopifnot(0.5 <= min(pzn/(nn+1)), max(pzn/(nn+1)) <= 1.5)
-proc.time() - .pt; .pt <- proc.time()
 
 
 
@@ -1594,15 +1583,7 @@ stopifnot(identical(class(z), "matrix"))
 ## kept "mts" in 3.2.4, PR#16769
 
 
-## body() / formals() notably the replacement versions
-x <- NULL; tools::assertWarning(   body(x) <-    body(mean))	# to be error
-x <- NULL; tools::assertWarning(formals(x) <- formals(mean))	# to be error
-x <- NULL; tools::assertWarning(f <-    body(x)); stopifnot(is.null(f))
-x <- NULL; tools::assertWarning(f <- formals(x)); stopifnot(is.null(f))
-## these all silently coerced NULL to a function in R <= 3.2.x
-
-
-## match(x, t): fast algorithm for length-1 'x' -- PR#16885
+## match(x, t): fast algorithm for length-1 'x'
 ## a) string 'x'  when only encoding differs
 tmp <- "年付"
 tmp2 <- "\u5e74\u4ed8" ; Encoding(tmp2) <- "UTF-8"
@@ -1626,107 +1607,14 @@ z <- c(z[is.na(z)], # <- of length 4 * 4 - 2*2 = 12
        as.complex(NaN), as.complex(0/0), # <- typically these two differ in bits
        complex(real = NaN), complex(imaginary = NaN),
        NA_complex_, complex(real = NA), complex(imaginary = NA))
-## 1..12 all differ, then
-symnum(outerID(z,z, FALSE,FALSE,FALSE,FALSE))# [14] differing from all on low level
-symnum(outerID(z,z))                         # [14] matches 2, 13,15
-(mz <- match(z, z)) # (checked with m1z below)
+## 1..12 all differ, then only [14] ("0/0") differs in first (low level):
+symnum(outerID(z,z, FALSE,FALSE,FALSE,FALSE))
+symnum(outerID(z,z))
+(mz <- match(z, z)) # currently different {NA,NaN} patterns differ - not in print()/format() _FIXME_
+stopifnot(identical(mz, c(1:4, 1L, 3L, 7:8, 2L, 4L, 8L, 12L, # <- would change after FIXME
+                          rep(2L, 4), 7L, 1L, 1L)))
 zRI <- rbind(Re=Re(z), Im=Im(z)) # and see the pattern :
 print(cbind(format = format(z), t(zRI), mz), quote=FALSE)
-stopifnot(apply(zRI, 2, anyNA)) # NA *or* NaN: all TRUE
-is.NA <- function(.) is.na(.) & !is.nan(.)
-(iNaN <- apply(zRI, 2, function(.) any(is.nan(.))))
-(iNA <-  apply(zRI, 2, function(.) any(is.NA (.)))) # has non-NaN NA's
-## use iNA for consistency check once FIXME happened
-m1z <- sapply(z, match, table = z)
-stopifnot(identical(m1z, mz),
-	  identical(m1z == 1L, iNA),
-	  identical(m1z == 2L, !iNA))
-## m1z uses match(x, *) with length(x) == 1 and failed in R 3.3.0
-## PR#16909 - a consequence of the match() bug; check here too:
-dvn <- paste0("var\xe9", 1:2); Encoding(dvn) <- "latin1"
-dv <- data.frame(1:3, 3); names(dv) <- dvn; dv[,"var\u00e92"] <- 2
-stopifnot(ncol(dv) == 2, dv[,2] == 2, identical(names(dv), dvn))
-## in R 3.3.0, got a 3rd column
+stopifnot(identical(mz, sapply(z, match, table = z)))
+## the latter has length(x) == 1 in match(x,*)  and failed in R 3.3.0
 
-
-## deparse(<complex>,  "digits17")
-fz <- format(z <- c(outer(-1:2, 1i*(-1:1), `+`)))
-(fz0 <- sub("^ +","",z))
-r <- c(-1:1,100, 1e20); z2 <- c(outer(pi*r, 1i*r, `+`)); z2
-dz2 <- deparse(z2, control="digits17")
-stopifnot(identical(deparse(z, 200, control = "digits17"),
-                    paste0("c(", paste(fz0, collapse=", "), ")")),
-          print((sum(nchar(dz2)) - 2) / length(z2)) < 22, # much larger in <= 3.3.0
-          ## deparse <-> parse equivalence, 17 digits should be perfect:
-	  all.equal(z2, eval(parse(text = dz2)), tolerance = 3e-16)) # seen 2.2e-35 on 32b
-## deparse() for these was "ugly" in R <= 3.3.x
-
-
-## length(environment(.)) == #{objects}
-stopifnot(identical(length(      baseenv()),
-                    length(names(baseenv()))))
-## was 0 in R <= 3.3.0
-
-
-## "srcref"s of closures
-op <- options(keep.source = TRUE)# as in interactive use
-getOption("keep.source")
-stopifnot(identical(function(){}, function(){}),
-          identical(function(x){x+1},
-                    function(x){x+1})); options(op)
-## where all FALSE in 2.14.0 <= R <= 3.3.x because of "srcref"s etc
-
-
-## PR#16925, radix sorting INT_MAX w/ decreasing=TRUE and na.last=TRUE
-## failed ASAN check and segfaulted on some systems.
-data <- c(2147483645L, 2147483646L, 2147483647L, 2147483644L)
-stopifnot(identical(sort(data, decreasing = TRUE, method = "radix"),
-                    c(2147483647L, 2147483646L, 2147483645L, 2147483644L)))
-
-
-## as.factor(<named integer>)
-ni <- 1:2; Nni <- names(ni) <- c("A","B")
-stopifnot(identical(Nni, names(as.factor(ni))),
-	  identical(Nni, names(   factor(ni))),
-	  identical(Nni, names(   factor(ni+0))), # +0 : "double"
-	  identical(Nni, names(as.factor(ni+0))))
-## The first one lost names in  3.1.0 <= R <= 3.3.0
-
-
-## strtrim(<empty>, *) should work as substr(<empty>, *) does
-c0 <- character(0)
-stopifnot(identical(c0, strtrim(c0, integer(0))))
-## failed in R <= 3.3.0
-
-
-## Factors with duplicated levels {created via low-level code}:
-f0 <- factor(sample.int(9, 20, replace=TRUE))
-(f <- structure(f0, "levels" = as.character(c(2:7, 2:4))))
-tools::assertWarning(print(f))
-tools::assertError(validObject(f))
-## no warning in print() for R <= 3.3.x
-
-
-## R <= 3.3.0 returned integer(0L) from unlist() in this case:
-stopifnot(identical(levels(unlist(list(factor(levels="a")))), "a"))
-
-
-## diff(<difftime>)
-d <- as.POSIXct("2016-06-08 14:21", tz="UTC") + as.difftime(2^(-2:8), units="mins")
-dd  <- diff(d)
-ddd <- diff(dd)
-d3d <- diff(ddd)
-d7d <- diff(d, differences = 7)
-(ldd <- list(dd=dd, ddd=ddd, d3d=d3d, d7d=d7d))
-stopifnot(identical(ddd, diff(d, differences = 2)),
-	  identical(d3d, diff(d, differences = 3)))
-stopifnot(vapply(ldd, units, "") == "secs",
-	  vapply(ldd, class, "") == "difftime",
-	  lengths(c(list(d), ldd)) == c(11:8, 11-7))
-## was losing time units in R <= 3.3.0
-
-
-
-## keep at end
-rbind(last =  proc.time() - .pt,
-      total = proc.time())

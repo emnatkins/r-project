@@ -1,6 +1,6 @@
 % File src/library/base/man/which.min.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2016 R Core Team
+% Copyright 1995-2015 R Core Team
 % Distributed under GPL 2 or later
 
 \name{which.min}
@@ -26,13 +26,11 @@ which.max(x)
     for which the internal coercion to \code{\link{double}} works whose
     \code{\link{min}} or \code{\link{max}} is searched for.}
 }
-\section{Logical \code{x} -- First \code{TRUE} or \code{FALSE}}{
+\note{
   For a \code{\link{logical}} vector \code{x} with both \code{FALSE} and
   \code{TRUE} values, \code{which.min(x)} and \code{which.max(x)} return
   the index of the first \code{FALSE} or \code{TRUE}, respectively, as
-  \code{FALSE < TRUE}.  However, \code{match(FALSE, x)} or
-  \code{match(TRUE, x)} are typically \emph{preferred}, as they do
-  indicate mismatches.
+  \code{FALSE < TRUE}.
 }
 \value{
   Missing and \code{NaN} values are discarded.

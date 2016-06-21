@@ -23,7 +23,7 @@ function(built, run)
     ## remove vendor field
     built <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", built)
     run <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", run)
-    ## macOS supports multiple CPUs by using 'universal' binaries
+    ## Mac OS X supports multiple CPUs by using 'universal' binaries
     if (startsWith(built, "universal-darwin") && nzchar(.Platform$r_arch))
         built <- sub("^universal", R.version$arch, built)
     ## allow for small mismatches, e.g. OS version number and i686 vs i586.
@@ -160,7 +160,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         else {
             ## A package will have created a generic
             ## only if it has created a formal method.
-	    !any(startsWith(names(env), ".__T"))
+            length(grep(pattern="^\\.__T", names(env))) == 0L
         }
     }
 

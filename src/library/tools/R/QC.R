@@ -1516,7 +1516,7 @@ function(x, ...)
                              function(nm) {
                                  c(gettextf("Bad \\usage lines found in documentation object '%s':",
                                             nm),
-                                   paste0("  ", bad_lines[[nm]]))
+                                   paste(" ", bad_lines[[nm]]))
                              })),
                "")
 
@@ -3330,20 +3330,20 @@ function(x, ...)
         writeLines(gettext("Malformed Depends or Suggests or Imports or Enhances field."))
         if(length(bad$bad_dep_entry)) {
             tmp <- c(gettext("Offending entries:"),
-                     paste0("  ", bad$bad_dep_entry),
+                     paste(" ", bad$bad_dep_entry),
                      strwrap(gettextf("Entries must be names of packages optionally followed by '<=' or '>=', white space, and a valid version number in parentheses.")))
             writeLines(tmp)
         }
         if(length(bad$bad_dep_op)) {
             tmp <- c(gettext("Entries with infeasible comparison operator:"),
-                     paste0("  ", bad$bad_dep_entry),
+                     paste(" ", bad$bad_dep_entry),
                      strwrap(gettextf("Only operators '<=' and '>=' are possible.")))
 
             writeLines(tmp)
         }
         if(length(bad$bad_dep_version)) {
             tmp <- c(gettext("Entries with infeasible version number:"),
-                     paste0("  ", bad$bad_dep_version),
+                     paste(" ", bad$bad_dep_version),
                      strwrap(gettextf("Version numbers must be sequences of at least two non-negative integers, separated by single '.' or '-'.")))
             writeLines(tmp)
         }
@@ -3479,43 +3479,14 @@ function(aar, strict = FALSE)
                 out$bad_authors_at_R_field_has_no_author <- TRUE
             else {
                 attr(out, "Author") <- s
-                if(strict >= 1L) {
-                    has_no_name <- 
-                        vapply(aar,
-                               function(e)
-                               is.null(e$given) && is.null(e$family),
-                               NA)
-                    if(any(has_no_name)) {
-                        out$bad_authors_at_R_field_has_persons_with_no_name <-
-                            format(aar[has_no_name])
-                    }
-                    has_no_role <-
-                        vapply(aar,
-                               function(e) is.null(e$role),
-                               NA)
-                    if(any(has_no_role)) {
-                        out$bad_authors_at_R_field_has_persons_with_no_role <-
-                            format(aar[has_no_role])
-                    }
-                }
-                if(strict >= 2L) {
-                    if(all(has_no_name |
-                           vapply(aar,
-                                  function(e)
-                                  is.na(match("aut", e$role)),
-                                  NA)))
-                        out$bad_authors_at_R_field_has_no_author_roles <- TRUE
-                    non_standard_roles <-
-                        lapply(aar$role, setdiff,
-                               utils:::MARC_relator_db_codes_used_with_R)
-                    ind <- sapply(non_standard_roles, length) > 0L
-                    if(any(ind)) {
-                        out$bad_authors_at_R_field_has_persons_with_nonstandard_roles <-
-                            sprintf("%s: %s",
-                                    format(aar[ind]),
-                                    sapply(non_standard_roles[ind], paste,
-                                           collapse = ", "))
-                    }
+                if(strict) {
+                    ## Specifically check for persons with missing or
+                    ## non-standard roles.
+                    s <- format(aar[sapply(aar,
+                                           utils:::.format_person_for_plain_author_spec)
+                                    == ""])
+                    if(length(s))
+                        out$bad_authors_at_R_field_has_author_without_role <- s
                 }
             }
         }
@@ -3564,41 +3535,28 @@ function(x)
     c(character(),
       if(length(bad <- x[["bad_authors_at_R_field"]])) {
           c(gettext("Malformed Authors@R field:"),
-            paste0("  ", bad))
+            paste(" ", bad))
       },
       if(length(bad <- x[["bad_authors_at_R_field_for_author"]])) {
           c(gettext("Cannot extract Author field from Authors@R field:"),
-            paste0("  ", bad))
+            paste(" ", bad))
       },
       if(length(x[["bad_authors_at_R_field_has_no_author"]])) {
-          gettext("Authors@R field gives no person with name and roles.")
+          gettext("Authors@R field gives no person with author role.")
       },
       if(length(bad <-
-                x[["bad_authors_at_R_field_has_persons_with_no_name"]])) {
-          c(gettext("Authors@R field gives persons with no name:"),
-            paste0("  ", bad))
-      },
-      if(length(bad <-
-                x[["bad_authors_at_R_field_has_persons_with_no_role"]])) {
-          c(gettext("Authors@R field gives persons with no role:"),
-            paste0("  ", bad))
-      },
-      if(length(x[["bad_authors_at_R_field_has_no_author_roles"]])) {
-          gettext("Authors@R field gives no person with name and author role")
-      },
-      if(length(bad <-
-                x[["bad_authors_at_R_field_has_persons_with_nonstandard_roles"]])) {
-          c(gettext("Authors@R field gives persons with non-standard roles:"),
-            paste0("  ", bad))
+                x[["bad_authors_at_R_field_has_author_without_role"]])) {
+          c(gettext("Authors@R field gives persons with no valid roles:"),
+            paste(" ", bad))
       },
       if(length(bad <- x[["bad_authors_at_R_field_for_maintainer"]])) {
           c(gettext("Cannot extract Maintainer field from Authors@R field:"),
-            paste0("  ", bad))
+            paste(" ", bad))
       },
       if(length(bad <-
                 x[["bad_authors_at_R_field_too_many_maintainers"]])) {
           c(gettext("Authors@R field gives more than one person with maintainer role:"),
-            paste0("  ", bad))
+            paste(" ", bad))
       },
       if(length(x[["bad_authors_at_R_field_has_no_valid_maintainer"]])) {
           strwrap(gettext("Authors@R field gives no person with maintainer role, valid email address and non-empty name."))
@@ -3763,11 +3721,11 @@ function(x, ...)
       },
       if(length(y <- x$bad_extensions)) {
           c(gettext("License components with restrictions not permitted:"),
-            paste0("  ", y))
+            paste(" ", y))
       },
       if(length(y <- x$miss_extension)) {
           c(gettext("License components which are templates and need '+ file LICENSE':"),
-            paste0("  ", y))
+            paste(" ", y))
       }
       )
 }
@@ -4788,15 +4746,15 @@ function(x, ...)
             msg <- gsub("\n", "\n  ", sub("[^:]*: *", "", xi$Error),
 			perl = TRUE, useBytes = TRUE)
             writeLines(c(sprintf("Error in file '%s':", xi$File),
-                         paste0("  ", msg)))
+                         paste(" ", msg)))
         }
         if(len <- length(xi$Warnings))
             writeLines(c(sprintf(ngettext(len,
                                           "Warning in file %s:",
                                           "Warnings in file %s:"),
                                  sQuote(xi$File)),
-                         paste0("  ", gsub("\n\n", "\n  ", xi$Warnings,
-                                           perl = TRUE, useBytes = TRUE))))
+                         paste(" ", gsub("\n\n", "\n  ", xi$Warnings,
+					 perl = TRUE, useBytes = TRUE))))
     }
     invisible(x)
 }
@@ -6112,7 +6070,7 @@ function(x, ...)
                           "Found possibly global 'T' or 'F' in the examples of the following Rd files:"
                           )
           c(strwrap(msg),
-            paste0("  ", x$bad_examples))
+            paste(" ", x$bad_examples))
       })
 }
 
@@ -7071,36 +7029,17 @@ function(dir)
     if(!isTRUE(out$descr_bad_start) && !grepl("^['\"]?[[:upper:]]", descr))
        out$descr_bad_initial <- TRUE
 
-    skip_dates <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_SKIP_DATES_",
-                                         "FALSE"))
-    
     ## Check Date
     date <- trimws(as.vector(meta["Date"]))
     if(!is.na(date)) {
         dd <- strptime(date, "%Y-%m-%d", tz = "GMT")
         if (is.na(dd)) out$bad_date <- TRUE
-        else if(!skip_dates && (as.Date(dd) < Sys.Date() - 31))
+        else if((as.Date(dd) < Sys.Date() - 31) &&
+                !config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_SKIP_DATES_",
+                                                  "FALSE")))
             out$old_date <- TRUE
     }
 
-    ## Check build time stamp
-    info <- trimws(as.vector(meta["Packaged"]))
-    if(is.na(info)) {
-        out$build_time_stamp_msg <-
-            "The build time stamp is missing."
-    } else {
-        ts <- strptime(info, "%Y-%m-%d", tz = "GMT")
-        if(is.na(ts)) {
-            out$build_time_stamp_msg <-
-                "The build time stamp has invalid/outdated format."
-        }
-        else if(!skip_dates && (as.Date(ts) < Sys.Date() - 31)) {
-            out$build_time_stamp_msg <-
-                "This build time stamp is over a month old."
-        }
-    }
-    
     ## Check URLs.
     if(capabilities("libcurl")) {
         ## Be defensive about building the package URL db.
@@ -7297,11 +7236,11 @@ function(x, ...)
                       collapse = "\n"),
             if(length(y <- x$extensions)) {
                 paste(c("License components with restrictions and base license permitting such:",
-                        paste0("  ", y),
+                        paste(" ", y),
                         unlist(lapply(x$pointers,
                                       function(e) {
                                           c(sprintf("File '%s':", e[1L]),
-                                            paste0("  ", e[-1L]))
+                                            paste(" ", e[-1L]))
                                       }))),
                       collapse = "\n")
             })),
@@ -7372,7 +7311,7 @@ function(x, ...)
               },
               if(length(y <- x$additional_repositories_analysis_failed_with)) {
                   paste(c("Using Additional_repositories specification failed with:",
-                          paste0("  ", y)),
+                          paste(" ", y)),
                         collapse = "\n")
               },
               if(length(y <- x$additional_repositories_analysis_results)) {
@@ -7385,7 +7324,7 @@ function(x, ...)
               },
               if(length(y <- x$additional_repositories_with_no_packages)) {
                   paste(c("Additional repositories with no packages:",
-                          paste0("  ", y)),
+                          paste(" ", y)),
                         collapse = "\n")
               })),
       if(length(y <- x$uses)) {
@@ -7439,7 +7378,7 @@ function(x, ...)
             },
             if(length(y <- x$citation_error)) {
                 paste(c("Reading CITATION file fails with",
-                        paste0("  ", y),
+                        paste(" ", y),
                         "when package is not installed."),
                       collapse = "\n")
             })),
@@ -7453,7 +7392,7 @@ function(x, ...)
                                 "Found the following (possibly) invalid URLs:"
                             else
                                 "Found the following (possibly) invalid URL:",
-                            paste0("  ", gsub("\n", "\n    ", format(y)))),
+                            paste(" ", gsub("\n", "\n    ", format(y)))),
                           collapse = "\n")
             },
             if(length(y) && any(nzchar(z <- y$CRAN))) {
@@ -7485,7 +7424,7 @@ function(x, ...)
                               "Found the following (possibly) invalid DOIs:"
                           else
                               "Found the following (possibly) invalid DOI:",
-                          paste0("  ", gsub("\n", "\n    ", format(y)))),
+                          paste(" ", gsub("\n", "\n    ", format(y)))),
                         collapse = "\n")
           }),
       if(length(y <- x$R_files_non_ASCII)) {
@@ -7518,7 +7457,6 @@ function(x, ...)
             if(length(x$old_date)) {
                 "The Date field is over a month old."
             })),
-      if(length(y <- x$build_time_stamp_msg)) y,
       if(length(y <- x$size_of_tarball))
           paste("Size of tarball:", y, "bytes")
       )
