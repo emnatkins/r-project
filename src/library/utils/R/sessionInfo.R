@@ -59,7 +59,8 @@ sessionInfo <- function(package = NULL)
                        sprintf("%s %s %s",
                                ifelse(as.numeric(ver1) < 12, "OS X", "macOS"),
                                switch(ver1,
-                                      ## 10.6 is earliest that can be installed
+                                      "4" = "Tiger",
+                                      "5" = "Leopard",
                                       "6" = "Snow Leopard",
                                       "7" = "Lion",
                                       "8" = "Mountain Lion",
@@ -150,10 +151,6 @@ toLatex.sessionInfo <- function(object, locale = TRUE, ...)
                paste0("  \\item Locale: \\verb|",
                       gsub(";","|, \\\\verb|", object$locale) , "|"))
     }
-
-    z <- c(z,
-           paste0("  \\item Running under: \\verb|",
-                  gsub(";","|, \\\\verb|", object$running) , "|"))
 
     z <- c(z, strwrap(paste("\\item Base packages: ",
                          paste(sort(object$basePkgs), collapse = ", ")),

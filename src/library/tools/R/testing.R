@@ -158,14 +158,9 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE,
         if(length(ll)) txt <- txt[seq_len(max(ll) - 1L)]
         ## remove BATCH footer
         nl <- length(txt)
-        if(nl > 3L && startsWith(txt[nl-2L], "> proc.time()"))
-            txt <- txt[1:(nl-3L)]
-        ## remove text between IGNORE_RDIFF markers.
-        txt[(cumsum(txt == "> ## IGNORE_RDIFF_BEGIN") >
-             cumsum(txt == "> ## IGNORE_RDIFF_END"))] <- ""
-        ## (Keeps the end markers, but that's ok.)
+        if(nl > 3L && startsWith(txt[nl-2L], "> proc.time()")) txt <- txt[1:(nl-3L)]
         if (nullPointers)
-            ## remove pointer addresses from listings
+        ## remove pointer addresses from listings
             txt <- gsub("<(environment|bytecode|pointer|promise): [x[:xdigit:]]+>", "<\\1: 0>", txt)
         ## regularize fancy quotes.  First UTF-8 ones:
         txt <- .canonicalize_quotes(txt)
@@ -173,12 +168,9 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE,
             ## not entirely safe ...
             txt <- gsub("(\x91|\x92)", "'", txt, perl = TRUE, useBytes = TRUE)
             txt <- gsub("(\x93|\x94)", '"', txt, perl = TRUE, useBytes = TRUE)
+            txt <- txt[!grepl('options(pager = "console")', txt,
+                              fixed = TRUE, useBytes = TRUE)]
         }
-        ## massageExamples() adds options(pager = "console") only for
-        ## Windows, but we should ignore a corresponding diff on all
-        ## platforms.
-        txt <- txt[!grepl('options(pager = "console")', txt,
-                          fixed = TRUE, useBytes = TRUE)]
         pat <- '(^Time |^Loading required package|^Package [A-Za-z][A-Za-z0-9]+ loaded|^<(environment|promise|pointer|bytecode):|^/CreationDate |^/ModDate |^/Producer |^End.Don\'t show)'
         txt[!grepl(pat, txt, perl = TRUE, useBytes = TRUE)]
     }
@@ -334,22 +326,10 @@ testInstalledPackage <-
                    message(gettextf("  comparing %s to %s ...",
                                     sQuote(outfile), sQuote(basename(savefile))),
                            appendLF = FALSE, domain = NA)
-                   cmd <-
-                       sprintf("invisible(tools::Rdiff('%s','%s',TRUE,TRUE))",
-                               outfile, savefile)
-                   out <- R_runR(cmd, "--vanilla --slave")
-                   if(length(out)) {
-                       if(strict)
-                           message(" ERROR")
-                       else
-                           message(" NOTE")
-                       writeLines(paste0("  ", out))
-                       if(strict)
-                           stop("  ",
-                                "results differ from reference results")
-                   } else {
-                       message(" OK")
-                   }
+                    res <- Rdiff(outfile, savefile)
+                    if (!res) message(" OK")
+                    else if(strict)
+                        stop("  ", "results differ from reference results")
                 }
             } else {
                 prevfile <- paste(outfile, "prev", sep = "." )
@@ -357,16 +337,8 @@ testInstalledPackage <-
                     message(gettextf("  comparing %s to %s ...",
                             sQuote(outfile), sQuote(basename(prevfile))),
                             appendLF = FALSE, domain = NA)
-                    cmd <-
-                        sprintf("invisible(tools::Rdiff('%s','%s',TRUE,TRUE))",
-                                outfile, prevfile)
-                    out <- R_runR(cmd, "--vanilla --slave")
-                    if(length(out)) {
-                        message(" NOTE")
-                        writeLines(paste0("  ", out))
-                    } else {
-                        message(" OK")
-                    }
+                    res <- Rdiff(outfile, prevfile)
+                    if (!res) message(" OK")
                 }
             }
         } else
@@ -384,10 +356,10 @@ testInstalledPackage <-
         setwd(this)
         message(gettextf("Running specific tests for package %s",
                          sQuote(pkg)), domain = NA)
-        Rfiles <- dir(".", pattern="\\.[rR]$")
+        Rfiles <- dir(".", pattern="\\.R$")
         for(f in Rfiles) {
             message(gettextf("  Running %s", sQuote(f)), domain = NA)
-            outfile <- sub("rout$", "Rout", paste0(f, "out"))
+            outfile <- paste0(f, "out")
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                          "CMD BATCH --vanilla --no-timing", Ropts,
                          shQuote(f), shQuote(outfile))
@@ -460,7 +432,7 @@ testInstalledPackage <-
                 appendLF = FALSE, domain = NA)
         if(!is.null(Log))
             cat("  Running ", sQuote(f), sep = "", file = Log)
-        outfile <- sub("rout$", "Rout", paste0(f, "out"))
+        outfile <- paste0(f, "out")
         cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                      "CMD BATCH --vanilla",
                      if(use_valgrind) "--debugger=valgrind",
@@ -520,7 +492,7 @@ testInstalledPackage <-
         if (nfail > 0) return(nfail)
     }
 
-    Rfiles <- dir(".", pattern="\\.[rR]$")
+    Rfiles <- dir(".", pattern="\\.R$")
     for(f in Rfiles) {
         nfail <- nfail + runone(f)
         if (nfail > 0) return(nfail)
@@ -601,7 +573,7 @@ testInstalledBasic <- function(scope = c("basic", "devel", "both", "internet"))
             on.exit(unlink(f))
         }
         message("  running code in ", sQuote(f), domain = NA)
-        outfile <- sub("rout$", "Rout", paste0(f, "out"))
+        outfile <- paste0(f, "out")
         cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                      "CMD BATCH --vanilla --no-timing",
                      shQuote(f), shQuote(outfile))

@@ -24,20 +24,24 @@
    Not part of the API and subject to change without notice.
 
    NB: HAVE_SYS_SELECT_H should be checked and defined before this is
-   included.
+   included (or <sys/select.h> included if NO_C_HEADERS is defined).
  */
 
 #ifndef R_EXT_EVENTLOOP_H
 #define R_EXT_EVENTLOOP_H
 
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h> /* for fd_set, select according to POSIX 2004 */
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>	 /* ... according to earlier POSIX and perhaps HP-UX */
-#endif
+#ifndef NO_C_HEADERS
+# ifdef HAVE_SYS_SELECT_H
+#  include <sys/select.h> /* for fd_set, select according to POSIX 2004 */
+# endif
+# ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>	 /* according to earlier POSIX and perhaps HP-UX */
+# endif
 /* NOTE: At one time needed on FreeBSD so that fd_set is defined. */
-#include <sys/types.h>
+# include <sys/types.h>
+#else
+#warning "use of NO_C_HEADERS is deprecated"
+#endif
 
 #ifdef  __cplusplus
 extern "C" {

@@ -31,7 +31,7 @@
 ## tools:::.install_packages(c("--preclean", "--no-multiarch", "tree"))
 
 ##' @return ...
-.install_packages <- function(args = NULL, no.q = interactive())
+.install_packages <- function(args = NULL)
 {
     ## calls system() on Windows for
     ## sh (configure.win/cleanup.win) make zip
@@ -47,14 +47,7 @@
     ## Need these here in case of an early error, e.g. missing etc/Makeconf
     tmpdir <- ""
     clean_on_error <- TRUE
-
-    do_exit <-
-	if(no.q)
-	    function(status = 1L) stop(".install_packages() exit status ", status)
-	else
-	    function(status = 1L) q("no", status = status, runLast = FALSE)
-
-    do_exit_on_error <- function(status = 1L)
+    do_exit_on_error <- function()
     {
         ## If we are not yet processing a package, we will not have
         ## set curPkg
@@ -83,7 +76,7 @@
         }
 
         do_cleanup()
-        do_exit(status=status)
+        q("no", status = 1, runLast = FALSE)
     }
 
     do_cleanup <- function()
@@ -205,14 +198,12 @@
     }
 
 
-    ## Check whether dir is a subdirectory of parent,
-    ## to protect against malicious package names like ".." below
-    ## Assumes that both directories exist
-    is_subdir <- function(dir, parent) {
-	rl <- Sys.readlink(dir) ## symbolic link (on POSIX, not Windows) is ok:
-	(!is.na(rl) && nzchar(rl)) ||
-	    normalizePath(parent) == normalizePath(file.path(dir, ".."))
-    }
+    # Check whether dir is a subdirectory of parent,
+    # to protect against malicious package names like ".." below
+    # Assumes that both directories exist
+
+    is_subdir <- function(dir, parent)
+        normalizePath(parent) == normalizePath(file.path(dir, ".."))
 
     fullpath <- function(dir)
     {
@@ -224,9 +215,16 @@
 
     ## used for LazyData, KeepSource, ByteCompile, Biarch
     parse_description_field <- function(desc, field, default = TRUE)
-	str_parse_logic(desc[field], default = default,
-			otherwise = quote(
-			    errmsg("invalid value of ", field, " field in DESCRIPTION")))
+    {
+        tmp <- desc[field]
+        if (is.na(tmp)) default
+        else switch(tmp,
+                    "yes"=, "Yes" =, "true" =, "True" =, "TRUE" = TRUE,
+                    "no" =, "No" =, "false" =, "False" =, "FALSE" = FALSE,
+                    ## default
+                    errmsg("invalid value of ", field, " field in DESCRIPTION")
+                    )
+    }
 
     starsmsg <- function(stars, ...)
         message(stars, " ", ..., domain = NA)
@@ -238,7 +236,10 @@
     }
 
     pkgerrmsg <- function(msg, pkg)
-	errmsg(msg, " for package ", sQuote(pkg))
+    {
+        message("ERROR: ", msg, " for package ", sQuote(pkg), domain = NA)
+        do_exit_on_error()
+    }
 
     ## 'pkg' is the absolute path to package sources.
     do_install <- function(pkg)
@@ -268,7 +269,7 @@
             curPkg <<- pkg_name
         }
 
-        instdir <- file.path(lib, pkg_name) # = <library>/<pkg>
+        instdir <- file.path(lib, pkg_name)
         Sys.setenv(R_PACKAGE_NAME = pkg_name, R_PACKAGE_DIR = instdir)
         status <- .Rtest_package_depends_R_version()
         if (status) do_exit_on_error()
@@ -294,23 +295,13 @@
         is_source_package <- is.na(desc["Built"])
 
         if (is_source_package) {
-            ## Find out if any C++ standard is requested in DESCRIPTION file
+            ## Find out if C++11 is requested in DESCRIPTION file
             sys_requires <- desc["SystemRequirements"]
             if (!is.na(sys_requires)) {
                 sys_requires <- unlist(strsplit(sys_requires, ","))
-                if(any(grepl("^[[:space:]]*C[+][+]14[[:space:]]*$",
-                             sys_requires, ignore.case=TRUE))) {
-                    Sys.setenv("R_PKG_CXX_STD"="CXX14")
-                    on.exit(Sys.unsetenv("R_PKG_CXX_STD"))
-                }
-                else if(any(grepl("^[[:space:]]*C[+][+]11[[:space:]]*$",
+                if(any(grepl("^[[:space:]]*C[+][+]11[[:space:]]*$",
                              sys_requires, ignore.case=TRUE))) {
                     Sys.setenv("R_PKG_CXX_STD"="CXX11")
-                    on.exit(Sys.unsetenv("R_PKG_CXX_STD"))
-                }
-                else if(any(grepl("^[[:space:]]*C[+][+]98[[:space:]]*$",
-                                  sys_requires, ignore.case=TRUE))) {
-                    Sys.setenv("R_PKG_CXX_STD"="CXX98")
                     on.exit(Sys.unsetenv("R_PKG_CXX_STD"))
                 }
             }
@@ -325,7 +316,7 @@
 
         ## Add read permission to all, write permission to owner
         ## If group-write permissions were requested, set them
-        .Call(C_dirchmod, instdir, group.writable)
+        .Call(dirchmod, instdir, group.writable)
         is_first_package <<- FALSE
 
         if (tar_up) { # Unix only
@@ -417,7 +408,7 @@
                 for(arch in archs) {
                     ss <- paste("src", arch, sep = "-")
                     ## it seems fixing permissions is sometimes needed
-                    .Call(C_dirchmod, ss, group.writable)
+                    .Call(dirchmod, ss, group.writable)
                     unlink(ss, recursive = TRUE)
                 }
 
@@ -778,7 +769,7 @@
                             dir.create(ss, showWarnings = FALSE)
                             file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
                             ## avoid read-only files/dir such as nested .svn
-			    .Call(C_dirchmod, ss, group.writable)
+			    .Call(dirchmod, ss, group.writable)
                             setwd(ss)
 
                             ra <- paste0("/", arch)
@@ -1035,7 +1026,7 @@
             i_dirs <- grep(.vc_dir_names_re, i_dirs,
                            invert = TRUE, value = TRUE)
             ## This ignores any restrictive permissions in the source
-            ## tree, since the later .Call(C_dirchmod) call will
+            ## tree, since the later .Call(dirchmod) call will
             ## fix the permissions.
 
             ## handle .Rinstignore:
@@ -1056,8 +1047,8 @@
             for(e in ignore)
                 i_files <- grep(e, i_files, perl = TRUE, invert = TRUE,
                                 value = TRUE, ignore.case = TRUE)
-            i_files <- i_files %w/o% c("inst/doc/Rplots.pdf",
-                                       "inst/doc/Rplots.ps")
+            i_files <- i_files[!i_files %in%
+                               c("inst/doc/Rplots.pdf", "inst/doc/Rplots.ps")]
             i_files <- grep("inst/doc/.*[.](log|aux|bbl|blg|dvi)$",
                             i_files, perl = TRUE, invert = TRUE,
                             value = TRUE, ignore.case = TRUE)
@@ -1066,7 +1057,7 @@
                 i_files <- grep("inst/doc/.*[.](png|jpg|jpeg|gif|ps|eps)$",
                                 i_files, perl = TRUE, invert = TRUE,
                                 value = TRUE, ignore.case = TRUE)
-            i_files <- i_files %w/o% "Makefile"
+            i_files <- i_files[! i_files %in% "Makefile"]
             i2_files <- gsub("^inst", instdir, i_files)
             file.copy(i_files, i2_files)
             if (!WINDOWS) {
@@ -1094,22 +1085,21 @@
 	## LazyLoading/Compiling
 	if (install_R && dir.exists("R") && length(dir("R"))) {
             BC <- if (!is.na(byte_compile)) byte_compile
-                  else
-                      parse_description_field(desc, "ByteCompile", default = FALSE)
+            else
+                parse_description_field(desc, "ByteCompile", default = FALSE)
             rcps <- Sys.getenv("R_COMPILE_PKGS")
             rcp <- switch(rcps,
-                          "TRUE"=, "true"=, "True"=, "yes"=, "Yes"= 1,
-                          "FALSE"=,"false"=,"False"=, "no"=, "No" = 0,
-                          as.numeric(rcps))
+                "TRUE"=, "true"=, "True"=, "yes"=, "Yes"= 1,
+                "FALSE"=,"false"=,"False"=, "no"=, "No" = 0,
+                as.numeric(rcps)
+            )
             BC <- BC || (!is.na(rcp) && rcp > 0)
             if (BC) {
                 starsmsg(stars,
                          "byte-compile and prepare package for lazy loading")
                 ## need to disable JIT
                 Sys.setenv(R_ENABLE_JIT = 0L)
-                compiler::enableJIT(0)
                 compiler::compilePKGS(1L)
-                compiler::setCompilerOptions(suppressAll = FALSE)
                 compiler::setCompilerOptions(suppressUndefined = TRUE)
             } else
                 starsmsg(stars, "preparing package for lazy loading")
@@ -1210,8 +1200,7 @@
             ## On a Unix-alike this calls system(input=)
             ## and that uses a temporary file and redirection.
             cmd <- paste0("tools:::.test_load_package('", pkg_name, "', '", lib, "')")
-            ## R_LIBS was set already, but Rprofile/Renviron may change it
-            ## R_runR is in check.R
+            ## R_LIBS was set already.  R_runR is in check.R
             deps_only <-
                 config_val_to_logical(Sys.getenv("_R_CHECK_INSTALL_DEPENDS_", "FALSE"))
             env <- if (deps_only) setRlibs(lib0, self = TRUE, quote = TRUE) else ""
@@ -1232,8 +1221,8 @@
                     errmsg(msg) # does not return
                 }
             } else {
-                opts <- paste(if(deps_only) "--vanilla" else "--no-save",
-                              "--slave")
+                opts <- if (deps_only) "--vanilla --slave"
+                else "--no-save --slave"
                 out <- R_runR(cmd, opts, env = env)
                 if(length(out))
                     cat(paste(c(out, ""), collapse = "\n"))
@@ -1303,7 +1292,7 @@
         a <- args[1L]
         if (a %in% c("-h", "--help")) {
             Usage()
-            do_exit(0)
+            q("no", runLast = FALSE)
         }
         else if (a %in% c("-v", "--version")) {
             cat("R add-on package installer: ",
@@ -1314,7 +1303,7 @@
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
-	    do_exit(0)
+            q("no", runLast = FALSE)
         } else if (a %in% c("-c", "--clean")) {
             clean <- TRUE
             shargs <- c(shargs, "--clean")
@@ -1450,7 +1439,7 @@
             f  <- dir(file.path(R.home(), "bin"))
             archs <- f[f %in% c("i386", "x64")]
             if (length(archs) > 1L) {
-                args <- args0 %w/o% c("--merge-multiarch", "--build")
+                args <- args0[! args0 %in% c("--merge-multiarch", "--build")]
                 ## this will report '* DONE (foo)' if it works, which
                 ## R CMD check treats as an indication of success.
                 ## so use a backdoor to suppress it.
@@ -1472,7 +1461,7 @@
         } else {
             archs  <- dir(file.path(R.home("bin"), "exec"))
             if (length(archs) > 1L) {
-                args <- args0 %w/o% c("--merge-multiarch", "--build")
+                args <- args0[! args0 %in% c("--merge-multiarch", "--build")]
                 ## this will report '* DONE (foo)' if it works, which
                 ## R CMD check treats as an indication of success.
                 ## so use a backdoor to suppress it.
@@ -1527,7 +1516,7 @@
                 errmsg("error unpacking tarball")
             ## Now see what we got
             nf <- dir(tmpdir, full.names = TRUE)
-            new <- nf %w/o% of
+            new <- nf[!nf %in% of]
             if (!length(new))
                 errmsg("cannot extract package from ", sQuote(pkg))
             if (length(new) > 1L)
@@ -1610,14 +1599,14 @@
                     " for modifying\nTry removing ", sQuote(lockdir),
                     domain = NA)
             do_cleanup_tmpdir()
-            do_exit(status = 3)
+            q("no", status = 3, runLast = FALSE)
         }
         dir.create(lockdir, recursive = TRUE)
         if (!dir.exists(lockdir)) {
             message("ERROR: failed to create lock directory ", sQuote(lockdir),
                     domain = NA)
             do_cleanup_tmpdir()
-            do_exit(status = 3)
+            q("no", status = 3, runLast = FALSE)
         }
         if (debug) starsmsg(stars, "created lock directory ", sQuote(lockdir))
     }
@@ -1749,9 +1738,7 @@
     with_f77 <- FALSE
     with_f9x <- FALSE
     with_objc <- FALSE
-    use_cxx98 <- FALSE
     use_cxx1x <- FALSE
-    use_cxx1y <- FALSE
     pkg_libs <- character()
     clean <- FALSE
     preclean <- FALSE
@@ -1850,14 +1837,8 @@
                               value = TRUE, useBytes = TRUE))) {
             cxxstd <- gsub("^CXX_STD *=", "", ll)
             cxxstd <- gsub(" *", "", cxxstd)
-            if (cxxstd == "CXX14") {
-                use_cxx1y <- TRUE
-            }
-            else if (cxxstd == "CXX11") {
+            if (cxxstd == "CXX11") {
                 use_cxx1x <- TRUE
-            }
-            else if (cxxstd == "CXX98") {
-                use_cxx98 <- TRUE
             }
         }
     } else if (file.exists("Makevars")) {
@@ -1869,40 +1850,20 @@
                               value = TRUE, useBytes = TRUE))) {
             cxxstd <- gsub("^CXX_STD *=", "", ll)
             cxxstd <- gsub(" *", "", cxxstd)
-            if (cxxstd == "CXX14") {
-                use_cxx1y <- TRUE
-            }
-            else if (cxxstd == "CXX11") {
+            if (cxxstd == "CXX11") {
                 use_cxx1x <- TRUE
-            }
-            else if (cxxstd == "CXX98") {
-                use_cxx98 <- TRUE
             }
         }
     }
-    if (!use_cxx1x && !use_cxx1y && !use_cxx98) {
-        valy <- Sys.getenv("USE_CXX1Y", NA_character_)
-        valx <- Sys.getenv("USE_CXX1X", NA_character_)
-        val98 <- Sys.getenv("USE_CXX98", NA_character_)
-        if(!is.na(valy)) {
-            use_cxx1y <- TRUE
-        }
-        else if (!is.na(valx)) {
+    if (!use_cxx1x) {
+        val <- Sys.getenv("USE_CXX1X", NA_character_)
+        if(!is.na(val)) {
             use_cxx1x <- TRUE
-        }
-        else if (!is.na(val98)) {
-            use_cxx98 <- TRUE
         }
         else {
             val <- Sys.getenv("R_PKG_CXX_STD")
-            if (val == "CXX14") {
-                use_cxx1y <- TRUE
-            }
-            else if (val == "CXX11") {
+            if (val == "CXX11") {
                 use_cxx1x <- TRUE
-            }
-            else if (val == "CXX98") {
-                use_cxx98 <- TRUE
             }
         }
     }
@@ -1912,24 +1873,12 @@
         makeargs <- c("SHLIB_LDFLAGS='$(SHLIB_FCLDFLAGS)'",
                       "SHLIB_LD='$(SHLIB_FCLD)'", makeargs)
     } else if (with_cxx) {
-        makeargs <- if (use_cxx1y)
-            c("CXX='$(CXX1Y) $(CXX1YSTD)'",
-              "CXXFLAGS='$(CXX1YFLAGS)'",
-              "CXXPICFLAGS='$(CXX1YPICFLAGS)'",
-              "SHLIB_LDFLAGS='$(SHLIB_CXX1YLDFLAGS)'",
-              "SHLIB_LD='$(SHLIB_CXX1YLD)'", makeargs)
-        else if (use_cxx1x)
+        makeargs <- if (use_cxx1x)
             c("CXX='$(CXX1X) $(CXX1XSTD)'",
               "CXXFLAGS='$(CXX1XFLAGS)'",
               "CXXPICFLAGS='$(CXX1XPICFLAGS)'",
               "SHLIB_LDFLAGS='$(SHLIB_CXX1XLDFLAGS)'",
               "SHLIB_LD='$(SHLIB_CXX1XLD)'", makeargs)
-        else if (use_cxx98)
-            c("CXX='$(CXX98) $(CXX98STD)'",
-              "CXXFLAGS='$(CXX98FLAGS)'",
-              "CXXPICFLAGS='$(CXX98PICFLAGS)'",
-              "SHLIB_LDFLAGS='$(SHLIB_CXX98LDFLAGS)'",
-              "SHLIB_LD='$(SHLIB_CXX98LD)'", makeargs)
         else
             c("SHLIB_LDFLAGS='$(SHLIB_CXXLDFLAGS)'",
               "SHLIB_LD='$(SHLIB_CXXLD)'", makeargs)
@@ -2282,21 +2231,21 @@
         type <- "html"
         have <- list.files(file.path(outDir, dirname[type]))
         have2 <- sub("\\.html", "", basename(have))
-        drop <- have[have2 %notin% c(bfs, "00Index", "R.css")]
+        drop <- have[! have2 %in% c(bfs, "00Index", "R.css")]
         unlink(file.path(outDir, dirname[type], drop))
     }
     if ("latex" %in% types) {
         type <- "latex"
         have <- list.files(file.path(outDir, dirname[type]))
         have2 <- sub("\\.tex", "", basename(have))
-        drop <- have[have2 %notin% bfs]
+        drop <- have[! have2 %in% bfs]
         unlink(file.path(outDir, dirname[type], drop))
     }
     if ("example" %in% types) {
         type <- "example"
         have <- list.files(file.path(outDir, dirname[type]))
         have2 <- sub("\\.R", "", basename(have))
-        drop <- have[have2 %notin% bfs]
+        drop <- have[! have2 %in% bfs]
         unlink(file.path(outDir, dirname[type], drop))
     }
 

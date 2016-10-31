@@ -2,7 +2,7 @@
 #  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1998 B. D. Ripley
-#  Copyright (C) 2000-2016 The R Core Team
+#  Copyright (C) 2000-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -50,13 +50,12 @@ function(formula, data, weights, subset,
 ppr.default <-
 function(x, y, weights=rep(1,n), ww=rep(1,q), nterms, max.terms=nterms,
 	 optlevel=2, sm.method=c("supsmu", "spline", "gcvspline"),
-	 bass=0, span=0, df=5, gcvpen=1, trace = FALSE, ...)
+	 bass=0, span=0, df=5, gcvpen=1, ...)
 {
     call <- match.call()
     call[[1L]] <- as.name("ppr")
     sm.method <- match.arg(sm.method)
-    ism <- switch(sm.method, supsmu = 0L, spline = 1L, gcvspline = 2L)
-    if(trace) ism <- -(ism + 1L)
+    ism <- switch(sm.method, supsmu=0, spline=1, gcvspline=2)
     if(missing(nterms)) stop("'nterms' is missing with no default")
     mu <- nterms; ml <- max.terms
     x <- as.matrix(x)
@@ -67,8 +66,10 @@ function(x, y, weights=rep(1,n), ww=rep(1,q), nterms, max.terms=nterms,
     if(nrow(y) != n) stop("mismatched 'x' and 'y'")
     p <- ncol(x)
     q <- ncol(y)
-    xnames <- if(!is.null(dimnames(x))) dimnames(x)[[2L]] else paste0("X", 1L:p)
-    ynames <- if(!is.null(dimnames(y))) dimnames(y)[[2L]] else paste0("Y", 1L:q)
+    if(!is.null(dimnames(x))) xnames <- dimnames(x)[[2L]]
+    else xnames <- paste0("X", 1L:p)
+    if(!is.null(dimnames(y))) ynames <- dimnames(y)[[2L]]
+    else ynames <- paste0("Y", 1L:q)
     msmod <- ml*(p+q+2*n)+q+7+ml+1	# for asr
     nsp <- n*(q+15)+q+3*p
     ndp <- p*(p+1)/2+6*p
@@ -144,9 +145,9 @@ print.summary.ppr <- function(x, ...)
 {
     print.ppr(x, ...)
     mu <- x$mu
-    cat("\nProjection direction vectors ('alpha'):\n")
+    cat("\nProjection direction vectors:\n")
     print(format(x$alpha, ...), quote=FALSE)
-    cat("\nCoefficients of ridge terms ('beta'):\n")
+    cat("\nCoefficients of ridge terms:\n")
     print(format(x$beta, ...), quote=FALSE)
     if(any(x$edf >0)) {
 	cat("\nEquivalent df for ridge terms:\n")
@@ -156,11 +157,7 @@ print.summary.ppr <- function(x, ...)
     invisible(x)
 }
 
-plot.ppr <- function(x, ask, type = "o", cex = 1/2,
-                     main = quote(bquote(
-                         "term"[.(i)]*":" ~~ hat(beta[.(i)]) == .(bet.i))),
-                     xlab = quote(bquote(bold(alpha)[.(i)]^T * bold(x))),
-                     ylab = "", ...)
+plot.ppr <- function(x, ask, type="o", ...)
 {
     ppr.funs <- function(obj)
     {
@@ -181,13 +178,9 @@ plot.ppr <- function(x, ask, type = "o", cex = 1/2,
     }
     for(i in 1L:x$mu) {
 	ord <- order(obj$x[ ,i])
-        bet.i <- format(x$beta[[i]], digits = 3)
-	plot(obj$x[ord, i], obj$y[ord, i], type = type, cex = cex,
-	     main = if(is.call(main)) eval(main) else main,
-	     xlab = if(is.call(xlab)) eval(xlab) else xlab,
-             ylab = ylab, ...)
+	plot(obj$x[ord, i], obj$y[ord, i], type = type,
+	     xlab = paste("term", i), ylab = "", ...)
     }
-    force(bet.i)# codetools
     invisible()
 }
 

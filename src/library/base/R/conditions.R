@@ -309,9 +309,3 @@ withRestarts <- function(expr, ...) {
 
 .handleSimpleError <- function(h, msg, call)
     h(simpleError(msg, call))
-
-.tryResumeInterrupt <- function() {
-    r <- findRestart("resume")
-    if (! is.null(r))
-        invokeRestart(r)
-}

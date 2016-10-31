@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2016-10-26 r71594) -- "Unsuffered Consequences"
+R version 3.3.2 RC (2016-10-26 r71594) -- "Sincere Pumpkin Patch"
 Copyright (C) 2016 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -21,12 +21,9 @@ Type 'q()' to quit R.
 > if(.Platform$OS.type == "unix" &&
 +    is.null(nsl("cran.r-project.org"))) q()
 > 
-> # test do_download (and "record" #{packages}):
-> ap <- available.packages(contrib.url("http://cran.r-project.org"))
-> ## IGNORE_RDIFF_BEGIN
-> nrow(ap)
+> # test do_download.
+> nrow(available.packages(contrib.url("http://cran.r-project.org")))
 [1] 9391
-> ## IGNORE_RDIFF_END
 > 
 > # test url connections on http
 > zz <- url("http://cran.r-project.org/")

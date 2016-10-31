@@ -613,19 +613,6 @@ static void isort_with_index(int *x, int *indx, int n)
 }
 
 
-// body(x) without attributes "srcref", "srcfile", "wholeSrcref" :
-// NOTE: Callers typically need  PROTECT(R_body_no_src(.))
-SEXP R_body_no_src(SEXP x) {
-    SEXP b = PROTECT(duplicate(BODY_EXPR(x)));
-    /* R's removeSource() works *recursively* on the body()
-       in  ../library/utils/R/sourceutils.R  but that seems unneeded (?) */
-    setAttrib(b, R_SrcrefSymbol, R_NilValue);
-    setAttrib(b, R_SrcfileSymbol, R_NilValue);
-    setAttrib(b, R_WholeSrcrefSymbol, R_NilValue);
-    UNPROTECT(1);
-    return b;
-}
-
 /* merge(xinds, yinds, all.x, all.y) */
 /* xinds, yinds are along x and y rows matching into the (numeric)
    common indices, with 0 for non-matches.
@@ -664,10 +651,10 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
     isort_with_index(INTEGER(yi), iy, ny);
 
     /* 1. determine result sizes */
-    for (i = 0; i < nx; i++)
-	if (INTEGER(xi)[i] > 0) break;
+    for (i = 0; i < nx; i++) 
+	if (INTEGER(xi)[i] > 0) break; 
     nx_lone = i;
-    for (i = 0; i < ny; i++)
+    for (i = 0; i < ny; i++) 
 	if (INTEGER(yi)[i] > 0) break;
     ny_lone = i;
     double dnans = 0;
@@ -2224,27 +2211,15 @@ SEXP attribute_hidden do_tabulate(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP in = CAR(args), nbin = CADR(args);
     if (TYPEOF(in) != INTSXP)  error("invalid input");
     R_xlen_t n = XLENGTH(in);
+    /* FIXME: could in principle be a long vector */
     int nb = asInteger(nbin);
     if (nb == NA_INTEGER || nb < 0)
 	error(_("invalid '%s' argument"), "nbin");
-    int *x = INTEGER(in);
-    SEXP ans;
-#ifdef LONG_VECTOR_SUPPORT
-    if (n > INT_MAX) {
-	ans = allocVector(REALSXP, nb);
-	double *y = REAL(ans);
-	if (nb) memset(y, 0, nb * sizeof(double));
-	for(R_xlen_t i = 0 ; i < n ; i++)
-	    if (x[i] != NA_INTEGER && x[i] > 0 && x[i] <= nb) y[x[i] - 1]++;
-    } else
-#endif
-    {
-	ans = allocVector(INTSXP, nb);
-	int *y = INTEGER(ans);
-	if (nb) memset(y, 0, nb * sizeof(int));
-	for(R_xlen_t i = 0 ; i < n ; i++)
-	    if (x[i] != NA_INTEGER && x[i] > 0 && x[i] <= nb) y[x[i] - 1]++;
-    }
+    SEXP ans = allocVector(INTSXP, nb);
+    int *x = INTEGER(in), *y = INTEGER(ans);
+    if (nb) memset(y, 0, nb * sizeof(int));
+    for(R_xlen_t i = 0 ; i < n ; i++)
+	if (x[i] != NA_INTEGER && x[i] > 0 && x[i] <= nb) y[x[i] - 1]++;
     return ans;
 }
 

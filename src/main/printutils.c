@@ -668,8 +668,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 
 		    default:
 			/* print in octal */
-			// gcc 7 requires cast here
-			snprintf(buf, 5, "\\%03o", (unsigned char)k);
+			snprintf(buf, 5, "\\%03o", k);
 			for(j = 0; j < 4; j++) *q++ = buf[j];
 			break;
 		    }

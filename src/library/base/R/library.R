@@ -105,27 +105,50 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                  call. = FALSE, domain = NA)
     }
 
-    testFeatures <- function(features, pkgInfo, pkgname, pkgpath)
+    checkLicense <- function(pkg, pkgInfo, pkgPath)
     {
-        ## Check that the internals version used to build this package
-        ## matches the version of current R. Failure in this test
-        ## should only occur if the R version is an unreleased devel
-        ## version or the package was build with an unrelease devel
-        ## version.  Other mismatches should be caught earlier by the
-        ## version checks.
-        needsComp <- as.character(pkgInfo$DESCRIPTION["NeedsCompilation"])
-        if (identical(needsComp, "yes")) {
-            internalsID <- features$internalsID
-            if (is.null(internalsID))
-                ## the initial internalsID for packages installed
-                ## prior to introducing features.rds in the meta data
-                internalsID <- "0310d4b8-ccb1-4bb8-ba94-d36a55f60262"
-            if (internalsID != .Internal(internalsID()))
-                stop(gettextf("package %s was installed by an R version with different internals; it needs to be reinstalled for use with this R version",
-                              sQuote(pkgname)), call. = FALSE, domain = NA)
+        L <- tools:::analyze_license(pkgInfo$DESCRIPTION["License"])
+        if(!L$is_empty && !L$is_verified) {
+            site_file <- path.expand(file.path(R.home("etc"), "licensed.site"))
+            if(file.exists(site_file) &&
+               pkg %in% readLines(site_file)) return()
+            personal_file <- path.expand("~/.R/licensed")
+            if(file.exists(personal_file)) {
+                agreed <- readLines(personal_file)
+                if(pkg %in% agreed) return()
+            } else agreed <- character()
+            if(!interactive())
+                stop(gettextf(
+                    "package %s has a license that you need to accept in an interactive session",
+                              sQuote(pkg)), domain = NA)
+            lfiles <- file.path(pkgpath, c("LICENSE", "LICENCE"))
+            lfiles <- lfiles[file.exists(lfiles)]
+            if(length(lfiles)) {
+                message(gettextf(
+                    "package %s has a license that you need to accept after viewing",
+                                 sQuote(pkg)), domain = NA)
+                readline("press RETURN to view license")
+                encoding <- pkgInfo$DESCRIPTION["Encoding"]
+                if(is.na(encoding)) encoding <- ""
+                ## difR and EVER have a Windows' 'smart quote' LICEN[CS]E file
+                if(encoding == "latin1") encoding <- "cp1252"
+                file.show(lfiles[1L], encoding = encoding)
+            } else {
+                message(gettextf(paste("package %s has a license that you need to accept:",
+				       "according to the DESCRIPTION file it is",
+				       "%s", sep="\n"),
+				 sQuote(pkg),
+				 pkgInfo$DESCRIPTION["License"]), domain = NA)
+            }
+            choice <- utils::menu(c("accept", "decline"),
+                                  title = paste("License for", sQuote(pkg)))
+            if(choice != 1)
+                stop(gettextf("license for package %s not accepted",
+                              sQuote(package)), domain = NA, call. = FALSE)
+            dir.create(dirname(personal_file), showWarnings=FALSE)
+            writeLines(c(agreed, pkg), personal_file)
         }
     }
-
 
     checkNoGenerics <- function(env, pkg)
     {
@@ -137,7 +160,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         else {
             ## A package will have created a generic
             ## only if it has created a formal method.
-	    !any(startsWith(names(env), ".__T"))
+            length(grep(pattern="^\\.__T", names(env))) == 0L
         }
     }
 
@@ -251,12 +274,12 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                               sQuote(package)), domain = NA)
             pkgInfo <- readRDS(pfile)
             testRversion(pkgInfo, package, pkgpath)
-            ffile <- system.file("Meta", "features.rds", package = package,
-                                 lib.loc = which.lib.loc)
-            features <- if (file.exists(ffile)) readRDS(ffile) else NULL
-            testFeatures(features, pkgInfo, package, pkgpath)
+            ## avoid any bootstrapping issues by these exemptions
+            if(!package %in% c("datasets", "grDevices", "graphics", "methods",
+                               "stats", "tools", "utils") &&
+               isTRUE(getOption("checkPackageLicense", FALSE)))
+                checkLicense(package, pkgInfo, pkgpath)
 
-            ## The licence check is now in loadNamespace
             ## The check for inconsistent naming is now in find.package
 
             if(is.character(pos)) {
@@ -663,7 +686,7 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
     if(length(package) == 1L  &&
        package %in% c("base", "tools", "utils", "grDevices", "graphics",
                       "stats", "datasets", "methods", "grid", "parallel",
-                      "splines", "stats4", "tcltk", "compiler"))
+                      "splines", "stats4", "tcltk"))
         return(file.path(.Library, package))
 
     if(is.null(package)) package <- .packages()

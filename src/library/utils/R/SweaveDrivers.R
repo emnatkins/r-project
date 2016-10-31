@@ -133,28 +133,13 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                 devs <- c(devs, list(jpeg.Swd))
                 devoffs <- c(devoffs, list(grDevices::dev.off))
             }
-            if(nzchar(grd <- options$grdevice)) {
+            if (nzchar(grd <- options$grdevice)) {
+                devs <- c(devs, list(get(grd, envir = .GlobalEnv)))
                 grdo <- paste(grd, "off", sep = ".")
-                if(grepl("::", grd, fixed = TRUE)) {
-                    devs <- c(devs, eval(parse(text = grd)))
-                    devoffs <-
-                        c(devoffs,
-                          if(!inherits(grdo <-
-                                           tryCatch(eval(parse(text = grdo)),
-                                                    error = identity),
-                                       "error"))
-                              list(grdo)
-                          else
-                              list(grDevices::dev.off))
-                } else {
-                    devs <- c(devs, list(get(grd, envir = .GlobalEnv)))
-                    devoffs <-
-                        c(devoffs,
-                          if(exists(grdo, envir = .GlobalEnv))
-                              list(get(grdo, envir = .GlobalEnv))
-                          else
-                              list(grDevices::dev.off))
-                }
+                devoffs <- c(devoffs,
+                             if (exists(grdo, envir = .GlobalEnv))
+                                 list(get(grdo, envir = .GlobalEnv))
+                             else list(grDevices::dev.off))
             }
         }
         if (!object$quiet) {

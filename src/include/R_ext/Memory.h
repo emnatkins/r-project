@@ -25,12 +25,15 @@
 #ifndef R_EXT_MEMORY_H_
 #define R_EXT_MEMORY_H_
 
-#if defined(__cplusplus) && !defined(DO_NOT_USE_CXX_HEADERS)
-# include <cstddef>
-# define R_SIZE_T std::size_t
+#ifndef NO_C_HEADERS
+# if defined(__cplusplus) && !defined(DO_NOT_USE_CXX_HEADERS)
+#  include <cstddef>
+using std::size_t;
+# else
+#  include <stddef.h> /* for size_t */
+# endif
 #else
-# include <stddef.h> /* for size_t */
-# define R_SIZE_T size_t
+#warning "use of NO_C_HEADERS is deprecated"
 #endif
 
 #ifdef  __cplusplus
@@ -43,8 +46,8 @@ void	vmaxset(const void *);
 void	R_gc(void);
 int	R_gc_running();
 
-char*	R_alloc(R_SIZE_T, int);
-long double *R_allocLD(R_SIZE_T nelem);
+char*	R_alloc(size_t, int);
+long double *R_allocLD(size_t nelem);
 char*	S_alloc(long, int);
 char*	S_realloc(char *, long, long, int);
 

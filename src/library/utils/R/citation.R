@@ -40,7 +40,7 @@ function(given = NULL, family = NULL, middle = NULL,
                          paste(names(args)[!args_length_ok],
                                collapse = ", ")),
                 domain = NA)
-    args <- lapply(args, function(x) rep_len(x, max(args_length)))
+    args <- lapply(args, function(x) rep(x, length.out = max(args_length)))
 
     ## <COMMENT Z>
     ## We could do this more elegantly, but let's just go through the
@@ -233,7 +233,7 @@ function(x, name, value)
 {
     name <- match.arg(name, c("given", "family", "role", "email", "comment"))
     x <- .listify(unclass(x))
-    value <- rep_len(value, length(x))
+    value <- rep(value, length.out = length(x))
 
     if(name == "role")
         value <- lapply(value, .canonicalize_person_role)
@@ -331,9 +331,7 @@ function(x)
         else NULL
         x <- sub("[[:space:]]*\\([^)]*\\)", "", x)
         email <- if(grepl("<.*>", x))
-            unlist(strsplit(gsub("[[:space:]]*", "",
-                                 sub(".*<([^>]*)>.*", "\\1", x)),
-                            ",", fixed = TRUE))
+            sub(".*<([^>]*)>.*", "\\1", x)
         else NULL
         x <- sub("[[:space:]]*<[^>]*>", "", x)
         role <- if(grepl("\\[.*\\]", x))
@@ -349,7 +347,7 @@ function(x)
 	von <- c("De", "Den", "Der", "La", "Le", "Ten", "Van", "Von")
 	family <- x[length(x)]
 	given <- x[-length(x)]
-	if(length(family) &&
+	if(!is.null(family) &&
            !is.na(match(family, c(jr, tolower(jr))))) {
             family <- paste(given[length(given)], family)
             given <- given[-length(given)]
@@ -443,26 +441,11 @@ function(x,
     braces <- braces[include]
     collapse <- collapse[include]
 
-    paste_collapse <- function(x, collapse) {
-        if(is.na(collapse) || identical(collapse, FALSE)) {
- 	    x[1L]
- 	} else {
- 	    paste(x, collapse = collapse)
- 	}
-    }
-
     ## format 1 person
     format_person1 <- function(p) {
-	rval <- lapply(seq_along(p),
-                       function(i) {
-                           if(is.null(p[[i]]))
-                               NULL
-                           else
-                               paste0(braces[[i]][1L],
-                                      paste_collapse(p[[i]],
-                                                     collapse[[i]]),
-                                      braces[[i]][2L])
-                       })
+	rval <- lapply(seq_along(p), function(i) if(is.null(p[[i]])) NULL else
+		       paste0(braces[[i]][1L], paste(p[[i]], collapse = collapse[[i]]),
+			      braces[[i]][2L]))
 	paste(do.call("c", rval), collapse = " ")
     }
 
@@ -481,7 +464,7 @@ function(object, ...)
          format(p, include = c("family", "given"),
                 braces = list(given = br, family = c("", ",")))
     })
-    paste(object[nzchar(object)], collapse = " and ")
+    paste(object, collapse = " and ")
 }
 
 ######################################################################
@@ -512,7 +495,7 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
                          paste(names(args)[!args_length_ok],
                                collapse = ", ")),
                 domain = NA)
-    args <- lapply(args, function(x) rep_len(x, max_length))
+    args <- lapply(args, function(x) rep(x, length.out = max_length))
 
     other_length <- lengths(other)
     if(!all(other_length_ok <- other_length %in% c(1L, max_length)))
@@ -520,7 +503,7 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
                          paste(names(other)[!other_length_ok],
                                collapse = ", ")),
                 domain = NA)
-    other <- lapply(other, function(x) rep_len(x, max_length))
+    other <- lapply(other, function(x) rep(x, length.out = max_length))
 
     bibentry1 <-
     function(bibtype, textVersion, header = NULL, footer = NULL, key = NULL, ..., other = list())
@@ -962,7 +945,7 @@ function(x, name, value)
     name <- tolower(name)
 
     ## recycle value
-    value <- rep_len(.listify(value), length(x))
+    value <- rep(.listify(value), length.out = length(x))
 
     ## check bibtype
     if(name == "bibtype") {
@@ -1161,12 +1144,7 @@ function(package = "base", lib.loc = NULL, auto = NULL)
         ## if(is.null(auto)): Use default auto-citation if no CITATION
         ## available.
         citfile <- file.path(dir, "CITATION")
-        test <- file_test("-f", citfile)
-        if(!test) {                     # allow package source
-            citfile <- file.path(dir, "inst", "CITATION")
-            test <- file_test("-f", citfile)
-        }
-        if(is.null(auto)) auto <- !test
+        if(is.null(auto)) auto <- !file_test("-f", citfile)
         ## if CITATION is available
         if(!auto) {
             return(readCitationFile(citfile, meta))
@@ -1210,29 +1188,14 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     }
 
     author <- meta$`Authors@R`
-    ## <NOTE>
+    ## <FIXME>
     ## Older versions took persons with no roles as "implied" authors.
-    ## Now we only use persons with a name and a 'aut' role.  If there
-    ## are none, we use persons with a name and a 'cre' role.
-    ## If this still gives nothing (which really should not happen), we
-    ## fall back to the plain text Author field.
-    ## Checking will at least note the cases where there are no persons
-    ## with names and 'aut' or 'cre' roles.
+    ## So for now check whether Authors@R gives any authors; if not fall
+    ## back to the plain text Author field.
     if(length(author)) {
-        aar <- .read_authors_at_R_field(author)
-        author <- Filter(function(e) {
-                             !(is.null(e$given) &&
-                               is.null(e$family)) &&
-                                 !is.na(match("aut", e$role))
-                         },
-                         aar)
-        if(!length(author))
-            author <- Filter(function(e) {
-                                 !(is.null(e$given) &&
-                                   is.null(e$family)) &&
-                                     !is.na(match("cre", e$role))
-                             },
-                             aar)
+        author <- .read_authors_at_R_field(author)
+        ## We only want those with author roles.
+        author <- Filter(.person_has_author_role, author)
     }
     if(length(author)) {
         has_authors_at_R_field <- TRUE
@@ -1240,7 +1203,7 @@ function(package = "base", lib.loc = NULL, auto = NULL)
         has_authors_at_R_field <- FALSE
         author <- as.personList(meta$Author)
     }
-    ## </NOTE>
+    ## </FIXME>
 
     z <- list(title = paste0(package, ": ", meta$Title),
               author = author,
@@ -1310,14 +1273,7 @@ function(x)
 .read_authors_at_R_field <-
 function(x)
 {
-    out <- if((Encoding(x) == "UTF-8") && !l10n_info()$"UTF-8") {
-        con <- file()
-        on.exit(close(con))
-        writeLines(x, con, useBytes = TRUE)
-        eval(parse(con, encoding = "UTF-8"))
-    } else {
-        eval(parse(text = x))
-    }
+    out <- eval(parse(text = x))
 
     ## Let's by nice ...
     ## Alternatively, we could throw an error.
@@ -1363,13 +1319,19 @@ function(x)
     if(inherits(x, "list")) x else list(x)
 
 .format_person_for_plain_author_spec <-
-function(x)
-{
-    ## Single person only.
-    ## Give empty if person has no name or no role.
-    if((is.null(x$given) && is.null(x$family)) || is.null(x$role))
-        return("")
-    format(x, include = c("given", "family", "role", "comment"))
+function(x) {
+    ## Names first.
+    out <- format(x, include = c("given", "family"))
+    ## Only show roles recommended for usage with R.
+    role <- x$role
+    if(!length(role)) return("")
+    role <- role[role %in% MARC_relator_db_codes_used_with_R]
+    if(!length(role)) return("")
+    out <- sprintf("%s [%s]", out, paste(role, collapse = ", "))
+    if(!is.null(comment <- x$comment))
+        out <- sprintf("%s (%s)", out,
+                       paste(comment, collapse = "\n"))
+    out
 }
 
 ## NB: because of the use of strwrap(), this always outputs
@@ -1390,12 +1352,9 @@ function(x)
     ## all subsequent lines are indented (as .write_description avoids
     ## folding for Author fields).  We use a common indentation of 2,
     ## with an extra indentation of 2 within single author descriptions.
-    out <- paste(lapply(x,
-                        function(e) {
-                            paste(strwrap(e, indent = 0L, exdent = 4L),
-                                  ## simplify = FALSE),
-                                  collapse = "\n")
-                        }),
+    out <- paste(lapply(strwrap(x, indent = 0L, exdent = 4L,
+                                simplify = FALSE),
+                        paste, collapse = "\n"),
                  collapse = ",\n  ")
     if(!is.null(header)) {
         header <- paste(strwrap(header, indent = 0L, exdent = 2L),
@@ -1427,8 +1386,7 @@ function(x)
     ## If this leaves nothing or more than one ...
     if(length(x) != 1L) return("")
     display <- format(x, include = c("given", "family"))
-    address <- format(x, include = c("email"),
-                      collapse = list(email = FALSE))
+    address <- format(x, include = c("email"))
     ## Need to quote display names at least when they contain commas
     ## (RFC 5322 <https://tools.ietf.org/html/rfc5322>).
     if(any(ind <- grepl(",", display))) {

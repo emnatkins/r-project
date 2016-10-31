@@ -52,7 +52,7 @@ C Locals
 c     mhigh is usually equal to nderiv.
       kp1 = k+1
       call bsplvb(t,lent,kp1-mhigh,1,x,left,dbiatx)
-      if (mhigh .eq. 1) return
+      if (mhigh .eq. 1)                 go to 99
 c     the first column of  dbiatx  always contains the b-spline values
 c     for the current order. these are stored in column k+1-current
 c     order  before  bsplvb  is called to put values for the next
@@ -62,8 +62,7 @@ c     higher order on top of it.
          jp1mid = 1
          do 11 j=ideriv,k
             dbiatx(j,ideriv) = dbiatx(jp1mid,1)
-            jp1mid = jp1mid + 1
-   11       continue
+   11       jp1mid = jp1mid + 1
          ideriv = ideriv - 1
          call bsplvb(t,lent,kp1-ideriv,2,x,left,dbiatx)
    15    continue
@@ -77,15 +76,13 @@ c
       jlow = 1
       do 20 i=1,k
          do 19 j=jlow,k
-            a(j,i) = 0d0
-   19       continue
+   19       a(j,i) = 0d0
          jlow = i
-         a(i,i) = 1d0
-   20    continue
+   20    a(i,i) = 1d0
 c     at this point, a(.,j) contains the b-coeffs for the j-th of the
 c     k  b-splines of interest here.
 c
-      do 45 m=2,mhigh
+      do 40 m=2,mhigh
          kp1mm = kp1 - m
          fkp1mm = dble(kp1mm)
          il = left
@@ -100,11 +97,9 @@ c        i < j  is used.sed.
 c           the assumption that t(left) < t(left+1) makes denominator
 c           in  factor  nonzero.
             do 24 j=1,i
-               a(i,j) = (a(i,j) - a(i-1,j))*factor
-   24          continue
+   24          a(i,j) = (a(i,j) - a(i-1,j))*factor
             il = il - 1
-            i = i - 1         
-   25       continue
+   25       i = i - 1
 c
 c        for i=1,...,k, combine b-coeffs a(.,i) with b-spline values
 c        stored in dbiatx(.,m) to get value of  (m-1)st  derivative of
@@ -117,11 +112,9 @@ c        that  a(j,i) = 0  for j < i .
             sum = 0.d0
             jlow = max0(i,m)
             do 35 j=jlow,k
-               sum = a(j,i)*dbiatx(j,m) + sum
-   35       continue
-            dbiatx(i,m) = sum
-   40    continue
-   45 continue
+   35          sum = a(j,i)*dbiatx(j,m) + sum
+   40       dbiatx(i,m) = sum
+   99 return
       end
 
       subroutine bsplvb ( t, lent,jhigh, index, x, left, biatx )
@@ -207,11 +200,10 @@ C Local Variables
       save j,deltal,deltar
       data j/1/
 c
-c                                        go to (10,20), index
-      if (index .eq. 2) go to 20
-      j = 1
+                                        go to (10,20), index
+   10 j = 1
       biatx(1) = 1d0
-      if (j .ge. jhigh) return
+      if (j .ge. jhigh)                 go to 99
 c
    20    jp1 = j + 1
          deltar(j) = t(left+j) - x
@@ -220,9 +212,10 @@ c
          do 26 i=1,j
             term = biatx(i)/(deltar(i) + deltal(jp1-i))
             biatx(i) = saved + deltar(i)*term
-            saved = deltal(jp1-i)*term
-   26       continue
+   26       saved = deltal(jp1-i)*term
          biatx(jp1) = saved
          j = jp1
          if (j .lt. jhigh)              go to 20
+c
+   99                                   return
       end

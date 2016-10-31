@@ -425,7 +425,7 @@ function(dir = NULL, files = NULL,
  	    built <- built[!some_os]
  	    names_built <- names(built)
  	}
- 	built[names_built %notin% basenames] <- NULL
+ 	built[!(names_built %in% basenames)] <- NULL
  	if (length(built)) {
  	    which <- match(names(built), basenames)
  	    if (all(file_test("-nt", built_file, files[which]))) {
@@ -779,7 +779,7 @@ function(db)
             stop(sprintf(ngettext(sum(idx),
                                   "missing/empty \\name field in Rd file\n%s",
                                   "missing/empty \\name field in Rd files\n%s"),
-                         paste0("  ", Rd_paths[idx], collapse = "\n")),
+                         paste(" ", Rd_paths[idx], collapse = "\n")),
                  call. = FALSE, domain = NA)
         }
     }

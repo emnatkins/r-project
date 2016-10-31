@@ -26,15 +26,24 @@
 #ifndef R_INTERNALS_H_
 #define R_INTERNALS_H_
 
+// Support for NO_C_HEADERS added in R 3.3.0
 #ifdef __cplusplus
-# include <cstdio>
-# include <climits>
-# include <cstddef>
+# ifndef NO_C_HEADERS
+#  include <cstdio>
+#  include <climits>
+#  include <cstddef>
+# else
+#warning "use of NO_C_HEADERS is deprecated"
+# endif
 extern "C" {
 #else
-# include <stdio.h>
-# include <limits.h> /* for INT_MAX */
-# include <stddef.h> /* for ptrdiff_t */
+# ifndef NO_C_HEADERS
+#  include <stdio.h>
+#  include <limits.h> /* for INT_MAX */
+#  include <stddef.h> /* for ptrdiff_t */
+# else
+#warning "use of NO_C_HEADERS is deprecated"
+# endif
 #endif
 
 #include <R_ext/Arith.h>
@@ -44,7 +53,6 @@ extern "C" {
 #include <R_ext/Memory.h>
 #include <R_ext/Utils.h>
 #include <R_ext/Print.h>
-#include <R_ext/Rdynload.h> // for DL_FUNC
 
 #include <R_ext/libextern.h>
 
@@ -86,10 +94,6 @@ typedef int R_len_t;
  *
  *			--> TypeTable[] in ../main/util.c for  typeof()
  */
-
-/* UUID identifying the internals version -- packages using compiled
-   code should be re-installed when this changes */
-#define R_INTERNALS_UUID "0310d4b8-ccb1-4bb8-ba94-d36a55f60262"
 
 /*  These exact numeric values are seldom used, but they are, e.g., in
  *  ../main/subassign.c, and they are serialized.
@@ -330,6 +334,7 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 
 /* Vector Access Macros */
 #ifdef LONG_VECTOR_SUPPORT
+    R_len_t NORET R_BadLongVector(SEXP, const char *, int);
 # define IS_LONG_VEC(x) (SHORT_VEC_LENGTH(x) == R_LONG_VEC_TOKEN)
 # define SHORT_VEC_LENGTH(x) (((VECSEXP) (x))->vecsxp.length)
 # define SHORT_VEC_TRUELENGTH(x) (((VECSEXP) (x))->vecsxp.truelength)
@@ -561,10 +566,6 @@ SEXP SET_VECTOR_ELT(SEXP x, R_xlen_t i, SEXP v);
 SEXP *(STRING_PTR)(SEXP x);
 SEXP * NORET (VECTOR_PTR)(SEXP x);
 
-#ifdef LONG_VECTOR_SUPPORT
-    R_len_t NORET R_BadLongVector(SEXP, const char *, int);
-#endif
-
 /* List Access Functions */
 /* These also work for ... objects */
 #define CONS(a, b)	cons((a), (b))		/* data lists */
@@ -685,8 +686,6 @@ LibExtern SEXP	R_Srcref;           /* Current srcref, for debuggers */
 LibExtern SEXP	R_NilValue;	    /* The nil object */
 LibExtern SEXP	R_UnboundValue;	    /* Unbound marker */
 LibExtern SEXP	R_MissingArg;	    /* Missing argument marker */
-LibExtern SEXP	R_InBCInterpreter;  /* To be found in BC interp. state
-				       (marker) */
 #ifdef __MAIN__
 attribute_hidden
 #else
@@ -803,7 +802,6 @@ SEXP Rf_duplicated(SEXP, Rboolean);
 Rboolean R_envHasNoSpecialSymbols(SEXP);
 SEXP Rf_eval(SEXP, SEXP);
 SEXP Rf_findFun(SEXP, SEXP);
-void Rf_findFunctionForBody(SEXP);
 SEXP Rf_findVar(SEXP, SEXP);
 SEXP Rf_findVarInFrame(SEXP, SEXP);
 SEXP Rf_findVarInFrame3(SEXP, SEXP, Rboolean);
@@ -847,7 +845,6 @@ int R_nchar(SEXP string, nchar_type type_,
 
 Rboolean Rf_pmatch(SEXP, SEXP, Rboolean);
 Rboolean Rf_psmatch(const char *, const char *, Rboolean);
-SEXP R_ParseEvalString(const char *, SEXP);
 void Rf_PrintValue(SEXP);
 #ifndef INLINE_PROTECT
 SEXP Rf_protect(SEXP);
@@ -905,7 +902,7 @@ SEXP Rf_mkCharCE(const char *, cetype_t);
 SEXP Rf_mkCharLenCE(const char *, int, cetype_t);
 const char *Rf_reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst);
 
-				/* match(.) NOT reached : for -Wall */
+				/* return(.) NOT reached : for -Wall */
 #define error_return(msg)	{ Rf_error(msg);	   return R_NilValue; }
 #define errorcall_return(cl,msg){ Rf_errorcall(cl, msg);   return R_NilValue; }
 
@@ -926,9 +923,6 @@ void R_ClearExternalPtr(SEXP s);
 void R_SetExternalPtrAddr(SEXP s, void *p);
 void R_SetExternalPtrTag(SEXP s, SEXP tag);
 void R_SetExternalPtrProtected(SEXP s, SEXP p);
-// Added in R 3.4.0
-SEXP R_MakeExternalPtrFn(DL_FUNC p, SEXP tag, SEXP prot);
-DL_FUNC R_ExternalPtrAddrFn(SEXP s);
 
 /* Finalization interface */
 typedef void (*R_CFinalizer_t)(SEXP);
@@ -947,13 +941,9 @@ void R_RunWeakRefFinalizer(SEXP w);
 
 SEXP R_PromiseExpr(SEXP);
 SEXP R_ClosureExpr(SEXP);
-SEXP R_BytecodeExpr(SEXP e);
 void R_initialize_bcode(void);
 SEXP R_bcEncode(SEXP);
 SEXP R_bcDecode(SEXP);
-void R_registerBC(SEXP, SEXP);
-Rboolean R_checkConstants(Rboolean);
-Rboolean R_BCVersionOK(SEXP);
 #define PREXPR(e) R_PromiseExpr(e)
 #define BODY_EXPR(e) R_ClosureExpr(e)
 
@@ -961,12 +951,6 @@ Rboolean R_BCVersionOK(SEXP);
 Rboolean R_ToplevelExec(void (*fun)(void *), void *data);
 SEXP R_ExecWithCleanup(SEXP (*fun)(void *), void *data,
 		       void (*cleanfun)(void *), void *cleandata);
-SEXP R_tryCatch(SEXP (*)(void *), void *,       /* body closure*/
-		SEXP,                           /* condition classes (STRSXP) */
-		SEXP (*)(SEXP, void *), void *, /* handler closure */
-		void (*)(void *), void *);      /* finally closure */
-SEXP R_tryCatchError(SEXP (*)(void *), void *,        /* body closure*/
-		     SEXP (*)(SEXP, void *), void *); /* handler closure */
 
 /* Environment and Binding Features */
 void R_RestoreHashCount(SEXP rho);
@@ -1127,11 +1111,9 @@ int R_system(const char *);
    4 = !ATTR_AS_SET
    8 = !IGNORE_BYTECODE
   16 = !IGNORE_ENV
-  Default from R's default: 16
+  Default from R's default: 15
 */
 Rboolean R_compute_identical(SEXP, SEXP, int);
-
-SEXP R_body_no_src(SEXP x); // body(x) without "srcref" etc, ../main/utils.c
 
 /* C version of R's  indx <- order(..., na.last, decreasing) :
    e.g.  arglist = Rf_lang2(x,y)  or  Rf_lang3(x,y,z) */
@@ -1186,7 +1168,6 @@ void R_orderVector1(int *indx, int n, SEXP x,       Rboolean nalast, Rboolean de
 #define errorcall		Rf_errorcall
 #define eval			Rf_eval
 #define findFun			Rf_findFun
-#define findFunctionForBody	Rf_findFunctionForBody
 #define findVar			Rf_findVar
 #define findVarInFrame		Rf_findVarInFrame
 #define findVarInFrame3		Rf_findVarInFrame3
@@ -1259,7 +1240,6 @@ void R_orderVector1(int *indx, int n, SEXP x,       Rboolean nalast, Rboolean de
 #define list3			Rf_list3
 #define list4			Rf_list4
 #define list5			Rf_list5
-#define list6			Rf_list6
 #define listAppend		Rf_listAppend
 #define match			Rf_match
 #define matchE			Rf_matchE
@@ -1366,7 +1346,6 @@ SEXP	 Rf_list2(SEXP, SEXP);
 SEXP	 Rf_list3(SEXP, SEXP, SEXP);
 SEXP	 Rf_list4(SEXP, SEXP, SEXP, SEXP);
 SEXP	 Rf_list5(SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP	 Rf_list6(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP	 Rf_listAppend(SEXP, SEXP);
 SEXP	 Rf_mkNamed(SEXPTYPE, const char **);
 SEXP	 Rf_mkString(const char *);

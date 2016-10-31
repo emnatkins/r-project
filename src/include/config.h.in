@@ -153,6 +153,9 @@
 /* Define to 1 if you have the <curl/curl.h> header file. */
 #undef HAVE_CURL_CURL_H
 
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
+
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 #undef HAVE_DCGETTEXT
@@ -275,6 +278,9 @@
 /* Define if C's Rcomplex and Fortran's COMPLEX*16 can be interchanged, and
    can do arithmetic on the latter. */
 #undef HAVE_FORTRAN_DOUBLE_COMPLEX
+
+/* Define to 1 if you have the <fpu_control.h> header file. */
+#undef HAVE_FPU_CONTROL_H
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
@@ -617,17 +623,8 @@
 /* Define to 1 if you have the `rintl' function. */
 #undef HAVE_RINTL
 
-/* Define to 1 if you have the `rl_callback_sigcleanup' function. */
-#undef HAVE_RL_CALLBACK_SIGCLEANUP
-
 /* Define to 1 if you have the `rl_completion_matches' function. */
 #undef HAVE_RL_COMPLETION_MATCHES
-
-/* Define to 1 if you have the `rl_resize_terminal' function. */
-#undef HAVE_RL_RESIZE_TERMINAL
-
-/* Define to 1 if you have the `rl_sort_completion_matches' function. */
-#undef HAVE_RL_SORT_COMPLETION_MATCHES
 
 /* Define to 1 if you have the `sched_getaffinity' function. */
 #undef HAVE_SCHED_GETAFFINITY
@@ -637,9 +634,6 @@
 
 /* Define to 1 if you have the `sched_setaffinity' function. */
 #undef HAVE_SCHED_SETAFFINITY
-
-/* Define to 1 if you have the `select' function. */
-#undef HAVE_SELECT
 
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
@@ -833,9 +827,6 @@
 /* Define to 1 if you have the `utime' function. */
 #undef HAVE_UTIME
 
-/* Define to 1 if you have the `utimensat' function. */
-#undef HAVE_UTIMENSAT
-
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -954,6 +945,12 @@
 
 /* Define if mktime sets errno. */
 #undef MKTIME_SETS_ERRNO
+
+/* Define if your system needs __setfpucw() to control FPU rounding. This was
+   used to control floating point precision, rounding and floating point
+   exceptions on older Linux systems. As of GLIBC 2.1 this function is not
+   used anymore. */
+#undef NEED___SETFPUCW
 
 /* Define to disable Valgrind instrumentation */
 #undef NVALGRIND

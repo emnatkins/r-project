@@ -77,8 +77,8 @@ getOption(x, default = NULL)
       disabled as a synonym for \code{"n"} in the browser.}
 
     \item{\code{checkPackageLicense}:}{logical, not set by default.  If
-      true, \code{\link{loadNamespace}} asks a user to accept any
-      non-standard license at first load of the package.
+      true, \code{\link{library}} asks a user to accept any non-standard
+      license at first use.
     }
 
     \item{\code{check.bounds}:}{logical, defaulting to \code{FALSE}.  If
@@ -164,10 +164,6 @@ getOption(x, default = NULL)
       where it is possible you may want to increase that.  Once the
       limit is reached an error is thrown.  The current number under
       evaluation can be found by calling \code{\link{Cstack_info}}.}
-
-    \item{\code{interrupt}:}{a function taking no arguments to be called
-      on a user interrupt if the interrupt condition is not otherwise
-      handled.}
 
     \item{\code{keep.source}:}{When \code{TRUE}, the source code for
       functions (newly defined or loaded) is stored internally
@@ -365,10 +361,7 @@ getOption(x, default = NULL)
 
     \item{\code{nwarnings}:}{the limit for the number of warnings kept
       when \code{warn = 0}, default 50.  This will discard messages if
-      called whilst they are being collected.  If you increase this
-      limit, be aware that the current implementation pre-allocates
-      the equivalent of a named list for them, i.e., do not increase it to
-      more than say a million.}
+      called whilst they are being collected.}
 
     \item{\code{width}:}{controls the maximum number of columns on a
       line used in printing vectors, matrices and arrays, and when
@@ -485,8 +478,7 @@ getOption(x, default = NULL)
       \code{c("unordered", "ordered")}, but the names are unused.}
 
     \item{\code{na.action}:}{the name of a function for treating missing
-      values (\code{\link{NA}}'s) for certain situations, see
-      \code{\link{na.action}} and \code{\link{na.pass}}.}
+      values (\code{\link{NA}}'s) for certain situations.}
 
     \item{\code{show.coef.Pvalues}:}{logical, affecting whether P
       values are printed in summary tables of coefficients.  See
@@ -563,7 +555,7 @@ getOption(x, default = NULL)
       requests.  If \code{NULL}, requests will be made without a
       user agent header.
       The default is \code{R (<version> <platform> <arch> <os>)} .}
-
+    
     \item{\code{install.lock}:}{logical: should per-directory package
       locking be used by \code{\link{install.packages}}?  Most useful
       for binary installs on macOS and Windows, but can be used in a
@@ -656,7 +648,7 @@ getOption(x, default = NULL)
       used.
 #endif
     }
-
+      
     \item{\code{useHTTPS}:}{logical.  Used by \code{\link{chooseCRANmirror}}:
       are secure mirrors preferred?  If not set, \code{TRUE} is assumed.}
   }

@@ -10,24 +10,24 @@ C local
       integer lenxk, i,j, ileft,mflag
 c
       integer interv
-      external interv ! in ../../../appl/interv.c
+      external interv
 
       lenxk=n+4
 C     Initialise the output vectors
-      do i=1,n
+      do 1 i=1,n
          y(i)=0d0
          hs0(i)=0d0
          hs1(i)=0d0
          hs2(i)=0d0
          hs3(i)=0d0
-      end do
+ 1    continue
 
 C Compute X' W^2 X -> hs0,hs1,hs2,hs3  and X' W^2 Z -> y
 C Note that here the weights w(i) == sqrt(wt[i])  where wt[] where original weights
       ileft=1
       eps= .1d-9
 
-      do i=1,k
+      do 100 i=1,k
          ileft= interv(xknot(1), n+1, x(i), 0,0, ileft, mflag)
 C        if(mflag==-1) {write(6,'("Error in hess ",i2)')mflag;stop}
 C        if(mflag==-1) {return}
@@ -59,8 +59,7 @@ C        else{write(6,'("Error in hess ",i2)')mflag;stop}}
          j= ileft-4+4
          y(j) = y(j)+w(i)**2*z(i)*vnikx(4,1)
          hs0(j)=hs0(j)+w(i)**2*vnikx(4,1)**2
-
-      enddo
+ 100  continue
 
       return
       end

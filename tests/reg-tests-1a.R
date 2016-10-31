@@ -226,9 +226,8 @@ stopifnot(all.equal(cov(X,X,method="spearman",use="complete"),
                     cov(X1,X1,method="spearman",use="complete")))
 
 ## DateTimeClasses
-(dls <- .leap.seconds[-1] - .leap.seconds[-length(.leap.seconds)])
+(dls <- .leap.seconds[-1] - .leap.seconds[-22])
 table(dls)
-stopifnot(sum(dls == 365) >= 11)
 ## end of moved from DateTimeClasses.Rd
 
 
@@ -1918,7 +1917,7 @@ stopifnot(is.na(z[1]))
 ## gave (randomly) 1 or 3 in 1.6.1
 
 
-## PR#2469: read.table on Mac OS CR-terminated files.
+## PR#2469: read.table on MacOS CR-terminated files.
 tmp <- tempfile()
 x <- c("aaa", "bbb", "ccc")
 cat(x, sep="\r", file=tmp)
@@ -2467,6 +2466,22 @@ pc.cr <- princomp(~ Murder + Assault + UrbanPop,
                   data = USArrests, na.action=na.exclude, cor = TRUE)
 update(pc.cr, ~ . + Rape)
 ## end of moved from princomp.Rd
+
+
+## smooth.spline.Rd
+y18 <- c(1:3,5,4,7:3,2*(2:5),rep(10,4))
+xx  <- seq(1,length(y18), len=201)
+s2. <- smooth.spline(y18, cv=TRUE,con=list(trace=TRUE, tol=1e-6,low= -3,maxit=20))
+s2. ## Intel-Linux: Df ~= (even! > ) 18 : interpolating -- much smaller PRESS
+## {others, e.g., may end quite differently!}
+lines(predict(s2., xx), col = 4)
+mtext(deparse(s2.$call,200), side= 1, line= -1, cex= 0.8, col= 4)
+
+sdf8 <- smooth.spline(y18, df = 8, con=list(trace=TRUE))
+sdf8 ; sdf8$df - 8
+
+try(smooth.spline(y18, spar = 50)) #>> error : spar 'way too large'
+## end of moved from smooth.spline.Rd
 
 
 ## arima{0}
@@ -3805,10 +3820,9 @@ aggregate(as.ts(c(1,2,3,4,5,6,7,8,9,10)),1/5,mean)
 
 
 ## prcomp(tol=1e-6)
-set.seed(16)
 x <- matrix(runif(30),ncol=10)
 s <- prcomp(x, tol=1e-6)
-stopifnot(length(s$sdev) == 3, ncol(s$rotation) == 2)
+stopifnot(length(s$sdev) == ncol(s$rotation))
 summary(s)
 ## last failed in 2.2.0
 

@@ -189,8 +189,6 @@ showNonASCIIfile <-
 function(file)
     showNonASCII(readLines(file, warn = FALSE))
 
-env_path <- function(...) file.path(..., fsep = .Platform$path.sep)
-
 ### * Text utilities.
 
 ### ** delimMatch
@@ -206,7 +204,7 @@ function(x, delim = c("{", "}"), syntax = "Rd")
     if(syntax != "Rd")
         stop("only Rd syntax is currently supported")
 
-    .Call(C_delim_match, x, delim)
+    .Call(delim_match, x, delim)
 }
 
 
@@ -497,7 +495,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.5"))
+    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.4"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 ## Wierdly, 3.0 is the second version (after 2.14) for the 3.1.x series.
@@ -535,18 +533,12 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
 ### * Internal utility functions.
 
-### ** %notin%
-
-`%notin%` <-
-function(x, y)
-    is.na(match(x, y))
-
 ### ** %w/o%
 
 ## x without y, as in the examples of ?match.
 `%w/o%` <-
 function(x, y)
-    x[is.na(match(x, y))]
+    x[!x %in% y]
 
 ### ** .OStype
 
@@ -683,7 +675,7 @@ function(file1, file2)
 {
     ## Use a fast version of file.append() that ensures LF between
     ## files.
-    .Call(C_codeFilesAppend, file1, file2)
+    .Call(codeFilesAppend, file1, file2)
 }
 
 ### ** .file_path_relative_to_dir
@@ -2039,13 +2031,13 @@ Rcmd <- function(args, ...)
 ### ** pskill
 
 pskill <- function(pid, signal = SIGTERM)
-    invisible(.Call(C_ps_kill, pid, signal))
+    invisible(.Call(ps_kill, pid, signal))
 
 ### ** psnice
 
 psnice <- function(pid = Sys.getpid(), value = NA_integer_)
 {
-    res <- .Call(C_ps_priority, pid, value)
+    res <- .Call(ps_priority, pid, value)
     if(is.na(value)) res else invisible(res)
 }
 
@@ -2102,41 +2094,6 @@ toTitleCase <- function(text)
         stop("'text' must be a character vector")
     sapply(text, titleCase1, USE.NAMES = FALSE)
 }
-
-### ** path_and_libPath
-
-##' Typically the union of R_LIBS and current .libPaths(); may differ e.g. via R_PROFILE
-path_and_libPath <- function(...)
-{
-    lP <- .libPaths()
-    ## don't call normalizePath on paths which do not exist: allowed in R_LIBS!
-    ep0 <- c(strsplit(env_path(...), .Platform$path.sep, fixed = TRUE)[[1L]], lP[-length(lP)])
-    ep0 <- ep0[dir.exists(ep0)]
-    paste(unique(normalizePath(ep0)), collapse = .Platform$path.sep)
-}
-
-### ** str_parse_logic
-
-##' @param otherwise: can be call, such as quote(errmesg(...))
-str_parse_logic <- function(ch, default = TRUE, otherwise = default) {
-    if (is.na(ch)) default
-    else switch(ch,
-                "yes"=, "Yes" =, "true" =, "True" =, "TRUE" = TRUE,
-                "no" =, "No" =, "false" =, "False" =, "FALSE" = FALSE,
-                eval(otherwise))
-}
-
-### ** str_parse
-
-str_parse <- function(ch, default = TRUE, logical = TRUE, otherwise = default) {
-    if(logical)
-        str_parse_logic(ch, default=default, otherwise=otherwise)
-    else if(is.na(ch))
-        default
-    else
-        ch
-}
-
 
 ### Local variables: ***
 ### mode: outline-minor ***

@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2016-10-26 r71594) -- "Unsuffered Consequences"
+R version 3.3.2 RC (2016-10-26 r71594) -- "Sincere Pumpkin Patch"
 Copyright (C) 2016 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -880,11 +880,6 @@ c    3    2    1    0    2    1    0    1    0     0
 > plot(x, ppois(x, 1), type = "s", ylab = "F(x)", main = "Poisson(1) CDF")
 > plot(x, pbinom(x, 100, 0.01), type = "s", ylab = "F(x)",
 +      main = "Binomial(100, 0.01) CDF")
-> 
-> ## The (limit) case  lambda = 0 :
-> stopifnot(identical(dpois(0,0), 1),
-+ 	  identical(ppois(0,0), 1),
-+ 	  identical(qpois(1,0), 0))
 > 
 > 
 > 
@@ -3797,7 +3792,7 @@ sigma^2 estimated as 0.4566:  log likelihood = -101.2,  aic = 212.4
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x4d36f10>
+<environment: 0x3fcf138>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -4504,28 +4499,6 @@ factor> is.na(x)
 
 factor> # [1] FALSE  TRUE FALSE
 factor> 
-factor> ## More rational, since R 3.4.0 :
-factor> factor(c(1:2, NA), exclude =  "" ) # keeps <NA> , as
-[1] 1    2    <NA>
-Levels: 1 2 <NA>
-
-factor> factor(c(1:2, NA), exclude = NULL) # always did
-[1] 1    2    <NA>
-Levels: 1 2 <NA>
-
-factor> ## exclude = <character>
-factor> z # ordered levels 'A < B < C'
-[1] C B A
-Levels: A < B < C
-
-factor> factor(z, exclude = "C") # does exclude
-[1] <NA> B    A   
-Levels: A < B
-
-factor> factor(z, exclude = "B") # ditto
-[1] C    <NA> A   
-Levels: A < C
-
 factor> ## Using addNA()
 factor> Month <- airquality$Month
 
@@ -4782,7 +4755,7 @@ function (V)
     r[cbind(1L:p, 1L:p)] <- 1
     r
 }
-<bytecode: 0x5b0bb90>
+<bytecode: 0x5197148>
 <environment: namespace:stats>
 > stopifnot(all.equal(Cl, cov2cor(cov(longley))),
 +           all.equal(cor(longley, method = "kendall"),
@@ -4852,16 +4825,16 @@ attr(,"legend")
 > ## "pairwise" is closer componentwise,
 > summary(abs(c(1 - Rp/R.)))
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-0.00000 0.00000 0.04481 0.09573 0.15214 0.53941 
+0.00000 0.00000 0.04481 0.09573 0.15210 0.53940 
 > summary(abs(c(1 - Rc/R.)))
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-0.00000 0.02021 0.08482 0.50675 0.16192 7.08509 
+0.00000 0.02020 0.08482 0.50670 0.16190 7.08500 
 > 
 > ## but "complete" is closer in Eigen space:
 > EV <- function(m) eigen(m, only.values=TRUE)$values
 > summary(abs(1 - EV(Rp)/EV(R.)) / abs(1 - EV(Rc)/EV(R.)))
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
- 0.8942  1.1464  1.2452  1.3732  1.3722  2.3265 
+ 0.8942  1.1460  1.2450  1.3730  1.3720  2.3270 
 > 
 > 
 > 
@@ -6455,7 +6428,7 @@ Call: ecdf(x)
 > summary(Fn)
 Empirical CDF:	  12 unique values with summary
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
--0.8356 -0.3857  0.3597  0.2686  0.6164  1.5953 
+-0.8356 -0.3857  0.3597  0.2686  0.6164  1.5950 
 > ##--> see below for graphics
 > knots(Fn)  # the unique data values {12 of them if there were no ties}
  [1] -0.8356286 -0.8204684 -0.6264538 -0.3053884  0.1836433  0.3295078
@@ -6505,7 +6478,7 @@ yright :  num 1
 > summary(F10)
 Empirical CDF:	  10 unique values with summary
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
--1.47075 -0.14254 -0.05497  0.04667  0.41037  1.35868 
+-1.47100 -0.14250 -0.05497  0.04667  0.41040  1.35900 
 > 
 > plot(F10)
 > plot(F10, verticals = TRUE, do.points = FALSE)
@@ -6870,7 +6843,7 @@ List of 11
  $ dev.resids:function (y, mu, wt)  
  $ aic       :function (y, n, mu, wt, dev)  
  $ mu.eta    :function (eta)  
- $ initialize:  expression({  n <- rep.int(1, nobs)  if (is.null(etastart) && is.null(start) && is.null(mustart) && ((family$link| __truncated__
+ $ initialize:  expression({     n <- rep.int(1, nobs)     if (is.null(etastart) && is.null(start) && is.null(mustart) && ((family$link ==          "inverse" && any(y == 0)) || (family$link == "log" && any(y <=          0))))          stop("cannot find valid starting values: please specify some")     mustart <- y })
  $ validmu   :function (mu)  
  $ valideta  :function (eta)  
  - attr(*, "class")= chr "family"
@@ -6891,7 +6864,7 @@ List of 12
  $ dev.resids:function (y, mu, wt)  
  $ aic       :function (y, n, mu, wt, dev)  
  $ mu.eta    :function (eta)  
- $ initialize:  expression({  if (any(y <= 0))  stop("non-positive values not allowed for the 'gamma' family")  n <- rep.int(1, n| __truncated__
+ $ initialize:  expression({     if (any(y <= 0))          stop("non-positive values not allowed for the 'gamma' family")     n <- rep.int(1, nobs)     mustart <- y })
  $ validmu   :function (mu)  
  $ valideta  :function (eta)  
  $ simulate  :function (object, nsim)  
@@ -7312,7 +7285,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env = new.env()))
-<environment: 0x6337bd8>
+<environment: 0x401c9e0>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -8046,128 +8019,6 @@ FAMI   -3   87   84   84   96   94   94   94   98   99   99  100
 > 
 > ### ** Examples
 > 
-> require(graphics)
-> 
-> ## Analysis of the life-cycle savings data
-> ## given in Belsley, Kuh and Welsch.
-> lm.SR <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
-> 
-> inflm.SR <- influence.measures(lm.SR)
-> which(apply(inflm.SR$is.inf, 1, any))
-        Chile United States        Zambia         Libya 
-            7            44            46            49 
-> # which observations 'are' influential
-> summary(inflm.SR) # only these
-Potentially influential observations of
-	 lm(formula = sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings) :
-
-              dfb.1_ dfb.pp15 dfb.pp75 dfb.dpi dfb.ddpi dffit   cov.r   cook.d
-Chile         -0.20   0.13     0.22    -0.02    0.12    -0.46    0.65_*  0.04 
-United States  0.07  -0.07     0.04    -0.23   -0.03    -0.25    1.66_*  0.01 
-Zambia         0.16  -0.08    -0.34     0.09    0.23     0.75    0.51_*  0.10 
-Libya          0.55  -0.48    -0.38    -0.02   -1.02_*  -1.16_*  2.09_*  0.27 
-              hat    
-Chile          0.04  
-United States  0.33_*
-Zambia         0.06  
-Libya          0.53_*
-> plot(rstudent(lm.SR) ~ hatvalues(lm.SR)) # recommended by some
-> plot(lm.SR, which = 5) # an enhaced version of that via plot(<lm>)
-> 
-> ## The 'infl' argument is not needed, but avoids recomputation:
-> rs <- rstandard(lm.SR)
-> iflSR <- influence(lm.SR)
-> identical(rs, rstandard(lm.SR, infl = iflSR))
-[1] TRUE
-> ## to "see" the larger values:
-> 1000 * round(dfbetas(lm.SR, infl = iflSR), 3)
-               (Intercept) pop15 pop75  dpi  ddpi
-Australia               12   -10   -27   45     0
-Austria                -10     6    41  -37    -8
-Belgium                -64    51   121  -35    -7
-Bolivia                  6   -13   -23   32    41
-Brazil                  90   -62  -179  120    68
-Canada                   5    -7    10  -35    -3
-Chile                 -199   133   220  -20   120
-China                   21    -6   -83   52   111
-Colombia                39   -52   -25    2     9
-Costa Rica            -234   284   142   56   -33
-Denmark                -41    21    47  152    49
-Ecuador                 72   -95   -61   20    48
-Finland               -113   111   117  -44   -17
-France                -166   147   219  -29    24
-Germany                 -8     8     8   -7     0
-Greece                -148   164    29  157   -60
-Guatamala               16   -55     6    6    97
-Honduras                -2    10   -10    8    -2
-Iceland                248  -274  -233 -126   185
-India                   21   -16   -14  -14   -19
-Ireland               -310   296   482 -257   -93
-Italy                   66   -71     3  -70   -29
-Japan                  640  -656  -674  146   389
-Korea                 -169   135   219    5  -169
-Luxembourg             -68    69    44  -28    49
-Malta                   37   -49     8  -87   153
-Norway                   2     0    -6  -16    -1
-Netherlands             14   -17   -12    4    23
-New Zealand            -60    65    94  -26   -65
-Nicaragua              -12    18    10   -5   -10
-Panama                  28   -53    14  -35    -8
-Paraguay              -232   164   158  144   270
-Peru                   -72   147    91  -86  -287
-Philippines           -157   227   157 -111  -171
-Portugal               -21    26    -4   40   -28
-South Africa            22   -20    -7  -20   -16
-South Rhodesia         144  -135   -92  -70   -58
-Spain                  -30    31     4   35     5
-Sweden                 101   -82   -62 -255   -13
-Switzerland             43   -46   -44   91   -19
-Turkey                 -11   -12    26    2    25
-Tunisia                 74  -105   -77   44   103
-United Kingdom          47   -36  -171  126   100
-United States           69   -73    37 -233   -33
-Venezuela              -51   101   -34  114  -124
-Zambia                 164   -79  -339   94   228
-Jamaica                110  -100   -57   -7  -295
-Uruguay               -134   129    30  131   100
-Libya                  551  -483  -380  -19 -1024
-Malaysia                37   -61    32  -50   -72
-> cat("PRESS :"); (PRESS <- sum( rstandard(lm.SR, type = "predictive")^2 ))
-PRESS :[1] 798.939
-> stopifnot(all.equal(PRESS, sum( (residuals(lm.SR) / (1 - iflSR$hat))^2)))
-> 
-> ## Show that "PRE-residuals"  ==  L.O.O. Crossvalidation (CV) errors:
-> X <- model.matrix(lm.SR)
-> y <- model.response(model.frame(lm.SR))
-> ## Leave-one-out CV least-squares prediction errors (relatively fast)
-> rCV <- vapply(seq_len(nrow(X)), function(i)
-+               y[i] - X[i,] %*% .lm.fit(X[-i,], y[-i])$coef,
-+               numeric(1))
-> ## are the same as the *faster* rstandard(*, "pred") :
-> stopifnot(all.equal(rCV, unname(rstandard(lm.SR, type = "predictive"))))
-> 
-> 
-> ## Huber's data [Atkinson 1985]
-> xh <- c(-4:0, 10)
-> yh <- c(2.48, .73, -.04, -1.44, -1.32, 0)
-> lmH <- lm(yh ~ xh)
-> im <- influence.measures(lmH)
-> plot(xh,yh, main = "Huber's data: L.S. line and influential obs.")
-> abline(lmH); points(xh[im$is.inf], yh[im$is.inf], pch = 20, col = 2)
-> 
-> ## Irwin's data [Williams 1987]
-> xi <- 1:5
-> yi <- c(0,2,14,19,30)    # number of mice responding to dose xi
-> mi <- rep(40, 5)         # number of mice exposed
-> glmI <- glm(cbind(yi, mi -yi) ~ xi, family = binomial)
-> signif(cooks.distance(glmI), 3)   # ~= Ci in Table 3, p.184
-     1      2      3      4      5 
-0.2520 0.2610 1.2900 0.0845 0.3640 
-> imI <- influence.measures(glmI)
-> stopifnot(all.equal(imI$infmat[,"cook.d"],
-+           cooks.distance(glmI)))
-> 
-> 
 > 
 > cleanEx()
 > nameEx("integrate")
@@ -8223,15 +8074,6 @@ Error in integrate(f, 0, 1) :
 0 with absolute error < 0
 > integrate(dnorm, 0, Inf)   ## works
 0.5 with absolute error < 4.7e-05
-> ## Don't show: 
-> tools::assertError(
-+ ## End(Don't show)
-+ integrate(dnorm, 0:1, 20) #-> error!
-+ ## "silently" gave  integrate(dnorm, 0, 20)  in earlier versions of R
-+ ## Don't show: 
-+  , verbose=TRUE)
-Asserted error: 'lower' must be of length one
-> ## End(Don't show)
 > 
 > 
 > 
@@ -11608,14 +11450,16 @@ Warning in xy.coords(x, y, xlabel, ylabel, log) :
 > 
 > require(graphics)
 > 
-> rock1 <- within(rock, { area1 <- area/10000; peri1 <- peri/10000 })
-> par(mfrow = c(3,2)) # maybe: , pty = "s")
-> rock.ppr <- ppr(log(perm) ~ area1 + peri1 + shape,
-+                 data = rock1, nterms = 2, max.terms = 5)
-> plot(rock.ppr, main = "ppr(log(perm)~ ., nterms=2, max.terms=5)")
-> plot(update(rock.ppr, bass = 5), main = "update(..., bass = 5)")
-> plot(update(rock.ppr, sm.method = "gcv", gcvpen = 2),
+> with(rock, {
++ area1 <- area/10000; peri1 <- peri/10000
++ par(mfrow = c(3,2)) # maybe: , pty = "s")
++ rock.ppr <- ppr(log(perm) ~ area1 + peri1 + shape,
++                 data = rock, nterms = 2, max.terms = 5)
++ plot(rock.ppr, main = "ppr(log(perm)~ ., nterms=2, max.terms=5)")
++ plot(update(rock.ppr, bass = 5), main = "update(..., bass = 5)")
++ plot(update(rock.ppr, sm.method = "gcv", gcvpen = 2),
 +      main = "update(..., sm.method=\"gcv\", gcvpen=2)")
++ })
 > 
 > 
 > 
@@ -11922,14 +11766,14 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<bytecode: 0x601c090>
-<environment: 0x5c5b1d8>
+<bytecode: 0x798f7d0>
+<environment: 0x79a9258>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<bytecode: 0x601b5c0>
-<environment: 0x5c5b1d8>
+<bytecode: 0x798f6b8>
+<environment: 0x79a9258>
 
 > 
 > 
@@ -12267,19 +12111,19 @@ Goodness of fit:
  2 terms  3 terms  4 terms  5 terms 
 8.737806 5.289517 4.745799 4.490378 
 
-Projection direction vectors ('alpha'):
+Projection direction vectors:
       term 1      term 2     
 area1  0.34357179  0.37071027
 peri1 -0.93781471 -0.61923542
 shape  0.04961846  0.69218595
 
-Coefficients of ridge terms ('beta'):
+Coefficients of ridge terms:
    term 1    term 2 
 1.6079271 0.5460971 
 > # .....  (same as above)
 > # .....
 > #
-> # Projection direction vectors ('alpha'):
+> # Projection direction vectors:
 > #       term 1      term 2
 > # area1  0.34357179  0.37071027
 > # peri1 -0.93781471 -0.61923542
@@ -12362,38 +12206,6 @@ Coefficients of ridge terms ('beta'):
 > ### Keywords: multivariate
 > 
 > ### ** Examples
-> 
-> C <- chol(S <- toeplitz(.9 ^ (0:31))) # Cov.matrix and its root
-> all.equal(S, crossprod(C))
-[1] TRUE
-> set.seed(17)
-> X <- matrix(rnorm(32000), 1000, 32)
-> Z <- X %*% C  ## ==>  cov(Z) ~=  C'C = S
-> all.equal(cov(Z), S, tol = 0.08)
-[1] TRUE
-> pZ <- prcomp(Z, tol = 0.1)
-> summary(pZ) # only ~14 PCs (out of 32)
-Importance of first k=14 (out of 32) components:
-                          PC1    PC2    PC3     PC4     PC5     PC6     PC7
-Standard deviation     3.6415 2.7178 1.8447 1.39430 1.10207 0.90922 0.76951
-Proportion of Variance 0.4173 0.2324 0.1071 0.06118 0.03822 0.02602 0.01864
-Cumulative Proportion  0.4173 0.6498 0.7569 0.81806 0.85628 0.88230 0.90094
-                           PC8     PC9    PC10    PC11    PC12    PC13   PC14
-Standard deviation     0.67490 0.60833 0.51638 0.49048 0.44452 0.40326 0.3904
-Proportion of Variance 0.01433 0.01165 0.00839 0.00757 0.00622 0.00512 0.0048
-Cumulative Proportion  0.91527 0.92692 0.93531 0.94288 0.94910 0.95422 0.9590
-> ## or choose only 3 PCs more directly:
-> pz3 <- prcomp(Z, rank. = 3)
-> summary(pz3) # same numbers as the first 3 above
-Importance of first k=3 (out of 32) components:
-                          PC1    PC2    PC3
-Standard deviation     3.6415 2.7178 1.8447
-Proportion of Variance 0.4173 0.2324 0.1071
-Cumulative Proportion  0.4173 0.6498 0.7569
-> stopifnot(ncol(pZ$rotation) == 14, ncol(pz3$rotation) == 3,
-+           all.equal(pz3$sdev, pZ$sdev, tol = 1e-15)) # exactly equal typically
-> 
-> 
 > 
 > 
 > cleanEx()
@@ -12974,9 +12786,6 @@ $yin
  [9] 50.50000 33.33333 36.00000 40.66667 64.50000 50.00000 50.40000 66.00000
 [17] 54.00000 93.75000 85.00000
 
-$tol
-[1] 7e-06
-
 $data
 $data$x
  [1]  4  4  7  7  8  9 10 10 10 11 11 12 12 12 12 13 13 13 13 14 14 14 14 15 15
@@ -12988,11 +12797,9 @@ $data$y
 [39]  32  48  52  56  64  66  54  70  92  93 120  85
 
 $data$w
-[1] 1
+ [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[39] 1 1 1 1 1 1 1 1 1 1 1 1
 
-
-$no.weights
-[1] TRUE
 
 $lev
  [1] 0.8934338 0.4379689 0.1842314 0.1529048 0.3641292 0.2022506 0.3399561
@@ -13014,18 +12821,12 @@ $df
 $spar
 [1] 0.4873957
 
-$ratio
-[1] 6.575971e-05
-
 $lambda
 [1] 0.0008526606
 
 $iparms
- icrit  ispar   iter        errorI 
-     3      0     13      0     NA 
-
-$auxM
-NULL
+icrit ispar  iter 
+    3     0    13 
 
 $fit
 $knot
@@ -15455,50 +15256,48 @@ S Tukey smoother resulting from  smooth(x = x3R, kind = "S")
 > ### ** Examples
 > 
 > require(graphics)
-> plot(dist ~ speed, data = cars, main = "data(cars)  &  smoothing splines")
-> cars.spl <- with(cars, smooth.spline(speed, dist))
-> cars.spl
+> 
+> attach(cars)
+> plot(speed, dist, main = "data(cars)  &  smoothing splines")
+> cars.spl <- smooth.spline(speed, dist)
+> (cars.spl)
 Call:
 smooth.spline(x = speed, y = dist)
 
 Smoothing Parameter  spar= 0.7801305  lambda= 0.1112206 (11 iterations)
 Equivalent Degrees of Freedom (Df): 2.635278
-Penalized Criterion (RSS): 4187.776
+Penalized Criterion: 4187.776
 GCV: 244.1044
 > ## This example has duplicate points, so avoid cv = TRUE
 > ## Don't show: 
->   stopifnot(cars.spl $ w == table(cars$speed)) # weights = multiplicities
+>   stopifnot(cars.spl $ w == table(speed)) # weights = multiplicities
 >   utils::str(cars.spl, digits = 5, vec.len = 6)
-List of 19
- $ x         : num [1:19] 4 7 8 9 10 11 12 13 14 15 16 17 18 19 20 ...
- $ y         : num [1:19] 1.6578 11.6829 15.0644 18.4823 21.9471 25.4656 29.0505 32.7076 ...
- $ w         : num [1:19] 2 2 1 1 3 2 4 4 4 3 2 3 4 3 5 ...
- $ yin       : num [1:19] 6 13 16 10 26 22.5 21.5 35 ...
- $ tol       : num 7e-06
- $ data      :List of 3
+List of 15
+ $ x       : num [1:19] 4 7 8 9 10 11 12 13 14 15 16 17 18 19 20 ...
+ $ y       : num [1:19] 1.6578 11.6829 15.0644 18.4823 21.9471 25.4656 29.0505 32.7076 ...
+ $ w       : num [1:19] 2 2 1 1 3 2 4 4 4 3 2 3 4 3 5 ...
+ $ yin     : num [1:19] 6 13 16 10 26 22.5 21.5 35 ...
+ $ data    :List of 3
   ..$ x: num [1:50] 4 4 7 7 8 9 10 10 10 11 11 12 12 12 12 ...
   ..$ y: num [1:50] 2 10 4 22 16 10 18 26 34 17 28 14 20 24 28 ...
-  ..$ w: num 1
- $ no.weights: logi TRUE
- $ lev       : num [1:19] 0.399342 0.179105 0.069771 0.055561 0.136721 0.077539 0.137252 0.126354 ...
- $ cv.crit   : num 244.1
- $ pen.crit  : num 4187.8
- $ crit      : num 244.1
- $ df        : num 2.6353
- $ spar      : num 0.78013
- $ ratio     : num 6.576e-05
- $ lambda    : num 0.11122
- $ iparms    : Named int [1:5] 1 0 11 0 NA
-  ..- attr(*, "names")= chr [1:5] "icrit" "ispar" "iter" "" "errorI"
- $ auxM      : NULL
- $ fit       :List of 5
+  ..$ w: num [1:50] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ...
+ $ lev     : num [1:19] 0.399342 0.179105 0.069771 0.055561 0.136721 0.077539 0.137252 0.126354 ...
+ $ cv.crit : num 244.1
+ $ pen.crit: num 4187.8
+ $ crit    : num 244.1
+ $ df      : num 2.6353
+ $ spar    : num 0.78013
+ $ lambda  : num 0.11122
+ $ iparms  : Named int [1:3] 1 0 11
+  ..- attr(*, "names")= chr [1:3] "icrit" "ispar" "iter"
+ $ fit     :List of 5
   ..$ knot : num [1:25] 0 0 0 0 0.14286 0.19048 0.2381 0.28571 ...
   ..$ nk   : int 21
   ..$ min  : num 4
   ..$ range: num 21
   ..$ coef : num [1:21] 1.6578 4.9869 9.4256 15.0584 18.4743 21.9384 25.4544 29.0377 ...
   ..- attr(*, "class")= chr "smooth.spline.fit"
- $ call      : language smooth.spline(x = speed, y = dist)
+ $ call    : language smooth.spline(x = speed, y = dist)
  - attr(*, "class")= chr "smooth.spline"
 >   cars.spl$fit
 $knot
@@ -15525,11 +15324,11 @@ attr(,"class")
 [1] "smooth.spline.fit"
 > ## End(Don't show)
 > lines(cars.spl, col = "blue")
-> ss10 <- smooth.spline(cars[,"speed"], cars[,"dist"], df = 10)
-> lines(ss10, lty = 2, col = "red")
+> lines(smooth.spline(speed, dist, df = 10), lty = 2, col = "red")
 > legend(5,120,c(paste("default [C.V.] => df =",round(cars.spl$df,1)),
 +                "s( * , df = 10)"), col = c("blue","red"), lty = 1:2,
 +        bg = 'bisque')
+> detach()
 > 
 > 
 > ## Residual (Tukey Anscombe) plot:
@@ -15557,13 +15356,13 @@ attr(,"class")
 > ##-- artificial example
 > y18 <- c(1:3, 5, 4, 7:3, 2*(2:5), rep(10, 4))
 > xx  <- seq(1, length(y18), len = 201)
-> (s2   <- smooth.spline(y18)) # GCV
+> (s2  <- smooth.spline(y18)) # GCV
 Call:
 smooth.spline(x = y18)
 
 Smoothing Parameter  spar= 0.3928105  lambda= 9.672776e-05 (13 iterations)
 Equivalent Degrees of Freedom (Df): 8.494168
-Penalized Criterion (RSS): 3.59204
+Penalized Criterion: 3.59204
 GCV: 0.7155391
 > (s02  <- smooth.spline(y18, spar = 0.2))
 Call:
@@ -15571,7 +15370,7 @@ smooth.spline(x = y18, spar = 0.2)
 
 Smoothing Parameter  spar= 0.2  lambda= 3.911187e-06
 Equivalent Degrees of Freedom (Df): 15.259
-Penalized Criterion (RSS): 0.4973656
+Penalized Criterion: 0.4973656
 GCV: 1.191602
 > (s02. <- smooth.spline(y18, spar = 0.2, cv = NA))
 Call:
@@ -15579,26 +15378,14 @@ smooth.spline(x = y18, spar = 0.2, cv = NA)
 
 Smoothing Parameter  spar= 0.2  lambda= 3.911187e-06
 Equivalent Degrees of Freedom (Df): NA
-Penalized Criterion (RSS): 0.4973656
+Penalized Criterion: 0.4973656
 > plot(y18, main = deparse(s2$call), col.main = 2)
 > lines(s2, col = "gray"); lines(predict(s2, xx), col = 2)
 > lines(predict(s02, xx), col = 3); mtext(deparse(s02$call), col = 3)
 > 
-> ## Specifying 'lambda' instead of usual spar :
-> (s2. <- smooth.spline(y18, lambda = s2$lambda, tol = s2$tol))
-Call:
-smooth.spline(x = y18, lambda = s2$lambda, tol = s2$tol)
-
-Smoothing Parameter  spar= NA  lambda= 9.672776e-05
-Equivalent Degrees of Freedom (Df): 8.494168
-Penalized Criterion (RSS): 3.59204
-GCV: 0.7155391
-> 
 > ## Don't show: 
-> nD <- c("spar", "ratio", "iparms", "call"); nn <- setdiff(names(s2), nD)
-> stopifnot(all.equal(s2[nn], s2.[nn], tol = 7e-7), # seen 6.86e-8
-+           all.equal(predict(s02 , xx),
-+ 		    predict(s02., xx), tol = 1e-15))
+> stopifnot(all.equal(predict(s02 , xx),
++ 		    predict(s02., xx), tolerance = 1e-15))
 > ## End(Don't show)
 > 
 > 
@@ -15984,8 +15771,8 @@ Step function with continuity 'f'= 0.2 ,  3 knots at
 > unclass(sfun0)
 function (v) 
 .approxfun(x, y, v, method, yleft, yright, f)
-<bytecode: 0x3c6d280>
-<environment: 0x81be4b0>
+<bytecode: 0x3b158f8>
+<environment: 0x4bbc468>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
@@ -16073,8 +15860,8 @@ f.f1c  1.0 1.00    1 2.00  2.0 2.00    2 4.00  4.0  4.00     4  3.00   3.0
    %  85.6         16.5      11.3         100.0 
 
  Weights:
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
- 0.0000  0.5594  0.9452  0.7312  0.9853  1.0000 
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+0.0000000 0.5594126 0.9451991 0.7312186 0.9853375 1.0000000 
 
  Other components: List of 5
  $ win  : Named num [1:3] 721 19 13
@@ -18262,7 +18049,7 @@ Number of Fisher Scoring iterations: 6
 > ###
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  4.767 0.09 4.859 0 0 
+Time elapsed:  4.499 0.098 4.597 0 0 
 > grDevices::dev.off()
 null device 
           1 

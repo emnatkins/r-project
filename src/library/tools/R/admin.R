@@ -100,9 +100,6 @@ function(dir, outDir, builtStamp=character())
     saveInfo <- .split_description(db)
     saveRDS(saveInfo, file.path(outMetaDir, "package.rds"))
 
-    features <- list(internalsID = .Internal(internalsID()))
-    saveRDS(features, file.path(outMetaDir, "features.rds"))
-
     invisible()
 }
 
@@ -249,7 +246,7 @@ function(dir, outDir)
             out <- gettextf("\nduplicated files in '%s' field:",
                             collationField)
             out <- paste(out,
-                         paste0("  ", badFiles, collapse = "\n"),
+                         paste(" ", badFiles, collapse = "\n"),
                          sep = "\n")
             stop(out, domain = NA)
         }
@@ -261,7 +258,7 @@ function(dir, outDir)
                             collationField,
                             codeDir)
             out <- paste(out,
-                         paste0("  ", badFiles, collapse = "\n"),
+                         paste(" ", badFiles, collapse = "\n"),
                          sep = "\n")
             stop(out, domain = NA)
         }
@@ -274,7 +271,7 @@ function(dir, outDir)
                             codeDir,
                             collationField)
             out <- paste(out,
-                         paste0("  ", badFiles, collapse = "\n"),
+                         paste(" ", badFiles, collapse = "\n"),
                          sep = "\n")
             stop(out, domain = NA)
         }

@@ -158,6 +158,9 @@
 */
 /* #undef HAVE_CURL_CURL_H */
 
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 1
+
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
 /* #undef HAVE_DCGETTEXT */

@@ -1876,12 +1876,10 @@ static SEXP ReadBC1(SEXP ref_table, SEXP reps, R_inpstream_t stream)
     R_ReadItemDepth++;
     SETCAR(s, ReadItem(ref_table, stream)); /* code */
     R_ReadItemDepth--;
-    SEXP bytes = PROTECT(CAR(s));
-    SETCAR(s, R_bcEncode(bytes));
+    SETCAR(s, R_bcEncode(CAR(s)));
     SETCDR(s, ReadBCConsts(ref_table, reps, stream)); /* consts */
     SET_TAG(s, R_NilValue); /* expr */
-    R_registerBC(bytes, s);
-    UNPROTECT(2);
+    UNPROTECT(1);
     return s;
 }
 
@@ -1891,7 +1889,7 @@ static SEXP ReadBC(SEXP ref_table, R_inpstream_t stream)
     PROTECT(reps = allocVector(VECSXP, InInteger(stream)));
     ans = ReadBC1(ref_table, reps, stream);
     UNPROTECT(1);
-    return R_BCVersionOK(ans) ? ans : R_BytecodeExpr(ans);
+    return ans;
 }
 
 static void DecodeVersion(int packed, int *v, int *p, int *s)

@@ -2510,8 +2510,7 @@ catalogs.
 
 Directory @file{Meta} contains several files in @code{.rds} format, that
 is serialized @R{} objects written by @code{saveRDS}.  All packages
-have files @file{Rd.rds}, @file{hsearch.rds}, @file{links.rds},
-@file{features.rds}, and
+have files @file{Rd.rds}, @file{hsearch.rds}, @file{links.rds} and
 @file{package.rds}.  Packages with namespaces have a file
 @file{nsInfo.rds}, and those with data, demos or vignettes have
 @file{data.rds}, @file{demo.rds} or @file{vignette.rds} files.
@@ -4000,10 +3999,6 @@ TRUE}.
 Check whether package is suitable for publication on CRAN.
 Default: false, except for CRAN submission checks.
 
-@item _R_CHECK_CRAN_INCOMING_REMOTE_
-Include checks that require remote access among the above.
-Default: same as @code{_R_CHECK_CRAN_INCOMING_}
-
 @item _R_CHECK_XREFS_USE_ALIASES_FROM_CRAN_
 When checking anchored Rd xrefs, use Rd aliases from the CRAN package
 web areas in addition to those in the packages installed locally.
@@ -4102,7 +4097,6 @@ CRAN's submission checks use something like
 
 @example
 _R_CHECK_CRAN_INCOMING_=TRUE
-_R_CHECK_CRAN_INCOMING_REMOTE_=TRUE
 _R_CHECK_VC_DIRS_=TRUE
 _R_CHECK_TIMINGS_=10
 _R_CHECK_INSTALL_DEPENDS_=TRUE

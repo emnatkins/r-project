@@ -16,7 +16,7 @@
 \title{Byte Code Compiler}
 \usage{
 cmpfun(f, options = NULL)
-compile(e, env = .GlobalEnv, options = NULL, srcref = NULL)
+compile(e, env = .GlobalEnv, options = NULL)
 cmpfile(infile, outfile, ascii = FALSE, env = .GlobalEnv,
         verbose = FALSE, options = NULL)
 loadcmp(file, envir = .GlobalEnv, chdir = FALSE)
@@ -30,7 +30,6 @@ setCompilerOptions(...)
   \item{f}{a closure.}
   \item{options}{list of named compiler options}
   \item{env}{the top level environment for the compiling.}
-  \item{srcref}{initial source reference for the expression.}
   \item{file,infile,outfile}{pathnames; outfile defaults to infile with a .Rc
                              extension in place of any existing extension.}
   \item{ascii}{logical; should the compiled file be saved in ascii format?}
@@ -103,9 +102,7 @@ setCompilerOptions(...)
   The default value is returned unless a value is supplied in the
   \code{options} argument; the \code{options} argument is primarily for
   internal use.  \code{setCompilerOption} sets the default option
-  values. Options to set are identified by argument names, e.g.
-  \code{setCompilerOptions(suppressAll = TRUE, optimize = 3)}.
-  It returns a named list of the previous values.
+  values. It returns a named list of the previous values.
 
   Calling the compiler a byte code compiler is actually a bit of a
   misnomer: the external representation of code objects currently uses

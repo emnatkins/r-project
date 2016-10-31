@@ -172,7 +172,8 @@ SEXP attribute_hidden do_printfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 	break;
 
     default: /* if(!isFunction(s)) */
-	error(_("non-function argument to .Internal(print.function(.))"));
+	errorcall(call,
+		  _("non-function argument to .Internal(print.function(.))"));
     }
     return s;
 }

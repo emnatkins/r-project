@@ -986,46 +986,34 @@ packages with C++ code via @command{make} macros defined in file
 CXX
 CXXFLAGS
 CXXPICFLAGS
-CXXSTD
 
 CXX1X
 CXX1XSTD
 CXX1XFLAGS
 CXX1XPICFLAGS
-
-CXX1Y
-CXX1YSTD
-CXX1YFLAGS
-CXX1YPICFLAGS
 @end example
 @noindent
-The macros @code{CXX} etc are those used by default for C++ code.
-@command{configure} will attempt to set the rest suitably, choosing for
-@code{CXX1XSTD} a suitable flag such as @option{-std=c++11} for C++11
-support. Similarly, configure will if possible choose for
-@code{CXX1YSTD} a flag@footnote{Currently this is a valid option for
-@command{g++} 5 and later and 2016 versions of the Intel and Solaris
-compilers.  For earlier versions of @command{g++} one could try
-@option{-std=c++1y}.} such as @option{-std=c++14} for C++14 support. The
-inferred values can be overridden in file @file{config.site} or on the
-@command{configure} command line: user-supplied values will be tested
-compiling some C++11/14 code.
+The macros @code{CXX} etc are those used by default for C++ code: their
+values are not checked.  @command{configure} will attempt to set the
+rest suitably, choosing for @code{CXX1XSTD} a suitable flag such as
+@option{-std=c++11} for C++11 support.  The inferred values can be
+overridden in file @file{config.site} or on the @command{configure}
+command line: user-supplied values will be tested compiling by C++11
+code using some features added in that standard. (Later versions of @R{}
+are likely to check compliance more thoroughly.)
 
-It may be@footnote{This is true for earlier versions of @command{g++} such
-as 4.2.1, and also for commonly-used versions of the Solaris compiler
-@code{CC}.} that there is no suitable flag for C++11 support, in which
-case a different compiler could be selected for @code{CXX1X} and its
-corresponding flags.  Likewise, a different compiler can be specified for
-C++14 support with @code{CXX1Y}. Some compilers@footnote{Currently only
-GCC 6 and later, but this has been mooted for others.} by default assume
-a later standard than C++98 whereas the latter is assumed by some
+It may be@footnote{This is true for earlier versions of @command{g++}
+such as 4.2.1, and also for some commonly-used versions of the Solaris
+compiler @code{CC}.} that there is no suitable flag for C++11 support,
+in which case a different compiler could be selected for @code{CXX1X}
+and its corresponding flags.  Some compilers@footnote{Currently only GCC
+6 and later, but this has been mooted for others.} by default assume a
+later standard than C++98 whereas the latter is assumed by some
 packages.  So users of GCC 6 might like to specify
 @example
 CXX='g++ -std=gnu++98'
 CXX1X=g++
 CXX1XSTD='-std=c++11'
-CXX1Y=g++
-CXX1YSTD='-std=c++14'
 @end example
 
 The @option{-std} flag is supported by the GCC, @command{clang}, Intel
@@ -1041,20 +1029,9 @@ Solaris: c++03 c++11 c++14 (from 12.5)
 @code{g++}.)  Versions 4.3.x to 4.8.x of @command{g++} accepted flag
 @option{-std=c++0x} with partial support@footnote{For when features were
 supported, see
-@uref{https://gcc.gnu.org/@/projects/@/cxx-status.html#cxx11}.} for
-C++11: this is currently still accepted as a deprecated synonym for
-@option{-std=c++11}.  (At least for versions 4.8.x it has sufficient
-support to be picked by @command{configure}.)  Option
-@option{-std=c++14} was introduced in version 5.x.
-
-@c c++1y does not pass the configure test in 4.9.3
-@c , with @option{-std=c++1y} (introduced@footnote{See
-@c @uref{https://gcc.gnu.org/@/projects/@/cxx-status.html#cxx14} for which
-@c C++14 features it supported.} in version 4.9.x) remaining as a deprecated
-@c synonym.
-
-`Standards' for @command{g++} starting with @samp{gnu} enable `GNU
-extensions': what those are is hard to track down.
+@uref{https://gcc.gnu.org/@/projects/@/cxx-status.html#cxx11}.} for C++11:
+this is currently still accepted as a deprecated synonym for
+@option{-std=c++11}.
 
 For the use of C++11 in @R{} packages see the `Writing R Extensions' manual.
 
@@ -2237,8 +2214,8 @@ sources on Windows without any additional tools.
 Packages with compiled code may need to have paths to the compilers
 set explicitly, and there is provision to make use of a system-wide
 library of installed external software. The compiler paths are set
-using the @command{make} variables @code{BINPREF} and (usually)
-@code{BINPREF64}.  The library location is set using @command{make}
+using the @command{make} variables @code{BINPREF} (and in some cases
+@code{BINPREF64}).  The library location is set using @command{make}
 variable @code{LOCAL_SOFT}, to give an equivalent of @file{/usr/local}
 on a Unix-alike.  All of these can be set in
 @file{src/gnuwin32/MkRules.local} when @R{} is built from sources (see
@@ -5210,8 +5187,7 @@ CC="cc -xc99"
 CFLAGS="-O -xlibmieee"
 F77=f95
 FFLAGS=-O
-CXX=CC
-CXXSTD="-library=stlport4"
+CXX="CC -library=stlport4"
 CXXFLAGS=-O
 FC=$F77
 FCFLAGS=$FFLAGS
@@ -5337,6 +5313,19 @@ Parsing very complex @R{} expressions needs a lot of stack space when
 the Oracle compilers are used: several packages require the stack
 increased to at least 20MB.
 
+Version 12.3 of the Oracle C++ compiler has no support for C++11.
+Versions 12.4 and 12.5 have sufficient support to pass the
+@command{configure} test for C++11 by specifying something like
+
+@example
+CXX="CC -library=stlport4"
+CXXFLAGS="-O -xlibmil -xtarget=native -nofstore"
+CXX1X=CC
+@end example
+
+@noindent
+as options @option{-library=stlport4} and @option{-std=c++11} cannot be
+used together.
 
 @menu
 * Using gcc::                   

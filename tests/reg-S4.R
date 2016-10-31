@@ -399,25 +399,12 @@ stopifnot(unlist(lapply(ggm, function(g) !is.null(getGeneric(g, where = em)))),
 	  ## all above worked in 2.7.0, however:
 	  isGeneric("show",  where=e4),
 	  hasMethods("show", where=e4), hasMethods("show", where=em),
+	  ## isGeneric("dim", where=as.environment("package:Matrix"))
 	  identical(as.character(gg4), #gg4 has packages attr.; tools::: doesn't
 		    tools:::get_S4_generics_with_methods(e4))
 	  )
 ## the last failed in R 2.7.0 : was not showing  "show"
-
-if(require("Matrix")) {
-    stopifnot(isGeneric("dim", where=as.environment("package:Matrix")),
-	      identical((D5. <- Diagonal(x = 5:1)), pmin(D5.)),
-	      identical(D5., pmax(D5.)),
-	      identical(D5., pmax(D5., -1)),
-	      identical(D5., pmin(D5., 7)),
-	      inherits((D5.3 <- pmin(D5.+2, 3)), "Matrix"),
-	      identical(as.matrix(pmin(D5.+2 , 3)),
-			pmin(as.matrix(D5.+2), 3)),
-	      identical(pmin(1, D5.), pmin(1, as.matrix(D5.))),
-	      ##
-	      TRUE)
-}
-
+## TODO: use "Matrix" checks once that is >= 1.0
 
 ## containing "array" ("matrix", "ts", ..)
 t. <- ts(1:10, frequency = 4, start = c(1959, 2))
@@ -838,38 +825,3 @@ stopifnot(
     identical(formals(getGeneric("as.vector")), formals(base::as.vector)),
     identical(formals(getGeneric("unlist")),    formals(base::unlist)))
 ## failed for a while in R-devel (3.3.0)
-
-setClass("myInteger", contains=c("integer", "VIRTUAL"))
-setClass("mySubInteger", contains="myInteger")
-new("mySubInteger", 1L)
-## caused infinite recursion in R 3.3.0
-
-detach("package:methods", force=TRUE)
-methods::setClass("test1", methods::representation(date="POSIXct"))
-methods::setClass("test2", contains="test1")
-test <- function(x) UseMethod('test', x)
-test.test1 <- function(x) 'Hi'
-test(methods::new("test2", date=as.POSIXct("2003-10-09")))
-stopifnot(require("methods"))
-## S3 dispatch to superclass methods failed on S4 objects when
-## methods package was not attached
-
-
-## Tests for class fetching and conflict resolution
-setClass("htest1", slots=c(a="numeric",b="data.frame"), package="package1")
-setClass("htest2", slots=c(a="logical"), package="package2")
-class.list = list(
-    package1=getClassDef("htest1", where=class_env1),
-    package2=getClassDef("htest2", where=class_env2)
-)
-
-firstclass  <- methods:::.resolveClassList(class.list,.GlobalEnv,
-                                           package="package1")
-secondclass <- methods:::.resolveClassList(class.list,.GlobalEnv,
-                                           package="package2")
-alsofirstclass <- methods:::.resolveClassList(class.list,.GlobalEnv,
-                                              package="package3")
-stopifnot(!identical(firstclass, secondclass))
-stopifnot(identical(firstclass, class.list[[1]]))
-stopifnot(identical(secondclass, class.list[[2]]))
-stopifnot(identical(alsofirstclass, class.list[[1]]))

@@ -1,8 +1,8 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995--1997 Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2016 The R Core Team.
- *  Copyright (C) 2003--2016 The R Foundation
+ *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998--2015	    The R Core Team.
+ *  Copyright (C) 2003--2015	    The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -510,15 +510,19 @@ SEXP attribute_hidden do_arith(SEXP call, SEXP op, SEXP args, SEXP env)
 
 #define FIXUP_NULL_AND_CHECK_TYPES(v, vpi) do { \
     switch (TYPEOF(v)) { \
-    case NILSXP: REPROTECT(v = allocVector(INTSXP,0), vpi); break; \
+    case NILSXP: REPROTECT(v = allocVector(REALSXP,0), vpi); break; \
     case CPLXSXP: case REALSXP: case INTSXP: case LGLSXP: break; \
-    default: errorcall(call, _("non-numeric argument to binary operator")); \
+    default: errorcall(lcall, _("non-numeric argument to binary operator")); \
     } \
 } while (0)
 
 SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 {
-    Rboolean xattr, yattr, xarray, yarray, xts, yts, xS4, yS4;
+    SEXP klass, dims, tsp, xnames, ynames, val;
+    R_xlen_t nx, ny, mismatch = 0;
+    int xarray, yarray, xts, yts, xS4 = 0, yS4 = 0;
+    int xattr, yattr;
+    SEXP lcall = call;
     PROTECT_INDEX xpi, ypi;
     ARITHOP_TYPE oper = (ARITHOP_TYPE) PRIMVAL(op);
     int nprotect = 2; /* x and y */
@@ -530,75 +534,55 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
     FIXUP_NULL_AND_CHECK_TYPES(x, xpi);
     FIXUP_NULL_AND_CHECK_TYPES(y, ypi);
 
-    R_xlen_t
-	nx = XLENGTH(x),
-	ny = XLENGTH(y);
+    nx = XLENGTH(x);
     if (ATTRIB(x) != R_NilValue) {
 	xattr = TRUE;
 	xarray = isArray(x);
 	xts = isTs(x);
 	xS4 = isS4(x);
     }
-    else xattr = xarray = xts = xS4 = FALSE;
+    else xarray = xts = xattr = FALSE;
+    ny = XLENGTH(y);
     if (ATTRIB(y) != R_NilValue) {
 	yattr = TRUE;
 	yarray = isArray(y);
 	yts = isTs(y);
 	yS4 = isS4(y);
     }
-    else yattr = yarray = yts = yS4 = FALSE;
+    else yarray = yts = yattr = FALSE;
 
-#define R_ARITHMETIC_ARRAY_1_SPECIAL
-
-#ifdef R_ARITHMETIC_ARRAY_1_SPECIAL
     /* If either x or y is a matrix with length 1 and the other is a
-       vector of a different length, we want to coerce the matrix to be a vector.
+       vector, we want to coerce the matrix to be a vector.
        Do we want to?  We don't do it!  BDR 2004-03-06
-
-       From 3.4.0 (Sep. 2016), this signals a warning,
-       and in the future we will disable these 2 clauses,
-       so it will give an error.
     */
 
     /* FIXME: Danger Will Robinson.
      * -----  We might be trashing arguments here.
      */
     if (xarray != yarray) {
-    	if (xarray && nx==1 && ny!=1) {
-	    if(ny != 0)
-		warningcall(call, _(
-	"Recycling array of length 1 in array-vector arithmetic is deprecated.\n\
-  Use c() or as.vector() instead.\n"));
-    	    REPROTECT(x = duplicate(x), xpi);
-    	    setAttrib(x, R_DimSymbol, R_NilValue);
-    	}
-    	if (yarray && ny==1 && nx!=1) {
-	    if(nx != 0)
-		warningcall(call, _(
-	"Recycling array of length 1 in vector-array arithmetic is deprecated.\n\
-  Use c() or as.vector() instead.\n"));
-    	    REPROTECT(y = duplicate(y), ypi);
-    	    setAttrib(y, R_DimSymbol, R_NilValue);
-    	}
+	if (xarray && nx==1 && ny!=1) {
+	    REPROTECT(x = duplicate(x), xpi);
+	    setAttrib(x, R_DimSymbol, R_NilValue);
+	}
+	if (yarray && ny==1 && nx!=1) {
+	    REPROTECT(y = duplicate(y), ypi);
+	    setAttrib(y, R_DimSymbol, R_NilValue);
+	}
     }
-#endif
 
-    SEXP dims, xnames, ynames;
     if (xarray || yarray) {
-	/* if one is a length-atleast-1-array and the
-	 * other  is a length-0 *non*array, then do not use array treatment */
 	if (xarray && yarray) {
 	    if (!conformable(x, y))
-		errorcall(call, _("non-conformable arrays"));
-	    PROTECT(dims = getAttrib(x, R_DimSymbol)); nprotect++;
+		errorcall(lcall, _("non-conformable arrays"));
+	    PROTECT(dims = getAttrib(x, R_DimSymbol));
 	}
-	else if (xarray && (ny != 0 || nx == 0)) {
-	    PROTECT(dims = getAttrib(x, R_DimSymbol)); nprotect++;
+	else if (xarray) {
+	    PROTECT(dims = getAttrib(x, R_DimSymbol));
 	}
-	else if (yarray && (nx != 0 || ny == 0)) {
-	    PROTECT(dims = getAttrib(y, R_DimSymbol)); nprotect++;
-	} else
-	    dims = R_NilValue;
+	else {			/* (yarray) */
+	    PROTECT(dims = getAttrib(y, R_DimSymbol));
+	}
+	nprotect++;
 	if (xattr) {
 	    PROTECT(xnames = getAttrib(x, R_DimNamesSymbol));
 	    nprotect++;
@@ -623,36 +607,39 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	}
 	else ynames = R_NilValue;
     }
+    if (nx == ny || nx == 1 || ny == 1) mismatch = 0;
+    else if (nx > 0 && ny > 0) {
+	if (nx > ny) mismatch = nx % ny;
+	else mismatch = ny % nx;
+    }
 
-    SEXP klass = NULL, tsp = NULL; // -Wall
     if (xts || yts) {
 	if (xts && yts) {
 	    if (!tsConform(x, y))
-		errorcall(call, _("non-conformable time-series"));
+		errorcall(lcall, _("non-conformable time-series"));
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else if (xts) {
 	    if (nx < ny)
-		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
+		ErrorMessage(lcall, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else {			/* (yts) */
 	    if (ny < nx)
-		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
+		ErrorMessage(lcall, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(y, R_TspSymbol));
 	    PROTECT(klass = getAttrib(y, R_ClassSymbol));
 	}
 	nprotect += 2;
     }
+    else klass = tsp = NULL; /* -Wall */
 
-    if (nx > 0 && ny > 0 &&
-	((nx > ny) ? nx % ny : ny % nx) != 0) // mismatch
-	warningcall(call,
+    if (mismatch)
+	warningcall(lcall,
 		    _("longer object length is not a multiple of shorter object length"));
 
-    SEXP val;
     /* need to preserve object here, as *_binary copies class attributes */
     if (TYPEOF(x) == CPLXSXP || TYPEOF(y) == CPLXSXP) {
 	COERCE_IF_NEEDED(x, CPLXSXP, xpi);
@@ -666,7 +653,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	if (TYPEOF(y) != INTSXP) COERCE_IF_NEEDED(y, REALSXP, ypi);
 	val = real_binary(oper, x, y);
     }
-    else val = integer_binary(oper, x, y, call);
+    else val = integer_binary(oper, x, y, lcall);
 
     /* quick return if there are no attributes */
     if (! xattr && ! yattr) {
@@ -677,12 +664,18 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
     PROTECT(val);
     nprotect++;
 
+    /* Don't set the dims if one argument is an array of size 0 and the
+       other isn't of size zero, cos they're wrong */
+    /* Not if the other argument is a scalar (PR#1979) */
     if (dims != R_NilValue) {
+	if (!((xarray && (nx == 0) && (ny > 1)) ||
+	      (yarray && (ny == 0) && (nx > 1)))){
 	    setAttrib(val, R_DimSymbol, dims);
 	    if (xnames != R_NilValue)
 		setAttrib(val, R_DimNamesSymbol, xnames);
 	    else if (ynames != R_NilValue)
 		setAttrib(val, R_DimNamesSymbol, ynames);
+	}
     }
     else {
 	if (XLENGTH(val) == xlength(xnames))
@@ -1487,7 +1480,8 @@ SEXP attribute_hidden do_math2(SEXP call, SEXP op, SEXP args, SEXP env)
     case 26: return Math2(args, psigamma);
 
     default:
-	error(_("unimplemented real function of %d numeric arguments"), 2);
+	errorcall(call,
+		  _("unimplemented real function of %d numeric arguments"), 2);
     }
     return op;			/* never used; to keep -Wall happy */
 }
@@ -1677,7 +1671,7 @@ SEXP attribute_hidden do_log_builtin(SEXP call, SEXP op, SEXP args, SEXP env)
 
 #define SETUP_Math3						\
     if (!isNumeric(sa) || !isNumeric(sb) || !isNumeric(sc))	\
-	error(R_MSG_NONNUM_MATH);			        \
+	errorcall(lcall, R_MSG_NONNUM_MATH);			\
 								\
     na = XLENGTH(sa);						\
     nb = XLENGTH(sb);						\
@@ -1879,7 +1873,8 @@ SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
     case 47:  return Math3_2(args, qnbinom_mu);
 
     default:
-	error(_("unimplemented real function of %d numeric arguments"), 3);
+	errorcall(call,
+		  _("unimplemented real function of %d numeric arguments"), 3);
     }
     return op;			/* never used; to keep -Wall happy */
 } /* do_math3() */
@@ -1903,7 +1898,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 
 #define SETUP_Math4							\
     if(!isNumeric(sa)|| !isNumeric(sb)|| !isNumeric(sc)|| !isNumeric(sd))\
-	error(R_MSG_NONNUM_MATH);				        \
+	errorcall(lcall, R_MSG_NONNUM_MATH);				\
 									\
     na = XLENGTH(sa);							\
     nb = XLENGTH(sb);							\
@@ -2050,7 +2045,8 @@ SEXP attribute_hidden do_math4(SEXP call, SEXP op, SEXP args, SEXP env)
     case 11: return Math4_2(args, ptukey);
     case 12: return Math4_2(args, qtukey);
     default:
-	error(_("unimplemented real function of %d numeric arguments"), 4);
+	errorcall(call,
+		  _("unimplemented real function of %d numeric arguments"), 4);
     }
     return op;			/* never used; to keep -Wall happy */
 }
@@ -2075,7 +2071,7 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 #define SETUP_Math5							\
     if (!isNumeric(sa) || !isNumeric(sb) || !isNumeric(sc) ||		\
 	!isNumeric(sd) || !isNumeric(se))				\
-	error(R_MSG_NONNUM_MATH);				        \
+	errorcall(lcall, R_MSG_NONNUM_MATH);				\
 									\
     na = XLENGTH(sa);							\
     nb = XLENGTH(sb);							\
@@ -2152,7 +2148,8 @@ SEXP attribute_hidden do_math5(SEXP call, SEXP op, SEXP args, SEXP env)
     case  3: return Math5(args, q...);
 #endif
     default:
-	error(_("unimplemented real function of %d numeric arguments"), 5);
+	errorcall(call,
+		  _("unimplemented real function of %d numeric arguments"), 5);
     }
     return op;			/* never used; to keep -Wall happy */
 } /* do_math5() */

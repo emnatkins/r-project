@@ -1248,45 +1248,7 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
 		      nargs, symbol.symbol.call->numArgs, buf);
     }
 
-    if (R_check_constants < 4)
-	retval = R_doDotCall(ofun, nargs, cargs, call);
-    else {
-	SEXP *cargscp = (SEXP *) R_alloc(nargs, sizeof(SEXP));
-	int i;
-	for(i = 0; i < nargs; i++)
-	    cargscp[i] = PROTECT(duplicate(cargs[i]));
-	retval = PROTECT(R_doDotCall(ofun, nargs, cargs, call));
-	Rboolean constsOK = TRUE;
-	for(i = 0; constsOK && i < nargs; i++)
-	    /* 39: not numerical comparison, not single NA, not attributes as
-               set, do ignore byte-code, do ignore environments of closures,
-               not ignore srcref
-
-               srcref is not ignored because ignoring it is expensive
-               (it triggers duplication)
-	    */
-            if (!R_compute_identical(cargs[i], cargscp[i], 39)
-		    && !R_checkConstants(FALSE))
-		constsOK = FALSE;
-	if (!constsOK) {
-	    REprintf("ERROR: detected compiler constant(s) modification after"
-		" .Call invocation of function %s from library %s (%s).\n",
-		buf,
-		symbol.dll ? symbol.dll->name : "unknown",
-		symbol.dll ? symbol.dll->path : "unknown");
-	    for(i = 0; i < nargs; i++)
-		if (!R_compute_identical(cargs[i], cargscp[i], 39))
-		    REprintf("NOTE: .Call function %s modified its argument"
-			" (number %d, type %s, length %d)\n",
-			buf,
-			i + 1,
-			CHAR(type2str(TYPEOF(cargscp[i]))),
-			length(cargscp[i])
-		    );
-	    R_Suicide("compiler constants were modified (in .Call?)!\n");
-	}
-	UNPROTECT(nargs + 1);
-    }
+    retval = R_doDotCall(ofun, nargs, cargs, call);
     vmaxset(vmax);
     return retval;
 }

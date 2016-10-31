@@ -18,7 +18,7 @@
 
 stack <- function(x, ...) UseMethod("stack")
 
-stack.data.frame <- function(x, select, drop=FALSE, ...)
+stack.data.frame <- function(x, select, ...)
 {
     if (!missing(select)) {
 	nl <- as.list(1L:ncol(x))
@@ -31,28 +31,21 @@ stack.data.frame <- function(x, select, drop=FALSE, ...)
     if(!all(keep))
         warning("non-vector columns will be ignored")
     x <- x[, keep, drop = FALSE]
-    ind <- rep(factor(names(x), unique(names(x))), lengths(x))
-    if (drop) {
-        ind <- droplevels(ind)
-    }
+    ## need to avoid promotion to factors
     data.frame(values = unlist(unname(x)),
-               ind,
+               ind = factor(rep.int(names(x), lengths(x))),
                stringsAsFactors = FALSE)
 }
 
-stack.default <- function(x, drop=FALSE, ...)
+stack.default <- function(x, ...)
 {
     x <- as.list(x)
     keep <- unlist(lapply(x, is.vector))
     if(!sum(keep)) stop("at least one vector element is required")
     if(!all(keep)) warning("non-vector elements will be ignored")
     x <- x[keep]
-    ind <- rep(factor(names(x), unique(names(x))), lengths(x))
-    if (drop) {
-        ind <- droplevels(ind)
-    }
     data.frame(values = unlist(unname(x)),
-               ind,
+               ind = factor(rep.int(names(x), lengths(x))),
                stringsAsFactors = FALSE)
 }
 
