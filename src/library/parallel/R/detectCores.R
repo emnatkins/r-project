@@ -23,7 +23,7 @@ detectCores <-
         function(all.tests = FALSE, logical = TRUE) {
             ## result is # cores, logical processors.
             res <- .Call(C_ncpus, FALSE)
-	    res[if(logical) 2L else 1L]
+            ifelse(logical, res[2L], res[1L]);
         }
     } else {
         function(all.tests = FALSE, logical = TRUE) {
@@ -41,11 +41,11 @@ detectCores <-
                 if(all.tests ||
 		   length(grep(paste0("^", names(systems)[i]), R.version$os)))
                     for (cmd in systems[i]) {
-			if(is.null(a <- tryCatch(suppressWarnings(system(cmd, TRUE)),
-						 error = function(e) NULL)))
-			    next
+                        a <- try(suppressWarnings(system(cmd, TRUE)),
+                                 silent = TRUE)
+                        if(inherits(a, "try-error")) next
                         a <- gsub("^ +","", a[1])
-                        if (grepl("^[1-9]", a)) return(as.integer(a))
+                        if (length(grep("^[1-9]", a))) return(as.integer(a))
                     }
             NA_integer_
         }

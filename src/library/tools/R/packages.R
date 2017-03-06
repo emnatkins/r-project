@@ -1,7 +1,7 @@
 #  File src/library/tools/R/packages.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2017 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -20,11 +20,14 @@ write_PACKAGES <-
 function(dir = ".", fields = NULL,
          type = c("source", "mac.binary", "win.binary"),
          verbose = FALSE, unpacked = FALSE, subdirs = FALSE,
-         latestOnly = TRUE, addFiles = FALSE, rds_compress = TRUE)
+         latestOnly = TRUE, addFiles = FALSE)
 {
     if(missing(type) && .Platform$OS.type == "windows")
         type <- "win.binary"
     type <- match.arg(type)
+    nfields <- 0
+    out   <-   file(file.path(dir, "PACKAGES"   ), "wt")
+    outgz <- gzfile(file.path(dir, "PACKAGES.gz"), "wt")
 
     paths <- ""
     if(is.logical(subdirs) && subdirs) {
@@ -33,15 +36,6 @@ function(dir = ".", fields = NULL,
         setwd(owd)
         paths <- c("", paths[paths != "."])
     } else if(is.character(subdirs)) paths <- c("", subdirs)
-
-    ## Older versions created only plain text and gzipped DCF files with
-    ## the (non-missing and non-empty) package db entries, and hence did
-    ## so one path at a time.  We now also serialize the db directly,
-    ## and hence first build the whole db, and then create the files in
-    ## case some packages were found.
-
-    db <- NULL
-    addPaths <- !identical(paths, "")
 
     for(path in paths) {
         this <- if(nzchar(path)) file.path(dir, path) else dir
@@ -55,7 +49,6 @@ function(dir = ".", fields = NULL,
             desc <- matrix(unlist(desc), ncol = length(fields), byrow = TRUE)
             colnames(desc) <- fields
             if(addFiles) desc <- cbind(desc, File = Files)
-            if(addPaths) desc <- cbind(desc, Path = path)
             if(latestOnly) desc <- .remove_stale_dups(desc)
 
             ## Standardize licenses or replace by NA.
@@ -65,27 +58,25 @@ function(dir = ".", fields = NULL,
                        license_info$standardization,
                        NA)
 
-            db <- rbind(db, desc)
+            ## Writing PACKAGES file from matrix desc linewise in order to
+            ## omit NA entries appropriately:
+            for(i in seq_len(nrow(desc))){
+                desci <- desc[i, !(is.na(desc[i, ]) | (desc[i, ] == "")),
+                              drop = FALSE]
+                write.dcf(desci, file = out)
+                if(nzchar(path)) cat("Path: ", path, "\n", sep = "", file = out)
+                cat("\n", file = out)
+                write.dcf(desci, file = outgz)
+                if(nzchar(path)) cat("Path: ", path, "\n", sep = "", file = outgz)
+                cat("\n", file = outgz)
+            }
+            nfields <- nfields + nrow(desc)
         }
     }
 
-    np <- NROW(db)
-    if(np > 0L) {
-        ## To save space, empty entries are not written to the DCF, so
-        ## that read.dcf() on these will have the entries as missing.
-        ## Hence, change empty to missing in the db.
-        db[!is.na(db) & (db == "")] <- NA_character_
-        con <- file(file.path(dir, "PACKAGES"), "wt")
-        write.dcf(db, con)
-        close(con)
-        con <- gzfile(file.path(dir, "PACKAGES.gz"), "wt")
-        write.dcf(db, con)
-        close(con)
-        rownames(db) <- db[, "Package"]
-        saveRDS(db, file.path(dir, "PACKAGES.rds"), compress = rds_compress)
-    }
-
-    invisible(np)
+    close(out)
+    close(outgz)
+    invisible(nfields)
 }
 
 ## this is OK provided all the 'fields' are ASCII -- so be careful
@@ -128,7 +119,7 @@ function(dir, fields = NULL,
     if(type == "win.binary") {
         files <- file.path(dir, files)
         for(i in seq_along(files)) {
-            if(verbose) message(paste0("  ", files[i]))
+            if(verbose) message(paste(" ", files[i]))
             con <- unz(files[i], file.path(packages[i], "DESCRIPTION"))
             temp <- tryCatch(read.dcf(con, fields = fields)[1L, ],
                              error = identity)
@@ -150,7 +141,7 @@ function(dir, fields = NULL,
         on.exit(unlink(td, recursive = TRUE), add = TRUE)
         setwd(td)
         for(i in seq_along(files)) {
-            if(verbose) message(paste0("  ", files[i]))
+            if(verbose) message(paste(" ", files[i]))
             p <- file.path(packages[i], "DESCRIPTION")
             ## temp <- try(system(paste("tar zxf", files[i], p)))
             temp <- try(utils::untar(files[i], files = p))
@@ -193,7 +184,7 @@ function(dir, fields = NULL, verbose = getOption("verbose"))
     db <- vector(length(paths), mode = "list")
     if(verbose) message("Processing packages:")
     for(i in seq_along(paths)) {
-        if(verbose) message(paste0("  ", basename(paths[i])))
+        if(verbose) message(paste(" ", basename(paths[i])))
         temp <- tryCatch(read.dcf(file.path(paths[i], "DESCRIPTION"),
                                   fields = fields)[1L, ],
                          error = identity)
@@ -415,6 +406,15 @@ function(packages = NULL, db = NULL,
     depends
 }
 
+
+.package_dependencies <- function(packages = NULL, db,
+         which = c("Depends", "Imports", "LinkingTo"),
+         recursive = FALSE, reverse = FALSE)
+{
+    .Deprecated("package_dependencies")
+    package_dependencies(packages = packages, db = db,
+         which = which, recursive = recursive, reverse = reverse)
+}
 
 .extract_dependency_package_names <-
 function(x) {

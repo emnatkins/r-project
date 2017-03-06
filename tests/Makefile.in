@@ -10,16 +10,14 @@ subdir = tests
 
 all check: test-all-basics
 check-devel: check test-all-devel
-check-all: check-devel check-recommended
-@USE_RECOMMENDED_PACKAGES_TRUE@ check-recommended: test-Packages-Recommended
-@USE_RECOMMENDED_PACKAGES_FALSE@ check-recommended:
-	@$(ECHO) "Recommended packages are not installed so cannot be tested"
+check-all: check-devel test-Packages-Recommended
+check-recommended: test-Packages-Recommended
 
 
 include $(top_builddir)/Makeconf
 include $(srcdir)/Makefile.common
 
-@USE_RECOMMENDED_PACKAGES_FALSE@test-src-reg3 = reg-plot-latin1.R reg-S4.R
+@USE_RECOMMENDED_PACKAGES_FALSE@test-src-reg3 = reg-plot-latin1.R
 
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
@@ -86,8 +84,7 @@ clean:
 	  reg-examples-*.pdf testCID.* \
 	  reg-plot-latin1.ps reg-plot.ps \
 	  reg-plot-latin1.pdf reg-plot.pdf reg-tests-*.pdf \
-	  R-exts.* R-intro.R no-segfault.R R-intro.Rout \
-	  p-qbeta-strict-tst.pdf
+	  R-exts.* R-intro.R no-segfault.R R-intro.Rout
 	-@rm -f FALSE* PACKAGES* .R .tex mirrors.html ./-package.Rd ex.gz
 	-@rm -f testit.txt testit.html testit.tex testit-Ex.R
 	-@rm -f ver20.txt ver20.html ver20.tex ver20-Ex.R

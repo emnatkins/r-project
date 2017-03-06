@@ -126,10 +126,11 @@ static Rcomplex unify_complex_na(Rcomplex z) {
     Rcomplex ans;
     ans.r = (z.r == 0.0) ? 0.0 : z.r;
     ans.i = (z.i == 0.0) ? 0.0 : z.i;
-    if (R_IsNA(ans.r) || R_IsNA(ans.i))
-	ans.r = ans.i = NA_REAL;
-    else if (R_IsNaN(ans.r) || R_IsNaN(ans.i))
-	ans.r = ans.i = R_NaN;
+    /* we want all NaNs except NA equal, and all NAs equal */
+    if (R_IsNA(ans.r)) ans.r = NA_REAL;
+    else if (R_IsNaN(ans.r)) ans.r = R_NaN;
+    if (R_IsNA(ans.i)) ans.i = NA_REAL;
+    else if (R_IsNaN(ans.i)) ans.i = R_NaN;
     return ans;
 }
 
@@ -208,7 +209,8 @@ static int requal(SEXP x, R_xlen_t i, SEXP y, R_xlen_t j)
  * but R's print() and format()  render all as "NA" */
 static int cplx_eq(Rcomplex x, Rcomplex y)
 {
-    if (!ISNAN(x.r) && !ISNAN(x.i) && !ISNAN(y.r) && !ISNAN(y.i))
+    if (!ISNAN(x.r) && !ISNAN(x.i) &&
+	!ISNAN(y.r) && !ISNAN(y.i))
 	return x.r == y.r && x.i == y.i;
     else if ((R_IsNA(x.r) || R_IsNA(x.i)) &&
 	     (R_IsNA(y.r) || R_IsNA(y.i)))
@@ -824,7 +826,7 @@ static SEXP match_transform(SEXP s, SEXP env)
 	else if(inherits(s, "POSIXlt")) { /* and maybe more classes in the future:
 					   * Call R's (generic)	 as.character(s) : */
 	    SEXP call, r;
-	    PROTECT(call = lang2(R_AsCharacterSymbol, s));
+	    PROTECT(call = lang2(install("as.character"), s));
 	    r = eval(call, env);
 	    UNPROTECT(1);
 	    return r;
@@ -866,7 +868,7 @@ SEXP match5(SEXP itable, SEXP ix, int nmatch, SEXP incomp, SEXP env)
     PROTECT(table = coerceVector(table, type)); nprot++;
 
     // special case scalar x -- for speed only :
-    if(XLENGTH(x) == 1 && !incomp) {
+    if(XLENGTH(x) == 1 && !incomp && TYPEOF(table) != CPLXSXP) {
       PROTECT(ans = ScalarInteger(nmatch)); nprot++;
       switch (type) {
       case STRSXP: {
@@ -1253,6 +1255,8 @@ SEXP attribute_hidden do_charmatch(SEXP call, SEXP op, SEXP args, SEXP env)
 /* Functions for matching the supplied arguments to the */
 /* formal arguments of functions.  The returned value */
 /* is a list with all components named. */
+
+#define ARGUSED(x) LEVELS(x)
 
 static SEXP StripUnmatched(SEXP s)
 {

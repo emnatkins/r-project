@@ -1,6 +1,6 @@
 % File src/library/stats/man/xtabs.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2017 R Core Team
+% Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
 \name{xtabs}
@@ -14,10 +14,7 @@
 }
 \usage{
 xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
-      na.action, addNA = FALSE, exclude = if(!addNA) c(NA, NaN),
-      drop.unused.levels = FALSE)
-
-\method{print}{xtabs}(x, na.print = "", \dots)
+      na.action, exclude = c(NA, NaN), drop.unused.levels = FALSE)
 }
 \arguments{
   \item{formula}{a \link{formula} object with the cross-classifying variables
@@ -40,14 +37,7 @@ xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
     are no higher-order sparse array classes yet).
   }
   \item{na.action}{a function which indicates what should happen when
-    the data contain \code{\link{NA}}s.  If unspecified, and
-    \code{addNA} is true, this is set to \code{\link{na.pass}}.  When it
-    is \code{na.pass} and \code{formula} has a left hand side (with
-    counts), \code{\link{sum}(*, na.rm = TRUE)} is used instead of
-    \code{sum(*)} for the counts.}
-  \item{addNA}{logical indicating if \code{NA}s should get a separate
-    level and be counted, using \code{\link{addNA}(*, ifany=TRUE)} and
-    setting the default for \code{na.action}.}
+    the data contain \code{NA}s.}
   \item{exclude}{a vector of values to be excluded when forming the
     set of levels of the classifying factors.}
   \item{drop.unused.levels}{a logical indicating whether to drop unused
@@ -55,13 +45,6 @@ xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
     there are unused levels, the table will contain zero marginals, and
     a subsequent chi-squared test for independence of the factors will
     not work.}
-
-  \item{x}{an object of class \code{"xtabs"}.}
-  \item{na.print}{character string (or \code{NULL}) indicating how
-    \code{\link{NA}} are printed.  The default (\code{""}) does not show
-    \code{NA}s clearly, and \code{na.print = "NA"} maybe advisable
-    instead.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \details{
   There is a \code{summary} method for contingency table objects created
@@ -73,12 +56,9 @@ xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
   If a left hand side is given in \code{formula}, its entries are simply
   summed over the cells corresponding to the right hand side; this also
   works if the lhs does not give counts.
-
+  
   For variables in \code{formula} which are factors, \code{exclude}
-  must be specified explicitly; the default exclusions will not be used.
-
-  In \R versions before 3.4.0, e.g., when \code{na.action = na.pass},
-  sometimes zeroes (\code{0}) were returned instead of \code{NA}s.
+  must be specified explicitly; the default exclusions will not be used.  
 }
 \value{
   By default, when \code{sparse = FALSE},
@@ -117,17 +97,8 @@ xtabs(Freq ~ Gender + Admit, DF)
 ## And for testing independence ...
 summary(xtabs(Freq ~ ., DF))
 
-## with NA's
-DN <- DF; DN[cbind(6:9, c(1:2,4,1))] <- NA; DN
-tools::assertError(# 'na.fail' should fail :
-     xtabs(Freq ~ Gender + Admit, DN, na.action=na.fail))
-xtabs(Freq ~ Gender + Admit, DN)
-xtabs(Freq ~ Gender + Admit, DN, na.action = na.pass)
-## The Female:Rejected combination has NA 'Freq' (and NA prints 'invisibly' as "")
-xtabs(Freq ~ Gender + Admit, DN, addNA = TRUE) # ==> count NAs
-
 ## Create a nice display for the warp break data.
-warpbreaks$replicate <- rep_len(1:9, 54)
+warpbreaks$replicate <- rep(1:9, len = 54)
 ftable(xtabs(breaks ~ wool + tension + replicate, data = warpbreaks))
 
 ### ---- Sparse Examples ----

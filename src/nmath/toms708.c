@@ -12,10 +12,12 @@
 #undef max
 #define max(a,b) ((a > b)?a:b)
 
-#include "nmath.h" /* includes config.h, math.h */
+#include "nmath.h"
 #include "dpq.h"
 /* after config.h to avoid warning on Solaris */
 #include <limits.h>
+/* <math.h> is included by above, with suitable defines in glibc systems
+   to make log1p and expm1 declared */
 
 /**----------- DEBUGGING -------------
  *
@@ -797,7 +799,7 @@ static double bfrac(double a, double b, double x, double y, double lambda,
     } while (n < 10000);// arbitrary; had '1' --> infinite loop for  lambda = Inf
     R_ifDEBUG_printf("  in bfrac(): n=%.0f terms cont.frac.; brc=%g, r=%g\n",
 		     n, brc, r);
-    if(n >= 10000 && fabs(r - r0) > eps * r)
+    if(n >= 10000)
 	MATHLIB_WARNING5(
 	    " bfrac(a=%g, b=%g, x=%g, y=%g, lambda=%g) did *not* converge (in 10000 steps)\n",
 	    a,b,x,y, lambda);

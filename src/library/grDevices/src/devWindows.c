@@ -1763,7 +1763,6 @@ setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
     dd->canGenMouseMove = TRUE;
     dd->canGenMouseUp = TRUE;
     dd->canGenKeybd = TRUE;
-    dd->canGenIdle = FALSE;
     dd->gettingEvent = FALSE;
 
     GA_xd = xd;

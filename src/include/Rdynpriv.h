@@ -73,7 +73,9 @@ typedef struct {
     DL_FUNC     fun;
     int         numArgs;
 
-    R_NativePrimitiveArgType *types;   
+    R_NativePrimitiveArgType *types;
+    R_NativeArgStyle *styles;
+   
 } Rf_DotCSymbol;
 
 typedef Rf_DotCSymbol Rf_DotFortranSymbol;
@@ -83,6 +85,9 @@ typedef struct {
     char       *name;
     DL_FUNC     fun;
     int         numArgs;
+    R_NativeObjectArgType *types;
+
+    R_NativeArgStyle *styles;
 } Rf_DotCallSymbol;
 
 typedef Rf_DotCallSymbol Rf_DotExternalSymbol;
@@ -193,10 +198,8 @@ DL_FUNC Rf_lookupCachedSymbol(const char *name, const char *pkg, int all);
 DL_FUNC R_dlsym(DllInfo *info, char const *name, 
 		R_RegisteredNativeSymbol *symbol);
 
-/* Moved to API in R 3.4.0
-  SEXP R_MakeExternalPtrFn(DL_FUNC p, SEXP tag, SEXP prot);
-  DL_FUNC R_ExternalPtrAddrFn(SEXP s);
-*/
+SEXP R_MakeExternalPtrFn(DL_FUNC p, SEXP tag, SEXP prot);
+DL_FUNC R_ExternalPtrAddrFn(SEXP s);
 DL_FUNC R_dotCallFn(SEXP, SEXP, int);
 SEXP R_doDotCall(DL_FUNC, int, SEXP *, SEXP);
 

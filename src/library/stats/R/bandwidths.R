@@ -2,7 +2,7 @@
 #  Part of the R package, https://www.R-project.org
 #
 #  Copyright (C) 1994-2001 W. N. Venables and B. D. Ripley
-#  Copyright (C) 2001-2017 The R Core Team
+#  Copyright (C) 2001-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -37,21 +37,6 @@ bw.nrd <- function (x)
     1.06 * min(sqrt(var(x)), h) * length(x)^(-1/5)
 }
 
-
-## switch-over at n > nb/2 found by empirical timing.
-bw_pair_cnts <- function(x, nb, binned)
-{
-    if(binned) {
-        r <- range(x)
-        d <- diff(r) * 1.01/nb
-        ## Emulate exactly how the C code does its binning.
-        xx <- trunc(abs(x)/d) *sign(x)
-        xx <- xx - min(xx) + 1
-        xxx <- tabulate(xx, nb)
-        list(d, .Call(C_bw_den_binned, xxx))
-    } else .Call(C_bw_den, nb, x)
-}
-
 bw.SJ <- function(x, nb = 1000L, lower = 0.1*hmax, upper = hmax,
                   method = c("ste", "dpi"), tol = 0.1*lower)
 {
@@ -65,11 +50,11 @@ bw.SJ <- function(x, nb = 1000L, lower = 0.1*hmax, upper = hmax,
 
     method <- match.arg(method)
 
+    fSD <- function(h) ( c1 / SDh(alph2 * h^(5/7)) )^(1/5) - h
     SDh <- function(h) .Call(C_bw_phi4, n, d, cnt, h)
     TDh <- function(h) .Call(C_bw_phi6, n, d, cnt, h)
 
-    Z <- bw_pair_cnts(x, nb, n > nb/2)
-    d <- Z[[1L]]; cnt <- Z[[2L]]
+    Z <- .Call(C_bw_den, nb, x); d <- Z[[1L]]; cnt <- Z[[2L]]
     scale <- min(sd(x), IQR(x)/1.349)
     a <- 1.24 * scale * n^(-1/7)
     b <- 1.23 * scale * n^(-1/9)
@@ -88,7 +73,6 @@ bw.SJ <- function(x, nb = 1000L, lower = 0.1*hmax, upper = hmax,
         if(!is.finite(alph2))
             stop("sample is too sparse to find alph2", domain  = NA)
         itry <- 1L
-        fSD <- function(h) ( c1 / SDh(alph2 * h^(5/7)) )^(1/5) - h
 	while (fSD(lower) * fSD(upper) > 0) {
 	    if(itry > 99L || !bnd.Miss) # 1.2 ^ 99 = 69'014'979 .. enough
 		stop("no solution in the specified range of bandwidths")
@@ -116,8 +100,7 @@ bw.ucv <- function(x, nb = 1000L, lower = 0.1*hmax, upper = hmax,
     storage.mode(x) <- "double"
 
     hmax <- 1.144 * sqrt(var(x)) * n^(-1/5)
-    Z <- bw_pair_cnts(x, nb, n > nb/2)
-    d <- Z[[1L]]; cnt <- Z[[2L]]
+    Z <- .Call(C_bw_den, nb, x); d <- Z[[1L]]; cnt <- Z[[2L]]
     fucv <- function(h) .Call(C_bw_ucv, n, d, cnt, h)
     h <- optimize(fucv, c(lower, upper), tol = tol)$minimum
     if(h < lower+tol | h > upper-tol)
@@ -137,8 +120,7 @@ bw.bcv <- function(x, nb = 1000L, lower = 0.1*hmax, upper = hmax,
     storage.mode(x) <- "double"
 
     hmax <- 1.144 * sqrt(var(x)) * n^(-1/5)
-    Z <- bw_pair_cnts(x, nb, n > nb/2)
-    d <- Z[[1L]]; cnt <- Z[[2L]]
+    Z <- .Call(C_bw_den, nb, x); d <- Z[[1L]]; cnt <- Z[[2L]]
     fbcv <- function(h) .Call(C_bw_bcv, n, d, cnt, h)
     h <- optimize(fbcv, c(lower, upper), tol = tol)$minimum
     if(h < lower+tol | h > upper-tol)

@@ -26,7 +26,7 @@ function(x, y = NULL, labels = seq_along(x$x),
     if (!missing(y) && (is.character(y) || is.expression(y))) {
 	labels <- y; y <- NULL
     }
-    x <- xy.coords(x,y, recycle = TRUE, setLab = FALSE)
+    x <- xy.coords(x,y, recycle = TRUE)
     labels <- as.graphicsAnnot(labels)
     if (!is.null(vfont))
         vfont <- c(typeface = pmatch(vfont[1L], Hershey$typeface),

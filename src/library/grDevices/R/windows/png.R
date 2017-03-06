@@ -63,7 +63,7 @@ png <-
             check.options(new = new, envir = .WindowsEnv,
                           name.opt = ".Windows.Options",
                           reset = FALSE, assign.opt = FALSE)$bitmap.aa.win
-        invisible(.External(C_devga, paste0("png:", filename),
+        invisible(.External(C_devga, paste("png:", filename, sep=""),
                             g$width, g$height, pointsize, FALSE, 1L,
                             NA_real_, NA_real_, bg, 1,
                             as.integer(res), NA_integer_, FALSE, .PSenv, NA,
@@ -95,7 +95,7 @@ bmp <-
             check.options(new = new, envir = .WindowsEnv,
                           name.opt = ".Windows.Options",
                           reset = FALSE, assign.opt = FALSE)$bitmap.aa.win
-        invisible(.External(C_devga, paste0("bmp:", filename),
+        invisible(.External(C_devga, paste("bmp:", filename, sep=""),
                             g$width, g$height, pointsize, FALSE, 1L,
                             NA_real_, NA_real_, bg, 1,
                             as.integer(res), NA_integer_, FALSE, .PSenv, NA,
@@ -127,7 +127,7 @@ jpeg <-
                           name.opt = ".Windows.Options",
                           reset = FALSE, assign.opt = FALSE)$bitmap.aa.win
         invisible(.External(C_devga,
-                            paste0("jpeg:", quality, ":",filename),
+                            paste("jpeg:", quality, ":",filename, sep=""),
                             g$width, g$height, pointsize, FALSE, 1L,
                             NA_real_, NA_real_, bg, 1,
                             as.integer(res), NA_integer_, FALSE, .PSenv, NA,
@@ -166,7 +166,7 @@ tiff <-
                           name.opt = ".Windows.Options",
                           reset = FALSE, assign.opt = FALSE)$bitmap.aa.win
         invisible(.External(C_devga,
-                            paste0("tiff:", comp, ":", filename),
+                            paste("tiff:", comp, ":", filename, sep=""),
                             g$width, g$height, pointsize, FALSE, 1L,
                             NA_real_, NA_real_, bg, 1,
                             as.integer(res), NA_integer_, FALSE, .PSenv, NA,

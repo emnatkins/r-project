@@ -744,7 +744,6 @@ cetype_t getCharCE(SEXP x)
 void * Riconv_open (const char* tocode, const char* fromcode)
 {
 #if defined Win32 || __APPLE__
-// These two support "utf8"
 # ifdef Win32
     const char *cp = "ASCII";
 #  ifndef SUPPORT_UTF8_WIN32 /* Always, at present */
@@ -761,11 +760,7 @@ void * Riconv_open (const char* tocode, const char* fromcode)
     else if(!*fromcode) return iconv_open(tocode, cp);
     else return iconv_open(tocode, fromcode);
 #else
-// "utf8" is not valid but people keep on using it
-    const char *to = tocode, *from = fromcode;
-    if(strcasecmp(tocode, "utf8") == 0) to = "UTF-8";
-    if(strcasecmp(fromcode, "utf8") == 0) from = "UTF-8";
-    return iconv_open(to, from);
+    return iconv_open(tocode, fromcode);
 #endif
 }
 

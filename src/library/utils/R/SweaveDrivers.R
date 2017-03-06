@@ -36,7 +36,7 @@ RweaveLatexSetup <-
     dots <- list(...)
     if (is.null(output)) {
         prefix.string <- basename(sub(syntax$extension, "", file))
-        output <- paste0(prefix.string, ".tex")
+        output <- paste(prefix.string, "tex", sep = ".")
     } else prefix.string <- basename(sub("\\.tex$", "", output))
 
     if (!quiet) cat("Writing to file ", output, "\n",
@@ -95,21 +95,21 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
     ## only once.
     function(object, chunk, options) {
         pdf.Swd <- function(name, width, height, ...)
-            grDevices::pdf(file = paste0(chunkprefix, ".pdf"),
+            grDevices::pdf(file = paste(chunkprefix, "pdf", sep = "."),
                            width = width, height = height,
                            version = options$pdf.version,
                            encoding = options$pdf.encoding,
                            compress = options$pdf.compress)
         eps.Swd <- function(name, width, height, ...)
-            grDevices::postscript(file = paste0(name, ".eps"),
+            grDevices::postscript(file = paste(name, "eps", sep = "."),
                                   width = width, height = height,
                                   paper = "special", horizontal = FALSE)
         png.Swd <- function(name, width, height, options, ...)
-            grDevices::png(filename = paste0(chunkprefix, ".png"),
+            grDevices::png(filename = paste(chunkprefix, "png", sep = "."),
                            width = width, height = height,
                            res = options$resolution, units = "in")
         jpeg.Swd <- function(name, width, height, options, ...)
-            grDevices::jpeg(filename = paste0(chunkprefix, ".jpeg"),
+            grDevices::jpeg(filename = paste(chunkprefix, "jpeg", sep = "."),
                             width = width, height = height,
                             res = options$resolution, units = "in")
 
@@ -133,28 +133,13 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                 devs <- c(devs, list(jpeg.Swd))
                 devoffs <- c(devoffs, list(grDevices::dev.off))
             }
-            if(nzchar(grd <- options$grdevice)) {
-                grdo <- paste0(grd, ".off")
-                if(grepl("::", grd, fixed = TRUE)) {
-                    devs <- c(devs, eval(parse(text = grd)))
-                    devoffs <-
-                        c(devoffs,
-                          if(!inherits(grdo <-
-                                           tryCatch(eval(parse(text = grdo)),
-                                                    error = identity),
-                                       "error"))
-                              list(grdo)
-                          else
-                              list(grDevices::dev.off))
-                } else {
-                    devs <- c(devs, list(get(grd, envir = .GlobalEnv)))
-                    devoffs <-
-                        c(devoffs,
-                          if(exists(grdo, envir = .GlobalEnv))
-                              list(get(grdo, envir = .GlobalEnv))
-                          else
-                              list(grDevices::dev.off))
-                }
+            if (nzchar(grd <- options$grdevice)) {
+                devs <- c(devs, list(get(grd, envir = .GlobalEnv)))
+                grdo <- paste(grd, "off", sep = ".")
+                devoffs <- c(devoffs,
+                             if (exists(grdo, envir = .GlobalEnv))
+                                 list(get(grdo, envir = .GlobalEnv))
+                             else list(grDevices::dev.off))
             }
         }
         if (!object$quiet) {
@@ -188,7 +173,7 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
             ## [x][[1L]] avoids partial matching of x
             chunkout <- object$chunkout[chunkprefix][[1L]]
             if (is.null(chunkout)) {
-                chunkout <- file(paste0(chunkprefix, ".tex"), "w")
+                chunkout <- file(paste(chunkprefix, "tex", sep = "."), "w")
                 if (!is.null(options$label))
                     object$chunkout[[chunkprefix]] <- chunkout
                 if(!grepl(.SweaveValidFilenameRegexp, chunkout))
@@ -222,12 +207,12 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                 openSinput <<- TRUE
             }
             leading <- max(leading, 1L) # safety check
-            cat("\n", paste0(getOption("prompt"), dce[seq_len(leading)],
-                             collapse = "\n"),
+            cat("\n", paste(getOption("prompt"), dce[seq_len(leading)],
+                            sep = "", collapse = "\n"),
                 file = chunkout, sep = "")
             if (length(dce) > leading)
-                cat("\n", paste0(getOption("continue"), dce[-seq_len(leading)],
-                                 collapse = "\n"),
+                cat("\n", paste(getOption("continue"), dce[-seq_len(leading)],
+                                sep = "", collapse = "\n"),
                     file = chunkout, sep = "")
             linesout[thisline + seq_along(dce)] <<- srcline
             filenumout[thisline + seq_along(dce)] <<- srcfilenum
@@ -235,11 +220,13 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
         }
 
         trySrcLines <- function(srcfile, showfrom, showto, ce) {
-	    tryCatch(suppressWarnings(getSrcLines(srcfile, showfrom, showto)),
-                     error = function(e) {
-                         if (is.null(ce)) character()
-                         else deparse(ce, width.cutoff = 0.75*getOption("width"))
-                     })
+	    lines <- tryCatch(suppressWarnings(getSrcLines(srcfile, showfrom, showto)),
+			      error = function(e)e)
+	    if (inherits(lines, "error")) {
+		lines <- if (is.null(ce)) character()
+		else deparse(ce, width.cutoff = 0.75*getOption("width"))
+            }
+            lines
         }
 
         echoComments <- function(showto) {
@@ -502,7 +489,7 @@ RweaveLatexWritedoc <- function(object, chunk)
             object$options$label <- "concordance"
             prefix <- RweaveChunkPrefix(object$options)
             object$options$label <- savelabel
-            object$concordfile <- paste0(prefix, ".tex")
+            object$concordfile <- paste(prefix, "tex", sep = ".")
             chunk[pos[1L]] <- sub(object$syntax$docopt,
                                   paste0("\\\\input{", prefix, "}"),
                                   chunk[pos[1L]])
@@ -678,13 +665,13 @@ Rtangle <-  function()
 
 RtangleSetup <-
     function(file, syntax, output = NULL, annotate = TRUE, split = FALSE,
-             quiet = FALSE, drop.evalFALSE = FALSE, ...)
+             quiet = FALSE, ...)
 {
     dots <- list(...)
     if (is.null(output)) {
         prefix.string <- basename(sub(syntax$extension, "", file))
         ## This is odd, since for split = TRUE it uses the engine name.
-        output <- paste0(prefix.string, ".R")
+        output <- paste(prefix.string, "R", sep = ".")
     } else
         prefix.string <- basename(sub("\\.[rsRS]$", "", output))
 
@@ -719,25 +706,11 @@ RtangleSetup <-
     options <- RweaveLatexOptions(options)
 
     list(output = output, annotate = annotate, options = options,
-         chunkout = list(), quiet = quiet, syntax = syntax,
-         drop.evalFALSE = drop.evalFALSE)
+         chunkout = list(), quiet = quiet, syntax = syntax)
 }
 
-.RtangleCodeLabel <- function(chunk) {
-    if(length(lnos <- grep("^#line ", chunk, value = TRUE))) {
-        srclines <- attr(chunk, "srclines")
-        ## srcfilenum <- attr(chunk, "srcFilenum")
-        ## this currently includes the chunk header
-        lno <- if (length(srclines))
-                   paste(min(srclines), max(srclines), sep = "-")
-               else srclines
-        fn <- sub('[^"]*"([^"]+).*', "\\1", lnos[1L])
-        paste(fn, lno, sep = ":")
-    } else
-        "(missing #line/file info)"
-}
 
-RtangleRuncode <- function(object, chunk, options)
+RtangleRuncode <-  function(object, chunk, options)
 {
     if (!(options$engine %in% c("R", "S"))) return(object)
 
@@ -759,18 +732,23 @@ RtangleRuncode <- function(object, chunk, options)
     } else
         chunkout <- object$output
 
-    showOut <- options$eval || !object$drop.evalFALSE
-    if(showOut) {
-        annotate <- object$annotate
-        if (is.logical(annotate) && annotate) {
-            cat("###################################################\n",
-                "### code chunk number ", options$chunknr, ": ",
-                if(!is.null(ol <- options$label)) ol else .RtangleCodeLabel(chunk),
-                if(!options$eval) " (eval = FALSE)", "\n",
-                "###################################################\n",
-                file = chunkout, sep = "")
-        } else if(is.function(annotate))
-            annotate(options, chunk = chunk, output = chunkout)
+    if (object$annotate) {
+        lnos <- grep("^#line ", chunk, value = TRUE)
+        if(length(lnos)) {
+            srclines <- attr(chunk, "srclines")
+ ##         srcfilenum <- attr(chunk, "srcFilenum")
+            ## this currently includes the chunk header
+            lno <- if (length(srclines)) paste(min(srclines), max(srclines), sep = "-") else srclines
+            fn <- sub('[^"]*"([^"]+).*', "\\1", lnos[1L])
+        }
+        cat("###################################################\n",
+            "### code chunk number ", options$chunknr,
+            ": ",
+            if(!is.null(options$label)) options$label
+            else paste(fn, lno, sep = ":"),
+            ifelse(options$eval, "", " (eval = FALSE)"), "\n",
+            "###################################################\n",
+            file = chunkout, sep = "")
     }
 
     ## The next returns a character vector of the logical options
@@ -780,12 +758,10 @@ RtangleRuncode <- function(object, chunk, options)
         cat("getOption(\"SweaveHooks\")[[\"", k, "\"]]()\n",
             file = chunkout, sep = "")
 
-    if(showOut) {
-        if (!options$show.line.nos) # drop "#line ...." lines
-            chunk <- grep("^#line ", chunk, value = TRUE, invert = TRUE)
-        if (!options$eval) chunk <- paste("##", chunk)
-        cat(chunk, "\n", file = chunkout, sep = "\n")
-    }
+    if (!options$show.line.nos)
+        chunk <- grep("^#line ", chunk, value = TRUE, invert = TRUE)
+    if (!options$eval) chunk <- paste("##", chunk)
+    cat(chunk, "\n", file = chunkout, sep = "\n")
     if (is.null(options$label) && options$split) close(chunkout)
     object
 }

@@ -964,12 +964,10 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
     int i;
     SEXP t;
 
-    if (R_compile_pkgs && TYPEOF(s) == CLOSXP && TYPEOF(BODY(s)) != BCODESXP &&
-        !R_disable_bytecode) {
-
+    if (R_compile_pkgs && TYPEOF(s) == CLOSXP && TYPEOF(BODY(s)) != BCODESXP) {
 	SEXP new_s;
 	R_compile_pkgs = FALSE;
-	PROTECT(new_s = R_cmpfun1(s));
+	PROTECT(new_s = R_cmpfun(s));
 	WriteItem (new_s, ref_table, stream);
 	UNPROTECT(1);
 	R_compile_pkgs = TRUE;
@@ -1566,7 +1564,7 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 	R_ReadItemDepth++;
 	PROTECT(s = ReadItem(ref_table, stream)); /* print name */
 	R_ReadItemDepth--;
-	s = installTrChar(s);
+	s = installChar(s);
 	AddReadRef(ref_table, s);
 	UNPROTECT(1);
 	return s;
@@ -1785,8 +1783,6 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 	    R_ReadItemDepth--;
 	}
 	UNPROTECT(1); /* s */
-	if (TYPEOF(s) == BCODESXP && !R_BCVersionOK(s))
-	    return R_BytecodeExpr(s);
 	return s;
     }
 }
@@ -1880,12 +1876,10 @@ static SEXP ReadBC1(SEXP ref_table, SEXP reps, R_inpstream_t stream)
     R_ReadItemDepth++;
     SETCAR(s, ReadItem(ref_table, stream)); /* code */
     R_ReadItemDepth--;
-    SEXP bytes = PROTECT(CAR(s));
-    SETCAR(s, R_bcEncode(bytes));
+    SETCAR(s, R_bcEncode(CAR(s)));
     SETCDR(s, ReadBCConsts(ref_table, reps, stream)); /* consts */
     SET_TAG(s, R_NilValue); /* expr */
-    R_registerBC(bytes, s);
-    UNPROTECT(2);
+    UNPROTECT(1);
     return s;
 }
 
@@ -2770,7 +2764,7 @@ static SEXP R_getVarsFromFrame(SEXP vars, SEXP env, SEXP forcesxp)
     len = LENGTH(vars);
     PROTECT(val = allocVector(VECSXP, len));
     for (i = 0; i < len; i++) {
-	sym = installTrChar(STRING_ELT(vars, i));
+	sym = installChar(STRING_ELT(vars, i));
 
 	tmp = findVarInFrame(env, sym);
 	if (tmp == R_UnboundValue) {

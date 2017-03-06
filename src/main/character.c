@@ -220,10 +220,11 @@ SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 #else
     // will work also for code byte-compiled *before* 'keepNA' was introduced
     if (nargs < 3 || nargs > 4)
-	error(ngettext("%d argument passed to '%s' which requires %d to %d",
-		       "%d arguments passed to '%s' which requires %d to %d",
+	errorcall(call,
+		  ngettext("%d argument passed to '%s' which requires %d to %d",
+			   "%d arguments passed to '%s' which requires %d to %d",
 			   (unsigned long) nargs),
-	      nargs, PRIMNAME(op), 3, 4);
+		  nargs, PRIMNAME(op), 3, 4);
 #endif
     if (isFactor(CAR(args)))
 	error(_("'%s' requires a character vector"), "nchar()");
@@ -1623,7 +1624,7 @@ SEXP attribute_hidden stringSuffix(SEXP string, int fromIndex) {
 
 SEXP attribute_hidden do_strrep(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP d, s, x, n, el;
+    SEXP d, s, x, n;
     R_xlen_t is, ix, in, ns, nx, nn;
     const char *xi;
     int j, ni, nc;
@@ -1647,14 +1648,13 @@ SEXP attribute_hidden do_strrep(SEXP call, SEXP op, SEXP args, SEXP env)
     vmax = vmaxget();
     is = ix = in = 0;
     for(; is < ns; is++) {
-	el = STRING_ELT(x, ix);
 	ni = INTEGER(n)[in];
-	if((el == NA_STRING) || (ni == NA_INTEGER)) {
+	if((STRING_ELT(x, ix) == NA_STRING) || (ni == NA_INTEGER)) {
 	    SET_STRING_ELT(s, is, NA_STRING);
 	} else {
 	    if(ni < 0)
 		error(_("invalid '%s' value"), "times");
-	    xi = CHAR(el);
+	    xi = CHAR(STRING_ELT(x, ix));
 	    nc = (int) strlen(xi);
 
 	    /* check for feasible result length; use double to protect
@@ -1668,7 +1668,7 @@ SEXP attribute_hidden do_strrep(SEXP call, SEXP op, SEXP args, SEXP env)
 		strcpy(buf, xi);
 		buf += nc;
 	    }
-	    SET_STRING_ELT(s, is, mkCharCE(cbuf, getCharCE(el)));
+	    SET_STRING_ELT(s, is, markKnown(cbuf, STRING_ELT(x, ix)));
 	    Free(cbuf);
 	    vmaxset(vmax);
 	}

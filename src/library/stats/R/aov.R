@@ -616,7 +616,7 @@ se.contrast.aovlist <-
     contrast.weight.aovlist <- function(object, contrast)
     {
         e.qr <- attr(object, "error.qr")
-        if(!inherits(e.qr, "qr"))
+        if(!is.qr(e.qr))
             stop("'object' does not include an error 'qr' component")
         c.qr <- qr.qty(e.qr, contrast)
         e.assign <- attr(e.qr$qr, "assign")

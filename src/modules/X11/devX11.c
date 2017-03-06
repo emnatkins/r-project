@@ -2609,13 +2609,7 @@ static void X11_eventHelper(pDevDesc dd, int code)
     	}
     	XSync(display, 1);
     } else if (code == 2) {
-	if (doesIdle(dd) && (XPending(display) == 0)) {
-            // The device descriptor event environment has an idle
-            // handler, and there are no pending events
-            doIdle(dd);
-            return;
-        }
-        XNextEvent(display, &event);
+	XNextEvent(display, &event);
 	if (event.type == ButtonRelease || event.type == ButtonPress || event.type == MotionNotify) {
 	    int RButtons;
 	    XFindContext(display, event.xbutton.window,
@@ -2885,6 +2879,11 @@ Rf_setX11DeviceData(pDevDesc dd, double gamma_fac, pX11Desc xd)
 	dd->polygon = X11_Polygon;
 	dd->metricInfo = X11_MetricInfo;
 	dd->hasTextUTF8 = FALSE;
+    	dd->eventHelper = X11_eventHelper;
+    	dd->canGenMouseDown = TRUE;
+	dd->canGenMouseUp = TRUE;
+	dd->canGenMouseMove = TRUE;
+	dd->canGenKeybd = TRUE;
 
 	dd->haveTransparency = 1;
 	dd->haveTransparentBg = 2;
@@ -2892,13 +2891,6 @@ Rf_setX11DeviceData(pDevDesc dd, double gamma_fac, pX11Desc xd)
 	dd->haveCapture = (xd->type > WINDOW) ? 1 : 2;
 	dd->haveLocator = (xd->type > WINDOW) ? 1 : 2;
     }
-
-    dd->eventHelper = X11_eventHelper;
-    dd->canGenMouseDown = TRUE;
-    dd->canGenMouseUp = TRUE;
-    dd->canGenMouseMove = TRUE;
-    dd->canGenKeybd = TRUE;
-    dd->canGenIdle = TRUE;
 
     dd->activate = X11_Activate;
     dd->close = X11_Close;

@@ -43,14 +43,14 @@ SEXP attribute_hidden do_debug(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (TYPEOF(CAR(args)) != CLOSXP &&
 	TYPEOF(CAR(args)) != SPECIALSXP &&
 	TYPEOF(CAR(args)) != BUILTINSXP)
-	error(_("argument must be a function"));
+	errorcall(call, _("argument must be a function"));
     switch(PRIMVAL(op)) {
     case 0: // debug()
 	SET_RDEBUG(CAR(args), 1);
 	break;
     case 1: // undebug()
 	if( RDEBUG(CAR(args)) != 1 )
-	    warning("argument is not being debugged");
+	    warningcall(call, "argument is not being debugged");
 	SET_RDEBUG(CAR(args), 0);
 	break;
     case 2: // isdebugged()

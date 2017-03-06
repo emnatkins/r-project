@@ -31,11 +31,10 @@
  *
  *  NOTES
  *
- *	As log1p(), this is a C99 standard function
+ *	As log1p(), this is a standard function in some C libraries,
  *	particularly GNU and BSD (but is neither ISO/ANSI C nor POSIX).
  *
- *  We supply a substitute for the case when there is no system one
- *  (which should not be the case any more).
+ *  We supply a substitute for the case when there is no system one.
  */
 
 #ifdef HAVE_CONFIG_H

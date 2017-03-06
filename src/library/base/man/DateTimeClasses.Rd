@@ -53,7 +53,7 @@
   representing calendar dates and times.
 }
 \usage{
-\method{print}{POSIXct}(x, tz = "", usetz = TRUE, \dots)
+\method{print}{POSIXct}(x, \dots)
 
 \method{summary}{POSIXct}(object, digits = 15, \dots)
 
@@ -63,18 +63,17 @@
 \special{time1 lop time2}
 }
 \arguments{
-  \item{x, object}{an object to be printed or summarized from one of the
+  \item{x, object}{An object to be printed or summarized from one of the
     date-time classes.}
-  \item{tz, usetz}{for timezone formatting, passed to \code{\link{format.POSIXct}}.}
-  \item{digits}{number of significant digits for the computations:
+  \item{digits}{Number of significant digits for the computations:
     should be high enough to represent the least important time unit
     exactly.}
-  \item{\dots}{further arguments to be passed from or to other methods.}
+  \item{\dots}{Further arguments to be passed from or to other methods.}
   \item{time}{date-time objects}
   \item{time1, time2}{date-time objects or character vectors.  (Character
     vectors are converted by \code{\link{as.POSIXct}}.)}
   \item{z}{a numeric vector (in seconds)}
-  \item{lop}{one of \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}
+  \item{lop}{One of \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}
     or \code{>=}.}
 }
 \details{
@@ -281,7 +280,7 @@ Sys.time() - 3600             # an hour ago
 
 as.POSIXlt(Sys.time(), "GMT") # the current time in GMT
 format(.leap.seconds)         # the leap seconds in your time zone
-print(.leap.seconds, tz = "PST8PDT")  # and in Seattle's
+format(.leap.seconds, tz = "PST8PDT")  # and in Seattle's
 
 ## look at *internal* representation of "POSIXlt" :
 leapS <- as.POSIXlt(.leap.seconds)

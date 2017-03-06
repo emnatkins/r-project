@@ -1,6 +1,6 @@
 ### R.m4 -- extra macros for configuring R		-*- Autoconf -*-
 ###
-### Copyright (C) 1998-2017 R Core Team
+### Copyright (C) 1998-2016 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -537,28 +537,6 @@ esac
 ])# R_C_INLINE
 
 ### * C++ compiler and its characteristics.
-
-## R_PROG_CXX
-## ----------
-## Check whether the C++ compiler can compile code
-AC_DEFUN([R_PROG_CXX],
-[AC_CACHE_CHECK([whether ${CXX} ${CXXFLAGS} can compile C++ code],
-[r_cv_prog_cxx],
-[AC_LANG_PUSH([C++])dnl
-AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-[#ifndef __cplusplus
-# error "not a C++ compiler"
-#endif
-#include <cmath>
-])],
-          [r_cv_prog_cxx=yes], [r_cv_prog_cxx=no])
-AC_LANG_POP([C++])dnl
-])
-if test "${r_cv_prog_cxx}" = no; then
-  CXX=
-  CXXFLAGS=
-fi
-])# R_PROG_CXX
 
 ## R_PROG_CXX_M
 ## ------------
@@ -1460,6 +1438,36 @@ AC_SUBST(OBJCXX)
 
 
 ### * Library functions
+
+## R_FUNC___SETFPUCW
+## -----------------
+AC_DEFUN([R_FUNC___SETFPUCW],
+[AC_CHECK_FUNC(__setfpucw,
+[AC_CACHE_CHECK([whether __setfpucw is needed],
+	        [r_cv_func___setfpucw_needed],
+[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+int main () {
+#include <fpu_control.h>
+#include <stdlib.h>
+#if defined(_FPU_DEFAULT) && defined(_FPU_IEEE)
+  exit(_FPU_DEFAULT != _FPU_IEEE);
+#endif
+  exit(0);
+}
+]])],
+              [r_cv_func___setfpucw_needed=no],
+              [r_cv_func___setfpucw_needed=yes],
+              [r_cv_func___setfpucw_needed=no])])
+if test "x${r_cv_func___setfpucw_needed}" = xyes; then
+  AC_DEFINE(NEED___SETFPUCW, 1,
+	    [Define if your system needs __setfpucw() to control
+             FPU rounding.
+             This was used to control floating point precision,
+             rounding and floating point exceptions on older Linux
+             systems.
+             As of GLIBC 2.1 this function is not used anymore.])
+fi])
+])# R_FUNC___SETFPUCW
 
 ## R_FUNC_CALLOC
 ## -------------
@@ -4094,62 +4102,56 @@ if test "x${r_cv_working_mktime}" = xyes; then
 fi
 ])# R_FUNC_MKTIME
 
-## R_STDCXX
-## --------
-## Support for C++ standards (C++98, C++11, C++14), for use in packages.
-## R_STDCXX(VERSION, PREFIX, DEFAULT)
-AC_DEFUN([R_STDCXX],
+## R_CXX1X
+## -------
+## Support for C++11 and later, for use in packages.
+AC_DEFUN([R_CXX1X],
 [r_save_CXX="${CXX}"
 r_save_CXXFLAGS="${CXXFLAGS}"
 
-: ${$2=${CXX}}
-: ${$2FLAGS=${CXXFLAGS}}
-: ${$2PICFLAGS=${CXXPICFLAGS}}
+: ${CXX1X=${CXX}}
+: ${CXX1XFLAGS=${CXXFLAGS}}
+: ${CXX1XPICFLAGS=${CXXPICFLAGS}}
 
-CXX="${$2} ${$2STD}"
-CXXFLAGS="${$2FLAGS} ${$2PICFLAGS}"
+CXX="${CXX1X} ${CXX1XSTD}"
+CXXFLAGS="${CXX1XFLAGS} ${CXX1XPICFLAGS}"
 AC_LANG_PUSH([C++])dnl
-AX_CXX_COMPILE_STDCXX([$1], [], [optional])
+AX_CXX_COMPILE_STDCXX_11([noext], [optional])
 AC_LANG_POP([C++])dnl Seems the macro does not always get this right
 CXX="${r_save_CXX}"
 CXXFLAGS="${r_save_CXXFLAGS}"
-if test "${HAVE_CXX$1}" = "1"; then
-dnl for aesthetics avoid leading space
-  if test "${$2STD}"x = "x";  then
-    $2STD="${switch}"
-  else
-    $2STD="${$2STD} ${switch}"
-  fi
+if test "${HAVE_CXX11}" = "1"; then
+  CXX1XSTD="${CXX1XSTD} ${switch}"
 else
-  $2=""
-  $2STD=""
-  $2FLAGS=""
-  $2PICFLAGS=""
+  CXX1X=""
+  CXX1XSTD=""
+  CXX1XFLAGS=""
+  CXX1XPICFLAGS=""
 fi
 
-AC_SUBST($2)
-AC_SUBST($2STD)
-AC_SUBST($2FLAGS)
-AC_SUBST($2PICFLAGS)
-if test -z "${SHLIB_$2LD}"; then
-  SHLIB_$2LD="\$($2) \$($2STD)"
+AC_SUBST(CXX1X)
+AC_SUBST(CXX1XSTD)
+AC_SUBST(CXX1XFLAGS)
+AC_SUBST(CXX1XPICFLAGS)
+if test -z "${SHLIB_CXX1XLD}"; then
+  SHLIB_CXX1XLD="\$(CXX1X) \$(CXX1XSTD)"
 fi
-AC_SUBST(SHLIB_$2LD)
-: ${SHLIB_$2LDFLAGS=${SHLIB_CXXLDFLAGS}}
-AC_SUBST(SHLIB_$2LDFLAGS)
+AC_SUBST(SHLIB_CXX1XLD)
+: ${SHLIB_CXX1XLDFLAGS=${SHLIB_CXXLDFLAGS}}
+AC_SUBST(SHLIB_CXX1XLDFLAGS)
 
-AC_ARG_VAR([$2], [C++$1 compiler command])
-AC_ARG_VAR([$2STD],
-           [special flag for compiling and for linking C++$1 code, e.g. -std=c++$1])
-AC_ARG_VAR([$2FLAGS], [C++$1 compiler flags])
-AC_ARG_VAR([$2PICFLAGS],
-           [special flags for compiling C++$1 code to be turned into a
+AC_ARG_VAR([CXX1X], [C++11 compiler command])
+AC_ARG_VAR([CXX1XSTD],
+           [special flag for compiling and for linking C++11 code, e.g. -std=c++11])
+AC_ARG_VAR([CXX1XFLAGS], [C++11 compiler flags])
+AC_ARG_VAR([CXX1XPICFLAGS],
+           [special flags for compiling C++11 code to be turned into a
             shared object])
-AC_ARG_VAR([SHLIB_$2LD],
+AC_ARG_VAR([SHLIB_CXX1XLD],
            [command for linking shared objects which contain object
-            files from the C++$1 compiler])
-AC_ARG_VAR([SHLIB_$2LDFLAGS], [special flags used by SHLIB_$2LD])
-])# R_STDCXX
+            files from the C++11 compiler])
+AC_ARG_VAR([SHLIB_CXX1XLDFLAGS], [special flags used by SHLIB_CXX1XLD])
+])# R_CXX1X
 
 ## R_LIBCURL
 ## ----------------
@@ -4177,7 +4179,7 @@ LIBS="${CURL_LIBS} ${LIBS}"
 AC_CHECK_HEADERS(curl/curl.h, [have_libcurl=yes], [have_libcurl=no])
 
 if test "x${have_libcurl}" = "xyes"; then
-AC_CACHE_CHECK([if libcurl is version 7 and >= 7.22.0], [r_cv_have_curl722],
+AC_CACHE_CHECK([if libcurl is version 7 and >= 7.28.0], [r_cv_have_curl728],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <curl/curl.h>
@@ -4186,7 +4188,7 @@ int main()
 #ifdef LIBCURL_VERSION_MAJOR
 #if LIBCURL_VERSION_MAJOR > 7
   exit(1);
-#elif LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 22
+#elif LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 28
   exit(0);
 #else
   exit(1);
@@ -4195,9 +4197,9 @@ int main()
   exit(1);
 #endif
 }
-]])], [r_cv_have_curl722=yes], [r_cv_have_curl722=no], [r_cv_have_curl722=no])])
+]])], [r_cv_have_curl728=yes], [r_cv_have_curl728=no], [r_cv_have_curl728=no])])
 fi
-if test "x${r_cv_have_curl722}" = xno; then
+if test "x${r_cv_have_curl728}" = xno; then
   have_libcurl=no
 fi
 
@@ -4221,68 +4223,16 @@ if test "x${r_cv_have_curl_https}" = xno; then
   have_libcurl=no
 fi
 if test "x${have_libcurl}" = xyes; then
-  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.22.0 with support for https.])
+  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.28.0 with support for https.])
   CPPFLAGS="${r_save_CPPFLAGS}"
   LIBS="${r_save_LIBS}"
   AC_SUBST(CURL_CPPFLAGS)
   AC_SUBST(CURL_LIBS)
 else
-  AC_MSG_ERROR([libcurl >= 7.22.0 library and headers are required with support for https])
+  AC_MSG_ERROR([libcurl >= 7.28.0 library and headers are required with support for https])
 fi
 ])# R_LIBCURL
 
-## R_OPENMP_SIMDRED
-## ------------
-## Support for SIMD reduction on '+' (part of OpenMP 4.0) in C compiler.
-AC_DEFUN([R_OPENMP_SIMDRED],
-[AC_CACHE_CHECK([whether OpenMP SIMD reduction is supported],
-                [r_cv_openmp_simdred],
-[
-AC_LANG_PUSH(C)
-r_save_CFLAGS="${CFLAGS}"
-CFLAGS="${CFLAGS} ${R_OPENMP_CFLAGS}"
-AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-
-double ssum(double *x, int n) {
-/* SIMD reduction is supported since OpenMP 4.0. The value of _OPENMP is
-   unreliable in some compilers, so we do not test its value. */
-#if defined(_OPENMP) 
-    double s = 0;
-    #pragma omp simd reduction(+:s)
-    for(int i = 0; i < n; i++)
-        s += x[i];
-    return s;
-#else
-    exit(1);
-    return 0; /* not reachable */
-#endif
-}
-
-int main() {
-    /* use volatiles to reduce the risk of the
-       computation being inlined and constant-folded */
-    volatile double xv[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-    volatile int n = 8;
-    double x[8], s;
-    int i;
-    
-    for(i = 0; i < 8; i++) x[i] = xv[i];
-    s = ssum(x, n);
-    if (s == 36) exit(0);
-    exit(2);
-}
-]])],
-              [r_cv_openmp_simdred=yes],
-              [r_cv_openmp_simdred=no],
-              [r_cv_openmp_simdred=no])
-CFLAGS="${r_save_CFLAGS}"
-])
-if test "x${r_cv_openmp_simdred}" = xyes; then
-  AC_DEFINE(HAVE_OPENMP_SIMDRED, 1,
-            [Define if your OpenMP 4 implementation fully supports SIMD reduction])
-fi
-])# R_OPENMP_SIMDRED
 
 
 ### Local variables: ***

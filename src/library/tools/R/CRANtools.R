@@ -1,7 +1,7 @@
 #  File src/library/tools/R/CRANtools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2014-2017 The R Core Team
+#  Copyright (C) 2014-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,23 +17,23 @@
 #  https://www.R-project.org/Licenses/
 
 summarize_CRAN_check_status <-
-function(packages, results = NULL, details = NULL, mtnotes = NULL)
+function(package, results = NULL, details = NULL, mtnotes = NULL)
 {
     if(is.null(results))
         results <- CRAN_check_results()
     results <-
-        results[!is.na(match(results$Package, packages)) & !is.na(results$Status), ]
+        results[!is.na(match(results$Package, package)) & !is.na(results$Status), ]
 
     if(!NROW(results)) {
-        s <- character(length(packages))
-        names(s) <- packages
+        s <- character(length(package))
+        names(s) <- package
         return(s)
     }
 
     if(any(results$Status != "OK")) {
         if(is.null(details))
             details <- CRAN_check_details()
-        details <- details[!is.na(match(details$Package, packages)), ]
+        details <- details[!is.na(match(details$Package, package)), ]
         ## Remove all ok stubs.
         details <- details[details$Check != "*", ]
         ## Remove trailing white space from outputs ... remove eventually
@@ -138,12 +138,12 @@ function(packages, results = NULL, details = NULL, mtnotes = NULL)
               collapse = "\n\n")
     }
 
-    s <- if(length(packages) == 1L) {
-        summarize(packages, results, details, mtnotes[[packages]])
+    s <- if(length(package) == 1L) {
+        summarize(package, results, details, mtnotes[[package]])
     } else {
-        results <- split(results, factor(results$Package, packages))
-        details <- split(details, factor(details$Package, packages))
-        unlist(lapply(packages,
+        results <- split(results, factor(results$Package, package))
+        details <- split(details, factor(details$Package, package))
+        unlist(lapply(package,
                       function(p) {
                           summarize(p,
                                     results[[p]],
@@ -152,7 +152,7 @@ function(packages, results = NULL, details = NULL, mtnotes = NULL)
                       }))
     }
 
-    names(s) <- packages
+    names(s) <- package
     class(s) <- "summarize_CRAN_check_status"
     s
 }
@@ -206,7 +206,7 @@ function()
 ## more-freqently-updated mirror.
 CRAN_baseurl_for_web_area <-
 function()
-    Sys.getenv("R_CRAN_WEB", .get_standard_repository_URLs()[1L])
+    Sys.getenv("R_CRAN_WEB", getOption("repos")["CRAN"])
 
 read_CRAN_object <-
 function(cran, path)
@@ -368,7 +368,7 @@ function(mirrors = NULL, verbose = FALSE)
 }
 
 CRAN_mirror_maintainers_info <-
-function(mirrors, db = NULL, collapse = TRUE)
+function(mirrors, db = NULL)
 {
     if(is.null(db))
         db <- utils::getCRANmirrors(all = TRUE)
@@ -376,16 +376,13 @@ function(mirrors, db = NULL, collapse = TRUE)
     ind <- match(mirrors, as.character(db$URL))
     addresses <- db[ind, "Maintainer"]
     addresses <- gsub("[[:space:]]*#[[:space:]]*", "@", addresses)
-    to <- unique(unlist(strsplit(addresses,
-                                 "[[:space:]]*,[[:space:]]*")))
-    head <- list("To" = to,
-                 "CC" = "CRAN@R-project.org",
-                 "Subject" = "CRAN mirrors maintained by you",
-                 "Reply-To" = "CRAN@R-project.org")
-    if(collapse) {
-        head$To <- paste(head$To, collapse = ",\n    ")
-        head <- sprintf("%s: %s", names(head), unlist(head))
-    }
+    to <- paste(unique(unlist(strsplit(addresses,
+                                       "[[:space:]]*,[[:space:]]*"))),
+                collapse = ",\n    ")
+    head <- c(paste("To:", to),
+              "CC: CRAN@R-project.org",
+              "Subject: CRAN mirrors maintained by you",
+              "Reply-To: CRAN@R-project.org")
     len <- length(addresses)
     body <- c(if(len > 1L) {
                   "Dear maintainers,"
@@ -551,21 +548,17 @@ function()
 }
 
 CRAN_package_maintainers_info <-
-function(packages, db = NULL, collapse = TRUE)
+function(packages, db = NULL)
 {
     if(is.null(db))
         db <- CRAN_package_maintainers_db()
     ind <- match(packages, db[, "Package"])
     addresses <- db[ind, "Address"]
-    to <- sort(unique(addresses))
-    head <- list("To" = to,
-                 "CC" = "CRAN@R-project.org",
-                 "Subject" = "CRAN packages maintained by you",
-                 "Reply-To" = "CRAN@R-project.org")
-    if(collapse) {
-        head$To <- paste(head$To, collapse = ",\n    ")
-        head <- sprintf("%s: %s", names(head), unlist(head))
-    }
+    to <- paste(sort(unique(addresses)), collapse = ",\n    ")
+    head <- c(paste("To:", to),
+              "CC: CRAN@R-project.org",
+              "Subject: CRAN packages maintained by you",
+              "Reply-To: CRAN@R-project.org")
     lst <- split(db[ind, "Package"], db[ind, "Maintainer"])
     len <- length(addresses)
     body <- c(if(len > 1L) {
@@ -617,35 +610,42 @@ function(packages)
 
     rxrefs <- CRAN_Rd_xref_reverse_dependencies(packages)
 
-    fmt <- function(x) {
-        if(length(x)) paste(sort(x), collapse = " ") else NA_character_
-    }
-
     y <- lapply(packages,
                 function(p) {
                     c(Package = p,
-                      "Reverse depends" = fmt(r[[p]]),
-                      "Additional recursive reverse depends" =
-                          fmt(setdiff(rr[[p]], r[[p]])),
-                      "Reverse recursive suggests" = fmt(rrs[[p]]),
-                      "Reverse Rd xref depends" = fmt(rxrefs[[p]]),
-                      "Views" = fmt(v[[p]]))
+                      if(length(z <- r[[p]])) {
+                          c("Reverse depends" =
+                            paste(sort(z), collapse = " "),
+                            if(length(zz <- setdiff(rr[[p]], z))) {
+                                c("Additional recursive reverse depends" =
+                                  paste(sort(zz), collapse = " "))
+                            })
+                      },
+                      if(length(z <- rrs[[p]])) {
+                          c("Reverse recursive suggests" =
+                            paste(sort(z), collapse = " "))
+                      },
+                      if(length(z <- rxrefs[[p]])) {
+                          c("Reverse Rd xref depends" =
+                            paste(sort(z), collapse = " "))
+                      },
+                      if(length(z <- v[[p]])) {
+                          c("Views" = paste(sort(z), collapse = " "))
+                      })
                 })
-    y <- as.data.frame(do.call(rbind, y), stringsAsFactors = FALSE)
-    class(y) <- c("CRAN_package_reverse_dependencies_and_views",
-                  class(y))
+    class(y) <- "CRAN_package_reverse_dependencies_and_views"
     y
 }
 
 format.CRAN_package_reverse_dependencies_and_views <-
 function(x, ...)
 {
-    apply(x, 1L,
-          function(e) {
-              paste(formatDL(e[!is.na(e)],
-                             style = "list", indent = 2L),
-                    collapse = "\n")
-          })
+    vapply(x,
+           function(e) {
+               paste(formatDL(e, style = "list", indent = 2L),
+                     collapse = "\n")
+           },
+           "")
 }
 
 print.CRAN_package_reverse_dependencies_and_views <-
@@ -660,7 +660,7 @@ function(packages, which = c("Depends", "Imports", "LinkingTo"),
          recursive = FALSE)
 {
     db <- CRAN_package_db()
-
+        
     rdepends <- package_dependencies(packages, db, which,
                                      recursive = recursive,
                                      reverse = TRUE)

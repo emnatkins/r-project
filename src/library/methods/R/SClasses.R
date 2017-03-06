@@ -1,7 +1,7 @@
 #  File src/library/methods/R/SClasses.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,9 @@ setClass <-
         if(!missing(representation))
             stop("Argument \"representation\" cannot be used if argument \"slots\" is supplied")
         properties <- inferProperties(slots, "slot")
-        classDef <- makeClassRepresentation(Class, properties, contains, prototype, package,
-                                            validity, access, version, sealed, where = where)
+        classDef <- makeClassRepresentation(Class, properties,contains, prototype, package,
+                                             validity, access, version, sealed, where = where)
+        superClasses <- names(classDef@contains)
     }
     else if(is(representation, "classRepresentation")) {
         ## supplied a class definition object
@@ -46,6 +47,7 @@ setClass <-
             stop("only arguments 'Class' and 'where' can be supplied when argument 'representation' is a 'classRepresentation' object")
         if(length(classDef@package) == 0L)
             classDef@package <- package # the default
+        superClasses <- allNames(classDef@contains)
     }
     else {
         ## catch the special case of a single class name as the representation
@@ -55,10 +57,10 @@ setClass <-
         slots <- nzchar(allNames(representation))
         superClasses <- c(as.character(representation[!slots]), contains)
         properties <- representation[slots]
-        classDef <- makeClassRepresentation(Class, properties, superClasses, prototype, package,
-                                            validity, access, version, sealed, where = where)
+        classDef <- makeClassRepresentation(Class, properties,superClasses, prototype, package,
+                                             validity, access, version, sealed, where = where)
+        superClasses <- names(classDef@contains)
     }
-    superClasses <- names(classDef@contains)
     classDef <- completeClassDefinition(Class, classDef, where, doExtends = FALSE)
     ## uncache an old definition for this package, if one is cached
     .uncacheClass(Class, classDef)
@@ -235,15 +237,13 @@ getClassDef <-
   function(Class, where = topenv(parent.frame()), package = packageSlot(Class),
            inherits = TRUE)
 {
-    if(inherits) {
-                 value <- .getClassesFromCache(Class)
-                 if(is.list(value))
-                     value <- .resolveClassList(value, where, package)
-    } else
-        value <- NULL
-    
+    value <- if(inherits)
+                 .getClassFromCache(Class, where, package=package,
+                                    resolve.confl="none")
+    ## else NULL # want to force a search for the metadata in this case (Why?)
     if(is.null(value)) {
-	cname <- classMetaName(if(length(Class) > 1L)
+	cname <-
+	    classMetaName(if(length(Class) > 1L)
 			  ## S3 class; almost certainly has no packageSlot,
 			  ## but we'll continue anyway
 			  Class[[1L]] else Class)

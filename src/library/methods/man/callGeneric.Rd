@@ -48,15 +48,13 @@ callGeneric(...)
   The value returned by the new call.
 }
 \references{
- Chambers, John M. (2016)
- \emph{Extending R},
-  Chapman & Hall.
-(Chapters 9 and 10.)
-
  Chambers, John M. (2008)
  \emph{Software for Data Analysis: Programming with R}
-  Springer. (Section 10.4 for some details.)
+  Springer.  (For the R version.)
 
+ Chambers, John M. (1998)
+ \emph{Programming with Data}
+ Springer (For the original S4 version.)
 }
 \seealso{\code{\link{GroupGenericFunctions}} for other information
   about group generic functions; \link{Methods_Details} for the general behavior

@@ -172,7 +172,8 @@ SEXP attribute_hidden do_printfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 	break;
 
     default: /* if(!isFunction(s)) */
-	error(_("non-function argument to .Internal(print.function(.))"));
+	errorcall(call,
+		  _("non-function argument to .Internal(print.function(.))"));
     }
     return s;
 }
@@ -185,7 +186,7 @@ static void PrintLanguageEtc(SEXP s, Rboolean useSource, Rboolean isClosure)
     if (!isInteger(t) || !useSource)
 	t = deparse1w(s, 0, useSource | DEFAULTDEPARSE);
     else {
-	PROTECT(t = lang2(R_AsCharacterSymbol, t));
+	PROTECT(t = lang2(install("as.character"), t));
 	t = eval(t, R_BaseEnv);
 	UNPROTECT(1);
     }

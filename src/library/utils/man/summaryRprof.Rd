@@ -1,6 +1,6 @@
 % File src/library/utils/man/summaryRprof.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2017 R Core Team
+% Copyright 1995-2016 R Core Team
 % Distributed under GPL 2 or later
 
 \name{summaryRprof}
@@ -112,7 +112,8 @@ summaryRprof(filename = "Rprof.out", chunksize = 5000,
   If \code{memory = "stats"} a \code{\link{by}} object giving memory statistics
   by function.
   
-  If no events were recorded, a zero-row data frame is returned.
+  Prior to \R 2.15.3 an error was thrown if no events were recorded: now
+  zero-row data frames are returned.
 }
 
 \seealso{

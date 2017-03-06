@@ -66,30 +66,18 @@ options(oo)
 ## --- keep this at end --- so we do not need a large if(.) { .. }
 ## More building & installing packages
 ## NB: tests were added here for 2.11.0.
-## NB^2: do not do this in the R sources (but in a build != src directory!)
+## NB^2: do not do this in the R sources!
 ## and this testdir is not installed.
 if(interactive() && Sys.getenv("USER") == "maechler")
     Sys.setenv(SRCDIR = normalizePath("~/R/D/r-devel/R/tests"))
-(pkgSrcPath <- file.path(Sys.getenv("SRCDIR"), "Pkgs"))# e.g., -> "../../R/tests/Pkgs"
+(pkgSrcPath <- file.path(Sys.getenv("SRCDIR"), "Pkgs"))
 if(!file_test("-d", pkgSrcPath) && !interactive()) {
     unlink("myTst", recursive=TRUE)
     print(proc.time())
     q("no")
 }
+
 ## else w/o clause:
-
-do.cleanup <- !nzchar(Sys.getenv("R_TESTS_NO_CLEAN"))
-has.symlink <- (.Platform$OS.type != "windows")
-## Installing "on to" a package existing as symlink in the lib.loc
-## -- used to fail with misleading error message (#PR 16725):
-if(has.symlink && dir.create("myLib_2") &&
-   file.rename("myLib/myTst", "myLib_2/myTst") &&
-   file.symlink("../myLib_2/myTst", "myLib/myTst"))
-    install.packages("myTst", lib = "myLib", repos=NULL, type = "source")
-## In R <= 3.3.2 gave error with *misleading* error message:
-## ERROR: ‘myTst’ is not a legal package name
-
-
 ## file.copy(pkgSrcPath, tempdir(), recursive = TRUE) - not ok: replaces symlink by copy
 system(paste('cp -R', shQuote(pkgSrcPath), shQuote(tempdir())))
 pkgPath <- file.path(tempdir(), "Pkgs")
@@ -169,11 +157,8 @@ if(dir.exists(file.path("myLib", "exNSS4")) &&
 }
 
 ## clean up
-rmL <- c("myLib", if(has.symlink) "myLib_2", "myTst", file.path(pkgPath))
-if(do.cleanup) {
-    for(nm in rmL) unlink(nm, recursive = TRUE)
-} else {
-    cat("Not cleaning, i.e., keeping ", paste(rmL, collapse=", "), "\n")
-}
+unlink("myLib", recursive = TRUE)
+unlink(file.path(pkgPath), recursive = TRUE)
+unlink("myTst", recursive = TRUE)
 
 proc.time()

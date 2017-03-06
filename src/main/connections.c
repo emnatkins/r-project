@@ -573,10 +573,10 @@ static Rboolean file_open(Rconnection con)
 	    }
 	} else
 #endif
-    fp = R_fopen(name, con->mode);
+	    fp = R_fopen(name, con->mode);
     } else {  /* use file("stdin") to refer to the file and not the console */
 #ifdef HAVE_FDOPEN
-        fp = fdopen(dup(0), con->mode);
+	fp = fdopen(0, con->mode);
 #else
 	warning(_("cannot open file '%s': %s"), name,
 		"fdopen is not supported on this platform");
@@ -633,7 +633,7 @@ static Rboolean file_open(Rconnection con)
 static void file_close(Rconnection con)
 {
     Rfileconn this = con->private;
-    if(con->isopen) // && strcmp(con->description, "stdin"))
+    if(con->isopen && strcmp(con->description, "stdin"))
 	con->status = fclose(this->fp);
     con->isopen = FALSE;
 #ifdef Win32
@@ -3659,8 +3659,7 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 no_more_lines:
     if(!wasopen) {endcontext(&cntxt); con->close(con);}
     if(nbuf > 0) { /* incomplete last line */
-	if(con->text && !con->blocking &&
-	   (strcmp(con->class, "gzfile") != 0)) {
+	if(con->text && !con->blocking) {
 	    /* push back the rest */
 	    con_pushback(con, 0, buf);
 	    con->incomplete = TRUE;
@@ -5066,9 +5065,6 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     const char *cmeth = CHAR(asChar(CAD4R(args)));
     meth = streql(cmeth, "libcurl"); // 1 if "libcurl", else 0
     defmeth = streql(cmeth, "default");
-#ifndef Win32
-    if(defmeth) meth = 1;
-#endif
     if (streql(cmeth, "wininet")) {
 #ifdef Win32
 	winmeth = 1;  // it already was as this is the default
@@ -5207,12 +5203,29 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 	con->canseek = 0;
     /* This is referenced in do_getconnection, so set up before
        any warning */
-    con->ex_ptr = PROTECT(R_MakeExternalPtr(con->id, install("connection"),
+    con->ex_ptr = PROTECT(R_MakeExternalPtr(con->id, install("connection"), 
 					    R_NilValue));
 
     /* open it if desired */
     if(strlen(open)) {
 	Rboolean success = con->open(con);
+	if(!success) {
+	    if(defmeth && meth == 0 && winmeth == 0 && 
+	       ((Rurlconn)(con->private))->status == 2) {
+		warning("\"internal\" method failed, so trying \"libcurl\"");
+		con_close1(con);
+		con = R_newCurlUrl(url, open, 1);
+		Connections[ncon] = con;
+		con->blocking = block;
+		strncpy(con->encname, CHAR(STRING_ELT(enc, 0)), 100);
+		con->encname[100 - 1] = '\0';
+		UNPROTECT(1);
+		con->ex_ptr = 
+		    PROTECT(R_MakeExternalPtr(con->id, install("connection"), 
+					      R_NilValue));
+		success = con->open(con);
+	    }
+	}
 	if(!success) {
 	    con_destroy(ncon);
 	    error(_("cannot open the connection"));
@@ -5535,7 +5548,7 @@ SEXP attribute_hidden do_gzcon(SEXP call, SEXP op, SEXP args, SEXP rho)
     text = asLogical(CADDDR(args));
     if(text == NA_INTEGER)
         error(_("'text' must be TRUE or FALSE"));
-
+    
     if(incon->isGzcon) {
 	warning(_("this is already a 'gzcon' connection"));
 	return CAR(args);

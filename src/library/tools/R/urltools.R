@@ -1,7 +1,7 @@
 #  File src/library/tools/R/urltools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2015-2017 The R Core Team
+#  Copyright (C) 2015-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -308,23 +308,16 @@ table_of_FTP_server_return_codes <-
       )
 
 check_url_db <-
-function(db, remote = TRUE, verbose = FALSE)
+function(db, verbose = FALSE)
 {
-    use_curl <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_URLS_USE_CURL_",
-                                         "TRUE")) &&
-        requireNamespace("curl", quietly = TRUE)
-
     .gather <- function(u = character(),
                         p = list(),
                         s = rep.int("", length(u)),
                         m = rep.int("", length(u)),
-                        new = rep.int("", length(u)),
                         cran = rep.int("", length(u)),
-                        spaces = rep.int("", length(u)),
-                        R = rep.int("", length(u))) {
+                        spaces = rep.int("", length(u))) {
         y <- data.frame(URL = u, From = I(p), Status = s, Message = m,
-                        New = new, CRAN = cran, Spaces = spaces, R = R,
+                        CRAN = cran, Spaces = spaces,
                         stringsAsFactors = FALSE)
         y$From <- p
         class(y) <- c("check_url_db", "data.frame")
@@ -335,9 +328,6 @@ function(db, remote = TRUE, verbose = FALSE)
         if(verbose) message(sprintf("processing %s", u))
         h <- tryCatch(curlGetHeaders(u), error = identity)
         if(inherits(h, "error")) {
-            ## Currently, this info is only used in .check_http().
-            ## Might be useful for checking ftps too, so simply leave it
-            ## here instead of moving to .check_http().
             msg <- conditionMessage(h)
             if (grepl("libcurl error code (51|60)", msg)) {
                 h2 <- tryCatch(curlGetHeaders(u, verify = FALSE),
@@ -360,12 +350,7 @@ function(db, remote = TRUE, verbose = FALSE)
         c(s, msg, "", "")
     }
 
-    .check_http <- if(remote)
-        function(u) c(.check_http_A(u), .check_http_B(u))
-    else
-        function(u) c(rep.int("", 3L), .check_http_B(u))
-
-    .check_http_A <- function(u) {
+    .check_http <- function(u) {
         h <- .fetch(u)
         newLoc <- ""
         if(inherits(h, "error")) {
@@ -386,32 +371,14 @@ function(db, remote = TRUE, verbose = FALSE)
             if (length(ind))
                 newLoc <- sub("^[Ll]ocation: ([^\r]*)\r\n", "\\1", h[max(ind)])
         }
-        ##
-        if((s != "200") && use_curl) {
-            g <- .curl_GET_status(u)
-            if(g == "200") {
-                s <- g
-                msg <- "OK"
-            }
-        }
         ## A mis-configured site
         if (s == "503" && any(grepl("www.sciencedirect.com", c(u, newLoc))))
             s <- "405"
-        c(s, msg, newLoc)
-    }
-
-    .check_http_B <- function(u) {
-        ul <- tolower(u)
-        cran <- ((grepl("^https?://cran.r-project.org/web/packages", ul) &&
-                  !grepl("^https?://cran.r-project.org/web/packages/[.[:alnum:]]+(html|pdf|rds)$",
-                         ul)) ||
-                 (grepl("^https?://cran.r-project.org/web/views/[[:alnum:]]+[.]html$",
-                        ul)) ||
-                 startsWith(ul, "http://cran.r-project.org") ||
-                 any(substring(ul, 1L, nchar(mirrors)) == mirrors))
-        R <- grepl("^http://(www|bugs|journal).r-project.org", ul)
+        cran <- (grepl("https?://cran.r-project.org/web/packages/[.[:alnum:]]+(|/|/index.html)$",
+                       u, ignore.case = TRUE) ||
+                 any(substring(tolower(u), 1L, nchar(mirrors)) == mirrors))
         spaces <- grepl(" ", u)
-        c(if(cran) u else "", if(spaces) u else "", if(R) u else "")
+        c(s, msg, newLoc, if(cran) u else "", if(spaces) u else "")
     }
 
     bad <- .gather()
@@ -426,15 +393,8 @@ function(db, remote = TRUE, verbose = FALSE)
                  "https://cran.rstudio.com/")
     mirrors <- tolower(sub("/$", "", mirrors))
 
-    if(inherits(db, "check_url_db")) {
-        ## Allow re-checking check results.
-        parents <- db$From
-        urls <- db$URL
-    } else {
-        parents <- split(db$Parent, db$URL)
-        urls <- names(parents)
-    }
-
+    parents <- split(db$Parent, db$URL)
+    urls <- names(parents)
     parts <- parse_URI_reference(urls)
 
     ## Empty URLs.
@@ -461,14 +421,14 @@ function(db, remote = TRUE, verbose = FALSE)
         msg <- rep.int("Invalid URI scheme", len)
         doi <- schemes[ind] == "doi"
         if(any(doi))
-            msg[doi] <- paste(msg[doi], "(use \\doi for DOIs in Rd markup)")
+            msg[doi] <- paste(msg[doi], "(use \\doi for DOIs)")
         bad <- rbind(bad,
                      .gather(urls[ind], parents[ind], m = msg))
     }
 
     ## ftp.
     pos <- which(schemes == "ftp")
-    if(length(pos) && remote) {
+    if(length(pos)) {
         results <- do.call(rbind, lapply(urls[pos], .check_ftp))
         status <- as.numeric(results[, 1L])
         ind <- (status < 0L) | (status >= 400L)
@@ -490,23 +450,21 @@ function(db, remote = TRUE, verbose = FALSE)
         status <- as.numeric(results[, 1L])
         ## 405 is HTTP not allowing HEAD requests
         ## maybe also skip 500, 503, 504 as likely to be temporary issues
-        ind <- is.na(match(status, c(200L, 405L, NA))) |
-            nzchar(results[, 4L]) |
-            nzchar(results[, 5L]) |
-            nzchar(results[, 6L])
+        ind <- !(status %in% c(200L, 405L)) |
+            nzchar(results[, 4L]) | nzchar(results[, 5L])
         if(any(ind)) {
             pos <- pos[ind]
             s <- as.character(status[ind])
-            s[is.na(s)] <- ""
             s[s == "-1"] <- "Error"
             m <- results[ind, 2L]
             m[is.na(m)] <- ""
+            url <- urls[pos]; newLoc <- results[ind, 3L]
+            ind2 <- nzchar(newLoc)
+            url[ind2] <-
+                paste0(url[ind2], " (moved to ", newLoc[ind2], ")")
             bad <- rbind(bad,
-                         .gather(urls[pos], parents[pos], s, m,
-                                 results[ind, 3L],
-                                 results[ind, 4L],
-                                 results[ind, 5L],
-                                 results[ind, 6L]))
+                         .gather(url, parents[pos], s, m,
+                                 results[ind, 4L], results[ind, 5L]))
         }
     }
     bad
@@ -517,12 +475,7 @@ function(x, ...)
 {
     if(!NROW(x)) return(character())
 
-    u <- x$URL
-    new <- x$New
-    ind <- nzchar(new)
-    u[ind] <- sprintf("%s (moved to %s)", u[ind], new[ind])
-
-    paste0(sprintf("URL: %s", u),
+    paste0(sprintf("URL: %s", x$URL),
            sprintf("\nFrom: %s",
                    sapply(x$From, paste, collapse = "\n      ")),
            ifelse((s <- x$Status) == "",
@@ -536,10 +489,7 @@ function(x, ...)
                   "\nURL contains spaces"),
            ifelse((m <- x$CRAN) == "",
                   "",
-                  "\nCRAN URL not in canonical form"),
-           ifelse((m <- x$R) == "",
-                  "",
-                  "\nR-project URL not in canonical form")
+                  "\nCRAN URL not in canonical form")
            )
 }
 
@@ -549,16 +499,4 @@ function(x, ...)
     if(NROW(x))
         writeLines(paste(format(x), collapse = "\n\n"))
     invisible(x)
-}
-
-.curl_GET_status <-
-function(u, verbose = FALSE)
-{
-    if(verbose)
-        message(sprintf("processing %s", u))
-    g <- tryCatch(curl::curl_fetch_memory(u), error = identity)
-    if(inherits(g, "error"))
-        -1L
-    else
-        g$status_code
 }

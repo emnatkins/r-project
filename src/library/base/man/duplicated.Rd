@@ -1,6 +1,6 @@
 % File src/library/base/man/duplicated.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2016 R Core Team
+% Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
 \name{duplicated}
@@ -16,8 +16,7 @@
 \alias{anyDuplicated.matrix}
 \alias{anyDuplicated.data.frame}
 \description{
-  \code{duplicated()} determines which elements of a vector or data
-  frame are duplicates
+  \code{duplicated()} determines which elements of a vector or data frame are duplicates
   of elements with smaller subscripts, and returns a logical vector
   indicating which elements (rows) are duplicates.
 
@@ -83,10 +82,8 @@ anyDuplicated(x, incomparables = FALSE, \dots)
   Note that \code{MARGIN = 0} returns an array of the same
   dimensionality attributes as \code{x}.
 
-  Missing values (\code{"\link{NA}"}) are regarded as equal, numeric and
-  complex ones differing from \code{NaN}; character strings will be compared in a
-  \dQuote{common encoding}; for details, see \code{\link{match}} (and
-  \code{\link{unique}}) which use the same concept.
+  Missing values are regarded as equal, but \code{NaN} is not equal to
+  \code{NA_real_}.
 
   Values in \code{incomparables} will never be marked as duplicated.
   This is intended to be used for a fairly small set of values and will
@@ -97,6 +94,9 @@ anyDuplicated(x, incomparables = FALSE, \dots)
   tests for identity of character representations.  This will
   catch people who unwisely rely on exact equality of floating-point
   numbers!
+
+  Character strings will be compared as byte sequences if any input is
+  marked as \code{"bytes"} (see \code{\link{Encoding}}).
 
   Except for factors, logical and raw vectors the default \code{nmax = NA} is
   equivalent to \code{nmax = length(x)}.  Since a hash table of size

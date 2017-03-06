@@ -62,7 +62,7 @@ png <- function(filename = "Rplot%03d.png",
                             pointsize, bg, res, antialias, 100L, d$family, 300))
     else
         invisible(.External2(C_X11,
-                             paste0("png::", filename),
+                             paste("png::", filename, sep=""),
                              g$width, g$height, pointsize, d$gamma,
                              d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
                              0L, 0L, "", 0, 0, d$family))
@@ -94,7 +94,7 @@ jpeg <- function(filename = "Rplot%03d.jpeg",
                             300))
     else
         invisible(.External2(C_X11,
-                            paste0("jpeg::", quality, ":", filename),
+                            paste("jpeg::", quality, ":", filename, sep=""),
                             g$width, g$height, pointsize, d$gamma,
                             d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
                             0L, 0L, "", 0, 0, d$family))
@@ -130,7 +130,7 @@ tiff <- function(filename = "Rplot%03d.tiff",
                             300))
     else
         invisible(.External2(C_X11,
-                             paste0("tiff::", comp, ":", filename),
+                             paste("tiff::", comp, ":", filename, sep=""),
                              g$width, g$height, pointsize, d$gamma,
                              d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
                              0L, 0L, "", 0, 0, d$family))
@@ -160,7 +160,7 @@ bmp <- function(filename = "Rplot%03d.bmp",
                             pointsize, bg, res, antialias, 100L, d$family,
                             300))
     else
-        invisible(.External2(C_X11, paste0("bmp::", filename),
+        invisible(.External2(C_X11, paste("bmp::", filename, sep=""),
                              g$width, g$height, pointsize, d$gamma,
                              d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
                              0L, 0L, "", 0, 0, d$family))

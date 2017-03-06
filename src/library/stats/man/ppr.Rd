@@ -1,6 +1,6 @@
 % File src/library/stats/man/ppr.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2016 R Core Team
+% Copyright 1995-2013 R Core Team
 % Distributed under GPL 2 or later
 
 % file stats/man/ppr.Rd
@@ -24,7 +24,7 @@ ppr(x, \dots)
 \method{ppr}{default}(x, y, weights = rep(1, n),
     ww = rep(1, q), nterms, max.terms = nterms, optlevel = 2,
     sm.method = c("supsmu", "spline", "gcvspline"),
-    bass = 0, span = 0, df = 5, gcvpen = 1, trace = FALSE, \dots)
+    bass = 0, span = 0, df = 5, gcvpen = 1, \dots)
 }
 \arguments{
   \item{formula}{
@@ -71,12 +71,11 @@ ppr(x, \dots)
     section.
   }
   \item{sm.method}{
-    the method used for smoothing the ridge functions.  The default is
-    to use Friedman's super smoother \code{\link{supsmu}}.  The
-    alternatives are to use the smoothing spline code underlying
-    \code{\link{smooth.spline}}, either with a specified (equivalent)
-    degrees of freedom for each ridge functions, or to allow the
-    smoothness to be chosen by GCV.
+    the method used for smoothing the ridge functions.  The default is to
+    use Friedman's super smoother \code{supsmu}.  The alternatives are to use
+    the smoothing spline code underlying \code{smooth.spline}, either with a
+    specified (equivalent) degrees of freedom for each ridge functions, or
+    to allow the smoothness to be chosen by GCV.
 
     Can be abbreviated.
   }
@@ -86,7 +85,7 @@ ppr(x, \dots)
     resulting in increased smoothing.
   }
   \item{span}{
-    super smoother span control (see \code{\link{supsmu}}).  The default, \code{0},
+    super smoother span control (see \code{supsmu}).  The default, \code{0},
     results in automatic span selection by local cross validation. \code{span}
     can also take a value in \code{(0, 1]}.
   }
@@ -98,9 +97,6 @@ ppr(x, \dots)
     if \code{sm.method} is \code{"gcvspline"} this is the penalty used
     in the GCV selection for each degree of freedom used.
   }
-  \item{trace}{logical indicating if each spline fit should produce
-    diagnostic output (about \code{lambda} and \code{df}), and the
-    supsmu fit about its steps.}
   \item{\dots}{arguments to be passed to or from other methods.}
   \item{model}{logical.  If true, the model frame is returned.}
 }
@@ -202,7 +198,7 @@ summary(rock.ppr)
 # .....  (same as above)
 # .....
 #
-# Projection direction vectors ('alpha'):
+# Projection direction vectors:
 #       term 1      term 2
 # area1  0.34357179  0.37071027
 # peri1 -0.93781471 -0.61923542
