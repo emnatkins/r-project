@@ -10787,7 +10787,7 @@ SEXP out(SEXP x, SEXP y)
 @end group
 
 @group
-    UNPROTECT(2);
+    UNPROTECT(3);
     return ans;
 @}
 @end group

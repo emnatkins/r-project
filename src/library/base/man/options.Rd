@@ -622,7 +622,7 @@ getOption(x, default = NULL)
       for binary installs on macOS and Windows, but can be used in a
       startup file for source installs \emph{via}
       \command{R CMD \link{INSTALL}}.  For binary installs, can also be
-      the character string \code{"pkglock"}.}
+      the character string \code{"pkgloack"}.}
 
     \item{\code{internet.info}:}{The minimum level of information to be
       printed on URL downloads etc, using the \code{"internal"} and
@@ -709,6 +709,9 @@ getOption(x, default = NULL)
       used.
 #endif
     }
+
+    \item{\code{useHTTPS}:}{logical.  Used by \code{\link{chooseCRANmirror}}:
+      are secure mirrors preferred?  If not set, \code{TRUE} is assumed.}
   }
 }
 \section{Options set in package parallel}{

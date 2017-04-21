@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2017-04-20 r72568) -- "Unsuffered Consequences"
+R version 3.4.0 RC (2017-04-18 r72543) -- "You Stupid Darkness"
 Copyright (C) 2017 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -672,7 +672,6 @@ Error: x is not TRUE
 [1] TRUE
 > res <- try(as.factor( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.factor(res))
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.function(res))
 > res <- try(as.integer( x ), silent = TRUE)
@@ -700,7 +699,6 @@ Error: x is not TRUE
 [1] TRUE
 > res <- try(as.ordered( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.ordered(res))
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.package_version(res))
 [1] TRUE
@@ -767,7 +765,6 @@ Error: x is not TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.factor(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.function(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -815,7 +812,6 @@ IS: [1] TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.ordered(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.package_version(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -889,7 +885,6 @@ IS: [1] TRUE
 [1] TRUE
 > f <- try(as.factor( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.factor( f )))
-[1] TRUE
 > f <- try(as.function( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.function( f )))
 > f <- try(as.hexmode( x ), silent = TRUE)
@@ -921,7 +916,6 @@ IS: [1] TRUE
 >   if(!inherits(f, 'try-error')) report(identical(f, as.octmode( f )))
 > f <- try(as.ordered( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.ordered( f )))
-[1] TRUE
 > f <- try(as.package_version( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.package_version( f )))
 [1] TRUE
@@ -1971,7 +1965,6 @@ IS: [1] TRUE
 [1] TRUE
 > res <- try(as.factor( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.factor(res))
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.function(res))
 [1] TRUE
@@ -2000,7 +1993,6 @@ IS: [1] TRUE
 [1] TRUE
 > res <- try(as.ordered( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.ordered(res))
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.package_version(res))
 > res <- try(as.pairlist( x ), silent = TRUE)
@@ -2068,7 +2060,6 @@ IS: [1] TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.factor(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.function(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -2117,7 +2108,6 @@ IS: [1] TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.ordered(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.package_version(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -2192,7 +2182,6 @@ IS: [1] TRUE
 [1] TRUE
 > f <- try(as.factor( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.factor( f )))
-[1] TRUE
 > f <- try(as.function( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.function( f )))
 [1] TRUE
@@ -2225,7 +2214,6 @@ IS: [1] TRUE
 >   if(!inherits(f, 'try-error')) report(identical(f, as.octmode( f )))
 > f <- try(as.ordered( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.ordered( f )))
-[1] TRUE
 > f <- try(as.package_version( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.package_version( f )))
 > f <- try(as.pairlist( x ), silent = TRUE)
@@ -2288,7 +2276,6 @@ IS: [1] TRUE
 [1] TRUE
 > res <- try(as.factor( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.factor(res))
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.function(res))
 [1] TRUE
@@ -2316,7 +2303,6 @@ IS: [1] TRUE
 > if(!inherits(res, 'try-error')) report(is.numeric_version(res))
 > res <- try(as.ordered( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.ordered(res))
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error')) report(is.package_version(res))
 > res <- try(as.pairlist( x ), silent = TRUE)
@@ -2386,7 +2372,6 @@ IS: [1] TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.factor(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.function( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.function(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -2436,7 +2421,6 @@ Error: x are not all TRUE
 > if(!inherits(res, 'try-error'))
 +    report({if(is.ordered(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
 +    } else   !isall.equal(x, res)})
-[1] TRUE
 > res <- try(as.package_version( x ), silent = TRUE)
 > if(!inherits(res, 'try-error'))
 +    report({if(is.package_version(x)) { cat('IS: ');all.equal(x, res, tolerance=0)
@@ -2513,7 +2497,6 @@ Error: x is not TRUE
 [1] TRUE
 > f <- try(as.factor( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.factor( f )))
-[1] TRUE
 > f <- try(as.function( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.function( f )))
 [1] TRUE
@@ -2545,7 +2528,6 @@ Error: x is not TRUE
 >   if(!inherits(f, 'try-error')) report(identical(f, as.octmode( f )))
 > f <- try(as.ordered( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.ordered( f )))
-[1] TRUE
 > f <- try(as.package_version( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.package_version( f )))
 > f <- try(as.pairlist( x ), silent = TRUE)
@@ -2586,6 +2568,6 @@ In as.dist.default(x) : non-square matrix
 > f <- try(as.ts( x ), silent = TRUE)
 >   if(!inherits(f, 'try-error')) report(identical(f, as.ts( f )))
 > cat('Time elapsed: ', proc.time() - .proctime00,'\n')
-Time elapsed:  0.174 0.007 0.182 0 0 
+Time elapsed:  0.169 0.013 0.182 0 0 
 > 
 > 

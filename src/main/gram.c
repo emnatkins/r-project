@@ -67,7 +67,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2017  The R Core Team
+ *  Copyright (C) 1997--2015  The R Core Team
  *  Copyright (C) 2009--2011  Romain Francois
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -2818,15 +2818,22 @@ static int prevparse[PUSHBACK_BUFSIZE];
 
 static int xxgetc(void)
 {
-    int c;
+    int c, oldpos;
 
     if(npush) c = pushback[--npush]; else  c = ptr_getc();
 
+    oldpos = prevpos;
     prevpos = (prevpos + 1) % PUSHBACK_BUFSIZE;
     prevbytes[prevpos] = ParseState.xxbyteno;
     prevlines[prevpos] = ParseState.xxlineno;  
     prevparse[prevpos] = ParseState.xxparseno;
-    prevcols[prevpos] = ParseState.xxcolno;
+
+    /* We only advance the column for the 1st byte in UTF-8, so handle later bytes specially */
+    if (0x80 <= (unsigned char)c && (unsigned char)c <= 0xBF && known_to_be_utf8)  {
+    	ParseState.xxcolno--;   
+    	prevcols[prevpos] = prevcols[oldpos];
+    } else 
+    	prevcols[prevpos] = ParseState.xxcolno;
     	
     if (c == EOF) {
 	EndOfFile = 1;
@@ -2841,9 +2848,7 @@ static int xxgetc(void)
     	ParseState.xxbyteno = 0;
     	ParseState.xxparseno += 1;
     } else {
-        /* We only advance the column for the 1st byte in UTF-8, so handle later bytes specially */
-	if (!known_to_be_utf8 || (unsigned char)c < 0x80 || 0xC0 <= (unsigned char)c)
-            ParseState.xxcolno++;
+        ParseState.xxcolno++;
     	ParseState.xxbyteno++;
     }
 
