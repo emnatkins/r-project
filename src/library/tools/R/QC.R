@@ -1,7 +1,7 @@
 #  File src/library/tools/R/QC.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2017 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -674,7 +674,7 @@ function(package, dir, lib.loc = NULL,
         ## by comparing the explicit \usage entries for S4 methods to
         ## what is actually in the code.  We most likely also should do
         ## something similar for S3 methods.
-        ind <- grepl(.S4_method_markup_regexp, functions)
+        ind <- grep(.S4_method_markup_regexp, functions)
         if(any(ind))
             functions <- functions[!ind]
         ## </FIXME>
@@ -3946,9 +3946,6 @@ function(package, lib.loc = NULL)
                    envir = compat)
         }
         if(.Platform$OS.type != "windows") {
-            assign("askYesNoWinDialog",
-                   function(msg, ...) {},
-                   envir = compat)
             assign("bringToTop", function (which = grDevices::dev.cur(), stay = FALSE) {},
                    envir = compat)
             assign("choose.dir",
@@ -6658,8 +6655,7 @@ function(dir, localOnly = FALSE)
                                         "FALSE"))) {
         ignore <-
             list(c("(?<=[ \t[:punct:]])'[^']*'(?=[ \t[:punct:]])",
-                   "(?<=[ \t[:punct:]])([[:alnum:]]+::)?[[:alnum:]_.]*\\(\\)(?=[ \t[:punct:]])",
-                   "(?<=[<])(https?://|DOI:|doi:|arXiv:)[^>]+(?=[>])"),
+                   "(?<=[ \t[:punct:]])([[:alnum:]]+::)?[[:alnum:]_.]*\\(\\)(?=[ \t[:punct:]])"),
                  perl = TRUE)
         a <- utils:::aspell_package_description(dir,
                                                 ignore = ignore,
@@ -6894,18 +6890,7 @@ function(dir, localOnly = FALSE)
     if(grepl("^(The|This|A|In this|In the) package", descr))
         out$descr_bad_start <- TRUE
     if(!isTRUE(out$descr_bad_start) && !grepl("^['\"]?[[:upper:]]", descr))
-        out$descr_bad_initial <- TRUE
-    descr <- strwrap(descr)
-    if(any(ind <- grepl("[^<]https?://", descr))) {
-        ## Could try to filter out the matches for DOIs and arXiv ids
-        ## noted differently below: not entirely straightforward when
-        ## matching wrapped texts for to ease reporting ...
-        out$descr_bad_URLs <- descr[ind]
-    }
-    if(any(ind <- grepl("https?://.*doi.org/", descr)))
-        out$descr_bad_DOIs <- descr[ind]
-    if(any(ind <- grepl("https?://arxiv.org", descr)))
-        out$descr_bad_arXiv_ids <- descr[ind]
+       out$descr_bad_initial <- TRUE
 
     skip_dates <-
         config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_SKIP_DATES_",
@@ -7623,26 +7608,7 @@ function(x, ...)
             },
             if(length(x$descr_bad_start)) {
                 "The Description field should not start with the package name,\n  'This package' or similar."
-            },
-            if(length(y <- x$descr_bad_URLs)) {
-                paste(c("The Description field contains",
-                        paste0("  ", y),
-                        "Please enclose URLs in angle brackets (<...>)."),
-                      collapse = "\n")
-            },
-            if(length(y <- x$descr_bad_DOIs)) {
-                paste(c("The Description field contains",
-                        paste0("  ", y),
-                        "Please write DOIs as <doi:10.prefix/suffix>."),
-                      collapse = "\n")
-            },
-            if(length(y <- x$descr_bad_arXiv_ids)) {
-                paste(c("The Description field contains",
-                        paste0("  ", y),
-                        "Please write arXiv ids as <arXiv:YYMM.NNNNN>."),
-                      collapse = "\n")
-            }
-            )),
+            })),
       fmt(c(if(length(x$bad_date)) {
                 "The Date field is not in ISO 8601 yyyy-mm-dd format."
             },

@@ -869,10 +869,18 @@ SEXP attribute_hidden do_namesgets(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(args = ans);
     if (MAYBE_SHARED(CAR(args)))
 	SETCAR(args, shallow_duplicate(CAR(args)));
-    if (TYPEOF(CAR(args)) == S4SXP) {
+    if(IS_S4_OBJECT(CAR(args))) {
 	const char *klass = CHAR(STRING_ELT(R_data_class(CAR(args), FALSE), 0));
-	error(_("invalid to use names()<- on an S4 object of class '%s'"),
-	      klass);
+	if(getAttrib(CAR(args), R_NamesSymbol) == R_NilValue) {
+	    /* S4 class w/o a names slot or attribute */
+	    if(TYPEOF(CAR(args)) == S4SXP)
+		error(_("class '%s' has no 'names' slot"), klass);
+	    else
+		warning(_("class '%s' has no 'names' slot; assigning a names attribute will create an invalid object"), klass);
+	}
+	else if(TYPEOF(CAR(args)) == S4SXP)
+	    error(_("invalid to use names()<- to set the 'names' slot in a non-vector class ('%s')"), klass);
+	/* else, go ahead, but can't check validity of replacement*/
     }
     SEXP names = CADR(args);
     if (names != R_NilValue &&
@@ -1243,7 +1251,6 @@ SEXP attribute_hidden do_attributes(SEXP call, SEXP op, SEXP args, SEXP env)
     return value;
 }
 
-//  levels(.) <- newlevs :
 SEXP attribute_hidden do_levelsgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;

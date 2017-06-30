@@ -30,7 +30,6 @@
 
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
-#include <mmsystem.h> /* for timeGetTime */
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -248,27 +247,22 @@ static void pcreate(const char* cmd, cetype_t enc,
     return;
 }
 
+static int pwait(HANDLE p)
+{
+    DWORD ret;
+
+    WaitForSingleObject(p, INFINITE);
+    GetExitCodeProcess(p, &ret);
+    return ret;
+}
+
 /* used in rpipeOpen */
 static DWORD CALLBACK
 threadedwait(LPVOID param)
 {
     rpipe *p = (rpipe *) param;
 
-    if (p->timeoutMillis) {
-	DWORD wres = WaitForSingleObject(p->pi.hProcess, p->timeoutMillis);
-	if (wres == WAIT_TIMEOUT) {
-	    TerminateProcess(p->pi.hProcess, 124);
-	    p->timedout = 1;
-	    /* wait up to 10s for the  process to actually terminate */
-	    WaitForSingleObject(p->pi.hProcess, 10000);
-	}
-    } else 
-	WaitForSingleObject(p->pi.hProcess, INFINITE);
-
-    DWORD ret;
-    GetExitCodeProcess(p->pi.hProcess, &ret);
-    p->exitcode = ret;
-    
+    p->exitcode = pwait(p->pi.hProcess);
     FlushFileBuffers(p->write);
     FlushFileBuffers(p->read);
     p->active = 0;
@@ -354,28 +348,12 @@ static void terminate_process(void *p)
     }
 }
 
-static int pwait2(HANDLE p, DWORD timeoutMillis, int* timedout)
+static int pwait2(HANDLE p)
 {
     DWORD ret;
 
-    if (!timeoutMillis) {
-	while( WaitForSingleObject(p, 100) == WAIT_TIMEOUT )
-	    R_CheckUserInterrupt();
-    } else {
-	DWORD beforeMillis = timeGetTime();
-	while( WaitForSingleObject(p, 100) == WAIT_TIMEOUT ) {
-	    R_CheckUserInterrupt();
-	    DWORD afterMillis = timeGetTime();
-	    if (afterMillis - beforeMillis >= timeoutMillis) {
-		TerminateProcess(p, 124); 
-		if (timedout)
-		    *timedout = 1;
-		/* wait up to 10s for the process to actually terminate */
-		WaitForSingleObject(p, 10000);
-		break;
-	    }
-	}
-    }
+    while( WaitForSingleObject(p, 100) == WAIT_TIMEOUT )
+	R_CheckUserInterrupt();
 
     GetExitCodeProcess(p, &ret);
     return ret;
@@ -394,16 +372,6 @@ static int pwait2(HANDLE p, DWORD timeoutMillis, int* timedout)
 int runcmd(const char *cmd, cetype_t enc, int wait, int visible,
 	   const char *fin, const char *fout, const char *ferr)
 {
-    return runcmd_timeout(cmd, enc, wait, visible, fin, fout, ferr, 0, NULL);
-}
-
-int runcmd_timeout(const char *cmd, cetype_t enc, int wait, int visible,
-                   const char *fin, const char *fout, const char *ferr,
-                   int timeout, int *timedout)
-{
-    if (!wait && timeout)
-	error("Timeout with background running processes is not supported.");
-    
     HANDLE hIN = getInputHandle(fin), hOUT, hERR;
     int ret = 0;
     PROCESS_INFORMATION pi;
@@ -431,8 +399,7 @@ int runcmd_timeout(const char *cmd, cetype_t enc, int wait, int visible,
 		     R_NilValue, R_NilValue);
 	    cntxt.cend = &terminate_process;
 	    cntxt.cenddata = &pi;
-	    DWORD timeoutMillis = (DWORD) (1000*timeout);
-	    ret = pwait2(pi.hProcess, timeoutMillis, timedout);
+	    ret = pwait2(pi.hProcess);
 	    endcontext(&cntxt);
 	    snprintf(RunError, 501, _("Exit code was %d"), ret);
 	    ret &= 0xffff;
@@ -457,8 +424,7 @@ int runcmd_timeout(const char *cmd, cetype_t enc, int wait, int visible,
  */
 rpipe * rpipeOpen(const char *cmd, cetype_t enc, int visible,
 		  const char *finput, int io,
-		  const char *fout, const char *ferr,
-		  int timeout)
+		  const char *fout, const char *ferr)
 {
     rpipe *r;
     HANDLE hTHIS, hIN, hOUT, hERR, hReadPipe, hWritePipe;
@@ -473,11 +439,9 @@ rpipe * rpipeOpen(const char *cmd, cetype_t enc, int visible,
     r->active = 0;
     r->pi.hProcess = NULL;
     r->thread = NULL;
-    r->timedout = 0;
-    r->timeoutMillis = (DWORD) (1000*timeout);
     res = CreatePipe(&hReadPipe, &hWritePipe, NULL, 0);
     if (res == FALSE) {
-	rpipeClose(r, NULL);
+	rpipeClose(r);
 	strcpy(RunError, "CreatePipe failed");
 	return NULL;
     }
@@ -529,7 +493,7 @@ rpipe * rpipeOpen(const char *cmd, cetype_t enc, int visible,
     if (!r->pi.hProcess)
 	return NULL;
     if (!(r->thread = CreateThread(NULL, 0, threadedwait, r, 0, &id))) {
-	rpipeClose(r, NULL);
+	rpipeClose(r);
 	strcpy(RunError, "CreateThread failed");
 	return NULL;
     }
@@ -613,7 +577,7 @@ char * rpipeGets(rpipe * r, char *buf, int len)
     return buf;
 }
 
-int rpipeClose(rpipe *r, int *timedout)
+int rpipeClose(rpipe * r)
 {
     int   i;
 
@@ -623,8 +587,6 @@ int rpipeClose(rpipe *r, int *timedout)
     CloseHandle(r->write);
     CloseHandle(r->pi.hProcess);
     i = r->exitcode;
-    if (timedout)
-	*timedout = r->timedout;
     free(r);
     return i &= 0xffff;
 }
@@ -646,7 +608,7 @@ static Rboolean Wpipe_open(Rconnection con)
 
     io = con->mode[0] == 'w';
     if(io) visible = 1; /* Somewhere to put the output */
-    rp = rpipeOpen(con->description, con->enc, visible, NULL, io, NULL, NULL, 0);
+    rp = rpipeOpen(con->description, con->enc, visible, NULL, io, NULL, NULL);
     if(!rp) {
 	warning("cannot open cmd `%s'", con->description);
 	return FALSE;
@@ -663,7 +625,7 @@ static Rboolean Wpipe_open(Rconnection con)
 
 static void Wpipe_close(Rconnection con)
 {
-    con->status = rpipeClose( ((RWpipeconn)con->private) ->rp, NULL);
+    con->status = rpipeClose( ((RWpipeconn)con->private) ->rp);
     con->isopen = FALSE;
 }
 

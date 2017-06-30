@@ -161,7 +161,6 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE,
         if(nl > 3L && startsWith(txt[nl-2L], "> proc.time()"))
             txt <- txt[1:(nl-3L)]
         ## remove text between IGNORE_RDIFF markers.
-        ## maybe this should only be done for forEx = TRUE?
         txt <- txt[(cumsum(txt == "> ## IGNORE_RDIFF_BEGIN") <=
                     cumsum(txt == "> ## IGNORE_RDIFF_END"))]
         ## (Keeps the end markers, but that's ok.)
@@ -741,7 +740,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
 }
 
 ## Usage: Rscript --vanilla --default-packages=NULL args
-.Rdiff <- function(no.q = FALSE)
+.Rdiff <- function()
 {
     options(showErrorCalls=FALSE)
 
@@ -759,12 +758,8 @@ detachPackages <- function(pkgs, verbose = TRUE)
             sep = "\n")
     }
 
-    do_exit <-
-	if(no.q)
-	    function(status = 0L) (if(status) stop else message)(
-		".Rdiff() exit status ", status)
-	else
-	    function(status = 0L) q("no", status = status, runLast = FALSE)
+    do_exit <- function(status = 0L)
+        q("no", status = status, runLast = FALSE)
 
     args <- commandArgs(TRUE)
     if (!length(args)) {
@@ -774,7 +769,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
     args <- paste(args, collapse=" ")
     args <- strsplit(args,'nextArg', fixed = TRUE)[[1L]][-1L]
     if (length(args) == 1L) {
-        if(args[1L] %in% c("-h", "--help")) { Usage(); do_exit(0) }
+        if(args[1L] %in% c("-h", "--help")) { Usage(); do_exit() }
         if(args[1L] %in% c("-v", "--version")) {
             cat("R output diff: ",
                 R.version[["major"]], ".",  R.version[["minor"]],
@@ -784,7 +779,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
-            do_exit(0)
+            do_exit()
         }
         Usage()
         do_exit(1L)

@@ -2497,7 +2497,7 @@ setRlibs <-
                           paste(c("Loading log:", out, ""),
                                 collapse = "\n"))
             summaryLog(Log)
-            do_exit(1L)
+            do_exit()
         }
         if (any(startsWith(out, "Error"))) {
             errorLog(Log)
@@ -4000,12 +4000,8 @@ setRlibs <-
                     sQuote(file.path(pkgname0, "DESCRIPTION")))
         if ("DESCRIPTION" %in% dir(pkgdir)) {
             f <- file.path(pkgdir, "DESCRIPTION")
-            desc <- tryCatch(.read_description(f), error = identity)
-            if(inherits(desc, "error")) {
-                errorLog(Log, conditionMessage(desc))
-                summaryLog(Log)
-                do_exit(1L)
-            } else if(!length(desc)) {
+            desc <- try(.read_description(f))
+            if (inherits(desc, "try-error") || !length(desc)) {
                 errorLog(Log, "File DESCRIPTION exists but is not in correct format")
                 summaryLog(Log)
                 do_exit(1L)
@@ -4042,21 +4038,20 @@ setRlibs <-
             summaryLog(Log)
             do_exit(1L)
         }
-        if(!is.na(desc["Type"])) { # standard packages do not have this
+        if (!is.na(desc["Type"])) { # standard packages do not have this
             checkingLog(Log, "extension type")
-            if(desc["Type"] != "Package") {
-                errorLog(Log,
-                         sprintf("Extensions with Type %s cannot be checked.",
-                                 sQuote(desc["Type"])))
+            resultLog(Log, desc["Type"])
+            if (desc["Type"] != "Package") {
+                printLog(Log,
+                         "Only 'Type = Package' extensions can be checked.\n")
                 summaryLog(Log)
                 do_exit(0L)
-            } else resultLog(Log, desc["Type"])
+            }
         }
-        if(!is.na(desc["Bundle"])) {
-            checkingLog(Log, "package bundle")
-            errorLog(Log,
-                     sprintf("Looks like %s is a package bundle -- they are defunct",
-                             sQuote(pkgname0)))
+        if (!is.na(desc["Bundle"])) {
+            messageLog(Log, "looks like ", sQuote(pkgname0),
+                       " is a package bundle -- they are defunct")
+            errorLog(Log, "")
             summaryLog(Log)
             do_exit(1L)
         }
@@ -4354,10 +4349,10 @@ setRlibs <-
 
     do_exit <-
 	if(no.q)
-	    function(status) (if(status) stop else message)(
+	    function(status = 1L) (if(status) stop else message)(
 		".check_packages() exit status ", status)
 	else
-	    function(status) q("no", status = status, runLast = FALSE)
+	    function(status = 1L) q("no", status = status, runLast = FALSE)
 
     maybe_exit <- function(status = 1L) {
 	if (R_check_exit_on_first_error) {
@@ -4745,7 +4740,6 @@ setRlibs <-
         Sys.setenv("_R_CHECK_PACKAGE_DATASETS_SUPPRESS_NOTES_" = "TRUE")
         Sys.setenv("_R_CHECK_PACKAGES_USED_IGNORE_UNUSED_IMPORTS_" = "TRUE")
         Sys.setenv("_R_CHECK_NATIVE_ROUTINE_REGISTRATION_" = "TRUE")
-        Sys.setenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_" = "TRUE")
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE
@@ -4859,23 +4853,11 @@ setRlibs <-
             message(sprintf("ERROR: cannot create check dir %s", sQuote(pkgoutdir)))
             do_exit(1L)
         }
-
         Log <- newLog(file.path(pkgoutdir, "00check.log"))
-
-        messageLog(Log, "using log directory ", sQuote(pkgoutdir))
-        messageLog(Log, "using ", R.version.string)
-        messageLog(Log, "using platform: ", R.version$platform,
-                   " (", 8*.Machine$sizeof.pointer, "-bit)")
-        charset <-
-            if (l10n_info()[["UTF-8"]]) "UTF-8" else utils::localeToCharset()
-        messageLog(Log, "using session charset: ", charset)
-        is_ascii <- charset == "ASCII"
-
         if (istar) {
             dir <- file.path(pkgoutdir, "00_pkg_src")
             dir.create(dir, mode = "0755")
             if (!dir.exists(dir)) {
-                checkingLog(Log, "whether tarball can be unpacked")
                 errorLog(Log, sprintf("cannot create %s", sQuote(dir)))
                 summaryLog(Log)
                 do_exit(1L)
@@ -4884,7 +4866,6 @@ setRlibs <-
             ## so e.g. .tar.xz works everywhere
             if (utils::untar(pkg, exdir = dir,
                              tar = Sys.getenv("R_INSTALL_TAR", "internal"))) {
-                checkingLog(Log, "whether tarball can be unpacked")
                 errorLog(Log, sprintf("cannot unpack %s", sQuote(pkg)))
                 summaryLog(Log)
                 do_exit(1L)
@@ -4895,14 +4876,9 @@ setRlibs <-
             ## to test that.
             pkg <- file.path(dir, pkgname0)
         }
-        if (!dir.exists(pkg)) {
-            checkingLog(Log, "package directory")
-            errorLog(Log,
-                     gettextf("package directory %s does not exist",
-                              sQuote(pkg)))
-            summaryLog(Log)
-            do_exit(1L)
-        }
+        if (!dir.exists(pkg))
+            stop(gettextf("package directory %s does not exist",
+                          sQuote(pkg)), domain = NA)
         setwd(pkg)
         pkgdir <- getwd()
         thispkg_src_subdirs <- thispkg_subdirs
@@ -4917,6 +4893,15 @@ setRlibs <-
             }
         }
         setwd(startdir)
+
+        messageLog(Log, "using log directory ", sQuote(pkgoutdir))
+        messageLog(Log, "using ", R.version.string)
+        messageLog(Log, "using platform: ", R.version$platform,
+                   " (", 8*.Machine$sizeof.pointer, "-bit)")
+        charset <-
+            if (l10n_info()[["UTF-8"]]) "UTF-8" else utils::localeToCharset()
+        messageLog(Log, "using session charset: ", charset)
+        is_ascii <- charset == "ASCII"
 
         .unpack.time <- Sys.time()
 
@@ -4941,12 +4926,6 @@ setRlibs <-
             messageLog(Log, "using options ", sQuote(paste(opts, collapse=" ")))
         else if (length(opts) == 1L)
             messageLog(Log, "using option ", sQuote(opts))
-
-        if(identical(config_val_to_logical(Sys.getenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_",
-                                                      "FALSE")),
-                     TRUE)) {
-            stop_on_test_error <- FALSE
-        }
 
         if (!nzchar(libdir)) { # otherwise have set R_LIBS above
             libdir <- pkgoutdir

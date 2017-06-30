@@ -1308,8 +1308,7 @@ SEXP attribute_hidden R_cmpfun1(SEXP fun)
     return val;
 }
 
-/* fun is modified in-place when compiled */
-static void R_cmpfun(SEXP fun)
+SEXP attribute_hidden R_cmpfun(SEXP fun)
 {
     R_exprhash_t hash = 0;
     if (jit_strategy != STRATEGY_NO_CACHE) {
@@ -1332,7 +1331,7 @@ static void R_cmpfun(SEXP fun)
 			PRINT_JIT_INFO;
 			SET_BODY(fun, jit_cache_code(entry));
 			/**** reset the cache here?*/
-			return;
+			return fun;
 		    }
 		}
 		/* The functions probably differ only in source references
@@ -1351,7 +1350,7 @@ static void R_cmpfun(SEXP fun)
 		SET_NOJIT(fun);
 		/**** also mark the cache entry as NOJIT, or as need to see
 		      many times? */
-		return;
+		return fun;
 	    }
 	}
 	PRINT_JIT_INFO;
@@ -1361,11 +1360,10 @@ static void R_cmpfun(SEXP fun)
 
     if (TYPEOF(BODY(val)) != BCODESXP)
 	SET_NOJIT(fun);
-    else {
-	if (jit_strategy != STRATEGY_NO_CACHE)
-	    set_jit_cache_entry(hash, val); /* val is protected by callee */
-	SET_BODY(fun, BODY(val));
-    }
+    else if (jit_strategy != STRATEGY_NO_CACHE)
+	set_jit_cache_entry(hash, val); /* val is protected by callee */
+
+    return val;
 }
 
 static SEXP R_compileExpr(SEXP expr, SEXP rho)
@@ -1566,9 +1564,11 @@ static R_INLINE SEXP R_execClosure(SEXP call, SEXP newrho, SEXP sysparent,
     body = BODY(op);
     if (R_CheckJIT(op)) {
 	int old_enabled = R_jit_enabled;
+	SEXP newop;
 	R_jit_enabled = 0;
-	R_cmpfun(op);
-	body = BODY(op);
+	newop = R_cmpfun(op);
+	body = BODY(newop);
+	SET_BODY(op, body);
 	R_jit_enabled = old_enabled;
     }
 
@@ -2791,10 +2791,7 @@ SEXP attribute_hidden promiseArgs(SEXP el, SEXP rho)
 	    PROTECT(h = findVar(CAR(el), rho));
 	    if (TYPEOF(h) == DOTSXP || h == R_NilValue) {
 		while (h != R_NilValue) {
-		    if (TYPEOF(CAR(h)) == PROMSXP || CAR(h) == R_MissingArg)
-		      SETCDR(tail, CONS(CAR(h), R_NilValue));
-                    else
-		      SETCDR(tail, CONS(mkPROMISE(CAR(h), rho), R_NilValue));
+		    SETCDR(tail, CONS(mkPROMISE(CAR(h), rho), R_NilValue));
 		    tail = CDR(tail);
 		    COPY_TAG(tail, h);
 		    h = CDR(h);
@@ -4358,7 +4355,7 @@ static R_INLINE double (*getMath1Fun(int i, SEXP call))(double) {
 	    double rn2 = vy.dval;					\
 	    if (R_FINITE(rn1) && R_FINITE(rn2) &&			\
 		INT_MIN <= rn1 && INT_MAX >= rn1 &&			\
-		INT_MIN <= rn2 && INT_MAX >= rn2 &&			\
+		INT_MIN <= rn2 && INT_MAX >- rn2 &&			\
 		rn1 == (int) rn1 && rn2 == (int) rn2) {			\
 		SKIP_OP(); /* skip 'call' index */			\
 		R_BCNodeStackTop--;					\
@@ -6216,7 +6213,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	    SEXP x = CAR(loc);  /* fast, but assumes binding is a CONS */
 	    if (NOT_SHARED(x) && IS_SIMPLE_SCALAR(x, s->tag)) {
 		/* if the binding value is not shared and is a simple
-		   scalar of the same type as the immediate value,
+		   scaler of the same type as the immediate value,
 		   then we can copy the stack value into the binding
 		   value */
 		switch (s->tag) {

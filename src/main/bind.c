@@ -518,30 +518,35 @@ static SEXP NewName(SEXP base, SEXP tag, int seqno)
  */
 
     SEXP ans;
+    char *cbuf;
+    const void *vmax = vmaxget();
+
     base = EnsureString(base);
     tag = EnsureString(tag);
     if (*CHAR(base) && *CHAR(tag)) {
-	const void *vmax = vmaxget();
 	const char *sb = translateCharUTF8(base), *st = translateCharUTF8(tag);
-	char *cbuf;
 	cbuf = R_AllocStringBuffer(strlen(sb) + strlen(st) + 1, &cbuff);
 	sprintf(cbuf, "%s.%s", sb, st);
 	ans = mkCharCE(cbuf, CE_UTF8);
-	vmaxset(vmax);
     }
     else if (*CHAR(base)) {
-	const void *vmax = vmaxget();
-	const char *sb = translateCharUTF8(base);
-	char *cbuf;
+	const char *sb = translateChar(base);
 	cbuf = R_AllocStringBuffer(strlen(sb) + (size_t) IndexWidth(seqno),
 				   &cbuff);
 	sprintf(cbuf, "%s%d", sb, seqno);
 	ans = mkCharCE(cbuf, CE_UTF8);
-	vmaxset(vmax);
     }
     else if (*CHAR(tag)) {
-	ans = tag;
-    } else ans = R_BlankString;
+	if(tag == NA_STRING) ans = NA_STRING;
+	else {
+	    const char *st = translateCharUTF8(tag);
+	    cbuf = R_AllocStringBuffer(strlen(st), &cbuff);
+	    sprintf(cbuf, "%s", st);
+	    ans = mkCharCE(cbuf, CE_UTF8);
+	}
+    }
+    else ans = R_BlankString;
+    vmaxset(vmax);
     return ans;
 }
 

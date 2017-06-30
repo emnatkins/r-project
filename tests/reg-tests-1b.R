@@ -723,7 +723,7 @@ levs <- c("A","A")
 local({
     assertError(gl(2,3, labels = levs))
     assertError(factor(levs, levels=levs))
-    ## now valid: factor(1:2,  labels=levs)
+    assertError(factor(1:2,  labels=levs))
     })
 ## failed in R < 2.10.0
 L <- c("no", "yes")
@@ -2074,7 +2074,7 @@ stopifnot(!is.na(z$tension))
 p <- file.path(R.home("share"),"texmf") # always exists, readable
 lfri <- list.files(p, recursive=TRUE, include.dirs=TRUE)
 subdirs <- c("bibtex", "tex")
-lfnd <- setdiff(list.files(p, all.files=TRUE, no..=TRUE), c(".svn", ".DS_Store"))
+lfnd <- setdiff(list.files(p, all.files=TRUE, no..=TRUE), ".svn")
 stopifnot(!is.na(match(subdirs, lfri)), identical(subdirs, lfnd))
 ## the first failed for a few days, unnoticed, in the development version of R
 
