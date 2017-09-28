@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2017  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998--2017  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@ extern void R_WaitEvent(void);
 /*	R_NSIZE	   The number of cons cells	 */
 /*	R_VSIZE	   The vector heap size in bytes */
 /*  These values are defaults and can be overridden in config.h
-    The maxima and minima are in ../main/startup.c */
+    The maxima and minima are in startup.c */
 
 #ifndef R_PPSSIZE
 #define	R_PPSSIZE	50000L
@@ -303,7 +303,7 @@ extern int putenv(char *string);
 #endif
 #endif
 
-#define HSIZE	  49157	/* The size of the hash table for symbols */
+#define HSIZE	   4119	/* The size of the hash table for symbols */
 #define MAXIDSIZE 10000	/* Largest symbol size,
 			   in bytes excluding terminator.
 			   Was 256 prior to 2.13.0, now just a sanity check.
@@ -806,6 +806,7 @@ extern0 int R_jit_enabled INI_as(0); /* has to be 0 during R startup */
 extern0 int R_compile_pkgs INI_as(0);
 extern0 int R_check_constants INI_as(0);
 extern0 int R_disable_bytecode INI_as(0);
+extern SEXP R_cmpfun(SEXP);
 extern SEXP R_cmpfun1(SEXP); /* unconditional fresh compilation */
 extern void R_init_jit_enabled(void);
 extern void R_initAssignSymbols(void);
@@ -1071,7 +1072,6 @@ void R_SetVarLocValue(R_varloc_t, SEXP);
 #define S_COMPAT       		128
 #define HEXNUMERIC             	256
 #define DIGITS16             	512
-#define NICE_NAMES             	1024
 /* common combinations of the above */
 #define SIMPLEDEPARSE		0
 #define DEFAULTDEPARSE		65 /* KEEPINTEGER | KEEPNA, used for calls */
@@ -1148,7 +1148,6 @@ void InitOptions(void);
 void InitStringHash(void);
 void Init_R_Variables(SEXP);
 void InitTempDir(void);
-void R_reInitTempDir(int);
 void InitTypeTables(void);
 void initStack(void);
 void InitS3DefaultTypes(void);
@@ -1409,7 +1408,7 @@ extern const char *locale2charset(const char *);
 } while(0)
 
 
-/*
+/* 
    alloca is neither C99 nor POSIX.
 
    It might be better to try alloca.h first, see

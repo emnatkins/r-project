@@ -89,16 +89,6 @@
 #include <R_ext/RS.h> /* for test of S4 objects */
 #include <R_ext/Itermacros.h>
 
-/* The SET_STDVEC_LENGTH macro is used to modify the length of
-   growable vectors. This would need to change to allow ALTREP vectors to
-   grow in place.
-
-   SETLENGTH is used when checking the write barrier.
-   Always using SETLENGTH would be OK but maybe a little less efficient. */
-#ifndef SET_STDVEC_LENGTH
-# define SET_STDVEC_LENGTH(x, v) SETLENGTH(x, v)
-#endif
-
 /* This version of SET_VECTOR_ELT does not increment the REFCNT for
    the new vector->element link. It assumes that the old vector is
    becoming garbage and so it's references become no longer
@@ -158,8 +148,8 @@ static SEXP EnlargeVector(SEXP x, R_xlen_t newlen)
        increase its length */
     if (! MAYBE_SHARED(x) &&
 	IS_GROWABLE(x) &&
-	XTRUELENGTH(x) >= newlen) {
-	SET_STDVEC_LENGTH(x, newlen);
+	TRUELENGTH(x) >= newlen) {
+	SETLENGTH(x, newlen);
 	names = getNames(x);
 	if (!isNull(names)) {
 	    SEXP newnames = EnlargeNames(names, len, newlen);
@@ -183,26 +173,19 @@ static SEXP EnlargeVector(SEXP x, R_xlen_t newlen)
 	}
     }
 
-    if (newlen > len) {
-	double expanded_nlen = newlen * expand;
-	if (expanded_nlen <= R_XLEN_T_MAX)
-	    newtruelen = (R_xlen_t) expanded_nlen;
-	else
-	    newtruelen = newlen;
-    }
+    if (newlen > len)
+	newtruelen = (R_xlen_t) (newlen * expand);
     else
 	/* sometimes this is called when no expansion is needed */
 	newtruelen = newlen;
 
     /**** for now, don't cross the long vector boundary; drop when
 	  ALTREP is merged */
-/*
 #ifdef ALTREP
 #error drop the limitation to short vectors
 #endif
-
     if (newtruelen > R_LEN_T_MAX) newtruelen = newlen;
-*/
+
     PROTECT(x);
     PROTECT(newx = allocVector(TYPEOF(x), newtruelen));
 
@@ -254,7 +237,7 @@ static SEXP EnlargeVector(SEXP x, R_xlen_t newlen)
     if (newlen < newtruelen) {
 	SET_GROWABLE_BIT(newx);
 	SET_TRUELENGTH(newx, newtruelen);
-	SET_STDVEC_LENGTH(newx, newlen);
+	SETLENGTH(newx, newlen);
     }
 
     /* Adjust the attribute list. */
@@ -566,11 +549,12 @@ static SEXP DeleteListElements(SEXP x, SEXP which)
 }
 
 static R_INLINE SEXP VECTOR_ELT_FIX_NAMED(SEXP y, R_xlen_t i) {
-    /* if RHS (container or element) has NAMED > 0 set NAMED = NAMEDMAX.
+    /* if RHS (container or element) has NAMED > 0 set NAMED = 2.
        Duplicating might be safer/more consistent (PR15098) */
     SEXP val = VECTOR_ELT(y, i);
     if ((NAMED(y) || NAMED(val)))
-	ENSURE_NAMEDMAX(val);
+	if (NAMED(val) < 2)
+	    SET_NAMED(val, 2);
     return val;
 }
 
@@ -805,10 +789,10 @@ static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
 	    if (ii == NA_INTEGER) continue;
 	    ii = ii - 1;
 
-	    /* set NAMED on RHS value to NAMEDMAX if used more than once
+	    /* set NAMED on RHS value to 2 if used more than once
 	       (PR15098) */
-	    if (i >= ny)
-		ENSURE_NAMEDMAX(VECTOR_ELT(y, iny));
+	    if (i >= ny && NAMED(VECTOR_ELT(y, iny)) < 2)
+		SET_NAMED(VECTOR_ELT(y, iny), 2);
 
 	    SET_VECTOR_ELT(x, ii, VECTOR_ELT_FIX_NAMED(y, iny));
 	});
@@ -1123,11 +1107,12 @@ static SEXP MatrixAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
 	break;
     case 1919: /* vector <- vector */
 
-	/* set NAMED or RHS values to NAMEDMAX if they might be used more
+	/* set NAMED or RHS values to 2 if they might be used more
 	   than once (PR15098)*/
 	if (ny < ncs * nrs)
 	    for (R_xlen_t i = 0; i < ny; i++)
-		ENSURE_NAMEDMAX(VECTOR_ELT(y, i));
+		if (NAMED(VECTOR_ELT(y, i)) < 2)
+		    SET_NAMED(VECTOR_ELT(y, i), 2);
 
 	for (j = 0; j < ncs; j++) {
 	    jj = INTEGER(sc)[j];
@@ -1343,10 +1328,10 @@ static SEXP ArrayAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
 
 	case 1919: /* vector <- vector */
 
-	    /* set NAMED on RHS value to NAMEDMAX if used more than once
+	    /* set NAMED on RHS value to 2 if used more than once
 	       (PR15098) */
-	    if (i >= ny)
-		ENSURE_NAMEDMAX(VECTOR_ELT(y, iny));
+	    if (i >= ny && NAMED(VECTOR_ELT(y, iny)) < 2)
+		SET_NAMED(VECTOR_ELT(y, iny), 2);
 
 	    SET_VECTOR_ELT(x, ii, VECTOR_ELT_FIX_NAMED(y, iny));
 	    break;

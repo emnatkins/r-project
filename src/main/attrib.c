@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2017  The R Core Team
+ *  Copyright (C) 1997--2016  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -143,8 +143,8 @@ SEXP attribute_hidden getAttrib0(SEXP vec, SEXP name)
 	    if (name == R_DimNamesSymbol && TYPEOF(CAR(s)) == LISTSXP)
 		error("old list is no longer allowed for dimnames attribute");
 	    /**** this could be dropped for REFCNT or be less
-		  stringent for NAMED for attributes where the setter
-		  does not have a consistency check that could fail
+		  stringend for NAMED for attributes where the setter
+		  does not have a consistency check that could cail
 		  after mutation in a complex assignment LT */
 	    MARK_NOT_MUTABLE(CAR(s));
 	    return CAR(s);
@@ -335,8 +335,6 @@ static SEXP installAttrib(SEXP vec, SEXP name, SEXP val)
 
     if(TYPEOF(vec) == CHARSXP)
 	error("cannot set attribute on a CHARSXP");
-    if (TYPEOF(vec) == SYMSXP)
-	error(_("cannot set attribute on a symbol"));
     /* this does no allocation */
     for (SEXP s = ATTRIB(vec); s != R_NilValue; s = CDR(s)) {
 	if (TAG(s) == name) {
@@ -871,10 +869,18 @@ SEXP attribute_hidden do_namesgets(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(args = ans);
     if (MAYBE_SHARED(CAR(args)))
 	SETCAR(args, shallow_duplicate(CAR(args)));
-    if (TYPEOF(CAR(args)) == S4SXP) {
+    if(IS_S4_OBJECT(CAR(args))) {
 	const char *klass = CHAR(STRING_ELT(R_data_class(CAR(args), FALSE), 0));
-	error(_("invalid to use names()<- on an S4 object of class '%s'"),
-	      klass);
+	if(getAttrib(CAR(args), R_NamesSymbol) == R_NilValue) {
+	    /* S4 class w/o a names slot or attribute */
+	    if(TYPEOF(CAR(args)) == S4SXP)
+		error(_("class '%s' has no 'names' slot"), klass);
+	    else
+		warning(_("class '%s' has no 'names' slot; assigning a names attribute will create an invalid object"), klass);
+	}
+	else if(TYPEOF(CAR(args)) == S4SXP)
+	    error(_("invalid to use names()<- to set the 'names' slot in a non-vector class ('%s')"), klass);
+	/* else, go ahead, but can't check validity of replacement*/
     }
     SEXP names = CADR(args);
     if (names != R_NilValue &&
@@ -1245,7 +1251,6 @@ SEXP attribute_hidden do_attributes(SEXP call, SEXP op, SEXP args, SEXP env)
     return value;
 }
 
-//  levels(.) <- newlevs :
 SEXP attribute_hidden do_levelsgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;

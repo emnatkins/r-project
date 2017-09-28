@@ -1,7 +1,7 @@
 #  File src/library/methods/R/RClassUtils.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2017 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -105,8 +105,7 @@ makePrototypeFromClassDef <-
                     else if(is.na(match(slotName, pnames))) {
                         ## possible that the prototype already had this slot specified
                         ## If not, add it now.
-                        slot(prototype, slotName, check=FALSE) <-
-                            attr(pri, slotName)
+                        attr(prototype, slotName) <- attr(pri, slotName)
                         pnames <- c(pnames, slotName)
                     }
                 }
@@ -466,10 +465,10 @@ selectSuperClasses <-
     if(directOnly) C <- addCond(quote(length(exti@by) == 0), C)
     if(simpleOnly) C <- addCond(quote(exti@simple), C)
     if(length(C)) {
-	F <- function(exti){}; body(F) <- C
-	(if(namesOnly) names(ext) else ext)[vapply(ext, F, NA, USE.NAMES=FALSE)]
+      F <- function(exti){}; body(F) <- C
+      ext <- ext[unlist(lapply(ext, F), use.names=FALSE)]
     }
-    else if(namesOnly) names(ext) else ext
+    if(namesOnly) names(ext) else ext
 }
 
 inheritedSlotNames <- function(Class, where = topenv(parent.frame()))
@@ -697,12 +696,7 @@ reconcilePropertiesAndPrototype <-
               if(!is.null(thisDataPart)) {
                     dataPartClass <- thisDataPart
                     if(!is.null(clDef@prototype)) {
-                        protoClass <- class(clDef@prototype)
-                        newObject <-
-                            if (protoClass %in% .AbnormalTypes) {
-                                indirect <- .indirectAbnormalClasses[protoClass]
-                                getClassDef(indirect)@prototype
-                            } else clDef@prototype
+                      newObject <- clDef@prototype
                       dataPartValue <- TRUE
                     }
                   }

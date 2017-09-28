@@ -535,11 +535,6 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
 ### * Internal utility functions.
 
-### ** filtergrep
-
-filtergrep <- function(pattern, x, ...) grep(pattern, x, invert = TRUE, value = TRUE, ...)
-
-
 ### ** %notin%
 
 `%notin%` <-
@@ -1409,7 +1404,7 @@ function(package, lib.loc)
             pos <- match(paste0("package:", package), search())
             if(!is.na(pos)) {
                 detach(pos = pos,
-                       unload = package %notin% c("tcltk", "tools"))
+                       unload = ! package %in% c("tcltk", "tools"))
             }
             library(package, lib.loc = lib.loc, character.only = TRUE,
                     verbose = FALSE)
@@ -1635,7 +1630,7 @@ function(file, encoding = NA, keep.source = getOption("keep.source"))
     suppressWarnings({
         if(!is.na(encoding) &&
            (encoding != "unknown") &&
-           (Sys.getlocale("LC_CTYPE") %notin% c("C", "POSIX"))) {
+           !(Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX"))) {
             ## Previous use of con <- file(file, encoding = encoding)
             ## was intolerant so do something similar to what
             ## .install_package_code_files() does.  Do not use a #line
@@ -1870,11 +1865,11 @@ function(file, envir, enc = NA)
     ##                        ls(pattern = "^set[A-Z]", pos = "package:methods"))
     assignmentSymbols <- c("<-", "=")
 ### </FIXME>
-    con <- if(!is.na(enc) &&
-              (Sys.getlocale("LC_CTYPE") %notin% c("C", "POSIX"))) {
-               on.exit(close(con), add = TRUE)
-               file(file, encoding = enc)
-           } else file
+    con <-
+	if(!is.na(enc) && !(Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX"))) {
+	    on.exit(close(con), add = TRUE)
+	    file(file, encoding = enc)
+	} else file
     exprs <- parse(n = -1L, file = con)
     exprs <- exprs[lengths(exprs) > 0L]
     for(e in exprs) {
@@ -1976,7 +1971,7 @@ function(x)
 
 .system_with_capture <-
 function(command, args = character(), env = character(),
-         stdin = "", input = NULL, timeout = 0)
+         stdin = "", input = NULL)
 {
     ## Invoke a system command and capture its status, stdout and stderr
     ## into separate components.
@@ -1986,8 +1981,7 @@ function(command, args = character(), env = character(),
     on.exit(unlink(c(outfile, errfile)))
     status <- system2(command, args, env = env,
                       stdout = outfile, stderr = errfile,
-                      stdin = stdin, input = input,
-                      timeout = timeout)
+                      stdin = stdin, input = input)
     list(status = status,
          stdout = readLines(outfile, warn = FALSE),
          stderr = readLines(errfile, warn = FALSE))
@@ -2126,7 +2120,6 @@ toTitleCase <- function(text)
                        tolower(substring(x, 3L)))
             else paste0(toupper(x1), tolower(substring(x, 2L)))
         }
-        if(is.na(x)) return(NA_character_)
         xx <- .Call(C_splitString, x, ' -/"()\n')
         ## for 'alone' we could insist on that exact capitalization
         alone <- xx %in% c(alone, either)

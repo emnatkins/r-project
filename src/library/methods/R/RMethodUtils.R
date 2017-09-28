@@ -1494,10 +1494,20 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
     (is.name(value) && nzchar(as.character(value)) )
     fg <- formals(generic)
     mg <- formals(method)
-    emptyDef <- vapply(mg, emptyDefault, logical(1L))
-    mg <- mg[!emptyDef]
-    i <- match(names(fg), names(mg))
-    formals(generic)[!is.na(i)] <- mg[i[!is.na(i)]]
+    mgn <- names(mg)
+    changed <- FALSE
+    for(what in names(fg)) {
+        i <- match(what, mgn, 0L)
+        if(i > 0L) {
+            deflt <- mg[[i]]
+            if(!(emptyDefault(deflt) || identical(deflt, fg[[what]]))) {
+                fg[[what]] <- deflt
+                changed <- TRUE
+            }
+        }
+    }
+    if(changed)
+        formals(generic) <- fg
     generic
 }
 
@@ -1577,7 +1587,7 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
         stop(gettextf("no method or default matching the \"...\" arguments in %s",
                       deparse(sys.call(sys.parent()), nlines = 1)), domain = NA)
     mc <- match.call(sys.function(sys.parent()), sys.call(sys.parent()),
-                     expand.dots=FALSE, envir=parent.frame(2))
+                     expand.dots=FALSE)
     args <- names(mc)[-1L]
     mc[args] <- lapply(args, as.name)
     names(mc)[names(mc) == "..."] <- ""

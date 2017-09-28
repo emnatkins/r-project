@@ -436,7 +436,7 @@ AC_ARG_WITH([system-valgrind-headers],
 [use_system_valgrind=no])
 
 AC_ARG_WITH([internal-tzcode],
-[AS_HELP_STRING([--with-internal-tzcode],[use internal time-zone code @<:@no, yes on macOS@:>@])],
+[AS_HELP_STRING([--with-internal-tzcode],[use internal time-zone code @<:@no@:>@])],
 [use_internal_tzcode=${withval}],
 [use_internal_tzcode=default])
 
@@ -574,7 +574,12 @@ AC_MSG_RESULT([${BUILDDIR_IS_SRCDIR}])
 
 ### * Checks for programs.
 
+R_MISSING_PROG(ACLOCAL, aclocal)
+R_MISSING_PROG(AUTOCONF, autoconf)
+R_MISSING_PROG(AUTOMAKE, automake)
+R_MISSING_PROG(AUTOHEADER, autoheader)
 AC_PROG_LN_S
+AC_PROG_YACC
 R_PROG_AR
 R_PROG_INSTALL
 
@@ -601,29 +606,13 @@ AC_PATH_PROGS(R_BZIPCMD, [${BZIP} bzip2], "")
 R_PROG_BROWSER
 ## PDF viewer
 R_PROG_PDFVIEWER
-## Noweb (notangle), aclocal, autoconf, autoheader - maintainer mode only
-
-R_MISSING_PROG(ACLOCAL, aclocal,
-  R_MNT_WARN([[aclocal is missing - aclocal.m4 cannot be updated!]])
-)
-R_MISSING_PROG(AUTOCONF, autoconf,
-  R_MNT_WARN([[autoconf is missing - configure cannot be updated!]])
-)
-R_MISSING_PROG(AUTOHEADER, autoheader,
-  R_MNT_WARN([[autoheader is missing - header file templates like config.h.in cannot be updated!]])
-)
-AC_PROG_YACC
-if test "${YACC}" = yacc ; then
-  ## yacc is the default value even when yacc is not found
-  AC_CHECK_PROG(JUSTYACC, yacc, yes)
-  if test "x${JUSTYACC}" != xyes ; then
-    R_MNT_WARN([[yacc is missing - parsers cannot be updated!]])
-  fi
-fi
+## Noweb - used for maintainer mode only
 AC_PATH_PROG(NOTANGLE, notangle, false)
 if test "${NOTANGLE}" = false ; then
-  R_MNT_WARN([[notangle is missing - byte-code compiler source cannot be updated!]])
-  NOTANGLE=notangle    
+  if test "x${use_maintainer_mode}" = xyes; then
+    AC_MSG_WARN([notangle is missing - byte-code compiler source cannot be updated!])
+  fi
+  NOTANGLE=notangle
 fi
 ## javareconf needs this
 AC_PATH_PROG(REALPATH, realpath, false)
@@ -1915,11 +1904,6 @@ R_CHECK_FUNCS([glob], [#ifdef HAVE_GLOB_H
 AC_CHECK_FUNCS([dladdr dlsym])
 AC_CHECK_DECLS([dladdr,dlsym], , , [#include<dlfcn.h>])
 AC_CHECK_DECLS([RTLD_DEFAULT,RTLD_NEXT], , , [#include<dlfcn.h>])
-AC_CHECK_HEADERS([thread.h])
-R_CHECK_FUNCS([thr_stksegment], [
-#include <thread.h>
-#include <signal.h>
-])
 
 ## Lots of uses of getwd(), file.access(), Sys.glob().
 ## We don't need times() except as a fallback for getrusage and

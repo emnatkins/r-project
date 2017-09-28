@@ -1,7 +1,7 @@
-#  File src/library/base/R/identical.R
+#  File src/library/base/R/upper.tri.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2016 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,10 +16,9 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-identical <- function(x, y, num.eq = TRUE, single.NA = TRUE,
-                      attrib.as.set = TRUE, ignore.bytecode = TRUE,
-                      ignore.environment = FALSE, ignore.srcref = TRUE)
-    .Internal(identical(x,y, num.eq, single.NA, attrib.as.set,
-                        ignore.bytecode, ignore.environment, ignore.srcref))
-
-isTRUE <- function(x) identical(TRUE, x)
+upper.tri <- function(x, diag = FALSE)
+{
+    x <- as.matrix(x)
+    if(diag) row(x) <= col(x)
+    else row(x) < col(x)
+}

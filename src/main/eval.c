@@ -526,7 +526,7 @@ static SEXP forcePromise(SEXP e)
 	R_PendingPromises = prstack.next;
 	SET_PRSEEN(e, 0);
 	SET_PRVALUE(e, val);
-	ENSURE_NAMEDMAX(val);
+	SET_NAMED (val, 2);
 	SET_PRENV(e, R_NilValue);
     }
     return PRVALUE(e);
@@ -574,10 +574,10 @@ SEXP eval(SEXP e, SEXP rho)
     case WEAKREFSXP:
     case EXPRSXP:
 	/* Make sure constants in expressions are NAMED before being
-	   used as values.  Setting NAMED to NAMEDMAX makes sure weird calls
+	   used as values.  Setting NAMED to 2 makes sure weird calls
 	   to replacement functions won't modify constants in
 	   expressions.  */
-	ENSURE_NAMEDMAX(e);
+	if (NAMED(e) <= 1) SET_NAMED(e, 2);
 	return e;
     default: break;
     }
@@ -648,7 +648,7 @@ SEXP eval(SEXP e, SEXP rho)
 		UNPROTECT(1);
 	    }
 	    else tmp = PRVALUE(tmp);
-	    ENSURE_NAMEDMAX(tmp);
+	    SET_NAMED(tmp, 2);
 	}
 	else if (!isNull(tmp) && NAMED(tmp) == 0)
 	    SET_NAMED(tmp, 1);
@@ -672,7 +672,7 @@ SEXP eval(SEXP e, SEXP rho)
 	   before inserting it to avoid creating cycles.  (Closure
 	   replacement functions will get the value via the SYMSXP case
 	   from evaluating their 'value' argument so the value will
-	   end up getting duplicated if NAMED > 1.) LT */
+	   end up getting duplicated if NAMED = 2.) LT */
 	break;
     case LANGSXP:
 	if (TYPEOF(CAR(e)) == SYMSXP) {
@@ -1308,8 +1308,7 @@ SEXP attribute_hidden R_cmpfun1(SEXP fun)
     return val;
 }
 
-/* fun is modified in-place when compiled */
-static void R_cmpfun(SEXP fun)
+SEXP attribute_hidden R_cmpfun(SEXP fun)
 {
     R_exprhash_t hash = 0;
     if (jit_strategy != STRATEGY_NO_CACHE) {
@@ -1332,7 +1331,7 @@ static void R_cmpfun(SEXP fun)
 			PRINT_JIT_INFO;
 			SET_BODY(fun, jit_cache_code(entry));
 			/**** reset the cache here?*/
-			return;
+			return fun;
 		    }
 		}
 		/* The functions probably differ only in source references
@@ -1351,7 +1350,7 @@ static void R_cmpfun(SEXP fun)
 		SET_NOJIT(fun);
 		/**** also mark the cache entry as NOJIT, or as need to see
 		      many times? */
-		return;
+		return fun;
 	    }
 	}
 	PRINT_JIT_INFO;
@@ -1361,11 +1360,10 @@ static void R_cmpfun(SEXP fun)
 
     if (TYPEOF(BODY(val)) != BCODESXP)
 	SET_NOJIT(fun);
-    else {
-	if (jit_strategy != STRATEGY_NO_CACHE)
-	    set_jit_cache_entry(hash, val); /* val is protected by callee */
-	SET_BODY(fun, BODY(val));
-    }
+    else if (jit_strategy != STRATEGY_NO_CACHE)
+	set_jit_cache_entry(hash, val); /* val is protected by callee */
+
+    return val;
 }
 
 static SEXP R_compileExpr(SEXP expr, SEXP rho)
@@ -1566,9 +1564,11 @@ static R_INLINE SEXP R_execClosure(SEXP call, SEXP newrho, SEXP sysparent,
     body = BODY(op);
     if (R_CheckJIT(op)) {
 	int old_enabled = R_jit_enabled;
+	SEXP newop;
 	R_jit_enabled = 0;
-	R_cmpfun(op);
-	body = BODY(op);
+	newop = R_cmpfun(op);
+	body = BODY(newop);
+	SET_BODY(op, body);
 	R_jit_enabled = old_enabled;
     }
 
@@ -1600,17 +1600,14 @@ static R_INLINE SEXP R_execClosure(SEXP call, SEXP newrho, SEXP sysparent,
 	from the function body.  */
 
     if ((SETJMP(cntxt.cjmpbuf))) {
-	if (!cntxt.jumptarget) {
-	    /* ignores intermediate jumps for on.exits */
-	    if (R_ReturnedValue == R_RestartToken) {
-		cntxt.callflag = CTXT_RETURN;  /* turn restart off */
-		R_ReturnedValue = R_NilValue;  /* remove restart token */
-		cntxt.returnValue = eval(body, newrho);
-	    } else
-		cntxt.returnValue = R_ReturnedValue;
+	if (! cntxt.jumptarget /* ignores intermediate jumps for on.exits */
+	    && R_ReturnedValue == R_RestartToken) {
+	    cntxt.callflag = CTXT_RETURN;  /* turn restart off */
+	    R_ReturnedValue = R_NilValue;  /* remove restart token */
+	    cntxt.returnValue = eval(body, newrho);
 	}
 	else
-	    cntxt.returnValue = NULL; /* undefined */
+	    cntxt.returnValue = R_ReturnedValue;
     }
     else
 	/* make it available to on.exit and implicitly protect */
@@ -2027,7 +2024,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case EXPRSXP:
 	case VECSXP:
 	    /* make sure loop variable is not modified via other vars */
-	    ENSURE_NAMEDMAX(VECTOR_ELT(val, i));
+	    SET_NAMED(VECTOR_ELT(val, i), 2);
 	    /* defineVar is used here and below rather than setVar in
 	       case the loop code removes the variable. */
 	    defineVar(sym, VECTOR_ELT(val, i), rho);
@@ -2035,7 +2032,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	case LISTSXP:
 	    /* make sure loop variable is not modified via other vars */
-	    ENSURE_NAMEDMAX(CAR(val));
+	    SET_NAMED(CAR(val), 2);
 	    defineVar(sym, CAR(val), rho);
 	    val = CDR(val);
 	    break;
@@ -2226,7 +2223,7 @@ SEXP attribute_hidden do_function(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     if (TYPEOF(op) == PROMSXP) {
 	op = forcePromise(op);
-	ENSURE_NAMEDMAX(op);
+	SET_NAMED(op, 2);
     }
     if (length(args) < 2) WrongArgCount("function");
     CheckFormals(CAR(args));
@@ -2362,14 +2359,14 @@ static void tmp_cleanup(void *data)
 	R_SetVarLocValue(loc, __v__); \
     } while(0)
 
-/* This macro makes sure the RHS NAMED value is 0 or NAMEDMAX. This is
+/* This macro makes sure the RHS NAMED value is 0 or 2. This is
    necessary to make sure the RHS value returned by the assignment
    expression is correct when the RHS value is part of the LHS
    object. */
 #define FIXUP_RHS_NAMED(r) do { \
 	SEXP __rhs__ = (r); \
-	if (NAMED(__rhs__)) \
-	    ENSURE_NAMEDMAX(__rhs__); \
+	if (NAMED(__rhs__) && NAMED(__rhs__) <= 1) \
+	    SET_NAMED(__rhs__, 2); \
     } while (0)
 
 #define ASSIGNBUFSIZ 32
@@ -2548,8 +2545,8 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
     unbindVar(R_TmpvalSymbol, rho);
 #ifdef OLD_RHS_NAMED
     /* we do not duplicate the value, so to be conservative mark the
-       value as NAMED = NAMEDMAX */
-    ENSURE_NAMEDMAX(saverhs);
+       value as NAMED = 2 */
+    SET_NAMED(saverhs, 2);
 #else
     INCREMENT_NAMED(saverhs);
 #endif
@@ -2794,10 +2791,7 @@ SEXP attribute_hidden promiseArgs(SEXP el, SEXP rho)
 	    PROTECT(h = findVar(CAR(el), rho));
 	    if (TYPEOF(h) == DOTSXP || h == R_NilValue) {
 		while (h != R_NilValue) {
-		    if (TYPEOF(CAR(h)) == PROMSXP || CAR(h) == R_MissingArg)
-		      SETCDR(tail, CONS(CAR(h), R_NilValue));
-                    else
-		      SETCDR(tail, CONS(mkPROMISE(CAR(h), rho), R_NilValue));
+		    SETCDR(tail, CONS(mkPROMISE(CAR(h), rho), R_NilValue));
 		    tail = CDR(tail);
 		    COPY_TAG(tail, h);
 		    h = CDR(h);
@@ -2877,7 +2871,7 @@ static SEXP VectorToPairListNamed(SEXP x)
 
 SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP encl, x;
+    SEXP encl, x, xptr;
     volatile SEXP expr, env, tmp;
 
     int frame;
@@ -2914,8 +2908,8 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     case VECSXP:
 	/* PR#14035 */
 	x = VectorToPairListNamed(CADR(args));
-	for (SEXP xptr = x ; xptr != R_NilValue ; xptr = CDR(xptr))
-	    ENSURE_NAMEDMAX(CAR(xptr));
+	for (xptr = x ; xptr != R_NilValue ; xptr = CDR(xptr))
+	    SET_NAMED(CAR(xptr) , 2);
 	env = NewEnvironment(R_NilValue, x, encl);
 	PROTECT(env);
 	break;
@@ -3255,7 +3249,7 @@ static R_INLINE void updateObjFromS4Slot(SEXP objSlot, const char *className) {
     if(IS_S4_OBJECT(obj) && isBasicClass(className)) {
 	/* This and the similar test below implement the strategy
 	 for S3 methods selected for S4 objects.  See ?Methods */
-	if(NAMED(obj)) ENSURE_NAMEDMAX(obj);
+	if(NAMED(obj)) SET_NAMED(obj, 2);
 	obj = R_getS4DataSlot(obj, S4SXP); /* the .S3Class obj. or NULL*/
 	if(obj != R_NilValue) /* use the S3Part as the inherited object */
 	    SETCAR(objSlot, obj);
@@ -3959,7 +3953,7 @@ static R_INLINE SEXP getPrimitive(SEXP symbol, SEXPTYPE type)
     SEXP value = SYMVALUE(symbol);
     if (TYPEOF(value) == PROMSXP) {
 	value = forcePromise(value);
-	ENSURE_NAMEDMAX(value);
+	SET_NAMED(value, 2);
     }
     if (TYPEOF(value) != type) {
 	/* probably means a package redefined the base function so
@@ -4014,7 +4008,7 @@ static SEXP cmp_arith2(SEXP call, int opval, SEXP opsym, SEXP x, SEXP y,
     SEXP op = getPrimitive(opsym, BUILTINSXP);
     if (TYPEOF(op) == PROMSXP) {
 	op = forcePromise(op);
-	ENSURE_NAMEDMAX(op);
+	SET_NAMED(op, 2);
     }
     if (isObject(x) || isObject(y)) {
 	SEXP args, ans;
@@ -4382,7 +4376,7 @@ static R_INLINE double (*getMath1Fun(int i, SEXP call))(double) {
 	    double rn2 = vy.dval;					\
 	    if (R_FINITE(rn1) && R_FINITE(rn2) &&			\
 		INT_MIN <= rn1 && INT_MAX >= rn1 &&			\
-		INT_MIN <= rn2 && INT_MAX >= rn2 &&			\
+		INT_MIN <= rn2 && INT_MAX >- rn2 &&			\
 		rn1 == (int) rn1 && rn2 == (int) rn2) {			\
 		SKIP_OP(); /* skip 'call' index */			\
 		R_BCNodeStackTop--;					\
@@ -4748,7 +4742,7 @@ static R_INLINE SEXP FORCE_PROMISE(SEXP value, SEXP symbol, SEXP rho,
 	else value = forcePromise(value);
     }
     else value = PRVALUE(value);
-    ENSURE_NAMEDMAX(value);
+    SET_NAMED(value, 2);
     return value;
 }
 
@@ -5843,12 +5837,12 @@ static SEXP inflateAssignmentCall(SEXP expr) {
     /* copy args except the last - the "value" */
     while(CDR(porig) != R_NilValue) {
 	SETCAR(pnew, CAR(porig));
-	ENSURE_NAMEDMAX(CAR(porig));
+	SET_NAMED(CAR(porig), 2);
 	porig = CDR(porig);
 	pnew = CDR(pnew);
     }
     SEXP rhs = CAR(porig);
-    ENSURE_NAMEDMAX(rhs);
+    SET_NAMED(rhs, 2);
     if (TAG(porig) != R_valueSym)
 	return expr;
     return lang3(R_AssignSym, lhs, rhs);
@@ -5860,7 +5854,7 @@ SEXP attribute_hidden R_getBCInterpreterExpression()
     SEXP exp = R_findBCInterpreterExpression();
     if (TYPEOF(exp) == PROMSXP) {
 	exp = forcePromise(exp);
-	ENSURE_NAMEDMAX(exp);
+	SET_NAMED(exp, 2);
     }
 
     /* This tries to mimick the behavior of the AST interpreter to a
@@ -6192,12 +6186,12 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	  case EXPRSXP:
 	  case VECSXP:
 	    value = VECTOR_ELT(seq, i);
-	    ENSURE_NAMEDMAX(value);
+	    SET_NAMED(value, 2);
 	    break;
 	  case LISTSXP:
 	    value = CAR(seq);
 	    SETSTACK(-4, CDR(seq));
-	    ENSURE_NAMEDMAX(value);
+	    SET_NAMED(value, 2);
 	    break;
 	  default:
 	    error(_("invalid sequence argument in for loop"));
@@ -6258,7 +6252,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	    SEXP x = CAR(loc);  /* fast, but assumes binding is a CONS */
 	    if (NOT_SHARED(x) && IS_SIMPLE_SCALAR(x, s->tag)) {
 		/* if the binding value is not shared and is a simple
-		   scalar of the same type as the immediate value,
+		   scaler of the same type as the immediate value,
 		   then we can copy the stack value into the binding
 		   value */
 		switch (s->tag) {
@@ -6310,7 +6304,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	SEXP value = SYMVALUE(symbol);
 	if (TYPEOF(value) == PROMSXP) {
 	    value = forcePromise(value);
-	    ENSURE_NAMEDMAX(value);
+	    SET_NAMED(value, 2);
 	}
 	if(RTRACE(value)) {
 	  Rprintf("trace: ");
@@ -6398,12 +6392,8 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	    PROTECT(h);
 	    for (; h != R_NilValue; h = CDR(h)) {
 	      SEXP val;
-	      if (ftype == BUILTINSXP)
-	        val = eval(CAR(h), rho);
-	      else if (TYPEOF(CAR(h)) == PROMSXP || CAR(h) == R_MissingArg)
-	        val = CAR(h);
-	      else
-	        val = mkPROMISE(CAR(h), rho);
+	      if (ftype == BUILTINSXP) val = eval(CAR(h), rho);
+	      else val = mkPROMISE(CAR(h), rho);
 	      PUSHCALLARG(val);
 	      SETCALLARG_TAG(TAG(h));
 	    }
@@ -6579,8 +6569,8 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	/* original right-hand side value is now on top of stack again */
 #ifdef OLD_RHS_NAMED
 	/* we do not duplicate the right-hand side value, so to be
-	   conservative mark the value as NAMED = NAMEDMAX */
-	ENSURE_NAMEDMAX(GETSTACK(-1));
+	   conservative mark the value as NAMED = 2 */
+	SET_NAMED(GETSTACK(-1), 2);
 #else
 	if (IS_STACKVAL_BOXED(-1)) {
 	    INCREMENT_NAMED(GETSTACK(-1));
@@ -6750,8 +6740,8 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	/* original right-hand side value is now on top of stack again */
 #ifdef OLD_RHS_NAMED
 	/* we do not duplicate the right-hand side value, so to be
-	   conservative mark the value as NAMED = NAMEDMAX */
-	ENSURE_NAMEDMAX(GETSTACK(-1));
+	   conservative mark the value as NAMED = 2 */
+	SET_NAMED(GETSTACK(-1), 2);
 #else
 	INCREMENT_NAMED(GETSTACK(-1));
 #endif

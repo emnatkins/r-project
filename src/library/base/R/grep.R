@@ -110,12 +110,12 @@ function(pattern, text, ignore.case = FALSE, perl = FALSE,
                  ignore.case = ignore.case, useBytes = useBytes,
                  perl = TRUE)
     y <- vector("list", length(text))
-    y[is.na(m)] <- list(match_data_from_pos_and_len(NA_integer_, NA_integer_))
-    ind <- !is.na(m) & (m == -1L)
+    ind <- (m == -1L)
     if(any(ind)) {
-        y[ind] <- list(match_data_from_pos_and_len(-1L, -1L))
+        y[ind] <- rep.int(list(match_data_from_pos_and_len(-1L, -1L)),
+                          sum(ind))
     }
-    ind <- !is.na(m) & !ind
+    ind <- !ind
     if(any(ind)) {
         pos <- cbind(m[ind],
                      attr(m, "capture.start")[ind, , drop = FALSE])

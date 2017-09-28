@@ -23,9 +23,8 @@ Sys.timezone <- function(location = TRUE)
 {
     tz <- Sys.getenv("TZ", names = FALSE)
     if(!location || nzchar(tz)) return(Sys.getenv("TZ", unset = NA_character_))
-    lt <- normalizePath("/etc/localtime") # most Linux, macOS, ...
-    if (grepl(pat <- "^/usr/share/zoneinfo/", lt) ||
-        grepl(pat <- "^/usr/share/zoneinfo.default/", lt)) sub(pat, "", lt)
+    lt <- normalizePath("/etc/localtime") # Linux, macOS, ...
+    if (grepl(pat <- "^/usr/share/zoneinfo/", lt)) sub(pat, "", lt)
     else if (lt == "/etc/localtime" && file.exists("/etc/timezone") &&
 	     dir.exists("/usr/share/zoneinfo") &&
 	     { # Debian etc.
@@ -69,37 +68,31 @@ as.POSIXlt.factor <- function(x, ...)
     y
 }
 
-as.POSIXlt.character <-
-    function(x, tz = "", format,
-             tryFormats = c("%Y-%m-%d %H:%M:%OS",
-                            "%Y/%m/%d %H:%M:%OS",
-                            "%Y-%m-%d %H:%M",
-                            "%Y/%m/%d %H:%M",
-                            "%Y-%m-%d",
-                            "%Y/%m/%d"), optional = FALSE, ...)
+as.POSIXlt.character <- function(x, tz = "", format, ...)
 {
-    x <- unclass(x) # precaution PR#7826
+    x <- unclass(x) # precaution PR7826
     if(!missing(format)) {
         res <- strptime(x, format, tz = tz)
         if(nzchar(tz)) attr(res, "tzone") <- tz
         return(res)
     }
     xx <- x[!is.na(x)]
-    if (!length(xx)) { # all NA
+    if (!length(xx)) {
         res <- strptime(x, "%Y/%m/%d")
         if(nzchar(tz)) attr(res, "tzone") <- tz
         return(res)
-    } else
-        for(f in tryFormats)
-            if(all(!is.na(strptime(xx, f, tz = tz)))) {
-                res <- strptime(x, f, tz = tz)
-                if(nzchar(tz)) attr(res, "tzone") <- tz
-                return(res)
-            }
-    ## no success :
-    if(optional)
-        as.POSIXlt.character(rep.int(NA_character_, length(x)), tz=tz)
-    else stop("character string is not in a standard unambiguous format")
+    } else if(all(!is.na(strptime(xx, f <- "%Y-%m-%d %H:%M:%OS", tz = tz))) ||
+            all(!is.na(strptime(xx, f <- "%Y/%m/%d %H:%M:%OS", tz = tz))) ||
+            all(!is.na(strptime(xx, f <- "%Y-%m-%d %H:%M", tz = tz))) ||
+            all(!is.na(strptime(xx, f <- "%Y/%m/%d %H:%M", tz = tz))) ||
+            all(!is.na(strptime(xx, f <- "%Y-%m-%d", tz = tz))) ||
+            all(!is.na(strptime(xx, f <- "%Y/%m/%d", tz = tz)))
+            ) {
+        res <- strptime(x, f, tz = tz)
+        if(nzchar(tz)) attr(res, "tzone") <- tz
+        return(res)
+    }
+    stop("character string is not in a standard unambiguous format")
 }
 
 as.POSIXlt.numeric <- function(x, tz = "", origin, ...)
@@ -108,17 +101,16 @@ as.POSIXlt.numeric <- function(x, tz = "", origin, ...)
     as.POSIXlt(as.POSIXct(origin, tz = "UTC", ...) + x, tz = tz)
 }
 
-as.POSIXlt.default <- function(x, tz = "", optional = FALSE, ...)
+as.POSIXlt.default <- function(x, tz = "", ...)
 {
+
     if(inherits(x, "POSIXlt")) return(x)
     if(is.logical(x) && all(is.na(x)))
         return(as.POSIXlt(as.POSIXct.default(x), tz = tz))
-    if(optional)
-        as.POSIXlt.character(rep.int(NA_character_, length(x)), tz=tz)
-    else stop(gettextf("do not know how to convert '%s' to class %s",
-                       deparse(substitute(x)),
-                       dQuote("POSIXlt")),
-              domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class %s",
+                  deparse(substitute(x)),
+                  dQuote("POSIXlt")),
+         domain = NA)
 }
 
 as.POSIXct <- function(x, tz = "", ...) UseMethod("as.POSIXct")
@@ -250,10 +242,8 @@ print.POSIXlt <- function(x, tz = "", usetz = TRUE, ...)
 	print(FORM(x[seq_len(max.print)]), ...)
         cat(' [ reached getOption("max.print") -- omitted',
             length(x) - max.print, 'entries ]\n')
-    } else if(length(x))
-	print(FORM(x), max = max.print, ...)
-    else
-	cat(class(x)[1L], "of length 0\n")
+    } else
+	print(if(length(x)) FORM(x) else paste(class(x)[1L], "of length 0"), ...)
     invisible(x)
 }
 
@@ -796,7 +786,7 @@ seq.POSIXt <-
             if(!missing(to)) {
                 ## We might have a short day, so need to over-estimate.
                 length.out <- 2L + floor((unclass(as.POSIXct(to)) -
-					  unclass(as.POSIXct(from)))/(by * 86400))
+                                          unclass(as.POSIXct(from)))/86400)
             }
             r1$mday <- seq.int(r1$mday, by = by, length.out = length.out)
         }

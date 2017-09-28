@@ -1,8 +1,5 @@
 ####  eval / parse / deparse / substitute  etc
 
-set.seed(2017-08-24) # as we will deparse all objects *and* use *.Rout.save
-.proctime00 <- proc.time() # start timing
-
 ##- From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
 ##- Subject: Re: source() / eval() bug ??? (PR#96)
 ##- Date: 20 Jan 1999 14:56:24 +0100
@@ -120,7 +117,6 @@ callme(mm="B")
 mycaller <- function(x = 1, callme = pi) { callme(x) }
 mycaller()## wrongly gave `mm = NULL'  now = "Abc"
 
-CO <- utils::capture.output
 
 ## Garbage collection  protection problem:
 if(FALSE) ## only here to be run as part of  'make test-Gct'
@@ -128,12 +124,14 @@ if(FALSE) ## only here to be run as part of  'make test-Gct'
 x <- c("a", NA, "b")
 fx <- factor(x, exclude="")
 ST <- if(interactive()) system.time else invisible
-ST(r <- replicate(20, CO(print(fx))))
-table(r[2,]) ## the '<NA>' levels part would be wrong occasionally
-stopifnot(r[2,] == "Levels: a b <NA>") # in case of failure, see r[2,] above
+ST(r <- replicate(20, capture.output(print(fx))))
+table(ok. <- r[2,] == "Levels: a b <NA>") # want all TRUE
+stopifnot(ok.) # in case of failure, see
+r[2,] ## the '<NA>' levels part would be wrong occasionally
 
 
 ## withAutoprint() : must *not* evaluate twice *and* do it in calling environment:
+CO <- utils::capture.output
 stopifnot(
     identical(
 	## ensure it is only evaluated _once_ :
@@ -150,133 +148,3 @@ stopifnot(
     identical(r1,r2)
 )
 ## partly failed in R 3.4.0 alpha
-
-### Checking parse(* deparse()) "inversion property" ----------------------------
-## Hopefully typically the identity():
-pd0 <- function(expr, backtick = TRUE,
-                control = c("keepInteger","showAttributes","keepNA"), ...)
-    parse(text = deparse(expr, backtick=backtick, control=control, ...))
-id_epd <- function(expr, control = c("all","digits17"), ...)
-    eval(pd0(expr, control=control, ...))
-dPut <- function(x, control = c("all","digits17")) dput(x, control=control)
-hasReal <- function(x) {
-    if(is.double(x) || is.complex(x))
-        !all((x == round(x, 3)) | is.na(x))
-    else if(is.logical(x) || is.integer(x) ||
-	    is.symbol(x) || is.call(x) || is.environment(x) || is.character(x))
-	FALSE
-    else if(is.recursive(x)) # recurse :
-	any(vapply(x, hasReal, NA))
-    else if(isS4(x)) {
-	if(length(sn <- slotNames(x)))
-	    any(vapply(sn, function(s) hasReal(slot(x, s)), NA))
-	else # no slots
-	    FALSE # ?
-    }
-    else FALSE
-}
-isMissObj <- function(obj) identical(obj, alist(a=)[[1]])
-check_EPD <- function(obj, show = !hasReal(obj)) {
-    if(show) dPut(obj)
-    if(is.environment(obj) ||
-       (is.pairlist(obj) && any(vapply(obj, isMissObj, NA))))
-    {
-        cat("__ not parse()able __\n")
-        return(invisible(obj)) # cannot parse it
-    }
-    ob2 <- id_epd(obj)
-    po <- tryCatch(pd0(obj),# the default deparse() *should* typically parse
-                   error = function(e) {
-                       cat("default deparse() was not parse():\n  ",
-                           conditionMessage(e),
-                           "\n  but deparse(*, control='all') should work.\n")
-                       pd0(obj, control = "all") })
-    if(!identical(obj, ob2, ignore.environment=TRUE,
-                  ignore.bytecode=TRUE, ignore.srcref=TRUE)) {
-        ae <- all.equal(obj, ob2, tolerance = 0)
-        cat("not identical(*, ignore.env=T),",
-            if(isTRUE(ae)) "but all.equal(*,*, tol = 0)",
-            "\n")
-        if(!isTRUE(ae)) stop("Not equal: all.equal(*,*, tol = 0) giving\n", ae)
-    }
-    if(!is.language(obj)) {
-	ob2. <- eval(pd0) ## almost always *NOT* identical to obj, but eval()ed
-    }
-    if(show || !is.list(obj)) { ## check it works when wrapped (but do not recurse inf.!)
-        cat(" --> checking list(*): ")
-        check_EPD(list(.chk = obj), show = FALSE)
-        cat("Ok\n")
-    }
-    invisible(obj)
-}
-
-library(stats)
-## some more "critical" cases
-nmdExp <- expression(e1 = sin(pi), e2 = cos(-pi))
-xn <- setNames(pi^(1:3), paste0("pi^",1:3))
-L1 <- list(c(A="Txt"))
-L2 <- list(el = c(A=2.5))
-## "m:n" named integers and _inside list_
-i6 <- setNames(5:6, letters[5:6])
-L4  <- list(ii = 5:2) # not named
-L6  <- list(L = i6)
-L6a <- list(L = structure(rev(i6), myDoc = "info"))
-## empty *named* atomic vectors
-i00 <- setNames(integer(), character()); i0 <- structure(i00, foo = "bar")
-L00 <- setNames(logical(), character()); L0 <- structure(L00, class = "Logi")
-r00 <- setNames(raw(), character())
-sii <- structure(4:7, foo = list(B="bar", G="grizzly",
-                                 vec=c(a=1L,b=2L), v2=i6, v0=L00))
-
-## Creating a collection of S4 objects, ensuring deparse <-> parse are inverses
-library(methods)
-example(new) # creating t1 & t2 at least
-if(require("Matrix")) { cat("Trying some Matrix objects, too\n")
-    D5. <- Diagonal(x = 5:1)
-    D5N <- D5.; D5N[5,5] <- NA
-    example(Matrix)
-    ## a subset from  example(sparseMatrix) :
-    i <- c(1,3:8); j <- c(2,9,6:10); x <- 7 * (1:7)
-    A <- sparseMatrix(i, j, x = x)
-    sA <- sparseMatrix(i, j, x = x, symmetric = TRUE)
-    tA <- sparseMatrix(i, j, x = x, triangular= TRUE)
-    ## dims can be larger than the maximum row or column indices
-    AA <- sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7), dims = c(10,20))
-    ## i, j and x can be in an arbitrary order, as long as they are consistent
-    set.seed(1); (perm <- sample(1:7))
-    A1 <- sparseMatrix(i[perm], j[perm], x = x[perm])
-    ## the (i,j) pairs can be repeated, in which case the x's are summed
-    args <- data.frame(i = c(i, 1), j = c(j, 2), x = c(x, 2))
-    Aa <- do.call(sparseMatrix, args)
-    A. <- do.call(sparseMatrix, c(args, list(use.last.ij = TRUE)))
-    ## for a pattern matrix, of course there is no "summing":
-    nA <- do.call(sparseMatrix, args[c("i","j")])
-    dn <- list(LETTERS[1:3], letters[1:5])
-    ## pointer vectors can be used, and the (i,x) slots are sorted if necessary:
-    m <- sparseMatrix(i = c(3,1, 3:2, 2:1), p= c(0:2, 4,4,6), x = 1:6, dimnames = dn)
-    ## no 'x' --> patter*n* matrix:
-    n <- sparseMatrix(i=1:6, j=rev(2:7))
-    ## an empty sparse matrix:
-    e <- sparseMatrix(dims = c(4,6), i={}, j={})
-    ## a symmetric one:
-    sy <- sparseMatrix(i= c(2,4,3:5), j= c(4,7:5,5), x = 1:5,
-                       dims = c(7,7), symmetric=TRUE)
-}
-
-for(nm in ls(env=.GlobalEnv)) {
-    cat(nm,": ", sep="")
-    ## if(!any(nm == "r1")) ## 'r1' fails
-        check_EPD(obj = (x <- .GlobalEnv[[nm]]))
-    if(is.function(x)) {
-        cat("checking body(.):\n"   ); check_EPD(   body(x))
-        cat("checking formals(.):\n"); check_EPD(formals(x))
-    }
-    cat("--=--=--=--=--\n")
-}
-summary(warnings())
-## "dput    may be incomplete"
-## "deparse may be incomplete"
-
-
-## at the very end
-cat('Time elapsed: ', proc.time() - .proctime00,'\n')

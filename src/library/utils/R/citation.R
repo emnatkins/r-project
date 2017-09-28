@@ -269,7 +269,7 @@ function(x)
 {
     if(inherits(x, "person")) return(x)
 
-    x <- trimws(as.character(x))
+    x <- as.character(x)
 
     if(!length(x)) return(person())
 
@@ -665,9 +665,7 @@ format.bibentry <-
 function(x, style = "text", .bibstyle = NULL,
          citation.bibtex.max = getOption("citation.bibtex.max", 1),
          bibtex = length(x) <= citation.bibtex.max,
-         sort = FALSE,
-         macros = NULL,
-         ...)
+         sort = FALSE, ...)
 {
     if(!length(x)) return(character())
 
@@ -677,22 +675,12 @@ function(x, style = "text", .bibstyle = NULL,
     x$.index <- as.list(seq_along(x))
     if(!missing(citation.bibtex.max))
 	warning(gettextf("Argument '%s' is deprecated; rather set '%s' instead.",
-			 "citation.bibtex.max", "bibtex=*"),
-                domain = NA)
+			 "citation.bibtex.max", "bibtex=*"), domain=NA)
 
     format_via_Rd <- function(f) {
         out <- file()
         saveopt <- tools::Rd2txt_options(width = getOption("width"))
         on.exit({tools::Rd2txt_options(saveopt); close(out)})
-        permissive <-
-            Sys.getenv("_R_UTILS_FORMAT_BIBENTRY_VIA_RD_PERMISSIVE_",
-                       "TRUE")
-        permissive <- tools:::config_val_to_logical(permissive)
-        macros <- if(is.null(macros))
-		      tools:::initialRdMacros()
-                  else if(is.character(macros))
-		      tools::loadRdMacros(macros,
-                                          tools:::initialRdMacros())
         sapply(.bibentry_expand_crossrefs(x),
                function(y) {
                    txt <- tools::toRd(y, style = .bibstyle)
@@ -705,8 +693,7 @@ function(x, style = "text", .bibstyle = NULL,
                    on.exit(close(con))
                    rd <- tools::parse_Rd(con,
                                          fragment = TRUE,
-                                         permissive = permissive,
-                                         macros = macros)
+                                         permissive = TRUE)
                    rd <- tools:::processRdSexprs(rd,
                                                  "build",
                                                  macros = attr(rd, "macros"))
@@ -1150,7 +1137,7 @@ function(file, meta = NULL)
     if(!.is_not_nonempty_text(mfooter))
         attr(rval, "mfooter") <- paste(mfooter, collapse = "\n")
 
-    .citation(rval, meta$Package)
+    .citation(rval)
 }
 
 ######################################################################
@@ -1200,7 +1187,7 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     	attr(cit, "mheader")[1L] <-
 	    paste0("The ", sQuote(package), " package is part of R.  ",
 		   attr(cit, "mheader")[1L])
-        return(.citation(cit, package))
+        return(.citation(cit))
     }
 
     year <- sub("-.*", "", meta$`Date/Publication`)
@@ -1316,12 +1303,10 @@ function(package = "base", lib.loc = NULL, auto = NULL)
                      footer = footer,
                      other = z
                      )
-    .citation(rval, package)
+    .citation(rval)
 }
 
-.citation <-
-function(x, package = NULL)
-    structure(x, package = package, class = c("citation", "bibentry"))
+.citation <- function(x) structure(x, class = c("citation", "bibentry"))
 
 .read_authors_at_R_field <-
 function(x)

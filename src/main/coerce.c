@@ -1339,7 +1339,7 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
 	if ((type == LISTSXP) &&
 	    !(TYPEOF(u) == LANGSXP || TYPEOF(u) == LISTSXP ||
 	      TYPEOF(u) == EXPRSXP || TYPEOF(u) == VECSXP)) {
-	    if (MAYBE_REFERENCED(v)) v = shallow_duplicate(v);
+      if (MAYBE_REFERENCED(v)) v = shallow_duplicate(v);
 	    CLEAR_ATTRIB(v);
 	}
 	return v;
@@ -2537,7 +2537,7 @@ SEXP substitute(SEXP lang, SEXP rho)
 			t = PREXPR(t);
 		    } while(TYPEOF(t) == PROMSXP);
 		    /* make sure code will not be modified: */
-		    ENSURE_NAMEDMAX(t);
+		    if (NAMED(t) < 2) SET_NAMED(t, 2);
 		    return t;
 		}
 		else if (TYPEOF(t) == DOTSXP)
@@ -2649,9 +2649,9 @@ SEXP attribute_hidden do_quote(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     check1arg(args, call, "expr");
     SEXP val = CAR(args);
-    /* Make sure expression has NAMED == NAMEDMAX before being returning
+    /* Make sure expression has NAMED == 2 before being returning
        in order to avoid modification of source code */
-    ENSURE_NAMEDMAX(val);
+    if (NAMED(val) != 2) SET_NAMED(val, 2);
     return(val);
 }
 

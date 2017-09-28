@@ -46,12 +46,13 @@
 
 
 static R_INLINE SEXP VECTOR_ELT_FIX_NAMED(SEXP y, R_xlen_t i) {
-    /* if RHS (container or element) has NAMED > 0 set NAMED = NAMEDMAX.
+    /* if RHS (container or element) has NAMED > 0 set NAMED = 2.
        Duplicating might be safer/more consistent (fix bug reported by
        Radford Neal; similar to PR15098) */
     SEXP val = VECTOR_ELT(y, i);
     if ((NAMED(y) || NAMED(val)))
-	ENSURE_NAMEDMAX(val);
+	if (NAMED(val) < 2)
+	    SET_NAMED(val, 2);
     return val;
 }
 
@@ -194,8 +195,8 @@ static SEXP VectorSubset(SEXP x, SEXP s, SEXP call)
     result = allocVector(mode, n);
     if (mode == VECSXP || mode == EXPRSXP)
 	/* we do not duplicate the values when extracting the subset,
-	   so to be conservative mark the result as NAMED = NAMEDMAX */
-	ENSURE_NAMEDMAX(result);
+	   so to be conservative mark the result as NAMED = 2 */
+	SET_NAMED(result, 2);
 
     PROTECT(result = ExtractSubset(x, result, indx, call));
     if (result != R_NilValue) {
@@ -654,7 +655,7 @@ SEXP attribute_hidden do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(R_DispatchOrEvalSP(call, op, "[", args, rho, &ans)) {
 /*     if(DispatchAnyOrEval(call, op, "[", args, rho, &ans, 0, 0)) */
 	if (NAMED(ans))
-	    ENSURE_NAMEDMAX(ans);
+	    SET_NAMED(ans, 2);
 	return(ans);
     }
 
@@ -906,7 +907,7 @@ SEXP attribute_hidden do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     if(R_DispatchOrEvalSP(call, op, "[[", args, rho, &ans)) {
 	if (NAMED(ans))
-	    ENSURE_NAMEDMAX(ans);
+	    SET_NAMED(ans, 2);
 	return(ans);
     }
 
@@ -973,13 +974,13 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    PROTECT(ans);
 	    ans = eval(ans, R_GlobalEnv);
 	    UNPROTECT(1); /* ans */
-	} else ENSURE_NAMEDMAX(ans);
+	} else SET_NAMED(ans, 2);
 
 	UNPROTECT(2); /* args, x */
 	if(ans == R_UnboundValue)
 	    return(R_NilValue);
 	if (NAMED(ans))
-	    ENSURE_NAMEDMAX(ans);
+	    SET_NAMED(ans, 2);
 	return ans;
     }
 
@@ -1207,7 +1208,7 @@ SEXP attribute_hidden do_subset3(SEXP call, SEXP op, SEXP args, SEXP env)
     if(R_DispatchOrEvalSP(call, op, "$", args, env, &ans)) {
 	UNPROTECT(1); /* args */
 	if (NAMED(ans))
-	    ENSURE_NAMEDMAX(ans);
+	    SET_NAMED(ans, 2);
 	return(ans);
     }
     PROTECT(ans);
@@ -1302,7 +1303,7 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
 		       This is overkill, but alternative ways to prevent
 		       the aliasing appear to be even worse */
 		    y = VECTOR_ELT(x,i);
-		    ENSURE_NAMEDMAX(y);
+		    SET_NAMED(y,2);
 		    SET_VECTOR_ELT(x,i,y);
 		}
 		imatch = i;
@@ -1344,7 +1345,7 @@ SEXP attribute_hidden R_subset3_dflt(SEXP x, SEXP input, SEXP call)
 	UNPROTECT(2); /* input, x */
 	if( y != R_UnboundValue ) {
 	    if (NAMED(y))
-		ENSURE_NAMEDMAX(y);
+		SET_NAMED(y, 2);
 	    else if (NAMED(x) > NAMED(y))
 		SET_NAMED(y, NAMED(x));
 	    return(y);

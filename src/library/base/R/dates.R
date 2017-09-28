@@ -1,7 +1,7 @@
 #  File src/library/base/R/dates.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2017 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,9 +41,7 @@ as.Date.POSIXlt <- function(x, ...) .Internal(POSIXlt2Date(x))
 as.Date.factor <- function(x, ...) as.Date(as.character(x), ...)
 
 
-as.Date.character <- function(x, format,
-                              tryFormats = c("%Y-%m-%d", "%Y/%m/%d"),
-                              optional = FALSE, ...)
+as.Date.character <- function(x, format, ...)
 {
     charToDate <- function(x) {
 	xx <- x[1L]
@@ -52,17 +50,11 @@ as.Date.character <- function(x, format,
             while(is.na(xx) && (j <- j+1L) <= length(x)) xx <- x[j]
             if(is.na(xx)) f <- "%Y-%m-%d" # all NAs
         }
-	if(is.na(xx))
-            strptime(x, f)
-        else {
-            for(ff in tryFormats)
-                if(!is.na(strptime(xx, ff, tz="GMT")))
-                    return(strptime(x, ff))
-            ## no success :
-            if(optional)
-                as.Date.character(rep.int(NA_character_, length(x)), "%Y-%m-%d")
-            else stop("character string is not in a standard unambiguous format")
-        }
+	if(is.na(xx) ||
+	   !is.na(strptime(xx, f <- "%Y-%m-%d", tz="GMT")) ||
+	   !is.na(strptime(xx, f <- "%Y/%m/%d", tz="GMT"))
+           ) return(strptime(x, f))
+	stop("character string is not in a standard unambiguous format")
     }
     res <- if(missing(format)) charToDate(x) else strptime(x, format, tz="GMT")
     as.Date(res)
@@ -115,7 +107,7 @@ format.Date <- function(x, ...)
     xx
 }
 
-## could handle arrays for max.print \\ keep in sync with print.POSIX?t() in ./datetime.R
+## could handle arrays for max.print; cf print.POSIX?t() in ./datetime.R
 print.Date <- function(x, max = NULL, ...)
 {
     if(is.null(max)) max <- getOption("max.print", 9999L)
@@ -123,10 +115,8 @@ print.Date <- function(x, max = NULL, ...)
 	print(format(x[seq_len(max)]), max=max, ...)
 	cat(' [ reached getOption("max.print") -- omitted',
 	    length(x) - max, 'entries ]\n')
-    } else if(length(x))
-	print(format(x), max = max, ...)
-    else
-	cat(class(x)[1L], "of length 0\n")
+    } else print(if(length(x)) format(x) else paste(class(x)[1L], "of length 0"),
+		 max = max, ...)
     invisible(x)
 }
 

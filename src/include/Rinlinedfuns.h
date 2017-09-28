@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2017  The R Core Team.
+ *  Copyright (C) 1999-2015  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -73,57 +73,6 @@
 #include <string.h> /* for strlen, strcmp */
 
 /* define inline-able functions */
-#ifdef TESTING_WRITE_BARRIER
-# define STRICT_TYPECHECK
-#endif
-
-#ifdef STRICT_TYPECHECK
-INLINE_FUN void CHKVEC(SEXP x) {
-    switch (TYPEOF(x)) {
-    case CHARSXP:
-    case LGLSXP:
-    case INTSXP:
-    case REALSXP:
-    case CPLXSXP:
-    case STRSXP:
-    case VECSXP:
-    case EXPRSXP:
-    case RAWSXP:
-    case WEAKREFSXP:
-	break;
-    default:
-	error("cannot get data pointer of '%s' objects", type2char(TYPEOF(x)));
-    }
-}
-#else
-# define CHKVEC(x) do {} while(0)
-#endif
-
-INLINE_FUN void *DATAPTR(SEXP x) {
-    CHKVEC(x);
-    return STDVEC_DATAPTR(x);
-}
-
-INLINE_FUN R_xlen_t XLENGTH_EX(SEXP x)
-{
-    return ALTREP(x) ? ALTREP_LENGTH(x) : STDVEC_LENGTH(x);
-}
-
-INLINE_FUN R_xlen_t XTRUELENGTH(SEXP x)
-{
-    return ALTREP(x) ? ALTREP_TRUELENGTH(x) : STDVEC_TRUELENGTH(x);
-}
-
-INLINE_FUN int LENGTH_EX(SEXP x, const char *file, int line)
-{
-    if (x == R_NilValue) return 0;
-    R_xlen_t len = XLENGTH(x);
-#ifdef LONG_VECTOR_SUPPORT
-    if (len > R_SHORT_LEN_MAX)
-	R_BadLongVector(x, file, line);
-#endif
-    return (int) len;
-}
 
 #ifdef INLINE_PROTECT
 extern int R_PPStackSize;
@@ -552,8 +501,6 @@ INLINE_FUN Rboolean isFrame(SEXP s)
     return FALSE;
 }
 
-/* DIFFERENT than R's  is.language(.) in ../main/coerce.c [do_is(), case 301:]
- *                                    which is   <=>  SYMSXP || LANGSXP || EXPRSXP */
 INLINE_FUN Rboolean isLanguage(SEXP s)
 {
     return (s == R_NilValue || TYPEOF(s) == LANGSXP);
@@ -781,7 +728,7 @@ INLINE_FUN SEXP R_FixupRHS(SEXP x, SEXP y)
 #endif
 	    y = duplicate(y);
 	}
-	else ENSURE_NAMEDMAX(y);
+	else if (NAMED(y) < 2) SET_NAMED(y, 2);
     }
     return y;
 }
