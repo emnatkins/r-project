@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2017-11-21 r73759) -- "Unsuffered Consequences"
+R version 3.4.2 Patched (2017-11-17 r73741) -- "Short Summer"
 Copyright (C) 2017 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -15,7 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-> #### Test R's (64-bit) date-time functions .. output tested *sloppily*
+> #### Test 64-bit date-time functions.
 > 
 > ## R's internal fixes are used on 32-bit platforms.
 > ## macOS gets these wrong: see HAVE_WORKING_64BIT_MKTIME
