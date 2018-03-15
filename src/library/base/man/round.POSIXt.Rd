@@ -13,11 +13,8 @@
   Round or truncate date-time objects.
 }
 \usage{
-\method{round}{POSIXt}(x,
-      units = c("secs", "mins", "hours", "days", "months", "years"))
-\method{trunc}{POSIXt}(x,
-      units = c("secs", "mins", "hours", "days", "months", "years"),
-      \dots)
+\method{round}{POSIXt}(x, units = c("secs", "mins", "hours", "days"))
+\method{trunc}{POSIXt}(x, units = c("secs", "mins", "hours", "days"), \dots)
 
 \method{round}{Date}(x, \dots)
 \method{trunc}{Date}(x, \dots)
@@ -29,9 +26,9 @@
     \code{digits} for \code{round}.}
 }
 \details{
-  The time is rounded or truncated to the second, minute, hour, day,
-  month or year.  Time zones are only relevant to days or more, when
-  midnight in the current \link{time zone} is used.
+  The time is rounded or truncated to the second, minute, hour or day.
+  Time zones are only relevant to days, when midnight in the current
+  \link{time zone} is used.
 
   The methods for class \code{"Date"} are of little use except to remove
   fractional days.

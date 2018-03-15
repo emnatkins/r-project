@@ -52,7 +52,7 @@
                 environment(where)
             getPackageName(where)
         } else ""
-    doEdit <- !isFALSE(edit)
+    doEdit <- !identical(edit, FALSE)
     whereF <- NULL
     pname <- character()
     def <- NULL
@@ -155,11 +155,11 @@
         whereF <- as.environment(allWhere[[1L]])
     }
     ## detect use with no action specified (old-style R trace())
-    if(is.null(tracer) && is.null(exit) && isFALSE(edit))
+    if(is.null(tracer) && is.null(exit) && identical(edit, FALSE))
         tracer <- quote({})
     if(is.null(def))
         def <- getFunction(what, where = whereF)
-    if(is(def, "traceable") && isFALSE(edit) && !untrace)
+    if(is(def, "traceable") && identical(edit, FALSE) && !untrace)
         def <- .untracedFunction(def)
     if(!is.null(signature)) {
         fdef <- if (!is(def, "genericFunction"))
@@ -352,7 +352,7 @@
                warning("making a traced version of a special; arguments may be altered")
            }
            )
-    if(!isFALSE(doEdit)) {
+    if(!identical(doEdit, FALSE)) {
         if(is.character(doEdit) || is.function(doEdit)) {
             editor <- doEdit
             doEdit <- TRUE
@@ -804,8 +804,8 @@ insertSource <- function(source, package = "",
         notThere <- is.na(match(functions, allObjects))
         if(any(notThere)) {
             warning(gettextf("cannot insert these (not found in source): %s",
-                    paste0('"', functions[notThere], '"',
-                           collapse = ", ")),
+                    paste('"',functions[notThere],'"',
+                          sep = "", collapse = ", ")),
                     domain = NA)
         }
     }
@@ -815,8 +815,8 @@ insertSource <- function(source, package = "",
 	    length(grep(fname, .mnames, fixed = TRUE)) == 0, NA)
         if(any(notThere)) {
             warning(gettextf("cannot insert methods for these functions (methods table not found in source): %s",
-                    paste0('"', methods[notThere], '"',
-                           collapse = ", ")),
+                    paste('"',methods[notThere],'"',
+                          sep = "", collapse = ", ")),
                     domain = NA)
             methods <- methods[!notThere]
         }

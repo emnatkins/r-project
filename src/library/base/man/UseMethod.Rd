@@ -74,16 +74,13 @@ NextMethod(generic = NULL, object = NULL, \dots)
 
   Namespaces can register methods for generic functions.  To support
   this, \code{UseMethod} and \code{NextMethod} search for methods in
-  two places: in the environment in which the generic function
-  is called, and in the registration data base for the
+  two places: first in the environment in which the generic function
+  is called, and then in the registration data base for the
   environment in which the generic is defined (typically a namespace).
   So methods for a generic function need to be available in the
   environment of the call to the generic, or they must be registered.
   (It does not matter whether they are visible in the environment in
-  which the generic is defined.)  As from \R 3.5.0, the registration
-  data base is searched after the top level environment (see
-  \code{\link{topenv}}) of the calling environment (but before the
-  parents of the top level environment).
+  which the generic is defined.)
 }
 \section{Technical Details}{
   Now for some obscure details that need to appear somewhere.  These

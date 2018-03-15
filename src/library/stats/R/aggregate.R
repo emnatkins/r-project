@@ -1,7 +1,7 @@
 #  File src/library/stats/R/aggregate.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -67,19 +67,15 @@ function(x, by, FUN, ..., simplify = TRUE, drop = TRUE)
         s <- as.character(seq_len(l))
         n <- nchar(s)
         levels(y) <- paste0(strrep("0", n[l] - n), s)
-        y # levels used for drop = FALSE
+        as.character(y)
     }
     grp <- lapply(y, ident)
     multi.y <- !drop && ncol(y)
     if(multi.y) {
-        lev <- lapply(grp, levels)
+	lev <- lapply(grp, function(e) sort(unique(e)))
 	y <- as.list(y)
-        for (i in seq_along(y)) {
-            z <- y[[i]][match(lev[[i]], grp[[i]])]
-            if(is.factor(z) && any(keep <- is.na(z)))
-                z[keep] <- levels(z)[keep]
-            y[[i]] <- z
-        }
+	for (i in seq_along(y))
+	    y[[i]] <- y[[i]][match(lev[[i]], grp[[i]])]
         eGrid <- function(L)
             expand.grid(L, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 	y <- eGrid(y)
@@ -93,25 +89,28 @@ function(x, by, FUN, ..., simplify = TRUE, drop = TRUE)
         lev <- as.list(eGrid(lev))
         names(lev) <- NULL
         lev <- do.call(paste, c(rev(lev), list(sep = ".")))
+        grp <- factor(grp, levels = lev)
     } else
         y <- y[match(sort(unique(grp)), grp, 0L), , drop = FALSE]
+    nry <- NROW(y)
     z <- lapply(x,
                 function(e) {
                     ## In case of a common length > 1, sapply() gives
                     ## the transpose of what we need ...
-		    ans <- lapply(X = unname(split(e, grp)), FUN = FUN, ...)
+                    ans <- lapply(X = split(e, grp), FUN = FUN, ...)
                     if(simplify &&
                        length(len <- unique(lengths(ans))) == 1L) {
                         ## this used to lose classes
                         if(len == 1L) {
                             cl <- lapply(ans, oldClass)
                             cl1 <- cl[[1L]]
-			    ans <- unlist(ans, recursive = FALSE, use.names = FALSE)
+                            ans <- unlist(ans, recursive = FALSE)
                             if (!is.null(cl1) &&
                                 all(vapply(cl, identical, NA, y = cl1)))
                                 class(ans) <- cl1
                         } else if(len > 1L)
-			    ans <- matrix(unlist(ans, recursive = FALSE, use.names = FALSE),
+                            ans <- matrix(unlist(ans, recursive = FALSE),
+                                          nrow = nry,
                                           ncol = len,
                                           byrow = TRUE,
 					  dimnames =
@@ -122,17 +121,11 @@ function(x, by, FUN, ..., simplify = TRUE, drop = TRUE)
                     ans
                 })
     len <- length(y)
-    if(multi.y) {
-	keep <- match(lev, sort(unique(grp)))
-	for(i in seq_along(z))
-	    y[[len + i]] <- if(is.matrix(z[[i]]))
-				 z[[i]][keep, , drop = FALSE]
-			    else z[[i]][keep]
-    } else
-	for(i in seq_along(z))
-	    y[[len + i]] <- z[[i]]
+    for(i in seq_along(z))
+        y[[len + i]] <- z[[i]]
     names(y) <- c(names(by), names(x))
     row.names(y) <- NULL
+
     y
 }
 

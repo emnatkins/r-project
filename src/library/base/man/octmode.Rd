@@ -12,8 +12,7 @@
 \alias{!.octmode}
 \alias{|.octmode}
 \alias{&.octmode}
-%% FIXME: xor() is not generic (yet?).
-%% \alias{xor.octmode}
+\alias{xor.octmode}
 \alias{octmode}
 \title{Display Numbers in Octal}
 \description{
@@ -49,12 +48,10 @@ as.octmode(x)
   \code{"double"}) and character vectors whose elements contain only
   digits \code{0-7} (or are \code{NA}) to class \code{"octmode"}.
 
-  There is a \code{\link{!}} method and methods for \code{\link{|}} and
-  \code{\link{&}}:
-  %% FIXME: xor() is not generic (yet?).
-  %% and \code{\link{xor}}:
-  these recycle their arguments to the length of the longer and then
-  apply the operators bitwise to each element.
+  There is a \code{\link{!}} method and \code{\link{|}}, \code{\link{&}} and
+  \code{\link{xor}} methods: these recycle their arguments to the
+  length of the longer and then apply the operators bitwise to each
+  element.
 }
 \seealso{
   These are auxiliary functions for \code{\link{file.info}}.

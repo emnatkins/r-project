@@ -1,7 +1,7 @@
 #  File src/library/base/R/windows/system.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,32 +16,11 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-
-.fixupGFortranStdout <- function()
-{
-    old <- Sys.getenv("GFORTRAN_STDOUT_UNIT")
-    if (nzchar(old) && old == "-1") {
-	Sys.unsetenv("GFORTRAN_STDOUT_UNIT")
-	TRUE
-    } else
-	FALSE
-}
-
-.fixupGFortranStderr <- function()
-{
-    old <- Sys.getenv("GFORTRAN_STDERR_UNIT")
-    if (nzchar(old) && old == "-1") {
-	Sys.unsetenv("GFORTRAN_STDERR_UNIT")
-	TRUE
-    } else
-	FALSE
-}
-
 system <- function(command, intern = FALSE,
                    ignore.stdout = FALSE, ignore.stderr = FALSE,
                    wait = TRUE, input = NULL,
                    show.output.on.console = TRUE, minimized = FALSE,
-                   invisible = TRUE, timeout = 0)
+                   invisible = TRUE)
 {
     if(!is.logical(intern) || is.na(intern))
         stop("'intern' must be TRUE or FALSE")
@@ -77,18 +56,13 @@ system <- function(command, intern = FALSE,
     }
     if (invisible) flag <- 20L + flag
     else if (minimized) flag <- 10L + flag
-    if (.fixupGFortranStdout())
-	on.exit(Sys.setenv(GFORTRAN_STDOUT_UNIT = "-1"), add = TRUE)
-    if (.fixupGFortranStderr())
-	on.exit(Sys.setenv(GFORTRAN_STDERR_UNIT = "-1"), add = TRUE)
-    .Internal(system(command, as.integer(flag), f, stdout, stderr, timeout))
+    .Internal(system(command, as.integer(flag), f, stdout, stderr))
 }
 
 system2 <- function(command, args = character(),
                     stdout = "", stderr = "", stdin = "", input = NULL,
                     env = character(),
-                    wait = TRUE, minimized = FALSE, invisible = TRUE,
-                    timeout = 0)
+                    wait = TRUE, minimized = FALSE, invisible = TRUE)
 {
     if(!is.logical(wait) || is.na(wait))
         stop("'wait' must be TRUE or FALSE")
@@ -100,10 +74,10 @@ system2 <- function(command, args = character(),
 
     if(is.null(stdout)) stdout <- FALSE
     if(is.null(stderr)) stderr <- FALSE
-    
+
     if(length(stdout) != 1L) stop("'stdout' must be of length 1")
     if(length(stderr) != 1L) stop("'stderr' must be of length 1")
-    
+
     if (!is.null(input)) {
         f <- tempfile()
         on.exit(unlink(f))
@@ -115,11 +89,7 @@ system2 <- function(command, args = character(),
     else 0L
     if (invisible) flag <- 20L + flag
     else if (minimized) flag <- 10L + flag
-    if (.fixupGFortranStdout())
-	on.exit(Sys.setenv(GFORTRAN_STDOUT_UNIT = "-1"), add = TRUE)
-    if (.fixupGFortranStderr())
-	on.exit(Sys.setenv(GFORTRAN_STDERR_UNIT = "-1"), add = TRUE) 
-    .Internal(system(command, flag, f, stdout, stderr, timeout))
+    .Internal(system(command, flag, f, stdout, stderr))
 }
 
 shell <- function(cmd, shell, flag = "/c", intern = FALSE,
@@ -153,6 +123,14 @@ shell <- function(cmd, shell, flag = "/c", intern = FALSE,
 
 shell.exec <- function(file) .Internal(shell.exec(file))
 
-## Sys.timezone() --> common function for all platforms
+Sys.timezone <- function(location = TRUE)
+{
+    if(location) return(.Internal(tzone_name()))
+
+    .Deprecated(msg = "Sys.timezone(location = FALSE) is deprecated")
+    z <- as.POSIXlt(Sys.time())
+    zz <- attr(z, "tzone")
+    if(length(zz) == 3L) zz[2L + z$isdst] else zz[1L]
+}
 
 Sys.which <- function(names) .Internal(Sys.which(as.character(names)))

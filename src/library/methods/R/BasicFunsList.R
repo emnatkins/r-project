@@ -149,7 +149,7 @@ genericForBasic <- function(f, where = topenv(parent.frame()),
 {
     ans <- .BasicFunsList[[f]]
     ## this element may not exist (yet, during loading), don't test null
-    if(mustFind && isFALSE(ans))
+    if(mustFind && identical(ans, FALSE))
         stop(gettextf("methods may not be defined for primitive function %s in this version of R",
                       sQuote(f)),
              domain = NA)

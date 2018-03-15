@@ -20,7 +20,7 @@
 \usage{
 checkRdaFiles(paths)
 resaveRdaFiles(paths, compress = c("auto", "gzip", "bzip2", "xz"),
-               compression_level, version = NULL)
+               compression_level)
 }
 
 \arguments{
@@ -30,9 +30,6 @@ resaveRdaFiles(paths, compress = c("auto", "gzip", "bzip2", "xz"),
 
   \item{compress, compression_level}{Type and level of compression: see
     \code{\link{save}}.  Values of \code{compress} can be abbreviated.}
-  
-  \item{version}{The format to be used when re-saving: see
-    \code{\link{save}}.}
 }
 
 \details{
@@ -41,9 +38,6 @@ resaveRdaFiles(paths, compress = c("auto", "gzip", "bzip2", "xz"),
   and if the \code{"gzip"} compressed size is over 10Kb, \code{"xz"} and
   choose the smallest compressed file (but with a 10\% bias towards
   \code{"gzip"}).  This can be slow.
-
-  For back-compatibility, \code{version = NULL} is interpreted to mean
-  version 2: however version-3 files will only be saved as version 3.
 }
 
 \value{

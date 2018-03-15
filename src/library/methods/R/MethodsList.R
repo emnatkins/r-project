@@ -260,7 +260,7 @@ MethodsListSelect <-
     }
     else
         thisClass <- get(as.character(argName), envir = env, inherits = FALSE)
-    if(isTRUE(useInherited) || isFALSE(useInherited))
+    if(identical(useInherited, TRUE) || identical(useInherited, FALSE))
         thisInherit <- nextUseInherited <- useInherited
     else {
         which <- match(as.character(argName), names(useInherited))
@@ -604,7 +604,7 @@ function(mlist, includeDefs = TRUE, inherited = TRUE, classes = NULL, useArgName
          printTo = stdout())
 {
     .MlistDeprecated("showMlist()")
-    if(isFALSE(printTo)) {
+    if(identical(printTo, FALSE)) {
         tmp <- tempfile()
         con <- file(tmp, "w")
     }
@@ -628,8 +628,8 @@ function(mlist, includeDefs = TRUE, inherited = TRUE, classes = NULL, useArgName
     if(useArgNames) {
       for(i in 1L:n) {
         sigi <- signatures[[i]]
-        labels[[i]] <- paste0(args[[i]], " = \"", sigi, "\"",
-                              collapse = ", ")
+        labels[[i]] <- paste(args[[i]], " = \"", sigi, "\"",
+                             sep = "", collapse = ", ")
       }
     }
     else {
@@ -651,15 +651,14 @@ function(mlist, includeDefs = TRUE, inherited = TRUE, classes = NULL, useArgName
           defFrom <- method@defined
           cat(file = con, if(includeDefs) "##:" else "\n",
               "    (inherited from ",
-              paste0(names(defFrom), " = \"",
-                     as.character(defFrom), "\"",
-                     collapse = ", "),
+              paste(names(defFrom), " = \"", as.character(defFrom),
+                    "\"", sep = "", collapse = ", "),
                ")", if(includeDefs) "\n", sep="")
       }
       cat(file=con, "\n")
     }
   }
-    if(isFALSE(printTo)) {
+    if(identical(printTo, FALSE)) {
         close(con)
         value <- readLines(tmp)
         unlink(tmp)
@@ -713,10 +712,10 @@ promptMethods <- function(f, filename = NULL, methods)
                    "}{\n%%  ~~describe this method here~~\n}")
     text <- c("\\section{Methods}{\n\\describe{", text, "}}")
     aliasText <- c(paste0("\\alias{", escape(fullName), "}"), escape(aliases))
-    if(isFALSE(filename))
+    if(identical(filename, FALSE))
         return(c(aliasText, text))
 
-    if(is.null(filename) || isTRUE(filename))
+    if(is.null(filename) || identical(filename, TRUE))
         filename <- paste0(fullName, ".Rd")
 
     Rdtxt <-
@@ -885,7 +884,7 @@ asMethodDefinition <- function(def, signature = list(.anyClassName), sealed = FA
 .noMlists <- function() {
    ## if this were to be dynamically variable, but
   ## it can't, IMO
-  ## isTRUE(getOption("noMlists"))
+  ## identical(getOption("noMlists"), TRUE)
   ## so instead
   .noMlistsFlag
 }

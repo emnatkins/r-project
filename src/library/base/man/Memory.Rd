@@ -37,9 +37,7 @@
   options \option{--min-nsize} and \option{--min-vsize} (or if they are
   not used, the environment variables \env{R_NSIZE} and \env{R_VSIZE})
   when \R is started.  Thereafter \R will grow or shrink the areas
-  depending on usage, never decreasing below the initial values.  The
-  maximal vector heap size can be set with the environment variable
-  \env{R_MAX_VSIZE}.
+  depending on usage, never decreasing below the initial values.
 
   How much time \R spends in the garbage collector will depend on these
   initial settings and on the trade-off the memory manager makes, when

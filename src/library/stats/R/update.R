@@ -48,7 +48,3 @@ update.formula <- function (old, new, ...)
     out <- formula(terms.formula(tmp, simplify = TRUE))
     return(out)
 }
-
-## Cannot register update.packageStatus() in utils: hence "copy" and
-## register in stats.
-update.packageStatus <- utils:::update.packageStatus

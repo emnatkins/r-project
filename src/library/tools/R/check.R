@@ -23,98 +23,21 @@
 ## be what commandArgs(TRUE) would return, that is a character vector
 ## of (space-delimited) terms that would be passed to R CMD check.
 
-
-get_timeout <- function(tlim)
-{
-    if(is.character(tlim)) {
-        if(grepl("m$", tlim))
-            tlim <- 60*as.numeric(sub("m$", "", tlim))
-        else if(grepl("h$", tlim))
-            tlim <- 3600*as.numeric(sub("h$", "", tlim))
-        else if(grepl("s$", tlim))  # for completeness, like GNU timeout.
-            tlim <- as.numeric(sub("s$", "", tlim))
-    }
-    tlim <- as.numeric(tlim)
-    if(is.na(tlim) || tlim < 0) tlim <- 0
-    tlim
-}
-
-report_timeout <- function(tlim)
-{
-    tlim <- trunc(tlim)
-    if (tlim >= 3600)
-        warning(gettextf("elapsed-time limit of %g %s reached for sub-process",
-                         round(tlim/3600, 1L), "hours"),
-                domain = NA, call. = FALSE)
-    else if (tlim >= 60)
-        warning(gettextf("elapsed-time limit of %g %s reached for sub-process",
-                         round(tlim/60, 1L), "minutes"),
-                domain = NA, call. = FALSE)
-    else
-        warning(gettextf("elapsed-time limit of %g %s reached for sub-process",
-                         tlim, "seconds"),
-                domain = NA, call. = FALSE)
-}
-
-## Find serialized objects (for load() and for readRDS()) in "allfiles" and
-## report serialization versions (0 means not a serialized object,
-## 1 means either version-1 or not a serialized object, 2 and more means
-## serialized object of that version).
-##
-## These are most commonly data/*.{Rdata,rda}, R/sysdata.rda files,
-## and build/vignette.rds
-## But packages have other .rds files in many places.
-## Despite its name, build/partial.rdb is created by saveRDS.
-##
-get_serialization_version <- function(allfiles)
-{
-    getVerLoad <- function(file)
-    {
-        ## This could look at the magic number, but for a short
-        ## while version 3 files were produced with a version-2
-        ## magic number. loadInfoFromConn2 checks if the magic number
-        ## is sensible.
-        con <- gzfile(file, "rb"); on.exit(close(con))
-        ## The .Internal gives an error on version-1 files
-        ## (and on non-serialized files)
-        tryCatch(.Internal(loadInfoFromConn2(con))$version,
-                 error = function(e) 1L)
-    }
-    getVerSer <- function(file)
-    {
-        con <- gzfile(file, "rb"); on.exit(close(con))
-        ## In case this is not a serialized object
-        tryCatch(.Internal(serializeInfoFromConn(con))$version,
-                 error = function(e) 0L)
-    }
-    loadfiles <- grep("[.](rda|RData|Rdata|rdata|Rda|bam|Rbin)$",
-                      allfiles, value = TRUE)
-    serfiles <- c(grep("[.](rds|RDS|Rds|rdx)$", allfiles, value = TRUE),
-                  grep("build/partial[.]rdb$", allfiles, value = TRUE))
-    vers1 <- sapply(loadfiles, getVerLoad)
-    vers2 <- sapply(serfiles, getVerSer)
-    c(vers1, vers2)
-}
-
 ## Used for INSTALL and Rd2pdf
-run_Rcmd <- function(args, out = "", env = "", timeout = 0)
+run_Rcmd <- function(args, out = "", env = "")
 {
-    status <- if(.Platform$OS.type == "windows")
-        system2(file.path(R.home("bin"), "Rcmd.exe"), args, out, out,
-                timeout = get_timeout(timeout))
+    if(.Platform$OS.type == "windows")
+        system2(file.path(R.home("bin"), "Rcmd.exe"), args, out, out)
     else
         system2(file.path(R.home("bin"), "R"), c("CMD", args), out, out,
-                env = env, timeout = get_timeout(timeout))
-    if(identical(status, 124L)) report_timeout(timeout)
-    status
+                env = env)
 }
 
 R_runR <- function(cmd = NULL, Ropts = "", env = "",
                    stdout = TRUE, stderr = TRUE, stdin = NULL,
-                   arch = "", timeout = 0)
+                   arch = "")
 {
-    timeout <- get_timeout(timeout)
-    out <- if (.Platform$OS.type == "windows") {
+    if (.Platform$OS.type == "windows") {
         ## workaround Windows problem with input = cmd
         if (!is.null(cmd)) {
             ## In principle this should escape \
@@ -122,23 +45,17 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         } else Rin <- stdin
         suppressWarnings(system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
                                  else file.path(R.home("bin"), "Rterm.exe"),
-                                 c(Ropts, paste("-f", Rin)), stdout, stderr,
-                                 env = env, timeout = timeout))
+                                 c(Ropts, paste("-f", Rin)), stdout, stderr, env = env))
     } else {
         suppressWarnings(system2(file.path(R.home("bin"), "R"),
                                  c(if(nzchar(arch)) paste0("--arch=", arch), Ropts),
-                                 stdout, stderr, stdin, input = cmd, env = env,
-                                 timeout = timeout))
+                                 stdout, stderr, stdin, input = cmd, env = env))
     }
-    if(identical(out, 124L) || identical(attr(out, "status"), 124L))
-        report_timeout(timeout)
-    out
 }
 
 setRlibs <-
     function(lib0 = "", pkgdir = ".", suggests = FALSE, libdir = NULL,
-             self = FALSE, self2 = TRUE, quote = FALSE, LinkingTo = FALSE,
-             tests = FALSE)
+             self = FALSE, self2 = TRUE, quote = FALSE, LinkingTo = FALSE)
 {
     WINDOWS <- .Platform$OS.type == "windows"
     useJunctions <- WINDOWS && !nzchar(Sys.getenv("R_WIN_NO_JUNCTIONS"))
@@ -194,17 +111,11 @@ setRlibs <-
     else {
         ## we always need to be able to recognise 'vignettes'
         VB <- unname(pi$DESCRIPTION["VignetteBuilder"])
-        sug <- if(is.na(VB)) character()
+        if(is.na(VB)) character()
         else {
             VB <- unlist(strsplit(VB, ","))
-            sug <- unique(gsub('[[:space:]]', '', VB))
-            ## too many people forgot this, but it will never get fixed if made an exception.
-            ## if("knitr" %in% VB) sug <- c(sug, "rmarkdown")
-            sug
+            unique(gsub('[[:space:]]', '', VB))
         }
-        if(tests) ## we need the test-suite package available
-            c(sug, intersect(names(pi$Suggests), c("RUnit", "testthat")))
-        else sug
     }
     deps <- unique(c(names(pi$Depends), names(pi$Imports),
                      if(LinkingTo) names(pi$LinkingTo),
@@ -229,7 +140,7 @@ setRlibs <-
             }
             where <- find.package(pkg, quiet = TRUE)
             if(length(where)) {
-                if (dirname(where) %notin% poss)
+                if (!(dirname(where) %in% poss))
                     flink(where, tmplib)
                 else if (!test_recommended)
                     # If the package is in the standard library we can
@@ -259,40 +170,6 @@ setRlibs <-
       " R_LIBS_SITE='no_such_dir'")
 }
 
-add_dummies <- function(dir, Log)
-{
-    dir1 <- file.path(dir, "R_check_bin")
-    if (dir.exists(file.path(dir1))) {
-        messageLog(Log, "directory ", sQuote(dir1), " already exists")
-        return()
-    }
-    dir.create(dir1)
-    if (!dir.exists(dir1)) {
-        messageLog(Log, "creation of directory ", sQuote(dir1), " failed")
-        return()
-    }
-    Sys.setenv(PATH = env_path(dir1, Sys.getenv("PATH")))
-    if(.Platform$OS.type != "windows") {
-        writeLines(c('echo "\'R\' should not be used without a path -- see par. 1.6 of the manual"',
-                     'exit 1'),
-                   p1 <- file.path(dir1, "R"))
-        writeLines(c('echo "\'Rscript\' should not be used without a path -- see par. 1.6 of the manual"',
-                     'exit 1'),
-                   p2 <- file.path(dir1, "Rscript"))
-        Sys.chmod(c(p1, p2), "0755")
-    } else {
-        ## currently untested
-        writeLines(c('@ECHO OFF',
-                     'echo "\'R\' should not be used without a path -- see par. 1.6 of the manual"',
-                     'exit /b 1'),
-                   p1 <- file.path(dir1, "R.bat"))
-        writeLines(c('@ECHO OFF',
-                     'echo "\'Rscript\' should not be used without a path -- see par. 1.6 of the manual"',
-                     'exit /b 1'),
-                   p2 <- file.path(dir1, "Rscript.bat"))
-   }
-}
-
 ###- The main function for "R CMD check"
 .check_packages <- function(args = NULL, no.q = interactive())
 {
@@ -307,47 +184,8 @@ add_dummies <- function(dir, Log)
         printLog(Log, paste(strwrap(text), collapse = "\n"), "\n")
     }
 
-  ## used for R_runR2 and
-  ## .check_package_description
-  ## .check_package_description_encoding
-  ## .check_package_license
-  ## .check_demo_index
-  ## .check_vignette_index
-  ## .check_package_subdirs
-  ## .check_citation
-  ## .check_package_ASCII_code
-  ## .check_package_code_syntax
-  ## .check_packages_used
-  ## .check_package_code_shlib
-  ## .check_package_code_startup_functions
-  ## .check_package_code_unload_functions
-  ## .check_package_code_tampers
-  ## .check_package_code_assign_to_globalenv
-  ## .check_package_code_attach
-  ## .check_package_code_data_into_globalenv
-  ## .check_package_parseRd
-  ## .check_Rd_metadata
-  ## .check_Rd_line_widths
-  ## .check_Rd_xrefs
-  ## .check_Rd_contents
-  ## .check_package_datasets
-  ## .check_package_compact_datasets
-  ## .check_package_compact_sysdata
-  ## .check_make_vars
-  ## check_compiled_code
-  ## Checking loading
-  ## Rdiff on reference output
-  ## Creating -Ex.R
-  ## Running examples (run_one_arch)
-  ## .runPackageTestsR
-  ## .run_one_vignette
-  ## buildVignettes
-
-    def_tlim <- get_timeout(Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_"))
-    R_runR0 <- function(..., timeout = def_tlim)
-            R_runR(..., timeout = timeout)
-
     ## Used for
+    ## .check_packages_used
     ## .check_packages_used_in_examples
     ## .check_packages_used_in_tests
     ## .check_packages_used_in_vignettes
@@ -363,25 +201,24 @@ add_dummies <- function(dir, Log)
     ## .get_S3_generics_as_seen_from_package needs utils,graphics,stats
     ##  Used by checkDocStyle (which needs the generic visible) and checkS3methods.
     R_runR2 <-
-        status <- if(WINDOWS) {
+        if(WINDOWS) {
             function(cmd,
-                     env = "R_DEFAULT_PACKAGES=utils,grDevices,graphics,stats",
-                     timeout = 0)
+                     env = "R_DEFAULT_PACKAGES=utils,grDevices,graphics,stats")
                 {
-                    out <- R_runR(cmd, R_opts2, env, timeout = timeout)
+                    out <- R_runR(cmd, R_opts2, env)
                     ## pesky gdata ....
-                    filtergrep("^(ftype: not found|File type)", out)
+                    grep("^(ftype: not found|File type)", out,
+                         invert = TRUE, value = TRUE)
                 }
         } else
             function(cmd,
-                     env = "R_DEFAULT_PACKAGES='utils,grDevices,graphics,stats'",
-                     timeout = 0)
+                     env = "R_DEFAULT_PACKAGES='utils,grDevices,graphics,stats'")
             {
-                out <- R_runR(cmd, R_opts2, env, timeout = timeout)
+                out <- R_runR(cmd, R_opts2, env)
                 ## htmltools produced non-UTF-8 output in Dec 2015
                 if (R_check_suppress_RandR_message)
-                    filtergrep('^Xlib: *extension "RANDR" missing on display',
-                               out, useBytes = TRUE)
+                    grep('^Xlib: *extension "RANDR" missing on display', out,
+                         invert = TRUE, value = TRUE, useBytes = TRUE)
                 else out
             }
 
@@ -402,15 +239,12 @@ add_dummies <- function(dir, Log)
         if (!is.null(Log) && Log$con > 0L) cat(td2, file = Log$con)
     }
 
-    parse_description_field <- function(desc, field, default)
+    parse_description_field <- function(desc, field, default=TRUE)
         str_parse_logic(desc[field], default=default)
 
     check_pkg <- function(pkg, pkgname, pkgoutdir, startdir, libdir, desc,
                           is_base_pkg, is_rec_pkg, subdirs, extra_arch)
     {
-        Sys.setenv("_R_CHECK_PACKAGE_NAME_" = pkgname)
-        on.exit(Sys.unsetenv("_R_CHECK_PACKAGE_NAME_"))
-
         ## pkg is the argument we received from the main loop.
         ## pkgdir is the corresponding absolute path,
 
@@ -431,7 +265,7 @@ add_dummies <- function(dir, Log)
 
         if (!extra_arch) {
             if(dir.exists("build")) check_build()
-            db <- check_meta()  # Check DESCRIPTION meta-information.
+            check_meta()  # Check DESCRIPTION meta-information.
             check_top_level()
             check_detritus()
             check_indices()
@@ -466,7 +300,6 @@ add_dummies <- function(dir, Log)
 
         if (!is_base_pkg && !extra_arch) check_src_dir(desc)
 
-        check_src()
         if(do_install &&
            dir.exists("src") &&
            length(so_symbol_names_table)) # suitable OS
@@ -600,7 +433,8 @@ add_dummies <- function(dir, Log)
         allfiles <- c(allfiles, unique(dirname(allfiles)))
         allfiles <- af <- sub("^./", "", allfiles)
         ignore_re <- paste0("(", paste(ignore, collapse = "|"), ")")
-        allfiles <- filtergrep(ignore_re, allfiles)
+        allfiles <- grep(ignore_re, allfiles, invert = TRUE, value = TRUE)
+
         bad_files <- allfiles[grepl("[[:cntrl:]\"*/:<>?\\|]",
                                     basename(allfiles))]
         is_man <- grepl("man$", dirname(allfiles))
@@ -762,26 +596,6 @@ add_dummies <- function(dir, Log)
         } else resultLog(Log, "OK")
     }
 
-    ## Look for serialized objects, and check their version
-
-    ## We need to so this before installation, which may create
-    ## src/symbols.rds in the sources.
-    check_serialization <- function(allfiles)
-    {
-        checkingLog(Log, "serialization versions")
-        bad <- get_serialization_version(allfiles)
-        bad <- names(bad[bad >= 3L])
-        if(length(bad)) {
-            msg <- "Found file(s) with version 3 serialization:"
-            warningLog(Log, msg)
-            printLog0(Log, paste0(.pretty_format(sort(bad)), "\n"))
-            wrapLog("Such files are only readable in R >= 3.5.0.\n",
-                    "Recreate them with R < 3.5.0 or",
-                    "save(version = 2) or saveRDS(version = 2)",
-                    "as appropriate")
-        } else resultLog(Log, "OK")
-    }
-
     check_meta <- function()
     {
         ## If we just installed the package (via R CMD INSTALL), we already
@@ -792,20 +606,11 @@ add_dummies <- function(dir, Log)
         dfile <- if (is_base_pkg) "DESCRIPTION.in" else "DESCRIPTION"
         any <- FALSE
 
-        ## Check the encoding -- do first as it gives a WARNING
-        Rcmd <- sprintf("tools:::.check_package_description_encoding(\"%s\")", dfile)
-        out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
-        if (length(out)) {
-            warningLog(Log)
-            any <- TRUE
-            printLog0(Log, paste(out, collapse = "\n"), "\n")
-        }
-
         ## FIXME: this does not need to be run in another process
         ## but that needs conversion to format().
         Rcmd <- sprintf("tools:::.check_package_description(\"%s\", TRUE)",
                         dfile)
-        out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+        out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (length(out)) {
             if(any(!grepl("^Malformed (Title|Description)", out))) {
                 errorLog(Log)
@@ -813,10 +618,23 @@ add_dummies <- function(dir, Log)
                 summaryLog(Log)
                 do_exit(1L)
             } else {
+                ## <FIXME>
+                ## This is not quite right: if we issue a NOTE here, we
+                ## can no longer issue a WARNING in the description
+                ## encoding check below ....
                 noteLog(Log)
                 any <- TRUE
                 printLog0(Log, paste(out, collapse = "\n"), "\n")
+                ## </FIXME>
             }
+        }
+        ## Check the encoding.
+        Rcmd <- sprintf("tools:::.check_package_description_encoding(\"%s\")", dfile)
+        out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+        if (length(out)) {
+            warningLog(Log)
+            any <- TRUE
+            printLog0(Log, paste(out, collapse = "\n"), "\n")
         }
 
         ## Check the license.
@@ -832,11 +650,11 @@ add_dummies <- function(dir, Log)
                 TRUE
             } else config_val_to_logical(Check_license)
         } else FALSE
-        if (!isFALSE(check_license)) {
+        if (!identical(check_license, FALSE)) {
             Rcmd <- sprintf("tools:::.check_package_license(\"%s\", \"%s\")",
                             dfile, pkgdir)
             ## FIXME: this does not need to be run in another process
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 if (check_license == "maybe") {
                     if (!any) warningLog(Log)
@@ -878,18 +696,6 @@ add_dummies <- function(dir, Log)
                 yorig <- sapply(yorig, clean_up)
                 y <- sapply(y, clean_up)
                 diff <- y != yorig
-                ## <FIXME>
-                if(diff[1L]
-                   && grepl("https://orcid.org/", y[1L], fixed = TRUE)) {
-                    ## Argh.  Might be from using the new ORCID id
-                    ## mechanism but having built with R < 3.5.0.
-                    ## Let's ignore ...
-                    ## Remove eventually.
-                    aar$comment <- lapply(aar$comment, unname)
-                    y1 <- utils:::.format_authors_at_R_field_for_author(aar)
-                    diff[1L] <- clean_up(y1) != yorig[1L]
-                }
-                ## </FIXME>
                 if(any(diff)) {
                     if(!any) noteLog(Log)
                     any <- TRUE
@@ -918,7 +724,7 @@ add_dummies <- function(dir, Log)
         }
 
         if(!is.na(ncomp <- db["NeedsCompilation"])) {
-            if (ncomp %notin% c("yes", "no")) {
+            if (!ncomp %in% c("yes", "no")) {
                 if(!any) noteLog(Log)
                 any <- TRUE
                 printLog(Log, "NeedsCompilation field must take value 'yes' or 'no'", "\n")
@@ -979,35 +785,7 @@ add_dummies <- function(dir, Log)
             printLog0(Log, paste(out, collapse = "\n"), "\n")
         }
 
-        ## Dependence on say R >= 3.4.3 when 3.4 is current can
-        ## cause problems with revdeps (and did for 3.2.x).
-        ## We only check recent ones: maybe previous two
-        ## (R-release and R-old-release) while this is R-devel
-        Check_R_deps <- Sys.getenv("_R_CHECK_R_DEPENDS_", "FALSE")
-        act <- if(Check_R_deps %in% c("note", "warn")) TRUE
-               else config_val_to_logical(Check_R_deps)
-        if(act) {
-            Rver <-.split_description(db, verbose = TRUE)$Rdepends2
-            if(length(Rver) && Rver[[1L]]$op == ">=") {
-                ver <- unclass(Rver[[1L]]$version)[[1L]]
-                thisver <- unclass(getRversion())[[1L]]
-                ## needs updating if we ever go to 4.0
-                tv <- if(thisver[1L] == 3L) thisver[2L] - 2L else 4L
-                if (length(ver) == 3L && ver[3L] != 0 &&
-                    ((ver[1L] > 3L) ||
-                     (ver[1L] == 3L) && (ver[2L] >= tv) )) {
-                    ## This is not quite right: may have NOTE-d above
-                    if(Check_R_deps == "warn") warningLog(Log)
-                    else if(!any) noteLog(Log)
-                    any <- TRUE
-                    printLog0(Log,
-                              sprintf("Dependence on R version %s not with patchlevel 0\n",
-                                      sQuote(format(Rver[[1L]]$version))))
-              }
-            }
-        }
         if (!any) resultLog(Log, "OK")
-        return(db)
     }
 
     check_build <- function()
@@ -1230,7 +1008,7 @@ add_dummies <- function(dir, Log)
             } else {
                 Rcmd <- "options(warn=1)\ntools:::.check_demo_index(\"demo\")\n"
                 ## FIXME: this does not need to be run in another process
-                out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+                out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
                 if(length(out)) {
                     if(!any) warningLog(Log)
                     any <- TRUE
@@ -1241,7 +1019,7 @@ add_dummies <- function(dir, Log)
         if (dir.exists(file.path("inst", "doc"))) {
             Rcmd <- "options(warn=1)\ntools:::.check_vignette_index(\"inst/doc\")\n"
             ## FIXME: this does not need to be run in another process
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if(length(out)) {
                 if(!any) warningLog(Log)
                 any <- TRUE
@@ -1355,7 +1133,7 @@ add_dummies <- function(dir, Log)
             ## We don't run this in the C locale, as we only require
             ## certain filenames to start with ASCII letters/digits, and not
             ## to be entirely ASCII.
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if(length(out)) {
                 if(!any) warningLog(Log)
                 any <- TRUE
@@ -1521,7 +1299,7 @@ add_dummies <- function(dir, Log)
                                   pkgname))
             else
                 "tools:::.check_citation(\"inst/CITATION\")\n"
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=utils")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=utils")
             if(length(out)) {
                 if(!any) warningLog(Log)
                 any <- TRUE
@@ -1558,8 +1336,8 @@ add_dummies <- function(dir, Log)
     check_non_ASCII <- function()
     {
         checkingLog(Log, "R files for non-ASCII characters")
-        out <- R_runR0("tools:::.check_package_ASCII_code('.')",
-                       R_opts2, "R_DEFAULT_PACKAGES=NULL")
+        out <- R_runR("tools:::.check_package_ASCII_code('.')",
+                      R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (length(out)) {
             warningLog(Log)
             msg <- ngettext(length(out),
@@ -1576,7 +1354,7 @@ add_dummies <- function(dir, Log)
 
         checkingLog(Log, "R files for syntax errors")
         Rcmd  <- "options(warn=1);tools:::.check_package_code_syntax(\"R\")"
-        out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+        out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (any(startsWith(out, "Error"))) {
             errorLog(Log)
             printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -1608,7 +1386,7 @@ add_dummies <- function(dir, Log)
                 Rcmd <- paste("options(warn=1, showErrorCalls=FALSE)\n",
                               sprintf("tools:::.check_packages_used(dir = \"%s\")\n", pkgdir))
 
-                out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+                out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
                 if (length(out)) {
                     if(any(grepl("not declared from", out))) warningLog(Log)
                     else noteLog(Log)
@@ -1729,7 +1507,7 @@ add_dummies <- function(dir, Log)
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_code_shlib(dir = \"%s\")\n",
                                   pkgdir))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 errorLog(Log)
                 wrapLog("Incorrect (un)loading of package",
@@ -1745,11 +1523,11 @@ add_dummies <- function(dir, Log)
         Rcmd <- paste("options(warn=1)\n",
                       sprintf("tools:::.check_package_code_startup_functions(dir = \"%s\")\n",
                               pkgdir))
-        out1 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+        out1 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
         Rcmd <- paste("options(warn=1)\n",
                       sprintf("tools:::.check_package_code_unload_functions(dir = \"%s\")\n",
                               pkgdir))
-        out1a <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+        out1a <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
         out1 <- if (length(out1) && length(out1a)) c(out1, "", out1a)
                 else c(out1, out1a)
 
@@ -1759,7 +1537,7 @@ add_dummies <- function(dir, Log)
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_code_tampers(dir = \"%s\")\n",
                                   pkgdir))
-            out2 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out2 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         }
 
         if (R_check_use_codetools && do_install) {
@@ -1809,20 +1587,20 @@ add_dummies <- function(dir, Log)
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_code_assign_to_globalenv(dir = \"%s\")\n",
                                   pkgdir))
-            out5 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+            out5 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
         }
 
         if(!is_base_pkg && R_check_code_attach) {
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_code_attach(dir = \"%s\")\n",
                                   pkgdir))
-            out6 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+            out6 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
         }
         if(!is_base_pkg && R_check_code_data_into_globalenv) {
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_code_data_into_globalenv(dir = \"%s\")\n",
                                   pkgdir))
-            out7 <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+            out7 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
         }
 
         ## Use of deprecated, defunct and platform-specific devices?
@@ -1911,7 +1689,7 @@ add_dummies <- function(dir, Log)
             minlevel <- Sys.getenv("_R_CHECK_RD_CHECKRD_MINLEVEL_", "-1")
             Rcmd <- paste("options(warn=1)\n",
                           sprintf("tools:::.check_package_parseRd('.', minlevel=%s)\n", minlevel))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 if(length(grep("^prepare.*Dropping empty section", out,
                                invert = TRUE)))
@@ -1926,7 +1704,7 @@ add_dummies <- function(dir, Log)
                           sprintf("tools:::.check_Rd_metadata(package = \"%s\")\n", pkgname)
                           else
                           sprintf("tools:::.check_Rd_metadata(dir = \"%s\")\n", pkgdir))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 warningLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -1944,7 +1722,7 @@ add_dummies <- function(dir, Log)
                           else
                           sprintf("tools:::.check_Rd_line_widths(\"%s\")\n",
                                   pkgdir))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if(length(out)) {
                 noteLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -1975,7 +1753,7 @@ add_dummies <- function(dir, Log)
                           sprintf("tools:::.check_Rd_xrefs(package = \"%s\")\n", pkgname)
                           else
                           sprintf("tools:::.check_Rd_xrefs(dir = \"%s\")\n", pkgdir))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 if (!all(grepl("Package[s]? unavailable to check", out)))
                     warningLog(Log)
@@ -2007,7 +1785,8 @@ add_dummies <- function(dir, Log)
             } else R_runR2(Rcmd)
             ## Grr, get() in undoc can change the search path
             ## Current example is TeachingDemos
-            out <- filtergrep("^Loading required package:", out)
+            out <- grep("^Loading required package:", out,
+                        invert = TRUE, value = TRUE)
             err <- grep("^Error", out)
             if (length(err)) {
                 errorLog(Log)
@@ -2132,7 +1911,7 @@ add_dummies <- function(dir, Log)
                           sprintf("tools:::.check_Rd_contents(package = \"%s\")\n", pkgname)
                           else
                           sprintf("tools:::.check_Rd_contents(dir = \"%s\")\n", pkgdir))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 warningLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -2179,9 +1958,11 @@ add_dummies <- function(dir, Log)
         ## Check for non-ASCII characters in 'data'
         if (!is_base_pkg && R_check_ascii_data && dir.exists("data")) {
             checkingLog(Log, "data for non-ASCII characters")
-            out <- R_runR0("tools:::.check_package_datasets('.')", R_opts2)
-            out <- filtergrep("Loading required package", out)
-            out <- filtergrep("Warning: changing locked binding", out, fixed = TRUE)
+            out <- R_runR("tools:::.check_package_datasets('.')", R_opts2)
+            out <- grep("Loading required package", out,
+                        invert = TRUE, value = TRUE)
+            out <- grep("Warning: changing locked binding", out,
+                        invert = TRUE, value = TRUE, fixed = TRUE)
            if (length(out)) {
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warningLog(Log) else noteLog(Log)
@@ -2192,9 +1973,10 @@ add_dummies <- function(dir, Log)
         ## Check for ASCII and uncompressed/unoptimized saves in 'data'
         if (!is_base_pkg && R_check_compact_data && dir.exists("data")) {
             checkingLog(Log, "data for ASCII and uncompressed saves")
-            out <- R_runR0("tools:::.check_package_compact_datasets('.', TRUE)",
-                           R_opts2)
-            out <- filtergrep("Warning: changing locked binding", out, fixed = TRUE)
+            out <- R_runR("tools:::.check_package_compact_datasets('.', TRUE)",
+                          R_opts2)
+            out <- grep("Warning: changing locked binding", out,
+                        invert = TRUE, value = TRUE, fixed = TRUE)
             if (length(out)) {
                 warningLog(Log)
                 printLog0(Log, .format_lines_with_indent(out), "\n")
@@ -2205,8 +1987,8 @@ add_dummies <- function(dir, Log)
         ## no base package has this
         if (R_check_compact_data && file.exists(file.path("R", "sysdata.rda"))) {
             checkingLog(Log, "R/sysdata.rda")
-            out <- R_runR0("tools:::.check_package_compact_sysdata('.', TRUE)",
-                           R_opts2)
+            out <- R_runR("tools:::.check_package_compact_sysdata('.', TRUE)",
+                          R_opts2)
             if (length(out)) {
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warningLog(Log) else noteLog(Log)
@@ -2393,14 +2175,6 @@ add_dummies <- function(dir, Log)
             printLog0(Log,
                       "Package has no Sweave vignette sources and no VignetteBuilder field.\n")
         }
-
-        vigns <- pkgVignettes(dir = pkgdir, check = TRUE)
-        if(length(msg <- vigns[["msg"]])) {
-            if(!any) noteLog(Log)
-            any <- TRUE
-            printLog0(Log, paste(msg, collapse = "\n"), "\n")
-        }
-
         already <- c("jss.cls", "jss.bst", "Rd.sty", "Sweave.sty")
         bad <- files[files %in% already]
         if (length(bad)) {
@@ -2547,7 +2321,7 @@ add_dummies <- function(dir, Log)
             files <- dir("src", pattern = "\\.([cfh]|cc|cpp)$",
                          full.names = TRUE, recursive = TRUE)
             ## exclude dirs starting src/win, e.g for tiff
-            files <- filtergrep("^src/[Ww]in", files)
+            files <- grep("^src/[Ww]in", files, invert = TRUE, value = TRUE)
             bad_files <- character()
             for(f in files) {
                 contents <- readChar(f, file.size(f), useBytes = TRUE)
@@ -2599,7 +2373,7 @@ add_dummies <- function(dir, Log)
 
             Rcmd <- sprintf("tools:::.check_make_vars(\"src\", %s)\n",
                             deparse(makevars))
-            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 if(any(grepl("^(Non-portable flags|Variables overriding)", out)))
                    warningLog(Log) else noteLog(Log)
@@ -2612,9 +2386,10 @@ add_dummies <- function(dir, Log)
             bad_files <- character()
             for(f in all_files) {
                 contents <- readLines(f, warn = FALSE)
-                contents <- filtergrep("^ *#", contents)
+                contents <- grep("^ *#", contents, value = TRUE, invert = TRUE)
                 ## Things like $(SUBDIRS:=.a)
-                contents <- filtergrep("[$][(].+:=.+[)]", contents)
+                contents <- grep("[$][(].+:=.+[)]", contents,
+                                 value = TRUE, invert = TRUE)
                 if (any(grepl("([+]=|:=|[$][(]wildcard|[$][(]shell|[$][(]eval|[$][(]call|[$][(]patsubst|^ifeq|^ifneq|^ifdef|^ifndef|^endif)", contents)))
                     bad_files <- c(bad_files, f)
             }
@@ -2656,148 +2431,25 @@ add_dummies <- function(dir, Log)
                     lines <- unlist(lapply(split(lines, ind), paste,
                                            collapse = " "))
                 }
-                ## Truncate at first comment char
-                lines <- sub("#.*", "", lines)
                 c1 <- grepl("^[[:space:]]*PKG_LIBS", lines, useBytes = TRUE)
                 c2l <- grepl("\\$[{(]{0,1}LAPACK_LIBS", lines, useBytes = TRUE)
                 c2b <- grepl("\\$[{(]{0,1}BLAS_LIBS", lines, useBytes = TRUE)
-                c2lb <- grepl("\\$[{(]{0,1}LAPACK_LIBS.*\\$[{(]{0,1}BLAS_LIBS",
-                              lines, useBytes = TRUE)
-                c2bf <- grepl("\\$[{(]{0,1}BLAS_LIBS.*\\$[{(]{0,1}FLIBS",
-                              lines, useBytes = TRUE)
-                if (any(c1 & c2l & !c2lb)) {
+                c3 <- grepl("\\$[{(]{0,1}FLIBS", lines, useBytes = TRUE)
+                if (any(c1 & c2l & !c2b)) {
                     if (!any) warningLog(Log)
                     any <- TRUE
                     printLog(Log,
-                             "  apparently using $(LAPACK_LIBS) without following $(BLAS_LIBS) in ",
+                             "  apparently using $(LAPACK_LIBS) without $(BLAS_LIBS) in ",
                              sQuote(f), "\n")
                 }
-                if (any(c1 & c2b & !c2bf)) {
+                if (any(c1 & (c2b | c2l) & !c3)) {
                     if (!any) warningLog(Log)
                     any <- TRUE
-                    printLog(Log,
-                             "  apparently using $(BLAS_LIBS) without following $(FLIBS) in ",
+                    printLog(Log, "  apparently PKG_LIBS is missing $(FLIBS) in ",
                              sQuote(f), "\n")
                 }
             }
             if (!any) resultLog(Log, "OK")
-        }
-
-        ## Check include directives for use of R_HOME which may contain
-        ## spaces for which there is no portable way to quote/escape.
-        all_files <-
-            dir(".",
-                pattern = "^(Makefile|Makefile.in|Makefile.win|makefile|GNUmakefile)$",
-                recursive = TRUE)
-        all_files <- unique(sort(all_files))
-        if(length(all_files)) {
-            checkingLog(Log, "include directives in Makefiles")
-            bad_lines <-
-                lapply(all_files,
-                       function(f) {
-                           s <- readLines(f, warn = FALSE)
-                           grep("^include .*R_HOME", s, value = TRUE)
-                       })
-            bad_files <- all_files[lengths(bad_lines) > 0L]
-            if(length(bad_files)) {
-                noteLog(Log,
-                        "Found the following Makefile(s) with an include directive with a pathname using R_HOME:")
-                printLog0(Log, .format_lines_with_indent(bad_files),
-                          "\n")
-                msg <-
-                    c("Even though not recommended, variable R_HOME may contain spaces.",
-                      "Makefile directives use space as a separator and there is no portable",
-                      "way to quote/escape the space in Make rules and directives.  However,",
-                      "one can and should quote pathnames when passed from Makefile to the",
-                      "shell, and this can be done specifically when invoking Make recursively.",
-                      "It is therefore recommended to use the Make '-f' option to include files",
-                      "in directories specified using R_HOME.  This option can be specified",
-                      "multiple times to include multiple Makefiles.  Note that 'Makeconf' is",
-                      "included automatically into top-level makefile of a package.",
-                      "More information can be found in 'Writing R Extensions'.")
-                printLog0(Log, paste(msg, collapse = "\n"), "\n")
-            } else resultLog(Log, "OK")
-        }
-
-    }
-
-    check_src <- function() {
-        Check_pragmas <- Sys.getenv("_R_CHECK_PRAGMAS_", "FALSE")
-        if(config_val_to_logical(Check_pragmas) &&
-           any(dir.exists(c("src", "inst/include")))) {
-            checkingLog(Log, "pragmas in C/C++ headers and code")
-            ans <- .check_pragmas('.')
-            if(length(ans)) {
-                if(length(warn <- attr(ans, "warn")))
-                    {
-                        warningLog(Log)
-                        msg <- if(length(warn) == 1L)
-                            "File which contains pragma(s) suppressing important diagnostics:"
-                        else
-                            "Files which contain pragma(s) suppressing important diagnostics:"
-                        msg <- c(msg, .pretty_format(warn))
-                        rest <- setdiff(ans, warn)
-                        if(length(rest)) {
-                            msg <- c(msg, if(length(rest) == 1L)
-                                     "File which contains pragma(s) suppressing diagnostics:"
-                            else
-                                     "Files which contain pragma(s) suppressing diagnostics:")
-                            msg <- c(msg, .pretty_format(rest))
-                        }
-                   } else {
-                        noteLog(Log)
-                        msg <- if(length(ans) == 1L)
-                            "File which contains pragma(s) suppressing diagnostics:"
-                        else
-                            "Files which contain pragma(s) suppressing diagnostics:"
-                        msg <- c(msg, .pretty_format(ans))
-                    }
-                printLog0(Log, paste(c(msg,""), collapse = "\n"))
-            } else resultLog(Log, "OK")
-        }
-
-        Check_flags <- Sys.getenv("_R_CHECK_COMPILATION_FLAGS_", "FALSE")
-        if(config_val_to_logical(Check_flags)) {
-            instlog <- if (startsWith(install, "check"))
-                install_log_path
-            else
-                file.path(pkgoutdir, "00install.out")
-            if (file.exists(instlog) && dir.exists('src')) {
-                checkingLog(Log, "compilation flags used")
-                lines <- readLines(instlog, warn = FALSE)
-                poss <- grep(" -W", lines,  useBytes = TRUE, value = TRUE)
-                tokens <- unique(unlist(strsplit(poss, " ", perl = TRUE,
-                                                 useBytes = TRUE)))
-                warns <- grep("^[-]W", tokens,
-                              value = TRUE, perl = TRUE, useBytes = TRUE)
-                ## Not sure -Wextra and -Weverything are portable, though
-                ## -Werror is not compiler independent
-                ##   (as what is a warning is not)
-                except <- Sys.getenv("_R_CHECK_COMPILATION_FLAGS_KNOWN_", "")
-                except <- unlist(strsplit(except, "\\s", perl = TRUE))
-                warns <- setdiff(warns,
-                                 c(except, "-Wall", "-Wextra", "-Weverything"))
-                warns <- warns[!startsWith(warns, "-Wl,")] # linker flags
-                diags <- grep(" -fno-diagnostics-show-option", tokens,
-                              useBytes = TRUE, value = TRUE)
-                ## next set are about unsafe optimizations
-                opts <- grep("-f(fast-math|unsafe-math-optimizations|associative-math|reciprocal-math)",
-                             tokens, useBytes = TRUE, value = TRUE)
-                warns <- c(warns, diags, opts)
-                if(any(grepl("^-Wno-", warns)) || length(diags)) {
-                    warningLog(Log)
-                    msg <- c("Compilation used the following non-portable flag(s):",
-                             .pretty_format(sort(warns)),
-                             "including flag(s) suppressing warnings")
-                    printLog0(Log, paste(c(msg,""), collapse = "\n"))
-                } else if(length(warns)) {
-                    warningLog(Log)  # might consider NOTE instead
-                    msg <- c("Compilation used the following non-portable flag(s):",
-                             .pretty_format(sort(warns)))
-                    printLog0(Log, paste(c(msg,""), collapse = "\n"))
-                } else
-                    resultLog(Log, "OK")
-            }
         }
     }
 
@@ -2807,7 +2459,7 @@ add_dummies <- function(dir, Log)
         Rcmd <- paste("options(warn=1)\n",
                       sprintf("tools:::check_compiled_code(\"%s\")",
                               file.path(libdir, pkgname)))
-        out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+        out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if(length(out) == 1L && startsWith(out, "Note:")) {
             ## This will be a note about symbols.rds not being available
             if(!is_base_pkg) {
@@ -2819,23 +2471,11 @@ add_dummies <- function(dir, Log)
             ## will not be picking up symbols just in system libraries.
             haveObjs <- any(grepl("^ *Object", out))
             pat <- paste("possibly from",
-                         sQuote("(abort|assert|exit|_exit|_Exit|stop)"))
-            if(haveObjs && any(grepl(pat, out)) && pkgname %notin% "parallel")
-                ## need _exit in forked child
+                         sQuote("(abort|assert|exit|_exit|_Exit)"))
+            if(haveObjs && any(grepl(pat, out)) &&
+               !pkgname %in% c("parallel", "fork")) # need _exit in forked child
                 warningLog(Log)
-            else {
-                ## look for Fortran detritus
-                pat1 <- paste("possibly from", sQuote("(open|close|rewind)"))
-                pat2 <- paste("possibly from", sQuote("(read|write)"))
-                pat3 <- paste("possibly from", sQuote("close"))
-                pat4 <- paste("possibly from", sQuote("open"))
-                if(haveObjs &&
-                   (any(grepl(pat1, out)) && !any(grepl(pat2, out))) ||
-                   (any(grepl(pat3, out)) && !any(grepl(pat4, out))) ||
-                   (any(grepl(pat4, out)) && !any(grepl(pat3, out))))
-                    warningLog(Log)
-                else noteLog(Log)
-            }
+            else noteLog(Log)
             printLog0(Log, paste(c(out, ""), collapse = "\n"))
             nAPIs <- length(grep("Found non-API", out))
             nRS <- length(grep("Found no call", out))
@@ -2872,7 +2512,7 @@ add_dummies <- function(dir, Log)
         opts <- if(nzchar(arch)) R_opts4 else R_opts2
         env <- "R_DEFAULT_PACKAGES=NULL"
         env1 <- if(nzchar(arch)) env0 else character()
-        out <- R_runR0(Rcmd, opts, env1, arch = arch)
+        out <- R_runR(Rcmd, opts, env1, arch = arch)
         if(length(st <- attr(out, "status"))) {
             errorLog(Log)
             wrapLog("Loading this package had a fatal error",
@@ -2882,7 +2522,7 @@ add_dummies <- function(dir, Log)
                           paste(c("Loading log:", out, ""),
                                 collapse = "\n"))
             summaryLog(Log)
-            do_exit(1L)
+            do_exit()
         }
         if (any(startsWith(out, "Error"))) {
             errorLog(Log)
@@ -2894,7 +2534,7 @@ add_dummies <- function(dir, Log)
         } else resultLog(Log, "OK")
 
         checkingLog(Log, "whether the package can be loaded with stated dependencies")
-        out <- R_runR0(Rcmd, opts, c(env, env1), arch = arch)
+        out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
         if (any(startsWith(out, "Error")) || length(attr(out, "status"))) {
             printLog0(Log, paste(c(out, ""), collapse = "\n"))
             wrapLog("\nIt looks like this package",
@@ -2907,7 +2547,7 @@ add_dummies <- function(dir, Log)
 
         checkingLog(Log, "whether the package can be unloaded cleanly")
         Rcmd <- sprintf("suppressMessages(library(%s)); cat('\n---- unloading\n'); detach(\"package:%s\")", pkgname, pkgname)
-        out <- R_runR0(Rcmd, opts, c(env, env1), arch = arch)
+        out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
         if (any(grepl("^(Error|\\.Last\\.lib failed)", out)) ||
             length(attr(out, "status"))) {
             warningLog(Log)
@@ -2926,7 +2566,7 @@ add_dummies <- function(dir, Log)
             Rcmd <-
                 sprintf("options(warn=1)\ntools:::.load_namespace_rather_quietly(\"%s\")",
                         pkgname)
-            out <- R_runR0(Rcmd, opts, c(env, env1), arch = arch)
+            out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
             any <- FALSE
             if (any(startsWith(out, "Error")) || length(attr(out, "status"))) {
                 warningLog(Log)
@@ -2934,15 +2574,15 @@ add_dummies <- function(dir, Log)
             } else {
 		## Drop tcltk warning if no DISPLAY variable
 		if(pkgname == "tcltk")
-		    out <- filtergrep("Warning: no DISPLAY variable so Tk is not available",
-                                      out, fixed = TRUE)
+		    out <- grep("Warning: no DISPLAY variable so Tk is not available",
+				out, fixed = TRUE, invert = TRUE, value = TRUE)
                 ## Drop warnings about replacing previous imports unless
                 ## these were disabled for the installation check.
                 check_imports_flag <-
                     Sys.getenv("_R_CHECK_REPLACING_IMPORTS_", "TRUE")
                 if(config_val_to_logical(check_imports_flag))
-                    out <- filtergrep("Warning: replacing previous import", out,
-                                      fixed = TRUE)
+                    out <- grep("Warning: replacing previous import", out,
+                                fixed = TRUE, invert = TRUE, value = TRUE)
                 if(any(startsWith(out, "Warning"))) {
                     noteLog(Log)
                     any <- TRUE
@@ -2964,8 +2604,8 @@ add_dummies <- function(dir, Log)
             Rcmd <- sprintf("invisible(suppressMessages(loadNamespace(\"%s\"))); cat('\n---- unloading\n'); unloadNamespace(\"%s\")",
                             pkgname, pkgname)
             out <- if (is_base_pkg && pkgname != "stats4")
-                R_runR0(Rcmd, opts, "R_DEFAULT_PACKAGES=NULL", arch = arch)
-            else R_runR0(Rcmd, opts, env1)
+                R_runR(Rcmd, opts, "R_DEFAULT_PACKAGES=NULL", arch = arch)
+            else R_runR(Rcmd, opts, env1)
             if (any(grepl("^(Error|\\.onUnload failed)", out)) ||
                 length(attr(out, "status"))) {
                 warningLog(Log)
@@ -2979,14 +2619,14 @@ add_dummies <- function(dir, Log)
         }
 
         ## No point in this test if already installed in .Library
-        if (pkgname %notin% dir(.Library)) {
+        if (!pkgname %in% dir(.Library)) {
             checkingLog(Log, "loading without being on the library search path")
             Rcmd <- sprintf("library(%s, lib.loc = '%s')", pkgname, libdir)
             opts <- if(nzchar(arch)) R_opts4 else R_opts2
             env <- setRlibs(pkgdir = pkgdir, libdir = libdir,
                             self2 = FALSE, quote = TRUE)
             if(nzchar(arch)) env <- c(env, "R_DEFAULT_PACKAGES=NULL")
-            out <- R_runR0(Rcmd, opts, env, arch = arch)
+            out <- R_runR(Rcmd, opts, env, arch = arch)
             if (any(startsWith(out, "Error"))) {
                 warningLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -3003,48 +2643,16 @@ add_dummies <- function(dir, Log)
             }
             if(check_S3reg) {
                 checkingLog(Log, "use of S3 registration")
-                Rcmd <- sprintf("suppressWarnings(suppressPackageStartupMessages(loadNamespace('%s', lib.loc = '%s')))",
+                Rcmd <- sprintf("suppressPackageStartupMessages(loadNamespace('%s', lib.loc = '%s'))",
                                 pkgname, libdir)
                 opts <- if(nzchar(arch)) R_opts4 else R_opts2
-                env <- Sys.getenv("_R_LOAD_CHECK_OVERWRITE_S3_METHODS_",
-                                  "NA")
-                env <- paste0("_R_LOAD_CHECK_OVERWRITE_S3_METHODS_=",
-                              if(env == "all") env else pkgname)
-                ## <FIXME>
-                ## Oh dear.  R-ints says that if env var
-                ## '_R_CHECK_OVERWRITE_REGISTERED_S3_METHODS_' is set to
-                ## something true,
-                ##   report already registered S3 methods in
-                ##   base/recommended packages which are overwritten
-                ##   when this package's namespace is loaded.
-                ## As of 2017-12, to make this work as documented we
-                ## really need to load all base and recommended packages
-                ## which register S3 methods first, which takes *quite
-                ## some time*.  There really should be a better way ...
-                ## Running with
-                ##   R_DEFAULT_PACKAGES=MASS,Matrix,boot,class,cluster,grDevices,graphics,grid,lattice,mgcv,nlme,nnet,parallel,rpart,spatial,splines,stats,survival,tcltk,tools,utils
-                ## does not suppress package startup messages: so try to
-                ## load the relevant base and recommended package
-                ## namespaces quietly ...
-                Rcmd <-
-                    c(sprintf("suppressPackageStartupMessages(loadNamespace('%s', lib.loc = '%s'))",
-                              ## Perhaps provide these sorted according
-                              ## to dependency?
-                              c("MASS", "Matrix", "boot", "class",
-                                "cluster", "grDevices",  "graphics",
-                                "grid", "lattice", "mgcv", "nlme",
-                                "nnet", "parallel", "rpart", "spatial",
-                                "splines", "stats", "survival", "tcltk",
-                                "tools", "utils"),
-                              .Library),
-                      Rcmd)
-                env <- c(env, "R_DEFAULT_PACKAGES=NULL")
-                out <- R_runR0(Rcmd, opts, env, arch = arch)
-                ## </FIXME>
+                env <- paste0("_R_LOAD_CHECK_OVERWRITE_S3_METHODS_=", pkgname)
+                out <- R_runR(Rcmd, opts, env, arch = arch)
                 if (any(grepl("^Registered S3 method.*overwritten", out))) {
-                    out <- filtergrep("^<environment: namespace:", out)
+                    out <- grep("^<environment: namespace:", out,
+                                invert = TRUE, value = TRUE)
                     warningLog(Log)
-                    printLog0(Log, paste(out, collapse = "\n"), "\n")
+                    printLog0(Log, paste(c(out, ""), collapse = "\n"))
                 } else resultLog(Log, "OK")
             }
         }
@@ -3065,15 +2673,14 @@ add_dummies <- function(dir, Log)
             Ropts <- if (nzchar(arch)) R_opts3 else R_opts
             if (use_valgrind) Ropts <- paste(Ropts, "-d valgrind")
             t1 <- proc.time()
-            tlim <- get_timeout(Sys.getenv("_R_CHECK_EXAMPLES_ELAPSED_TIMEOUT_",
-                                Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
             ## might be diff-ing results against tests/Examples later
             ## so force LANGUAGE=en
-            status <- R_runR0(NULL, c(Ropts, enc),
-                              c("LANGUAGE=en", "_R_CHECK_INTERNALS2_=1",
-                                if(nzchar(arch)) env0, jitstr, elibs),
-                              stdout = exout, stderr = exout,
-                              stdin = exfile, arch = arch, timeout = tlim)
+            status <- R_runR(NULL, c(Ropts, enc),
+                             c("LANGUAGE=en", "_R_CHECK_INTERNALS2_=1",
+                               if(nzchar(arch)) env0,
+                               jitstr, elibs),
+                             stdout = exout, stderr = exout,
+                             stdin = exfile, arch = arch)
             t2 <- proc.time()
             if (status) {
                 errorLog(Log, "Running examples in ",
@@ -3121,6 +2728,7 @@ add_dummies <- function(dir, Log)
             }
             bad_lines <- grep("^Warning.*screen devices should not be used in examples",
                               lines, useBytes = TRUE, value = TRUE)
+
             if(length(bad_lines)) {
                 if(!bad) {
                     warningLog(Log,
@@ -3142,26 +2750,6 @@ add_dummies <- function(dir, Log)
                 printLog0(Log, .format_lines_with_indent(bad_lines), "\n")
                 wrapLog("Note that CRAN packages must never use more than two",
                         "cores simultaneously during their checks.")
-            }
-            bad_lines <- grep("^Warning: working directory was changed to",
-                              lines, useBytes = TRUE, value = TRUE)
-            if(length(bad_lines)) {
-                if(!bad) {
-                    warningLog(Log,
-                               "Found the following significant warnings:")
-                    bad <- TRUE
-                }
-                printLog0(Log, .format_lines_with_indent(bad_lines), "\n")
-            }
-            bad_lines <- grep("^Warning: items .* were removed from the search path",
-                              lines, useBytes = TRUE, value = TRUE)
-            if(length(bad_lines)) {
-                if(!bad) {
-                    warningLog(Log,
-                               "Found the following significant warnings:")
-                    bad <- TRUE
-                }
-                printLog0(Log, .format_lines_with_indent(bad_lines), "\n")
             }
             any <- any || bad
 
@@ -3194,22 +2782,21 @@ add_dummies <- function(dir, Log)
                 }
 
                 theta <-
-                    as.numeric(Sys.getenv("_R_CHECK_EXAMPLE_TIMING_CPU_TO_ELAPSED_THRESHOLD_",
+                    as.numeric(Sys.getenv("_R_CHECK_EXAMPLE_TIMING_USER_TO_ELAPSED_THRESHOLD_",
                                           NA_character_))
                 if(!is.na(theta)) {
-                    keep <- ((times[[1L]] + times[[2L]]) >=
-                              pmax(theta * times[[3L]], 1))
+                    keep <- (times[[1L]] >= pmax(theta * times[[3L]], 1))
                     if(any(keep)) {
                         if(!any && check_incoming) {
                             noteLog(Log)
                             any <- TRUE
                         }
                         printLog(Log,
-                                 sprintf("Examples with CPU time > %g times elapsed time\n",
+                                 sprintf("Examples with user time > %g times elapsed time\n",
                                          theta))
                         bad <- times[keep, ]
-                        ratio <- (bad[[1L]] + bad[[2L]]) / bad[[3L]]
-                        bad <- cbind(bad, ratio = round(ratio, 3L))
+                        bad <- cbind(bad,
+                                     ratio = round(bad[[1L]] / bad[[3L]], 3L))
                         bad <- bad[order(bad$ratio, decreasing = TRUE), ]
                         out <- utils::capture.output(format(bad))
                         printLog0(Log, paste(out, collapse = "\n"), "\n")
@@ -3230,7 +2817,7 @@ add_dummies <- function(dir, Log)
                             " to ", sQuote(basename(exsave)))
                 cmd <- paste0("invisible(tools::Rdiff('",
                               exout, "', '", exsave, "',TRUE,TRUE))")
-                out <- R_runR0(cmd, R_opts2)
+                out <- R_runR(cmd, R_opts2)
                 resultLog(Log, "OK")
                 if(length(out))
                     printLog0(Log, paste(c("", out, ""), collapse = "\n"))
@@ -3248,8 +2835,8 @@ add_dummies <- function(dir, Log)
                            !run_dontrun, !run_donttest)
             Rout <- tempfile("Rout")
             ## any arch will do here
-            status <- R_runR0(cmd, R_opts2, "LC_ALL=C",
-                              stdout = Rout, stderr = Rout)
+            status <- R_runR(cmd, R_opts2, "LC_ALL=C",
+                             stdout = Rout, stderr = Rout)
             exfile <- paste0(pkgname, "-Ex.R")
             if (status) {
                 errorLog(Log,
@@ -3357,15 +2944,13 @@ add_dummies <- function(dir, Log)
             cmd <- paste0("tools:::.runPackageTestsR(",
                           paste(extra, collapse = ", "), ")")
             t1 <- proc.time()
-            tlim <- get_timeout(Sys.getenv("_R_CHECK_TESTS_ELAPSED_TIMEOUT_",
-                                Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
-            status <- R_runR0(cmd,
-                              if(nzchar(arch)) R_opts4 else R_opts2,
-                              env = c("LANGUAGE=en",
-                                     "_R_CHECK_INTERNALS2_=1",
-                              if(nzchar(arch)) env0, jitstr, elibs_tests),
-                              stdout = "", stderr = "", arch = arch,
-                              timeout = tlim)
+            status <- R_runR(cmd,
+                             if(nzchar(arch)) R_opts4 else R_opts2,
+			     env = c("LANGUAGE=en",
+				     "_R_CHECK_INTERNALS2_=1",
+				     if(nzchar(arch)) env0,
+				     jitstr, elibs),
+                             stdout = "", stderr = "", arch = arch)
             t2 <- proc.time()
             if (status) {
                 print_time(t1, t2, Log)
@@ -3387,9 +2972,9 @@ add_dummies <- function(dir, Log)
                         lines <- readLines(f, warn = FALSE)
                         f <- file.path(test_dir, sub("out\\.fail$", "", f))
                         src_files <- dir(".", pattern = "\\.[rR]$")
-                        if (basename(f) %notin% src_files) {
+                        if (!(basename(f) %in% src_files)) {
                             f <- sub("R$", "r", f) # This assumes only one of foo.r and foo.R exists.
-                            if (basename(f) %notin% src_files)
+                            if (!(basename(f) %in% src_files))
                                 f <- sub("r$", "[rR]", f) # Just in case the test script got deleted somehow, show the pattern.
                         }
                         keep <- as.integer(Sys.getenv("_R_CHECK_TESTS_NLINES_",
@@ -3406,8 +2991,9 @@ add_dummies <- function(dir, Log)
                         if (keep > 0L)
                             lines <- lines[max(1L, ll-keep-1L):ll]
                         if (R_check_suppress_RandR_message)
-                            lines <- filtergrep('^Xlib: *extension "RANDR" missing on display',
-                                                lines, useBytes = TRUE)
+                            lines <- grep('^Xlib: *extension "RANDR" missing on display',
+                                          lines, invert = TRUE, value = TRUE,
+                                          useBytes = TRUE)
                         printLog(Log, sprintf("Running the tests in %s failed.\n",
                                               sQuote(f)))
                         printLog(Log, if(keep > 0L && keep < ll)
@@ -3437,7 +3023,7 @@ add_dummies <- function(dir, Log)
                 printLog(Log, "\n")
                 res <- TRUE
                 for (arch in inst_archs)
-                    if (arch %notin% R_check_skip_tests_arch) {
+                    if (!(arch %in% R_check_skip_tests_arch)) {
                         printLog(Log, "** running tests for arch ",
                                  sQuote(arch), " ...")
                         res <- res & run_one_arch(arch)
@@ -3449,10 +3035,6 @@ add_dummies <- function(dir, Log)
 
     run_vignettes <- function(desc)
     {
-        theta <-
-            as.numeric(Sys.getenv("_R_CHECK_VIGNETTE_TIMING_CPU_TO_ELAPSED_THRESHOLD_",
-                                  NA_character_))
-
         libpaths <- .libPaths()
         .libPaths(c(libdir, libpaths))
         vigns <- pkgVignettes(dir = pkgdir)
@@ -3552,7 +3134,7 @@ add_dummies <- function(dir, Log)
             f <- file.path(vigns$dir, "Makefile")
             lines <- readLines(f, warn = FALSE)
             ## remove comment lines
-            lines <- filtergrep("^[[:space:]]*#", lines)
+            lines <- grep("^[[:space:]]*#", lines, invert = TRUE, value = TRUE)
             if(any(grepl("[^/]R +CMD", lines))) {
                 if(!any) warningLog(Log)
                 any <- TRUE
@@ -3655,16 +3237,13 @@ add_dummies <- function(dir, Log)
                                        paste0(", encoding = '", enc, "'"),
                                    ", pkgdir='", vigns$pkgdir, "')")
                     outfile <- paste0(basename(file), ".log")
-                    tlim <- get_timeout(Sys.getenv("_R_CHECK_ONE_VIGNETTE_ELAPSED_TIMEOUT_",
-                                        Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
                     t1b <- proc.time()
-                    status <- R_runR0(Rcmd,
-                                      if (use_valgrind) paste(R_opts2, "-d valgrind") else R_opts2,
-                                      ## add timing as footer, as BATCH does
-                                      env = c(jitstr, "R_BATCH=1234", elibs,
-                                              "_R_CHECK_INTERNALS2_=1"),
-                                      stdout = outfile, stderr = outfile,
-                                      timeout = tlim)
+                    status <- R_runR(Rcmd,
+                                     if (use_valgrind) paste(R_opts2, "-d valgrind") else R_opts2,
+                                     ## add timing as footer, as BATCH does
+                                     env = c(jitstr, "R_BATCH=1234", elibs,
+                                     "_R_CHECK_INTERNALS2_=1"),
+                                     stdout = outfile, stderr = outfile)
                     t2b <- proc.time()
                     out <- readLines(outfile, warn = FALSE)
                     pos <- which(out == " *** Run successfully completed ***")
@@ -3686,7 +3265,7 @@ add_dummies <- function(dir, Log)
                               paste("when running code in", sQuote(basename(file))),
                               out)
 
-                    } else if(status || " *** Run successfully completed ***" %notin% out) {
+                    } else if(status || ! " *** Run successfully completed ***" %in% out) {
                         ## (Need not be the final line if running under valgrind)
                         keep <- as.numeric(Sys.getenv("_R_CHECK_VIGNETTES_NLINES_",
                                                       "10"))
@@ -3704,7 +3283,7 @@ add_dummies <- function(dir, Log)
                     } else if (file.exists(savefile)) {
                         cmd <- paste0("invisible(tools::Rdiff('",
                                       outfile, "', '", savefile, "',TRUE,TRUE))")
-                        out2 <- R_runR0(cmd, R_opts2)
+                        out2 <- R_runR(cmd, R_opts2)
                         if(length(out2)) {
                             print_time(t1b, t2b, NULL)
                             cat("\ndifferences from ", sQuote(basename(savefile)),
@@ -3722,15 +3301,6 @@ add_dummies <- function(dir, Log)
                         if (!config_val_to_logical(Sys.getenv("_R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_", use_valgrind)))
                             unlink(outfile)
                     }
-                    if(!WINDOWS && !is.na(theta)) {
-                        td <- t2b - t1b
-                        cpu <- sum(td[-3L])
-                        if(cpu >= pmax(theta * td[3L], 1)) {
-                            ratio <- round(cpu/td[3L], 1L)
-                            cat(sprintf("Running R code from vignette %s had CPU time %g times elapsed time\n",
-                                        sQuote((basename(file))), ratio))
-                        }
-                    }
                 }
                 t2 <- proc.time()
                 if(!ran) {
@@ -3738,8 +3308,8 @@ add_dummies <- function(dir, Log)
                 } else {
                     print_time(t1, t2, Log)
                     if(R_check_suppress_RandR_message)
-                        res <- filtergrep('^Xlib: *extension "RANDR" missing on display',
-                                          res, useBytes = TRUE)
+                        res <- grep('^Xlib: *extension "RANDR" missing on display', res,
+                                    invert = TRUE, value = TRUE, useBytes = TRUE)
                     if(length(res)) {
                         if(length(grep("there is no package called", res,
                                        useBytes = TRUE))) {
@@ -3751,16 +3321,6 @@ add_dummies <- function(dir, Log)
                             maybe_exit(1L)
                         }
                     } else resultLog(Log, "OK")
-                    if(!WINDOWS && !is.na(theta)) {
-                        td <- t2 - t1
-                        cpu <- sum(td[-3L])
-                        if(cpu >= pmax(theta * td[3L], 1)) {
-                            ratio <- round(cpu/td[3L], 1L)
-                            printLog(Log,
-                                     sprintf("Running R code from vignettes had CPU time %g times elapsed time\n",
-                                             ratio))
-                        }
-                    }
                 }
             }
 
@@ -3790,18 +3350,16 @@ add_dummies <- function(dir, Log)
                 Rcmd <- paste0(Rcmd, "buildVignettes(dir = '",
                                file.path(pkgoutdir, "vign_test", pkgname0),
                                "')")
-                tlim <- get_timeout(Sys.getenv("_R_CHECK_BUILD_VIGNETTES_ELAPSED_TIMEOUT_",
-                                    Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
                 t1 <- proc.time()
                 outfile <- file.path(pkgoutdir, "build_vignettes.log")
-                status <- R_runR0(Rcmd, R_opts2, c(jitstr, elibs),
-                                  stdout = outfile, stderr = outfile,
-                                  timeout = tlim)
+                status <- R_runR(Rcmd, R_opts2, jitstr,
+                                 stdout = outfile, stderr = outfile)
                 t2 <- proc.time()
                 out <- readLines(outfile, warn = FALSE)
                 if(R_check_suppress_RandR_message)
-                    out <- filtergrep('^Xlib: *extension "RANDR" missing on display',
-                                      out, useBytes = TRUE)
+                    out <- grep('^Xlib: *extension "RANDR" missing on display',
+                                out, invert = TRUE, value = TRUE,
+                                useBytes = TRUE)
                 warns <- grep("^Warning: file .* is not portable",
                               out, value = TRUE, useBytes = TRUE)
                 print_time(t1, t2, Log)
@@ -3829,16 +3387,6 @@ add_dummies <- function(dir, Log)
                             unlink(outfile)
                     resultLog(Log, "OK")
                 }
-                if(!WINDOWS && !is.na(theta)) {
-                    td <- t2 - t1
-                    cpu <- sum(td[-3L])
-                    if(cpu >= pmax(theta * td[3L], 1)) {
-                        ratio <- round(cpu/td[3L], 1L)
-                        printLog(Log,
-                                 sprintf("Re-building vignettes had CPU time %g times elapsed time\n",
-                                        ratio))
-                    }
-                }
             } else {
                 checkingLog(Log, "re-building of vignette outputs")
                 resultLog(Log, "SKIPPED")
@@ -3858,8 +3406,6 @@ add_dummies <- function(dir, Log)
         ## and for a source package, there is a 'man' dir
         if (dir.exists(file.path(pkgdir, "help")) ||
             dir.exists(file.path(pkgdir, "man"))) {
-            tlim <- get_timeout(Sys.getenv("_R_CHECK_PKGMAN_ELAPSED_TIMEOUT_",
-                                Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
             topdir <- pkgdir
             Rd2pdf_opts <- "--batch --no-preview"
             checkingLog(Log, "PDF version of manual")
@@ -3870,14 +3416,15 @@ add_dummies <- function(dir, Log)
             args <- c( "Rd2pdf ", Rd2pdf_opts,
                       paste0("--build-dir=", shQuote(build_dir)),
                       "--no-clean", "-o ", man_file , shQuote(topdir))
-            res <- run_Rcmd(args,  "Rdlatex.log", timeout = tlim)
+            res <- run_Rcmd(args,  "Rdlatex.log")
             latex_log <- file.path(build_dir, "Rd2.log")
             if (file.exists(latex_log))
                 file.copy(latex_log, paste0(pkgname, "-manual.log"))
             if (res == 11) { ## return code from Rd2pdf
                 errorLog(Log, "Rd conversion errors:")
                 lines <- readLines("Rdlatex.log", warn = FALSE)
-                lines <- filtergrep("^(Hmm|Execution)", lines)
+                lines <- grep("^(Hmm|Execution)", lines,
+                              invert = TRUE, value = TRUE)
                 printLog0(Log, paste(c(lines, ""), collapse = "\n"))
                 unlink(build_dir, recursive = TRUE)
 		maybe_exit(1L)
@@ -3905,7 +3452,7 @@ add_dummies <- function(dir, Log)
                           paste0("--build-dir=", shQuote(build_dir)),
                           "--no-clean", "--no-index",
                           "-o ", man_file, topdir)
-                if (run_Rcmd(args, "Rdlatex.log", timeout = tlim)) {
+                if (run_Rcmd(args, "Rdlatex.log")) {
                     ## FIXME: the info is almost certainly in Rdlatex.log
                     errorLog(Log)
                     latex_log <- file.path(build_dir, "Rd2.log")
@@ -3927,7 +3474,7 @@ add_dummies <- function(dir, Log)
                                   "--no-clean", "--no-index",
                                   "-o ", paste0(pkgname, "-manual.pdf "),
                                   topdir)
-                        run_Rcmd(args, timeout = tlim)
+                        run_Rcmd(args)
                     }
                     unlink(build_dir, recursive = TRUE)
 		    maybe_exit(1L)
@@ -4087,8 +3634,6 @@ add_dummies <- function(dir, Log)
         if (install == "skip")
             messageLog(Log, "skipping installation test")
         else {
-            tlim <- get_timeout(Sys.getenv("_R_CHECK_INSTALL_ELAPSED_TIMEOUT_",
-                                Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
             use_install_log <-
                 (startsWith(install, "check") || R_check_use_install_log
                  || !isatty(stdout()))
@@ -4108,7 +3653,7 @@ add_dummies <- function(dir, Log)
                 ## to false.
                 message("")
                 ## Rare use of R CMD INSTALL
-                if (run_Rcmd(args, timeout = tlim)) {
+                if (run_Rcmd(args)) {
                     errorLog(Log, "Installation failed.")
                     summaryLog(Log)
                     do_exit(1L)
@@ -4124,14 +3669,16 @@ add_dummies <- function(dir, Log)
                 if (startsWith(install, "check")) {
                     if (!nzchar(arg_libdir))
                         printLog(Log, "\nWarning: --install=check... specified without --library\n")
-                    thislog <- install_log_path
-                    if(!nzchar(thislog)) {
+                    thislog <- substr(install, 7L, 1000L)
+                                        #owd <- setwd(startdir)
+                    if (!file.exists(thislog)) {
                         errorLog(Log,
                                  sprintf("install log %s does not exist", sQuote(thislog)))
                         summaryLog(Log)
                         do_exit(2L)
                     }
                     file.copy(thislog, outfile)
+                                        #setwd(owd)
                     install <- "check"
                     lines <- readLines(outfile, warn = FALSE)
                     ## <NOTE>
@@ -4148,8 +3695,7 @@ add_dummies <- function(dir, Log)
 ##                    env <- ""
                     ## Normal use of R CMD INSTALL
                     t1 <- proc.time()
-                    install_error <-
-                        run_Rcmd(args, outfile, timeout = tlim)
+                    install_error <- run_Rcmd(args, outfile)
                     t2 <- proc.time()
                     print_time(t1, t2, Log)
                     lines <- readLines(outfile, warn = FALSE)
@@ -4205,11 +3751,7 @@ add_dummies <- function(dir, Log)
                              ## Solaris cc has
                              "Warning: # *warning",
                              # these are from era of static HTML
-                             "missing links?:",
-                             ## From the byte compiler's 'warn' methods
-                             "^Note: possible error in",
-                             "^Note: (break|next) used in wrong context: no loop is visible"
-                             )
+                             "missing links?:")
                 ## Warnings spotted by gcc with
                 ##   '-Wimplicit-function-declaration'
                 ## which is implied by '-Wall'.
@@ -4239,20 +3781,8 @@ add_dummies <- function(dir, Log)
                              ": warning: .* \\[-Wformat-zero-length\\]",
                              ": warning: .* \\[-Wpointer-to-int-cast\\]",
                              ": warning: .* \\[-Wsequence-point\\]",
-                             ": warning: .* \\[-Wformat-overflow=\\]",
-                             ": warning: .* \\[-Wformat-truncation=\\]",
-                             ": warning: .* \\[-Wnonull",
-                             ": warning: .* \\[-Walloc-size-larger-than=\\]",
-                             ": warning: .* \\[-Wterminate\\]",
-                             ## Solaris warns on this next one. Also clang
-                             ": warning: .* \\[-Wint-conversion\\]",
-                             ## clang calls these 'a GNU extension'
-                             ": warning: .* GCC extension",
-                             ": warning: .* \\[-Wstringop", # mainly gcc8
-                             ": warning: .* \\[-Wclass-memaccess\\]", # gcc8
                              ## Fatal on clang and Solaris ODS
-                             ": warning: .* with a value, in function returning void"
-                            )
+                             ": warning: .* with a value, in function returning void")
 
                 ## clang warnings
                 warn_re <- c(warn_re,
@@ -4264,12 +3794,6 @@ add_dummies <- function(dir, Log)
                              ": warning: .* \\[-Wpointer-arith\\]",
                              ": warning: .* \\[-Wunsequenced\\]",
                              ": warning: .* \\[-Wvla-extension\\]",
-                             ": warning: .* \\[-Wmismatched-new-delete\\]",
-                             ": warning: .* \\[-Wabsolute-value\\]",
-                             ": warning: .* \\[-Wreorder\\]", # also gcc
-                             ": warning: .* \\[-Wself-assign",
-                             ": warning: .* \\[-Wtautological",  # also gcc
-                             ": warning: .* \\[-Wincompatible-pointer-types\\]",
                              ": warning: format string contains '[\\]0'",
                              ": warning: .* \\[-Wc[+][+]11-long-long\\]",
                              ": warning: empty macro arguments are a C99 feature",
@@ -4281,33 +3805,32 @@ add_dummies <- function(dir, Log)
 
                 lines <- grep(warn_re, lines, value = TRUE, useBytes = TRUE)
 
-                ## gcc seems not to know the size of pointers, so skip
-                ## some from -Walloc-size-larger-than= and -Wstringop-overflow=
-                lines <- grep("exceeds maximum object size.*-W(alloc-size-larger-than|stringop-overflow)", lines,
-                              value = TRUE, useBytes = TRUE, invert = TRUE)
                 ## skip for now some c++11-long-long warnings.
                 ex_re <- "(/BH/include/boost/|/RcppParallel/include/|/usr/include/|/usr/local/include/|/opt/X11/include/|/usr/X11/include/).*\\[-Wc[+][+]11-long-long\\]"
-                lines <- filtergrep(ex_re, lines, useBytes = TRUE)
+                lines <- grep(ex_re, lines, invert = TRUE, value = TRUE,
+                              useBytes = TRUE)
 
                 ## and GNU extensions in system headers
                 ex_re <- "^ *(/usr/|/opt/).*GNU extension"
-                lines <- filtergrep(ex_re, lines, useBytes = TRUE)
+                lines <- grep(ex_re, lines, invert = TRUE, value = TRUE,
+                              useBytes = TRUE)
 
                 ## and ODS 12.5 warnings
                 ex_re <- "^Warning: [[:alnum:]]+ hides"
-                lines <- filtergrep(ex_re, lines, useBytes = TRUE)
+                lines <- grep(ex_re, lines, invert = TRUE, value = TRUE,
+                              useBytes = TRUE)
 
                 ## Ignore install-time readLines() warnings about
                 ## files with incomplete final lines.  Most of these
                 ## come from .install_package_indices(), and should be
                 ## safe to ignore ...
-                lines <- filtergrep("Warning: incomplete final line found by readLines",
-                                    lines, useBytes = TRUE)
+                lines <- grep("Warning: incomplete final line found by readLines",
+                              lines, invert = TRUE, value = TRUE, useBytes = TRUE)
 
                 check_Stangle <- Sys.getenv("_R_CHECK_STANGLE_WARNINGS_", "TRUE")
                 if (!config_val_to_logical(check_Stangle))
-                lines <- filtergrep("Warning: value of .* option should be lowercase",
-                                    lines, useBytes = TRUE)
+                lines <- grep("Warning: value of .* option should be lowercase",
+                              lines, invert = TRUE, value = TRUE, useBytes = TRUE)
 
                 ## Package writers cannot really do anything about
                 ## non ISO C code in *system* headers.  Also,
@@ -4318,13 +3841,13 @@ add_dummies <- function(dir, Log)
                 ## default, but make it possible to get all ISO C
                 ## warnings via an environment variable.
                 if (!R_check_all_non_ISO_C) {
-                    lines <- filtergrep("^ */.*: warning: .*ISO C",
-                                        lines, useBytes = TRUE)
-                    lines <- filtergrep("warning: *ISO C forbids.*function pointer",
-                                        lines, useBytes = TRUE)
-                    if(WINDOWS) lines <- filtergrep(
-                                    "warning: *ISO C does not support.*ms_printf length modifier",
-                                    lines, useBytes = TRUE)
+                    lines <- grep("^ */.*: warning: .*ISO C",
+                                  lines, invert = TRUE, value = TRUE, useBytes = TRUE)
+                    lines <- grep("warning: *ISO C forbids.*function pointer",
+                                  lines, invert = TRUE, value = TRUE, useBytes = TRUE)
+                    if (WINDOWS)
+                        lines <- grep("warning: *ISO C does not support.*ms_printf length modifier",
+                                      lines, invert = TRUE, value = TRUE, useBytes = TRUE)
                 }
 
                 ## Warnings spotted by gcc with
@@ -4335,10 +3858,11 @@ add_dummies <- function(dir, Log)
                 check_src_flag <-
                     Sys.getenv("_R_CHECK_SRC_MINUS_W_UNUSED_", "FALSE")
                 if (!config_val_to_logical(check_src_flag)) {
-                    lines <- filtergrep("warning: unused", lines,
-                                        ignore.case = TRUE, useBytes = TRUE)
-                    lines <- filtergrep("warning: .* set but not used", lines,
-                                        ignore.case = TRUE, useBytes = TRUE)
+                    lines <- grep("warning: unused", lines, ignore.case = TRUE,
+                                  invert = TRUE, value = TRUE, useBytes = TRUE)
+                    lines <- grep("warning: .* set but not used", lines,
+                                  ignore.case = TRUE,
+                                  invert = TRUE, value = TRUE, useBytes = TRUE)
                 }
                 ## (gfortran seems to use upper case.)
 
@@ -4351,8 +3875,10 @@ add_dummies <- function(dir, Log)
                     Sys.getenv("_R_CHECK_SRC_MINUS_W_SOMETIMES_UNINITIALIZED_",
                                "FALSE")
                 if (!config_val_to_logical(check_src_flag)) {
-                    lines <- filtergrep("warning: .* is used uninitialized whenever",
-                                        lines, useBytes = TRUE)
+                    lines <- grep("warning: .* is used uninitialized whenever",
+                                  lines,
+                                  invert = TRUE, value = TRUE, useBytes
+                                  = TRUE)
                 }
 
                 ## Warnings spotted by gfortran >= 4.0 with '-Wall'.
@@ -4390,38 +3916,39 @@ add_dummies <- function(dir, Log)
                                      "Warning: .*\\[-Wunused-function]",
                                      "Warning: .*\\[-Wunused-dummy-argument]")
                     warn_re <- paste0("(", paste(warn_re, collapse = "|"), ")")
-                    lines <- filtergrep(warn_re, lines)
+                    lines <- grep(warn_re, lines, invert = TRUE, value = TRUE)
                 }
 
                 if (WINDOWS) {
                     ## Warning on Windows with some packages that
                     ## cannot transparently be installed bi-arch.
-                    lines <- filtergrep("Warning: this package has a non-empty 'configure.win' file",
-                                        lines)
+                    lines <- grep("Warning: this package has a non-empty 'configure.win' file",
+                                  lines, invert = TRUE, value = TRUE)
                     ## Warning on x64 Windows gcc 4.5.1 that
                     ## seems to be spurious
-                    lines <- filtergrep("Warning: .drectve .* unrecognized", lines)
+                    lines <- grep("Warning: .drectve .* unrecognized",
+                                  lines, invert = TRUE, value = TRUE)
                 }
 
                 check_imports_flag <-
                     Sys.getenv("_R_CHECK_REPLACING_IMPORTS_", "TRUE")
                 if (!config_val_to_logical(check_imports_flag))
-                    lines <- filtergrep("Warning: replacing previous import", lines,
-                                        fixed = TRUE)
+                    lines <- grep("Warning: replacing previous import", lines,
+                                  fixed = TRUE, invert = TRUE, value = TRUE)
                 else {
                     this <- unique(grep("Warning: replacing previous import",
                                         lines, fixed = TRUE, value = TRUE))
                     this <- grep(paste0(sQuote(pkgname), "$"), this,
                                  value = TRUE)
-                    lines <- filtergrep("Warning: replacing previous import", lines,
-                                        fixed = TRUE)
+                    lines <- grep("Warning: replacing previous import", lines,
+                                  fixed = TRUE, invert = TRUE, value = TRUE)
                     lines <- c(lines, this)
                 }
                 check_FirstLib_flag <-
                     Sys.getenv("_R_CHECK_DOT_FIRSTLIB_", "FALSE")
                 if (!config_val_to_logical(check_FirstLib_flag))
-                    lines <- filtergrep("Warning: ignoring .First.lib()", lines,
-                                        fixed = TRUE)
+                    lines <- grep("Warning: ignoring .First.lib()", lines,
+                                  fixed = TRUE, invert = TRUE, value = TRUE)
 
                 lines <- unique(lines)
 
@@ -4450,14 +3977,6 @@ add_dummies <- function(dir, Log)
                     }
                     printLog0(Log, sprintf("See %s for details.\n",
                                            sQuote(outfile)))
-                    if(any(grepl("^Note:", lines, useBytes = TRUE)))
-                        wrapLog("Information on the location(s)",
-                                "of code generating the",
-                                paste0(sQuote("Note"), "s"),
-                                "can be obtained by re-running with",
-                                "environment variable R_KEEP_PKG_SOURCE",
-                                "set to 'yes'.\n")
-
                 } else if(length(notes)) {
                     noteLog(Log, "Found the following warnings:")
                     printLog0(Log, .format_lines_with_indent(notes), "\n")
@@ -4511,12 +4030,8 @@ add_dummies <- function(dir, Log)
                     sQuote(file.path(pkgname0, "DESCRIPTION")))
         if ("DESCRIPTION" %in% dir(pkgdir)) {
             f <- file.path(pkgdir, "DESCRIPTION")
-            desc <- tryCatch(.read_description(f), error = identity)
-            if(inherits(desc, "error")) {
-                errorLog(Log, conditionMessage(desc))
-                summaryLog(Log)
-                do_exit(1L)
-            } else if(!length(desc)) {
+            desc <- try(.read_description(f))
+            if (inherits(desc, "try-error") || !length(desc)) {
                 errorLog(Log, "File DESCRIPTION exists but is not in correct format")
                 summaryLog(Log)
                 do_exit(1L)
@@ -4553,21 +4068,20 @@ add_dummies <- function(dir, Log)
             summaryLog(Log)
             do_exit(1L)
         }
-        if(!is.na(desc["Type"])) { # standard packages do not have this
+        if (!is.na(desc["Type"])) { # standard packages do not have this
             checkingLog(Log, "extension type")
-            if(desc["Type"] != "Package") {
-                errorLog(Log,
-                         sprintf("Extensions with Type %s cannot be checked.",
-                                 sQuote(desc["Type"])))
+            resultLog(Log, desc["Type"])
+            if (desc["Type"] != "Package") {
+                printLog(Log,
+                         "Only 'Type = Package' extensions can be checked.\n")
                 summaryLog(Log)
                 do_exit(0L)
-            } else resultLog(Log, desc["Type"])
+            }
         }
-        if(!is.na(desc["Bundle"])) {
-            checkingLog(Log, "package bundle")
-            errorLog(Log,
-                     sprintf("Looks like %s is a package bundle -- they are defunct",
-                             sQuote(pkgname0)))
+        if (!is.na(desc["Bundle"])) {
+            messageLog(Log, "looks like ", sQuote(pkgname0),
+                       " is a package bundle -- they are defunct")
+            errorLog(Log, "")
             summaryLog(Log)
             do_exit(1L)
         }
@@ -4605,8 +4119,7 @@ add_dummies <- function(dir, Log)
                 errorLog(Log)
                 bad <- TRUE
             } else if(length(res$bad_version) ||
-                      length(res$strong_dependencies_not_in_mainstream_repositories) ||
-                      isTRUE(res$foss_with_BuildVignettes) ||
+                      identical(res$foss_with_BuildVignettes, TRUE) ||
                       res$Maintainer_invalid_or_multi_person ||
                       res$empty_Maintainer_name ||
                       res$Maintainer_needs_quotes)
@@ -4672,8 +4185,8 @@ add_dummies <- function(dir, Log)
                 msg <- if(length(bad) == 1L)
                     sprintf("  Namespace with empty importFrom: %s", sQuote(bad))
                 else
-                    paste0("  Namespaces with empty importFrom:\n",
-                           .pretty_format(sort(bad)))
+                    paste("  Namespaces with empty importFrom:",
+                          .pretty_format(sort(bad)), sep = "\n")
                 noteLog(Log, msg)
             }
             nS3methods <- nrow(ns$S3methods)
@@ -4685,7 +4198,7 @@ add_dummies <- function(dir, Log)
                 current <- as.numeric_version("3.0.1")
                 for(depends in deps) {
                     ## .check_package_description will insist on these operators
-                    if(depends$op %notin% c("<=", ">=", "<", ">", "==", "!="))
+                    if(!depends$op %in% c("<=", ">=", "<", ">", "==", "!="))
                         next
                     status <- if(inherits(depends$version, "numeric_version"))
                         !do.call(depends$op, list(current, depends$version))
@@ -4806,9 +4319,8 @@ add_dummies <- function(dir, Log)
                     ## Recognized extensions for sources or headers.
                     srcfiles <- dir(".", all.files = TRUE)
                     srcfiles <- srcfiles[!dir.exists(srcfiles)]
-                    srcfiles <- filtergrep(
-                        "(\\.([cfmCM]|cc|cpp|f90|f95|mm|h|o|so)$|^Makevars|-win\\.def|^install\\.libs\\.R$)",
-                        srcfiles)
+                    srcfiles <- grep("(\\.([cfmCM]|cc|cpp|f90|f95|mm|h|o|so)$|^Makevars|-win\\.def|^install\\.libs\\.R$)",
+                                     srcfiles, invert = TRUE, value = TRUE)
                     if (length(srcfiles)) {
                         if (!any) warningLog(Log)
                         any <- TRUE
@@ -4867,10 +4379,10 @@ add_dummies <- function(dir, Log)
 
     do_exit <-
 	if(no.q)
-	    function(status) (if(status) stop else message)(
+	    function(status = 1L) (if(status) stop else message)(
 		".check_packages() exit status ", status)
 	else
-	    function(status) q("no", status = status, runLast = FALSE)
+	    function(status = 1L) q("no", status = status, runLast = FALSE)
 
     maybe_exit <- function(status = 1L) {
 	if (R_check_exit_on_first_error) {
@@ -4963,7 +4475,7 @@ add_dummies <- function(dir, Log)
     if (is.na(td0)) td0 <- Inf
 
     ## A user might have turned on JIT compilation.  That does not
-    ## work well, so mostly disable it.
+    ## work well, so mostly disable it
     jit <- Sys.getenv("R_ENABLE_JIT")
     jitstr <- if(nzchar(jit)) {
         Sys.setenv(R_ENABLE_JIT = "0")
@@ -5113,15 +4625,7 @@ add_dummies <- function(dir, Log)
         multiarch <- FALSE
     }
 
-    install_log_path <- ""
-    if(startsWith(install, "check")) {
-        ## Expand relative to absolute if possible.
-        install_log_path <-
-            tryCatch(file_path_as_absolute(substr(install, 7L, 1000L)),
-                     error = function(e) "")
-    }
-
-    if (!isFALSE(multiarch)) {
+    if (!identical(multiarch, FALSE)) {
         ## see if there are multiple installed architectures, and if they work
         if (WINDOWS) {
             ## always has sub-archs as from R 2.12.0.
@@ -5174,8 +4678,7 @@ add_dummies <- function(dir, Log)
         config_val_to_logical(Sys.getenv("_R_CHECK_RD_XREFS_", "TRUE"))
     R_check_use_codetools <-
         config_val_to_logical(Sys.getenv("_R_CHECK_USE_CODETOOLS_", "TRUE"))
-    ## However, we cannot use this if we did not install the recommended
-    ## packages.
+    ## Howver, we cannot use this if we did not install the recommended packages
     if(R_check_use_codetools) {
         tmp <- tryCatch(find.package('codetools'), error = identity)
         if(inherits(tmp, "error")) R_check_use_codetools <- FALSE
@@ -5243,8 +4746,6 @@ add_dummies <- function(dir, Log)
     R_check_vignettes_skip_run_maybe <-
         config_val_to_logical(Sys.getenv("_R_CHECK_VIGNETTES_SKIP_RUN_MAYBE_",
                                          "FALSE"))
-    R_check_serialization <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_SERIALIZATION_", "FALSE"))
 
     if (!nzchar(check_subdirs)) check_subdirs <- R_check_subdirs_strict
 
@@ -5269,13 +4770,6 @@ add_dummies <- function(dir, Log)
         Sys.setenv("_R_CHECK_PACKAGE_DATASETS_SUPPRESS_NOTES_" = "TRUE")
         Sys.setenv("_R_CHECK_PACKAGES_USED_IGNORE_UNUSED_IMPORTS_" = "TRUE")
         Sys.setenv("_R_CHECK_NATIVE_ROUTINE_REGISTRATION_" = "TRUE")
-        Sys.setenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_" = "TRUE")
-        Sys.setenv("_R_CHECK_PRAGMAS_" = "TRUE")
-        Sys.setenv("_R_CHECK_COMPILATION_FLAGS_" = "TRUE")
-        if(!nzchar(Sys.getenv("_R_CHECK_R_DEPENDS_")))
-            Sys.setenv("_R_CHECK_R_DEPENDS_" = "warn")
-        ## until this is tested on Windows
-        Sys.setenv("_R_CHECK_R_ON_PATH_" = ifelse(WINDOWS, "FALSE", "TRUE"))
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE
@@ -5289,7 +4783,6 @@ add_dummies <- function(dir, Log)
         do_timings <- TRUE
         R_check_toplevel_files <- TRUE
         R_check_vignettes_skip_run_maybe <- TRUE
-        R_check_serialization <- TRUE
     } else {
         ## do it this way so that INSTALL produces symbols.rds
         ## when called from check but not in general.
@@ -5390,26 +4883,11 @@ add_dummies <- function(dir, Log)
             message(sprintf("ERROR: cannot create check dir %s", sQuote(pkgoutdir)))
             do_exit(1L)
         }
-
         Log <- newLog(file.path(pkgoutdir, "00check.log"))
-
-        messageLog(Log, "using log directory ", sQuote(pkgoutdir))
-        messageLog(Log, "using ", R.version.string)
-        messageLog(Log, "using platform: ", R.version$platform,
-                   " (", 8*.Machine$sizeof.pointer, "-bit)")
-        charset <-
-            if (l10n_info()[["UTF-8"]]) "UTF-8" else utils::localeToCharset()
-        messageLog(Log, "using session charset: ", charset)
-        is_ascii <- charset == "ASCII"
-
-        if(config_val_to_logical(Sys.getenv("_R_CHECK_R_ON_PATH_", "FALSE")))
-            add_dummies(file_path_as_absolute(pkgoutdir), Log)
-
         if (istar) {
             dir <- file.path(pkgoutdir, "00_pkg_src")
             dir.create(dir, mode = "0755")
             if (!dir.exists(dir)) {
-                checkingLog(Log, "whether tarball can be unpacked")
                 errorLog(Log, sprintf("cannot create %s", sQuote(dir)))
                 summaryLog(Log)
                 do_exit(1L)
@@ -5418,7 +4896,6 @@ add_dummies <- function(dir, Log)
             ## so e.g. .tar.xz works everywhere
             if (utils::untar(pkg, exdir = dir,
                              tar = Sys.getenv("R_INSTALL_TAR", "internal"))) {
-                checkingLog(Log, "whether tarball can be unpacked")
                 errorLog(Log, sprintf("cannot unpack %s", sQuote(pkg)))
                 summaryLog(Log)
                 do_exit(1L)
@@ -5429,14 +4906,9 @@ add_dummies <- function(dir, Log)
             ## to test that.
             pkg <- file.path(dir, pkgname0)
         }
-        if (!dir.exists(pkg)) {
-            checkingLog(Log, "package directory")
-            errorLog(Log,
-                     gettextf("package directory %s does not exist",
-                              sQuote(pkg)))
-            summaryLog(Log)
-            do_exit(1L)
-        }
+        if (!dir.exists(pkg))
+            stop(gettextf("package directory %s does not exist",
+                          sQuote(pkg)), domain = NA)
         setwd(pkg)
         pkgdir <- getwd()
         thispkg_src_subdirs <- thispkg_subdirs
@@ -5451,6 +4923,15 @@ add_dummies <- function(dir, Log)
             }
         }
         setwd(startdir)
+
+        messageLog(Log, "using log directory ", sQuote(pkgoutdir))
+        messageLog(Log, "using ", R.version.string)
+        messageLog(Log, "using platform: ", R.version$platform,
+                   " (", 8*.Machine$sizeof.pointer, "-bit)")
+        charset <-
+            if (l10n_info()[["UTF-8"]]) "UTF-8" else utils::localeToCharset()
+        messageLog(Log, "using session charset: ", charset)
+        is_ascii <- charset == "ASCII"
 
         .unpack.time <- Sys.time()
 
@@ -5475,12 +4956,6 @@ add_dummies <- function(dir, Log)
             messageLog(Log, "using options ", sQuote(paste(opts, collapse=" ")))
         else if (length(opts) == 1L)
             messageLog(Log, "using option ", sQuote(opts))
-
-        if(identical(config_val_to_logical(Sys.getenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_",
-                                                      "FALSE")),
-                     TRUE)) {
-            stop_on_test_error <- FALSE
-        }
 
         if (!nzchar(libdir)) { # otherwise have set R_LIBS above
             libdir <- pkgoutdir
@@ -5587,16 +5062,6 @@ add_dummies <- function(dir, Log)
 	    setwd(pkgdir)
             allfiles <- check_file_names()
             if (R_check_permissions) check_permissions(allfiles)
-            if (!is_base_pkg && R_check_serialization) {
-                ## We should not not do this if there is a dependence
-                ## on R >= 3.5.0, and we have to check that on the sources.
-                db <- .read_description("DESCRIPTION")
-                Rver <-.split_description(db, verbose = TRUE)$Rdepends2
-                if(length(Rver) && Rver[[1L]]$op == ">="
-                   && Rver[[1L]]$version >= "3.5.0") {
-                       ## skip
-                } else check_serialization(allfiles)
-            }
 	    setwd(startdir)
 
             ## record this before installation.
@@ -5639,20 +5104,13 @@ add_dummies <- function(dir, Log)
                     } else this_multiarch <- FALSE  # no compiled code
                 }
                 if (this_multiarch && length(R_check_skip_arch))
-                    inst_archs <- inst_archs %w/o% R_check_skip_arch
+                    inst_archs <- inst_archs[inst_archs %notin% R_check_skip_arch]
             }
         } else check_incoming <- FALSE  ## end of if (!is_base_pkg)
 
         elibs <- if(is_base_pkg) character()
         else if(R_check_depends_only)
             setRlibs(pkgdir = pkgdir, libdir = libdir)
-        else if(R_check_suggests_only)
-            setRlibs(pkgdir = pkgdir, libdir = libdir, suggests = TRUE)
-        else character()
-
-        elibs_tests <- if(is_base_pkg) character()
-        else if(R_check_depends_only)
-            setRlibs(pkgdir = pkgdir, libdir = libdir, tests = TRUE)
         else if(R_check_suggests_only)
             setRlibs(pkgdir = pkgdir, libdir = libdir, suggests = TRUE)
         else character()

@@ -622,6 +622,14 @@ f
 ## was  [1] C A; Levels:  C A  in 1.4.1
 
 
+## PR#1408 Inconsistencies in sum()
+x <- as.integer(2^30)
+sum(x, x)    # did not warn in 1.4.1
+sum(c(x, x)) # did warn
+(z <- sum(x, x, 0.0)) # was NA in 1.4.1
+typeof(z)
+
+
 ## NA levels in factors
 (x <- factor(c("a", "NA", "b"), exclude=NULL))
 ## 1.4.1 had wrong order for levels
@@ -2415,7 +2423,7 @@ try(complete.cases(list(), list()))
 
 ## error messages from (C-level) evalList
 tst <- function(y) { stopifnot(is.numeric(y)); y+ 1 }
-try(tst()) # even nicer since R 3.5.0's change to sequential stopifnot()
+try(tst())
 try(c(1,,2))
 ## change in 2.8.0 made these less clear
 
@@ -3038,30 +3046,3 @@ summary(1L)
 ## str.default() for "AsIs" arrays
 str(I(m <- matrix(pi*1:4, 2)))
 ## did look ugly (because of toString() for numbers) in R <= 3.3.1
-
-
-## check automatic coercions from double to integer
-##
-## these should work due to coercion
-sprintf("%d", 1)
-sprintf("%d", NA_real_)
-sprintf("%d", c(1,2))
-sprintf("%d", c(1,NA))
-sprintf("%d", c(NA,1))
-##
-## these should fail
-sprintf("%d", 1.1)
-sprintf("%d", c(1.1,1))
-sprintf("%d", c(1,1.1))
-sprintf("%d", NaN)
-sprintf("%d", c(1,NaN))
-
-
-## formatting of named raws:
-setNames(as.raw(1:3), c("a", "bbbb", "c"))
-## was quite ugly for R <= 3.4.2
-
-
-## str(x) when is.vector(x) is false :
-str(structure(c(a = 1, b = 2:7), color = "blue"))
-## did print " atomic [1:7] ..." in R <= 3.4.x

@@ -27,7 +27,7 @@ Sys.getenv <- function(x = NULL, unset = "", names = NA)
 	    n[i] <- x[[i]][1L]
 	    v[i] <- paste(x[[i]][-1L], collapse = "=")
 	}
-	if (isFALSE(names))
+	if (identical(names, FALSE))
 	    v[sort.list(n)]
 	else { # with names
 	    v <- structure(v, names = n)
@@ -36,7 +36,7 @@ Sys.getenv <- function(x = NULL, unset = "", names = NA)
 	}
     } else {
         v <- .Internal(Sys.getenv(as.character(x), as.character(unset)))
-	if (isTRUE(names) || (length(x) > 1L && !isFALSE(names)))
+	if (isTRUE(names) || (length(x) > 1L && !identical(names, FALSE)))
             structure(v, names = x)
         else v
     }

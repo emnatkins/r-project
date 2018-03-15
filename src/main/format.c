@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2018  The R Core Team.
+ *  Copyright (C) 1997--2016  The R Core Team.
  *  Copyright (C) 2003--2016  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -47,13 +47,13 @@
 
 /* this is just for conformity with other types */
 attribute_hidden
-void formatRaw(const Rbyte *x, R_xlen_t n, int *fieldwidth)
+void formatRaw(Rbyte *x, R_xlen_t n, int *fieldwidth)
 {
     *fieldwidth = 2;
 }
 
 attribute_hidden
-void formatString(const SEXP *x, R_xlen_t n, int *fieldwidth, int quote)
+void formatString(SEXP *x, R_xlen_t n, int *fieldwidth, int quote)
 {
     int xmax = 0;
     int l;
@@ -67,7 +67,7 @@ void formatString(const SEXP *x, R_xlen_t n, int *fieldwidth, int quote)
     *fieldwidth = xmax;
 }
 
-void formatLogical(const int *x, R_xlen_t n, int *fieldwidth)
+void formatLogical(int *x, R_xlen_t n, int *fieldwidth)
 {
     *fieldwidth = 1;
     for(R_xlen_t i = 0 ; i < n; i++) {
@@ -84,7 +84,7 @@ void formatLogical(const int *x, R_xlen_t n, int *fieldwidth)
     }
 }
 
-void formatInteger(const int *x, R_xlen_t n, int *fieldwidth)
+void formatInteger(int *x, R_xlen_t n, int *fieldwidth)
 {
     int xmin = INT_MAX, xmax = INT_MIN, naflag = 0;
     int l;
@@ -122,12 +122,11 @@ void formatInteger(const int *x, R_xlen_t n, int *fieldwidth)
  * Using GLOBAL	 R_print.digits	 -- had	 #define MAXDIG R_print.digits
 */
 
-/*  Very likely everyone has nearbyintl now (2018), but it took until
-    2012 for FreeBSD to get it, and longer for Cygwin.
-*/
+/* long double is C99, so should always be defined but may be slow */
 #if defined(HAVE_LONG_DOUBLE) && (SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE)
 # ifdef HAVE_NEARBYINTL
 # define R_nearbyintl nearbyintl
+/* Cygwin had rintl but not nearbyintl */
 # elif defined(HAVE_RINTL)
 # define R_nearbyintl rintl
 # else
@@ -144,6 +143,15 @@ LDOUBLE private_nearbyintl(LDOUBLE x)
         if (x/2.0 == floorl(x/2.0)) return(x); else return(x1);
     }
 }
+# endif
+# else /* no long double */
+# ifdef HAVE_NEARBYINT
+#  define R_nearbyint nearbyint
+# elif defined(HAVE_RINT)
+#  define R_nearbyint rint
+# else
+#  define R_nearbyint private_rint
+#  include "nmath2.h" // for private_rint
 # endif
 #endif
 
@@ -182,7 +190,7 @@ static const double tbl[] =
 #endif
 
 static void
-scientific(const double *x, int *neg, int *kpower, int *nsig, Rboolean *roundingwidens)
+scientific(double *x, int *neg, int *kpower, int *nsig, Rboolean *roundingwidens)
 {
     /* for a number x , determine
      *	neg    = 1_{x < 0}  {0/1}
@@ -221,7 +229,6 @@ scientific(const double *x, int *neg, int *kpower, int *nsig, Rboolean *rounding
             if (kp > 0) r_prec /= tbl[kp+1]; else if (kp < 0) r_prec *= tbl[ -kp+1];
         }
 #ifdef HAVE_POWL
-	// powl is C99 but only added to FreeBSD in 2017.
 	else
             r_prec /= powl(10.0, (long double) kp);
 #else
@@ -238,13 +245,13 @@ scientific(const double *x, int *neg, int *kpower, int *nsig, Rboolean *rounding
 	   accuracy limited by double rounding problem,
 	   alpha already rounded to 64 bits */
         alpha = (double) R_nearbyintl(r_prec);
-#else /* not using long doubles */
+#else
 	double r_prec = r;
         /* use exact scaling factor in double precision, if possible */
         if (abs(kp) <= 22) {
             if (kp >= 0) r_prec /= tbl[kp+1]; else r_prec *= tbl[ -kp+1];
         }
-        /* For IEC60559 1e-308 is not representable except by gradual underflow.
+        /* on IEEE 1e-308 is not representable except by gradual underflow.
            Shifting by 303 allows for any potential denormalized numbers x,
            and makes the reasonable assumption that R_dec_min_exponent+303
            is in range. Representation of 1e+303 has low error.
@@ -260,7 +267,7 @@ scientific(const double *x, int *neg, int *kpower, int *nsig, Rboolean *rounding
         /* round alpha to integer, 10^(digits-1) <= alpha <= 10^digits */
         /* accuracy limited by double rounding problem,
 	   alpha already rounded to 53 bits */
-        alpha = nearbyint(r_prec);
+        alpha = R_nearbyint(r_prec);
 #endif
         *nsig = R_print.digits;
         for (j = 1; j <= R_print.digits; j++) {
@@ -302,7 +309,7 @@ scientific(const double *x, int *neg, int *kpower, int *nsig, Rboolean *rounding
    it is 0 except when called from do_format.
 */
 
-void formatReal(const double *x, R_xlen_t n, int *w, int *d, int *e, int nsmall)
+void formatReal(double *x, R_xlen_t n, int *w, int *d, int *e, int nsmall)
 {
     int left, right, sleft;
     int mnl, mxl, rgt, mxsl, mxns, wF;
@@ -387,12 +394,11 @@ void formatReal(const double *x, R_xlen_t n, int *w, int *d, int *e, int nsmall)
     if (neginf && *w < 4) *w = 4;
 }
 
-/*   From complex.c. */
-void z_prec_r(Rcomplex *r, const Rcomplex *x, double digits);
-
 /* As from 2.2.0 the number of digits applies to real and imaginary parts
    together, not separately */
-void formatComplex(const Rcomplex *x, R_xlen_t n, int *wr, int *dr, int *er,
+void z_prec_r(Rcomplex *r, Rcomplex *x, double digits);
+
+void formatComplex(Rcomplex *x, R_xlen_t n, int *wr, int *dr, int *er,
 		   int *wi, int *di, int *ei, int nsmall)
 {
 /* format.info() for  x[1..n] for both Re & Im */

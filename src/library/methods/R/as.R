@@ -50,16 +50,16 @@ as <-
             if(is(object, Class)) {
                 ClassDef <- getClassDef(Class, where)
                 ## use the ext information, computed or supplied
-                if(isFALSE(ext))
+                if(identical(ext, FALSE))
                     stop(sprintf("internal problem in as(): %s is(object, \"%s\") is TRUE, but the metadata asserts that the 'is' relation is FALSE",
                                  dQuote(thisClass), Class),
                          domain = NA)
-                else if(isTRUE(ext))
+                else if(identical(ext, TRUE))
                     asMethod <- .makeAsMethod(quote(from), TRUE, Class, ClassDef, where)
                 else {
                   test <- ext@test
                   asMethod <- .makeAsMethod(ext@coerce, ext@simple, Class, ClassDef, where)
-                  canCache <- (!is(test, "function")) || isTRUE(body(test))
+                  canCache <- (!is(test, "function")) || identical(body(test), TRUE)
                  }
             }
             if(is.null(asMethod) && extends(Class, thisClass)) {
@@ -163,14 +163,14 @@ as <-
         if(is.null(asMethod)) {
             if(is(object, Class)) {
                 asMethod <- possibleExtends(thisClass, Class)
-                if(isTRUE(asMethod)) {# trivial, probably identical classes
+                if(identical(asMethod, TRUE)) {# trivial, probably identical classes
                     class(value) <- class(object)
                     return(value)
                 }
                 else {
                     test <- asMethod@test
                     asMethod <- asMethod@replace
-                    canCache <- (!is(test, "function")) || isTRUE(body(test))
+                    canCache <- (!is(test, "function")) || identical(body(test), TRUE)
                     if(canCache) { ##the replace code is a bare function
                         ClassDef <- getClassDef(Class, where)
                         asMethod <- .asCoerceMethod(asMethod, thisClass, ClassDef, TRUE, where)
@@ -210,7 +210,7 @@ setAs <-
         test <- NULL
         setIs(from, to, test = test, coerce = def, replace = replace, where = where)
     }
-    else if(isTRUE(extds)) {
+    else if(identical(extds, TRUE)) {
         if(.identC(from, to))
             stop(gettextf("trying to set an 'as' relation from %s to itself",
                           dQuote(.class1(from))),
@@ -288,7 +288,6 @@ setAs <-
       }, where = where)
   basics <- c(
  "POSIXct",  "POSIXlt", "Date",  "array",  "call",  "character",  "complex",  "data.frame",
- ## "double",
  "environment",  "expression",  "factor",  "formula",  "function",  "integer",
  "list",  "logical",  "matrix",  "name",  "numeric",  "ordered",
   "single",  "table",   "vector")
@@ -341,7 +340,6 @@ setAs <-
   setMethod("coerce", c("ANY","name"), method, where = where)
   ## Proposed on R-devel, Dec. 7, 2015, by JMC, this is too radical,
   ## coercing to "double" in too many cases where "numeric" data remained "integer":
-  ## JMC, on Dec. 11 added that a setDataPart() special-case hack would be needed additionally
   ## setMethod("coerce", c("integer", "numeric"),
   ##           ## getMethod("coerce", c("ANY", "numeric"), where = envir) -- not yet available
   ##           function (from, to, strict = TRUE) {

@@ -128,7 +128,7 @@ sQuote <- function(x)
     before <- after <- "'"
     q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
-        if(isTRUE(q)) {
+        if(identical(q, TRUE)) {
             li <- l10n_info()
             if(li$"UTF-8") q <- "UTF-8"
             if(!is.null(li$codepage) && li$codepage > 0L) {
@@ -136,11 +136,9 @@ sQuote <- function(x)
                 ## it is in latin1 in CP1252
                 if(li$codepage >= 1250L && li$codepage <= 1258L
                    || li$codepage == 874L) {
-                    before <- rawToChar(as.raw(0x91))
-                    after <- rawToChar(as.raw(0x92))
+                    before <- "\x91"; after <- "\x92"
                 } else {
-                    z <- iconv(c(intToUtf8(0x2018), intToUtf8(0x2019)),
-                               "UTF-8", "")
+                    z <- iconv(c("\xe2\x80\x98", "\xe2\x80\x99"), "UTF-8", "")
                     before <- z[1L]; after <- z[2L]
                 }
             }
@@ -149,11 +147,14 @@ sQuote <- function(x)
             before <- "`"; after <- "'"
         }
         if(identical(q, "UTF-8")) {
-            before <- intToUtf8(0x2018); after <- intToUtf8(0x2019)
+            before <- "\xe2\x80\x98"; after <- "\xe2\x80\x99"
         }
         if(is.character(q) && length(q) >= 4L) {
             before <- q[1L]; after <- q[2L]
         }
+        ## we do not want these strings marked as in the encoding
+        ## R was built under
+        Encoding(before) <- Encoding(after) <- "unknown"
     }
     paste0(before, x, after)
 }
@@ -164,17 +165,15 @@ dQuote <- function(x)
     before <- after <- "\""
     q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
-        if(isTRUE(q)) {
+        if(identical(q, TRUE)) {
             li <- l10n_info()
             if(li$"UTF-8") q <- "UTF-8"
             if(!is.null(li$codepage) && li$codepage > 0L) {
                 if(li$codepage >= 1250L && li$codepage <= 1258L
                     || li$codepage == 874L) {
-                    before <- rawToChar(as.raw(0x93))
-                    after <- rawToChar(as.raw(0x94))
+                    before <- "\x93"; after <- "\x94"
                 } else {
-                    z <- iconv(c(intToUtf8(0x201c), intToUtf8(0x201d)),
-                               "UTF-8", "")
+                    z <- iconv(c("\xe2\x80\x9c", "\xe2\x80\x9d"), "UTF-8", "")
                     before <- z[1L]; after <- z[2L]
                 }
             }
@@ -183,11 +182,12 @@ dQuote <- function(x)
             before <- "``"; after <- "''"
         }
         if(identical(q, "UTF-8")) {
-            before <- intToUtf8(0x201c); after <- intToUtf8(0x201d)
+            before <- "\xe2\x80\x9c"; after <- "\xe2\x80\x9d"
         }
         if(is.character(q) && length(q) >= 4L) {
             before <- q[3L]; after <- q[4L]
         }
+        Encoding(before) <- Encoding(after) <- "unknown"
     }
     paste0(before, x, after)
 }

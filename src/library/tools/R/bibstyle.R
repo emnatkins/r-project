@@ -90,7 +90,7 @@ makeJSS <- function() {
     fmtISSN <- label(prefix="ISSN ")
     fmtInstitution <- plainclean
     fmtNote <- plainclean
-    fmtPages <- plain
+    fmtPages <- label(prefix="pp. ")
     fmtSchool <- plainclean
     fmtTechreportnumber <- labelclean(prefix="Technical Report ")
     fmtUrl <- label(prefix="\\url{", suffix="}")
@@ -131,8 +131,9 @@ makeJSS <- function() {
     # Format all authors for one paper
     authorList <- function(paper) {
         names <- sapply(paper$author, shortName)
-        if (length(names) > 1L)
-            result <- paste(names, collapse = ", ")
+        if (length(names) > 1)
+            result <- paste( paste(names[-length(names)], collapse=", "),
+                            "and", names[length(names)])
         else
             result <- names
         result
@@ -141,8 +142,9 @@ makeJSS <- function() {
     # Format all editors for one paper
     editorList <- function(paper) {
         names <- sapply(paper$editor, shortName)
-        if (length(names) > 1L)
-            result <- paste(paste(names, collapse = ", "), "(eds.)")
+        if (length(names) > 1)
+            result <- paste( paste(names[-length(names)], collapse=", "),
+                            "and", names[length(names)], "(eds.)")
         else if (length(names))
             result <- paste(names, "(ed.)")
         else

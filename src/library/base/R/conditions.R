@@ -44,19 +44,10 @@ tryCatch <- function(expr, ..., finally) {
 	# the handler is invoked; we only get to this point if the handler
 	# is invoked.  If we get here then the handler will have been
 	# popped off the internal handler stack.
-	if (is.null(value[[1L]])) {
-	    # a simple error; message is stored internally
-	    # and call is in result; this defers all allocs until
-	    # after the jump
-	    msg <- .Internal(geterrmessage())
-	    call <- value[[2L]]
-	    cond <- simpleError(msg, call)
-	}
-        else if (is.character(value[[1L]])) {
-            # if the jump for a simple error is intercepted to handle
-            # an on.exit() action then the error message is encoded as
-            # a character object at that point
-	    msg <- value[[1L]]
+        if (is.character(value[[1L]])) {
+	    # a simple error; only the msg string is allocated before
+	    # the jump
+            msg <- value[1L]
 	    call <- value[[2L]]
 	    cond <- simpleError(msg, call)
         }

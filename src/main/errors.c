@@ -128,7 +128,9 @@ void R_CheckUserInterrupt(void)
        concurrency support. LT */
 
     R_ProcessEvents(); /* Also processes timing limits */
+#ifndef Win32
     if (R_interrupts_pending) onintr();
+#endif
 }
 
 static SEXP getInterruptCondition();
@@ -815,11 +817,12 @@ void NORET errorcall_cpy(SEXP call, const char *format, ...)
     errorcall(call, "%s", buf);
 }
 
-// geterrmessage(): Return (the global) 'errbuf' as R string
 SEXP attribute_hidden do_geterrmessage(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+    SEXP res;
+
     checkArity(op, args);
-    SEXP res = PROTECT(allocVector(STRSXP, 1));
+    PROTECT(res = allocVector(STRSXP, 1));
     SET_STRING_ELT(res, 0, mkChar(errbuf));
     UNPROTECT(1);
     return res;
@@ -1519,41 +1522,13 @@ static SEXP mkHandlerEntry(SEXP klass, SEXP parentenv, SEXP handler, SEXP rho,
 #define ENTRY_TARGET_ENVIR(e) VECTOR_ELT(e, 3)
 #define ENTRY_RETURN_RESULT(e) VECTOR_ELT(e, 4)
 
-#define RESULT_SIZE 4
-
-static SEXP R_HandlerResultToken = NULL;
-
-void attribute_hidden R_FixupExitingHandlerResult(SEXP result)
-{
-    /* The internal error handling mechanism stores the error message
-       in 'errbuf'.  If an on.exit() action is processed while jumping
-       to an exiting handler for such an error, then endcontext()
-       calls R_FixupExitingHandlerResult to save the error message
-       currently in the buffer before processing the on.exit
-       action. This is in case an error occurs in the on.exit action
-       that over-writes the buffer. The allocation should occur in a
-       more favorable stack context than before the jump. The
-       R_HandlerResultToken is used to make sure the result being
-       modified is associated with jumping to an exiting handler. */
-    if (result != NULL &&
-	TYPEOF(result) == VECSXP &&
-	XLENGTH(result) == RESULT_SIZE &&
-	VECTOR_ELT(result, 0) == R_NilValue &&
-	VECTOR_ELT(result, RESULT_SIZE - 1) == R_HandlerResultToken) {
-	SET_VECTOR_ELT(result, 0, mkString(errbuf));
-    }
-}
+#define RESULT_SIZE 3
 
 SEXP attribute_hidden do_addCondHands(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP classes, handlers, parentenv, target, oldstack, newstack, result;
     int calling, i, n;
     PROTECT_INDEX osi;
-
-    if (R_HandlerResultToken == NULL) {
-	R_HandlerResultToken = allocVector(VECSXP, 1);
-	R_PreserveObject(R_HandlerResultToken);
-    }
 
     checkArity(op, args);
 
@@ -1574,7 +1549,6 @@ SEXP attribute_hidden do_addCondHands(SEXP call, SEXP op, SEXP args, SEXP rho)
     oldstack = R_HandlerStack;
 
     PROTECT(result = allocVector(VECSXP, RESULT_SIZE));
-    SET_VECTOR_ELT(result, RESULT_SIZE - 1, R_HandlerResultToken);
     PROTECT_WITH_INDEX(newstack = oldstack, &osi);
 
     for (i = n - 1; i >= 0; i--) {
@@ -1678,7 +1652,17 @@ static void vsignalError(SEXP call, const char *format, va_list ap)
 		UNPROTECT(4);
 	    }
 	}
-	else gotoExitingHandler(R_NilValue, call, entry);
+	else {
+	    /* Allocating the string here before the jump is not ideal
+	       but allows use of tryCatch expressions in on.exit
+	       calls. The altarnative would be to allocate a buffer
+	       for each tryCatch, but that seems excessive. */
+	    PROTECT(entry);
+	    SEXP msg = mkString(errbuf);
+	    UNPROTECT(1);
+	    gotoExitingHandler(msg, call, entry);
+
+	}
     }
     R_HandlerStack = oldstack;
 }
@@ -2101,14 +2085,12 @@ SEXP R_tryCatch(SEXP (*body)(void *), void *bdata,
 	.fdata = fdata
     };
 
-    if (conds == NULL) conds = allocVector(STRSXP, 0);
-    PROTECT(conds);
     SEXP fin = finally != NULL ? R_TrueValue : R_FalseValue;
     SEXP tcdptr = R_MakeExternalPtr(&tcd, R_NilValue, R_NilValue);
     SEXP expr = lang4(trycatch_callback, tcdptr, conds, fin);
     PROTECT(expr);
     SEXP val = eval(expr, R_GlobalEnv);
-    UNPROTECT(2); /* conds, expr */
+    UNPROTECT(1); /* expr */
     return val;
 }
 

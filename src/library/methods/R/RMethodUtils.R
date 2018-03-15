@@ -799,9 +799,9 @@ getGenerics <- function(where, searchForm = FALSE)
     attr(funNames, "package") <- packageNames
     ## Would prefer following, but may be trouble bootstrapping methods
     ## funNames <- new("ObjectsWithPackage", funNames, package = packageNames)
-    if(isTRUE(trim))
+    if(identical(trim, TRUE))
         funNames
-    else if(isFALSE(trim))
+    else if(identical(trim, FALSE))
         these
     else
         gsub(".__T__", as.character(trim), these)
@@ -1494,10 +1494,20 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
     (is.name(value) && nzchar(as.character(value)) )
     fg <- formals(generic)
     mg <- formals(method)
-    emptyDef <- vapply(mg, emptyDefault, logical(1L))
-    mg <- mg[!emptyDef]
-    i <- match(names(fg), names(mg))
-    formals(generic)[!is.na(i)] <- mg[i[!is.na(i)]]
+    mgn <- names(mg)
+    changed <- FALSE
+    for(what in names(fg)) {
+        i <- match(what, mgn, 0L)
+        if(i > 0L) {
+            deflt <- mg[[i]]
+            if(!(emptyDefault(deflt) || identical(deflt, fg[[what]]))) {
+                fg[[what]] <- deflt
+                changed <- TRUE
+            }
+        }
+    }
+    if(changed)
+        formals(generic) <- fg
     generic
 }
 
@@ -1654,7 +1664,7 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
 }
 
 .isSingleString <- function(what)
-  is.character(what) && isTRUE(nzchar(what))
+  is.character(what) && identical(nzchar(what), TRUE)
 
 .notSingleString <- function(what)
 {
@@ -1677,7 +1687,7 @@ utils::globalVariables(c(".MTable", ".AllMTable", ".dotsCall"))
 ## a utility to exclude various annoying glitches during
 ## loading of the methods package
 .methodsIsLoaded <- function()
-    isTRUE(.saveImage)
+    identical(.saveImage, TRUE)
 
 if(FALSE) {
 ## Defined but not currently used:

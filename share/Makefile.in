@@ -90,18 +90,18 @@ install-zoneinfo:
 
 uninstall:
 	@$(ECHO) "uninstalling share ..."
-	@rm -Rf "$(DESTDIR)$(rsharedir)"
+	@rm -rf "$(DESTDIR)$(rsharedir)"
 
 ## we cannot remove make/vars.mk until distclean as etc/Makeconf includes it.
 mostlyclean:
 clean:
-	@rm -Rf locale
+	@rm -rf locale
 
 distclean:
 	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
-	  rm -Rf $(SUBDIRS_WITH_NO_BUILD); \
+	  rm -rf $(SUBDIRS_WITH_NO_BUILD); \
 	fi
-	-@rm -Rf zoneinfo
+	-@rm -rf zoneinfo
 	-@rm -f Makefile
 maintainer-clean: distclean
 

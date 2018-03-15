@@ -24,7 +24,6 @@
 %% moved from trace.Rd in 2.11.0
 \alias{.primTrace}
 \alias{.primUntrace}
-\alias{.Date}
 \alias{.POSIXct}
 \alias{.POSIXlt}
 \alias{.difftime}
@@ -52,15 +51,6 @@
 \alias{.C_R_startbcprof}
 \alias{.C_R_stopbcprof}
 
-#ifdef windows
-\alias{.fixupGFortranStderr}
-\alias{.fixupGFortranStdout}
-#endif
-
-\alias{SORT_ENUM}
-\alias{isWrappable}
-\alias{.makeSortEnum}
-\alias{.doWrap}
 \title{Internal Objects in Package \pkg{base}}
 \description{% 'most': see e.g., .mapply
   Internal objects in the base package most of which are only user-visible
@@ -97,10 +87,9 @@ lazyLoadDBfetch(key, file, compressed, hook)
 .primTrace(obj)
 .primUntrace(obj)
 
-.Date(xx, cl = "Date")
-.POSIXct(xx, tz = NULL, cl = c("POSIXct", "POSIXt"))
-.POSIXlt(xx, tz = NULL, cl = c("POSIXlt", "POSIXt"))
-.difftime(xx, units, cl = "difftime")
+.POSIXct(xx, tz = NULL)
+.POSIXlt(xx, tz = NULL)
+.difftime(xx, units)
 
 .cache_class(class, extends)
 
@@ -111,11 +100,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
 .detach(pos)
 
 .maskedMsg(same, pkg, by)
-
-#ifdef windows
-.fixupGFortranStdout()
-.fixupGFortranStderr()
-#endif
 }
 \arguments{
   \item{x}{object from which to extract elements.}
@@ -150,8 +134,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
   \item{obj}{an \R object.}
   \item{xx}{a classless object to be placed into the class.}
   \item{tz}{an optional time zone.}
-  \item{cl}{an optional character vector of classes \emph{containing}
-    the default classes.}
   \item{units}{see \code{\link{difftime}}.}
   \item{\dots}{Arguments passed to non-dot name versions.}
     \item{FUN}{function to apply, found via \code{\link{match.fun}}.}
@@ -230,8 +212,8 @@ lazyLoadDBfetch(key, file, compressed, hook)
   functions underlying \code{\link{trace}} and \code{\link{untrace}}
   respectively.
 
-  \code{.Date}, \code{.POSIXct}, \code{.POSIXlt} and \code{.difftime}
-  are class generators.
+  \code{.POSIXct}, \code{.POSIXlt} and \code{.difftime} are class
+  generators.
 
   \code{.cache_class} caches the inheritance of an S4 class for use in
   S3 method dispatch.  With \code{NULL} second argument it returns the
@@ -248,13 +230,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
 
   Objects starting \code{.C_} and \code{.F_} are references to
   registered C and Fortran entry points.
-
-#ifdef windows
-  \code{.fixupGFortranStdout} and \code{.fixupGFortranStderr} are helper functions
-  to enable standard output and standard error units in \code{gfortran} when
-  executing external code via \code{system} and \code{system2}. By default, these
-  units are disabled by the Windows profile when running inside RGui.
-#endif
 }
 \value{
   \code{.getRequiredPackages} and \code{.getRequiredPackages2}
