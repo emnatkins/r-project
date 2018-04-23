@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2018-04-21 r74623) -- "Unsuffered Consequences"
+R version 3.5.0 RC (2018-04-15 r74605) -- "Joy in Playing"
 Copyright (C) 2018 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -255,24 +255,6 @@ Hair    Brown Blue Hazel Green
 > # one way to have a custom x axis
 > plot(1:10, xaxt = "n")
 > axis(1, xaxp = c(2, 9, 7))
-> 
-> ## Changing default gap between labels:
-> plot(0:100, type="n", axes=FALSE, ann=FALSE)
-> title(quote("axis(1, .., gap.axis = f)," ~~ f >= 0))
-> axis(2, at = 5*(0:20), las = 1, gap.axis = 1/4)
-> gaps <- c(4, 2, 1, 1/2, 1/4, 0.1, 0)
-> chG <- paste0(ifelse(gaps == 1, "default:  ", ""),
-+               "gap.axis=", formatC(gaps))
-> jj <- seq_along(gaps)
-> linG <- -2.5*(jj-1)
-> for(j in jj) {
-+     isD <- gaps[j] == 1 # is default
-+     axis (1, at=5*(0:20), gap.axis = gaps[j], padj=-1, line = linG[j],
-+           col.axis = if(isD) "forest green" else 1, font.axis= 1+isD)
-+ }
-> mtext(chG, side=1, padj=-1, line = linG -1/2, cex=3/4,
-+       col = ifelse(gaps == 1, "forest green", "blue3"))
-> ## now shrink the window (in x- and y-direction) and observe the axis labels drawn
 > 
 > 
 > 
@@ -2099,7 +2081,7 @@ N
 > points.default # to see how it calls "plot.xy(xy.coords(x, y), ...)"
 function (x, y = NULL, type = "p", ...) 
 plot.xy(xy.coords(x, y), type = type, ...)
-<bytecode: 0x2d223c0>
+<bytecode: 0x3b8a770>
 <environment: namespace:graphics>
 > 
 > 
@@ -2969,7 +2951,7 @@ function (xy = 1, warn.log = TRUE)
     u <- par("usr")
     xy * c(u[2L] - u[1L], u[4L] - u[3L])/par("pin")
 }
-<bytecode: 0x2628910>
+<bytecode: 0x23b5348>
 <environment: namespace:graphics>
 > 
 > ## plot labels offset 0.12 inches to the right
@@ -3050,7 +3032,7 @@ function (xy = 1, warn.log = TRUE)
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  3.165 0.088 3.271 0 0 
+Time elapsed:  2.801 0.055 2.871 0 0 
 > grDevices::dev.off()
 null device 
           1 

@@ -401,7 +401,7 @@ SEXP dispatchMethod(SEXP op, SEXP sxp, SEXP dotClass, RCNTXT *cptr, SEXP method,
 	SET_RSTEP(sxp, 1);
     }
 
-    SEXP newcall =  PROTECT(shallow_duplicate(cptr->call));
+    SEXP newcall =  PROTECT(duplicate(cptr->call));
     SETCAR(newcall, method);
     R_GlobalContext->callflag = CTXT_GENERIC;
     SEXP matchedarg = PROTECT(cptr->promargs); /* ? is this PROTECT needed ? */
@@ -479,9 +479,6 @@ SEXP attribute_hidden NORET do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env
     RCNTXT *cptr;
     static SEXP do_usemethod_formals = NULL;
 
-    static int lookup_use_topenv_as_defenv = -1;
-    char *lookup;
-
     if (do_usemethod_formals == NULL)
 	do_usemethod_formals = allocFormalsList2(install("generic"),
 						 install("object"));
@@ -494,11 +491,6 @@ SEXP attribute_hidden NORET do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env
     if(!isString(generic) || LENGTH(generic) != 1)
 	errorcall(call, _("'generic' argument must be a character string"));
 
-    if(lookup_use_topenv_as_defenv == -1) {
-	lookup = getenv("_R_S3_METHOD_LOOKUP_USE_TOPENV_AS_DEFENV_");
-	lookup_use_topenv_as_defenv = 
-	    ((lookup != NULL) && StringTrue(lookup)) ? 1 : 0;
-    }
 
     /* get environments needed for dispatching.
        callenv = environment from which the generic was called
@@ -519,15 +511,10 @@ SEXP attribute_hidden NORET do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env
 	The generic need not be a closure (Henrik Bengtsson writes
 	UseMethod("$"), although only functions are documented.)
     */
-    if(lookup_use_topenv_as_defenv) {
-	defenv = topenv(R_NilValue, env);
-    } else {
-	val = findVar1(installTrChar(STRING_ELT(generic, 0)),
-		       ENCLOS(env), FUNSXP, TRUE); /* That has evaluated
-						    * promises */
-	if(TYPEOF(val) == CLOSXP) defenv = CLOENV(val);
-	else defenv = R_BaseNamespace;
-    }
+    val = findVar1(installTrChar(STRING_ELT(generic, 0)),
+		   ENCLOS(env), FUNSXP, TRUE); /* That has evaluated promises */
+    if(TYPEOF(val) == CLOSXP) defenv = CLOENV(val);
+    else defenv = R_BaseNamespace;
 
     if (CADR(argList) != R_MissingArg)
 	PROTECT(obj = eval(CADR(argList), env));

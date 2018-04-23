@@ -1262,9 +1262,8 @@ if(FALSE) {
                 opts <- paste(if(deps_only) "--vanilla" else "--no-save",
                               "--slave")
                 out <- R_runR(cmd, opts, env = env, timeout = tlim)
-                if(length(out)) {
+                if(length(out))
                     cat(paste(c(out, ""), collapse = "\n"))
-                }
                 if(length(attr(out, "status")))
                     errmsg("loading failed") # does not return
             }

@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2018-03-29 r74484) -- "Unsuffered Consequences"
+R version 3.5.0 RC (2018-04-15 r74605) -- "Joy in Playing"
 Copyright (C) 2018 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -408,4 +408,4 @@ log(u)       0.015569 0.00033659  46.256 5.7704e-10
 > 
 > proc.time()
    user  system elapsed 
-  0.264   0.051   0.295 
+  0.275   0.043   0.300 

@@ -1698,34 +1698,6 @@ sort(1:3, decreasing = FALSE, na.last = NA)
 sort(1:3, decreasing = FALSE, na.last = TRUE)
 sort(1:3, decreasing = FALSE, na.last = FALSE)
 
-## match.arg()s 'choices' evaluation, PR#17401
-f <- function(x = y) {
-    y <- c("a", "b")
-    match.arg(x)
-}
-stopifnot(identical(f(), "a"))
-## failed in R <= 3.4.x
-
-
-## getOption(op, def) -- where 'def' is missing (passed down):
-getO <- function(op, def) getOption(op, def)
-stopifnot(is.null(getO("foobar")))
-## failed for a few days in R-devel, when using MD's proposal of PR#17394,
-## notably "killing"  parallelMap::getParallelOptions()
-
-
-## Mantel-Haenszel test in "large" case, PR#17383:
-set.seed(101)
-aTab <- table(
-    educ = factor(sample(1:3, replace=TRUE, size=n)),
-    score= factor(sample(1:5, replace=TRUE, size=n)),
-    sex  = sample(c("M","F"), replace=TRUE, size=n))
-(MT <- mantelhaen.test(aTab))
-stopifnot(all.equal(
-    lapply(MT[1:3], unname),
-    list(statistic = 7.766963, parameter = 8, p.value = 0.4565587), tol = 6e-6))
-## gave integer overflow and error in R <= 3.4.x
-
 
 ## check for incorect inlining of named logicals
 foo <- compiler::cmpfun(function() c("bar" = TRUE),
@@ -1742,40 +1714,6 @@ x <- sort(c(1, 1, 3))
 stopifnot(identical(sort.list(x, decreasing=TRUE), as.integer(c(3, 1, 2))))
 stopifnot(identical(order(x, decreasing=TRUE), as.integer(c(3, 1, 2))))
 ## was incorrect with wrapper optimization (reported by Suharto Anggono)
-
-
-## dump() & dput() where influenced by  "deparse.max.lines" option
-op <- options(deparse.max.lines=NULL) # here
-oNam <- "simplify2array" # (base function which is not very small)
-fn <- get(oNam)
-ffn <- format(fn)
-dp.1 <- capture.output(dput(fn))
-dump(oNam, textConnection("du.1", "w"))
-stopifnot(length(ffn) > 3, identical(dp.1, ffn), identical(du.1[-1], dp.1))
-options(deparse.max.lines = 2) ## "truncate heavily"
-dp.2 <- capture.output(dput(fn))
-dump(oNam, textConnection("du.2", "w"))
-stopifnot(identical(dp.2, dp.1),
-          identical(du.2, du.1))
-options(op); rm(du.1, du.2) # connections
-writeLines(tail(dp.2))
-## dp.2 and du.2  where heavily truncated in R <= 3.4.4, ending  "  ..."
-
-
-## optim() with "trivial bounds"
-flb <- function(x) { p <- length(x); sum(c(1, rep(4, p-1)) * (x - c(1, x[-p])^2)^2) }
-o1 <- optim(rep(3, 5), flb)
-o2 <- optim(rep(3, 5), flb, lower = rep(-Inf, 5))
-stopifnot(all.equal(o1,o2))
-## the 2nd optim() call gave a warning and switched to "L-BFGS-B" in R <= 3.5.0
-
-## Check that call matching doesn't mutate input
-cl <- as.call(list(quote(x[0])))
-cl[[1]][[3]] <- 1
-v <- .Internal(match.call(function(x) NULL, cl, TRUE, .GlobalEnv))
-cl[[1]][[3]] <- 2
-stopifnot(v[[1]][[3]] == 1)
-## initial patch proposal to reduce duplicating failed on this
 
 
 ## keep at end

@@ -5,61 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-
-   \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{Sys.setFileTime()} has been vectorized, its arguments
-      \code{path} and \code{time} of length greater than one are now
-      supported.
-
-      \item \code{axis()} gets new option \code{gap.axis = NA} for
-      specifying a multiplication factor for the minimal \dQuote{gap}
-      (distance) between axis labels drawn.   Its default is \code{1}
-      for labels \emph{parallel} to the axis, and \code{0.5} for
-      perpendicular ones.
-
-      These (perpendicular labels) no longer overlap, fixing bug \PR{17384}.
-
-      \item \code{removeSource()} now works not only for functions but
-      also for some language objects.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{replayPlot(r)} now also works in the same \R session
-      when \code{r} has been \dQuote{reproduced} from serialization,
-      typically after saving to and reading from an RDS file.
-
-      \item \code{substr()} and \code{substring()} now signal an error
-      when the input is invalid UTF-8.
-
-      \item \code{file.copy()} now works also when its argument \code{to}
-      is of length greater than one.
-
-      \item \code{mantelhaen.test()} no longer suffers from integer
-      overflow in largish cases, thanks to Ben Bolker's \PR{17383}.
-
-      \item \code{dput()} and \code{dump()} are no longer truncating
-      when \code{options(deparse.max.lines = *)} is set.
-
-      \item Calls with an S3 class are no longer evaluated when printed,
-      fixing part of \PR{17398}, thanks to a patch from Lionel Henry.
-
-      \item \code{optim(*, lower = c(-Inf, -Inf))} no longer warns (and
-      switches the method), thanks to a suggestion by John Nash.
-    }
-  }
-
-  \subsection{INSTALLATION on a UNIX-ALIKE}{
-    \itemize{
-      \item The C++ compiler defaults to the C++11 standard, if
-      supported; otherwise to the C++98 standard.
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.5.0}{
 
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
