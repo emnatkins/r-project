@@ -26,7 +26,6 @@
 \alias{[.POSIXlt}
 \alias{[<-.POSIXlt}
 \alias{[[.POSIXlt}
-\alias{[[<-.POSIXlt}
 \alias{as.data.frame.POSIXct}
 \alias{as.data.frame.POSIXlt}
 \alias{as.list.POSIXct}

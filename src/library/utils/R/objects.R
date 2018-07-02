@@ -89,11 +89,6 @@ function(generic.function, class, envir=parent.frame())
     S3MethodsStopList <- tools::nonS3methods(NULL)
     knownGenerics <- getKnownS3generics()
     sp <- search()
-    if(nzchar(lookup <-
-                  Sys.getenv("_R_S3_METHOD_LOOKUP_BASEENV_AFTER_GLOBALENV_"))) {
-        lookup <- tools:::config_val_to_logical(lookup)
-        if(lookup) sp <- sp[c(1L, length(sp))]
-    }
     methods.called <- identical(sys.call(-1)[[1]], as.symbol("methods"))
     an <- lapply(seq_along(sp), ls)
     lens <- lengths(an)
@@ -211,22 +206,12 @@ function(generic.function, class, envir=parent.frame())
 methods <-
 function(generic.function, class)
 {
-    envir <- parent.frame()
-    if(!missing(generic.function) && !is.character(generic.function)) {
-        what <- substitute(generic.function)
-        if(is.function(generic.function) &&
-           is.call(what) &&
-           (deparse(what[[1L]])[1L] %in% c("::", ":::"))) {
-            generic.function <- as.character(what[[3L]])
-            envir <- asNamespace(as.character(what[[2L]]))
-        } else
-            generic.function <- deparse(what)
-    }
-
+    if (!missing(generic.function) && !is.character(generic.function))
+        generic.function <- deparse(substitute(generic.function))
     if (!missing(class) && !is.character(class))
         class <- paste(deparse(substitute(class)))
 
-    s3 <- .S3methods(generic.function, class, envir)
+    s3 <- .S3methods(generic.function, class, parent.frame())
     s4 <- if (.isMethodsDispatchOn()) {
         methods::.S4methods(generic.function, class)
     } else NULL

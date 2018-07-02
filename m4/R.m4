@@ -1438,7 +1438,9 @@ AC_DEFUN([R_PROG_OBJCXX],
 [AC_BEFORE([AC_PROG_CXX], [$0])
 AC_BEFORE([AC_PROG_OBJC], [$0])
 
+AC_MSG_CHECKING([for Objective C++ compiler])
 AC_CACHE_VAL([r_cv_OBJCXX],[
+AC_MSG_RESULT([trying some possibilities])
 if test -n "${OBJCXX}"; then
   R_PROG_OBJCXX_WORKS(${OBJCXX},,OBJCXX='')
 fi
@@ -1453,7 +1455,6 @@ fi
 r_cv_OBJCXX="${OBJCXX}"
 ])
 OBJCXX="${r_cv_OBJCXX}"
-AC_MSG_CHECKING([for Objective C++ compiler])
 if test -z "${OBJCXX}"; then
   AC_MSG_RESULT([no working ObjC++ compiler found])
 else
@@ -2055,9 +2056,9 @@ if test "${use_jpeglib}" = yes; then
    save_CPPFLAGS=${CPPFLAGS}
   ## IJG version 9c (Jan 2018) has support as libjpeg.
   ## libjpeg-turbo has had this for a wh	ile.
-  if "${PKG_CONFIG}" --exists libjpeg; then
-    JPG_CPPFLAGS=`"${PKG_CONFIG}" --cflags libjpeg`
-    JPG_LIBS=`"${PKG_CONFIG}" --libs libjpeg`
+  if "${PKGCONF}" --exists libjpeg; then
+    JPG_CPPFLAGS=`"${PKGCONF}" --cflags libjpeg`
+    JPG_LIBS=`"${PKGCONF}" --libs libjpeg`
     CPPFLAGS="${CPPFLAGS} ${JPG_CPPFLAGS}"
   fi
   _R_HEADER_JPEGLIB
@@ -2078,19 +2079,19 @@ if test "${use_jpeglib}" = yes; then
   fi
 fi
 if test "${use_libpng}" = yes; then
-  if "${PKG_CONFIG}" --exists libpng; then
+  if "${PKGCONF}" --exists libpng; then
     save_CPPFLAGS=${CPPFLAGS}
-    PNG_CPPFLAGS=`"${PKG_CONFIG}" --cflags libpng`
+    PNG_CPPFLAGS=`"${PKGCONF}" --cflags libpng`
     CPPFLAGS="${CPPFLAGS} ${PNG_CPPFLAGS}"
     _R_HEADER_PNG
     have_png=${r_cv_header_png_h}
     CPPFLAGS=${save_CPPFLAGS}
     if test "${have_png}" = yes; then
-      PNG_LIBS=`"${PKG_CONFIG}" --libs libpng`
+      PNG_LIBS=`"${PKGCONF}" --libs libpng`
       AC_CHECK_LIB(png, png_create_write_struct, 
                    [have_png=yes], [have_png=no], [${PNG_LIBS} ${LIBS}])
       if test "${have_png}" = no; then
-        PNG_LIBS=`"${PKG_CONFIG}" --static --libs libpng`
+        PNG_LIBS=`"${PKGCONF}" --static --libs libpng`
         AC_CHECK_LIB(png, png_create_write_struct, 
                      [have_png=yes], [have_png=no], [${PNG_LIBS} ${LIBS}])
       fi
@@ -2108,21 +2109,21 @@ if test "${use_libtiff}" = yes; then
   ## pkg-config support was introduced in libtiff 4.0.0
   ## I guess the module name might change in future, so
   ## program defensively here.
-  if "${PKG_CONFIG}" --exists libtiff-4; then
+  if "${PKGCONF}" --exists libtiff-4; then
     mod=libtiff-4
   fi  
   if test -n "${mod}"; then
     save_CPPFLAGS=${CPPFLAGS}
-    TIF_CPPFLAGS=`"${PKG_CONFIG}" --cflags ${mod}`
+    TIF_CPPFLAGS=`"${PKGCONF}" --cflags ${mod}`
     CPPFLAGS="${CPPFLAGS} ${TIF_CPPFLAGS}"
     AC_CHECK_HEADERS(tiffio.h)
     CPPFLAGS=${save_CPPFLAGS}
     if test "x${ac_cv_header_tiffio_h}" = xyes ; then
-      TIF_LIBS=`"${PKG_CONFIG}" --libs ${mod}`
+      TIF_LIBS=`"${PKGCONF}" --libs ${mod}`
       AC_CHECK_LIB(tiff, TIFFOpen, [have_tiff=yes], [have_tiff=no],
                    [${TIF_LIBS} ${BITMAP_LIBS}])
       if test "x${have_tiff}" = xno; then
-        TIF_LIBS=`"${PKG_CONFIG}" --static --libs ${mod}`
+        TIF_LIBS=`"${PKGCONF}" --static --libs ${mod}`
         AC_CHECK_LIB(tiff, TIFFOpen, [have_tiff=yes], [have_tiff=no],
                      [${TIF_LIBS} ${BITMAP_LIBS}])
       fi
@@ -3231,9 +3232,9 @@ fi
 ## Try finding pcre2 (8-bit) library and header.
 AC_DEFUN([R_PCRE2],
 [have_pcre2=no
-if "${PKG_CONFIG}" --exists libpcre2-8; then
-  PCRE2_CPPFLAGS=`"${PKG_CONFIG}" --cflags libpcre2-8`
-  PCRE2_LIBS=`"${PKG_CONFIG}" --libs libpcre2-8`
+if "${PKGCONF}" --exists libpcre2-8; then
+  PCRE2_CPPFLAGS=`"${PKGCONF}" --cflags libpcre2-8`
+  PCRE2_LIBS=`"${PKGCONF}" --libs libpcre2-8`
   have_pcre2=yes
 else
   AC_PATH_PROG(PCRE2_CONFIG, pcre2-config)

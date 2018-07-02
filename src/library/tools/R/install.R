@@ -204,9 +204,6 @@ if(FALSE) {
             "      --with-keep.source",
             "      --without-keep.source",
             "			use (or not) 'keep.source' for R code",
-            "      --with-keep.parse.data",
-            "      --without-keep.parse.data",
-            "			use (or not) 'keep.parse.data' for R code",
             "      --byte-compile	byte-compile R code",
             "      --no-byte-compile	do not byte-compile R code",
             "      --no-test-load	skip test of loading installed package",
@@ -1157,8 +1154,7 @@ if(FALSE) {
             } else libs0 <- NULL
 	    res <- try({
                 suppressPackageStartupMessages(.getRequiredPackages(quietly = TRUE))
-                makeLazyLoading(pkg_name, lib, keep.source = keep.source,
-                                keep.parse.data = keep.parse.data)
+                makeLazyLoading(pkg_name, lib, keep.source = keep.source)
             })
             if (BC) compiler::compilePKGS(0L)
 	    if (inherits(res, "try-error"))
@@ -1266,9 +1262,8 @@ if(FALSE) {
                 opts <- paste(if(deps_only) "--vanilla" else "--no-save",
                               "--slave")
                 out <- R_runR(cmd, opts, env = env, timeout = tlim)
-                if(length(out)) {
+                if(length(out))
                     cat(paste(c(out, ""), collapse = "\n"))
-                }
                 if(length(attr(out, "status")))
                     errmsg("loading failed") # does not return
             }
@@ -1320,7 +1315,6 @@ if(FALSE) {
     resave_data <- FALSE
     compact_docs <- FALSE
     keep.source <- getOption("keep.source.pkgs")
-    keep.parse.data <- getOption("keep.parse.data.pkgs")
     built_stamp <- character()
 
     install_libs <- TRUE
@@ -1443,10 +1437,6 @@ if(FALSE) {
             keep.source <- TRUE
         } else if (a == "--without-keep.source") {
             keep.source <- FALSE
-        } else if (a == "--with-keep.parse.data") {
-            keep.parse.data <- TRUE
-        } else if (a == "--without-keep.parse.data") {
-            keep.parse.data <- FALSE
         } else if (a == "--byte-compile") {
             byte_compile <- TRUE
         } else if (a == "--no-byte-compile") {

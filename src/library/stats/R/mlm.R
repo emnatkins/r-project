@@ -268,7 +268,7 @@ anova.mlm <-
 # This was broken. Something similar might work if we implement
 #  split.matrix a la split.data.frame
 #            ss <- lapply(split(comp,asgn), function(x) crossprod(t(x)))
-            df <- lengths(split(asgn, asgn))
+            df <- sapply(split(asgn,  asgn), length)
         } else {
 #            ss <- ssr
 #            df <- dfr

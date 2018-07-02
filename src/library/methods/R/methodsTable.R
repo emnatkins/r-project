@@ -449,8 +449,7 @@
              table = get(".MTable", envir = environment(fdef)),
              excluded = NULL, useInherited,
              simpleOnly = .simpleInheritanceGeneric(fdef), verbose = FALSE,
-             doCache = is.environment(mtable),
-             where = environment(fdef))
+             doCache = is.environment(mtable))
 {
     ## to avoid infinite recursion, and somewhat for speed, turn off S4 methods for primitives
     primMethods <- .allowPrimitiveMethods(FALSE)
@@ -496,7 +495,7 @@
         ## else, continue because we may want all defined methods
     }
     cl1 <- classes[[1L]]
-    def <- getClass(cl1, where = where, .Force = TRUE)
+    def <- getClass(cl1, .Force = TRUE)
     labels <-
       if(missing(useInherited) || useInherited[[1L]])
           c(cl1, .eligibleSuperClasses(def@contains, simpleOnly), "ANY")
@@ -506,8 +505,7 @@
     classDefs[[1L]] <- def
     if(nargs > 1) { ## further arguments
         for(i in 2:nargs) {
-            cc <- classDefs[[i]] <- getClass(classes[[i]], where = where,
-                                             .Force = TRUE)
+            cc <- classDefs[[i]] <- getClass(classes[[i]], .Force = TRUE)
             allLabels <- if(missing(useInherited) || useInherited[[i]])
                 c(cc@className, .eligibleSuperClasses(cc@contains, simpleOnly),
                   "ANY")
@@ -606,8 +604,7 @@
         if(is(m, "MethodDefinition"))  { # else, a primitive
             m@target <- .newSignature(classes, fdef@signature)
             ## if any of the inheritance is not simple, must insert coerce's in method body
-            coerce <- .inheritedArgsExpression(m@target, m@defined, body(m),
-                                               where)
+            coerce <- .inheritedArgsExpression(m@target, m@defined, body(m))
             if(!is.null(coerce))
               body(m) <- coerce
             methods[[1L]] <- m
@@ -622,11 +619,10 @@
 
 .checkDuplicateMethodClasses <- function(classDefs, env, label){
     supers <- strsplit(label, "#", TRUE)[[1]]
-    sigs <- sort(names(env))
-    plabels <- strsplit(sigs, "#", TRUE)
+    plabels <- strsplit(sort(names(env)), "#", TRUE)
     hasSubclass <- vapply(plabels, .hasThisSubclass, logical(1L),
                           classDefs=classDefs, supers=supers)
-    mget(sigs[hasSubclass], env)
+    mget(plabels[hasSubclass], env)
 }
 
 .hasThisSubclass <- function(classDefs, supers, plabel) {
@@ -701,7 +697,7 @@
 
 .findNextFromTable <- function(method, f, optional, envir, prev = character())
 {
-    fdef <- getGeneric(f, where = envir)
+    fdef <- getGeneric(f, where=envir)
     env <- environment(fdef)
 ##    target <- method@target
     n <- get(".SigLength", envir = env)
@@ -717,8 +713,7 @@
     allTable <- .getMethodsTable(fdef, inherited = TRUE)
     methods <- .findInheritedMethods(defined, fdef, mtable = NULL,
                                      table = allTable,
-                                     excluded = excluded,
-                                     where = envir)
+                                     excluded = excluded)
     if(length(methods) == 0L) # use default method, maybe recursively.
         methods <- list(finalDefaultMethod(fdef@default)) #todo: put a label on it?
     if(length(methods) > 1L)
@@ -1472,13 +1467,11 @@ listFromMethods <- function(generic, where, table) {
            domain = NA)
 }
 
-.inheritedArgsExpression <- function(target, defined, body, where) {
+.inheritedArgsExpression <- function(target, defined, body) {
     expr <- substitute({}, list(DUMMY = "")) # bug if you use quote({})--is overwritten!!
     args <- names(defined)
     for(i in seq_along(defined)) {
-        ei <- extends(getClass(target[[i]], where=where, .Force=TRUE),
-                      getClass(defined[[i]], where=where, .Force=TRUE),
-                      fullInfo = TRUE)
+        ei <- extends(target[[i]], defined[[i]], fullInfo = TRUE)
         if(is(ei, "SClassExtension")  && !ei@simple)
           expr[[length(expr) + 1L]] <-
             substitute(ARG <- as(ARG, DEFINED, strict = FALSE),

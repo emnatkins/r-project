@@ -810,7 +810,7 @@ stopifnot(identical(t1(pi, 2), pi), identical(t1(t1), t1),
 	  identical(t2(pi, 2), 2))
 et1 <- tryCatch(t1(), error=identity)
 if(englishMsgs)
-    stopifnot(identical("the ... list contains fewer than 1 element",
+    stopifnot(identical("the ... list does not contain any elements",
 			conditionMessage(et1)))
 ## previously gave   "'nthcdr' needs a list to CDR down"
 et0   <- tryCatch(t0(),  error=identity); (mt0   <- conditionMessage(et0))
@@ -818,7 +818,7 @@ et2.0 <- tryCatch(t2(),  error=identity); (mt2.0 <- conditionMessage(et2.0))
 et2.1 <- tryCatch(t2(1), error=identity); (mt2.1 <- conditionMessage(et2.1))
 if(englishMsgs)
     stopifnot(grepl("indexing '...' with .* index 0", mt0),
-	      identical("the ... list contains fewer than 2 elements", mt2.0),
+	      identical("the ... list does not contain 2 elements", mt2.0),
 	      identical(mt2.0, mt2.1))
 tools::assertError(t0(1))
 tools::assertError(t0(1, 2))
@@ -1410,7 +1410,7 @@ tools::assertWarning(
 ## silently gave p2 = 1.03 > 1 in R versions v, 3.1.3 <= v <= 3.4.3
 
 
-## 1) removeSource() [for a function w/ body containing NULL]:
+## removeSource() [for a function w/ body containing NULL]:
 op <- options(keep.source=TRUE)
 bod <- quote( foo(x, NULL) )
 testf  <- function(x) { }; body(testf)[[2]] <- bod
@@ -1419,22 +1419,8 @@ testfN <- removeSource(testf)
 stopifnot(identical(body(testf )[[2]], bod)
         , identical(body(testfN)[[2]], bod)
 )
-## erronously changed  '(x, NULL)'  to  '(x)'  in R version <= 3.4.3
-##
-## 2) source *should* be kept:
-f <- function(x=1) { # 'x' not really needed
-    x+x + 2*x+1 # (note spaces)
-}
-stopifnot(exprs = {
-    identical(capture.output(f) -> fsrc,
-              capture.output(print(f)))
-    length(fsrc) == 3
-    grepl("(x=1)",             fsrc[1], fixed=TRUE)
-    grepl("really needed",     fsrc[1], fixed=TRUE)
-    grepl("x + 2*x+1 # (note", fsrc[2], fixed=TRUE)
-})
 options(op)
-## (was fine, but not tested in R <= 3.5.0)
+## erronously changed  '(x, NULL)'  to  '(x)'  in R version <= 3.4.3
 
 
 ## ar.yw(x) with missing values in x, PR#17366
@@ -1704,12 +1690,6 @@ sort.int(1:3, decreasing = "TRUE")
 sort.int(1:3, decreasing = "FALSE")
 ## failed initially in ALTREP
 
-## this failed until 3.5.x
-c1 <- c(1,1,2,2)
-c2 <- as.Date(c("2010-1-1", "2011-1-1", "2013-1-1", "2012-1-1"))
-order(c1, c2, decreasing = c(TRUE, FALSE), method="radix")
-
-
 ## check sort argument combinations
 sort(1:3, decreasing = TRUE, na.last = NA)
 sort(1:3, decreasing = TRUE, na.last = TRUE)
@@ -1717,34 +1697,6 @@ sort(1:3, decreasing = TRUE, na.last = FALSE)
 sort(1:3, decreasing = FALSE, na.last = NA)
 sort(1:3, decreasing = FALSE, na.last = TRUE)
 sort(1:3, decreasing = FALSE, na.last = FALSE)
-
-## match.arg()s 'choices' evaluation, PR#17401
-f <- function(x = y) {
-    y <- c("a", "b")
-    match.arg(x)
-}
-stopifnot(identical(f(), "a"))
-## failed in R <= 3.4.x
-
-
-## getOption(op, def) -- where 'def' is missing (passed down):
-getO <- function(op, def) getOption(op, def)
-stopifnot(is.null(getO("foobar")))
-## failed for a few days in R-devel, when using MD's proposal of PR#17394,
-## notably "killing"  parallelMap::getParallelOptions()
-
-
-## Mantel-Haenszel test in "large" case, PR#17383:
-set.seed(101)
-aTab <- table(
-    educ = factor(sample(1:3, replace=TRUE, size=n)),
-    score= factor(sample(1:5, replace=TRUE, size=n)),
-    sex  = sample(c("M","F"), replace=TRUE, size=n))
-(MT <- mantelhaen.test(aTab))
-stopifnot(all.equal(
-    lapply(MT[1:3], unname),
-    list(statistic = 7.766963, parameter = 8, p.value = 0.4565587), tol = 6e-6))
-## gave integer overflow and error in R <= 3.4.x
 
 
 ## check for incorect inlining of named logicals
@@ -1762,131 +1714,6 @@ x <- sort(c(1, 1, 3))
 stopifnot(identical(sort.list(x, decreasing=TRUE), as.integer(c(3, 1, 2))))
 stopifnot(identical(order(x, decreasing=TRUE), as.integer(c(3, 1, 2))))
 ## was incorrect with wrapper optimization (reported by Suharto Anggono)
-
-
-## dump() & dput() where influenced by  "deparse.max.lines" option
-op <- options(deparse.max.lines=NULL) # here
-oNam <- "simplify2array" # (base function which is not very small)
-fn <- get(oNam)
-ffn <- format(fn)
-dp.1 <- capture.output(dput(fn))
-dump(oNam, textConnection("du.1", "w"))
-stopifnot(length(ffn) > 3, identical(dp.1, ffn), identical(du.1[-1], dp.1))
-options(deparse.max.lines = 2) ## "truncate heavily"
-dp.2 <- capture.output(dput(fn))
-dump(oNam, textConnection("du.2", "w"))
-stopifnot(identical(dp.2, dp.1),
-          identical(du.2, du.1))
-options(op); rm(du.1, du.2) # connections
-writeLines(tail(dp.2))
-## dp.2 and du.2  where heavily truncated in R <= 3.4.4, ending  "  ..."
-
-
-## optim() with "trivial bounds"
-flb <- function(x) { p <- length(x); sum(c(1, rep(4, p-1)) * (x - c(1, x[-p])^2)^2) }
-o1 <- optim(rep(3, 5), flb)
-o2 <- optim(rep(3, 5), flb, lower = rep(-Inf, 5))
-stopifnot(all.equal(o1,o2))
-## the 2nd optim() call gave a warning and switched to "L-BFGS-B" in R <= 3.5.0
-
-
-## Check that call matching doesn't mutate input
-cl <- as.call(list(quote(x[0])))
-cl[[1]][[3]] <- 1
-v <- .Internal(match.call(function(x) NULL, cl, TRUE, .GlobalEnv))
-cl[[1]][[3]] <- 2
-stopifnot(v[[1]][[3]] == 1)
-## initial patch proposal to reduce duplicating failed on this
-
-
-## simulate.lm(<glm gaussian, non-default-link>), PR#17415
-set.seed(7); y <- rnorm(n = 1000, mean = 10, sd = sqrt(10))
-fmglm <- glm(y ~ 1, family = gaussian(link = "log"))
-dv <- apply(s <- simulate(fmglm, 99, seed=1), 2, var) - var(y)
-stopifnot(abs(dv) < 1.14, abs(mean(dv)) < .07)
-## failed in R <= 3.5.0 (had simulated variances ~ 0.1)
-
-
-## unlist() failed for nested lists of empty lists:
-isLF <- function(x) .Internal(islistfactor(x, recursive=TRUE))
-ex <- list(x0 = list()
-         , x1 = list(list())
-         , x12 = list(list(), list())
-         , x12. = list(list(), expression(list()))
-         , x2 = list(list(list(), list())) # <-- Steven Nydick's example
-         , x212 = list(list(list(), list(list())))
-         , x222 = list(list(list(list()), list(list())))
-)
-(exis <- vapply(ex, isLF, NA))
-ue <- lapply(ex, unlist)# gave errors in R <= 3.3.x  but not 3.{4.x,5.0}
-stopifnot(exprs = {
-    !any(exis)
-    identical(names(ue), names(ex))
-    vapply(ue[names(ue) != "x12."], is.null, NA)
-})
-
-
-## qr.coef(qr(<all 0, w/ colnames>))
-qx <- qr(x <- matrix(0, 10, 2, dimnames = list(NULL, paste0("x", 1:2))))
-qc <- qr.coef(qx, x[,1])
-stopifnot(identical(qc, c(x1 = NA_real_, x2 = NA_real_)))
-## qr.coef() gave  Error ...: object 'pivotted' not found | in R <= 3.5.0
-
-
-## unlist(<factor-leaves>)
-x <- list(list(v=factor("a")))
-y <- list(data.frame(v=factor("a")))
-x. <- list(list(factor("a")), list(factor(LETTERS[2:4])), factor("lol"))
-fN <- factor(LETTERS[c(2:4,30)])
-xN <- list(list(factor("a")), list(list(fN)), L=factor("lol"))
-stopifnot(exprs = {
-    .valid.factor(ux <- unlist(x))
-    identical(ux, unlist(y))
-    identical(ux, as.factor(c(v="a")))
-    .valid.factor(ux. <- unlist(x.))
-    .valid.factor(uxN <- unlist(xN))
-    identical(levels(ux.), c("a", "B", "C", "D", "lol"))
-    identical(levels      (uxN), levels(ux.))
-    identical(as.character(uxN), levels(ux.)[c(1:4,11L,5L)])
-})
-## gave invalid factor()s [if at all]
-
-
-## printCoefMat()  w/ unusual arguments
-cm <- matrix(c(9.2, 2.5, 3.6, 0.00031), 1, 4,
-            dimnames = list("beta", c("Estimate", "Std.Err", "Z value", "Pr(>z)")))
-cc <- capture.output(printCoefmat(cm))
-stopifnot(grepl(" [*]{3}$", cc[2]),
-          identical(cc, capture.output(
-                     printCoefmat(cm, right=TRUE))))
-## gave Error: 'formal argument "right" matched by multiple actual arguments'
-
-
-## print.noquote() w/ unusual argument -- inspite of user error, be forgiving:
-print(structure("foo bar", class="noquote"), quote=FALSE)
-## gave Error: 'formal argument "quote" matched by multiple actual arguments'
-
-
-## agrep(".|.", ch, fixed=FALSE)
-chvec <- c(".BCD", "yz", "AB", "wyz")
-patt <- "ABC|xyz"
-stopifnot(identical(c(list(0L[0]), rep(list(1:4), 2)),
-    lapply(0:2, function(m) agrep(patt, chvec, max.distance=m, fixed=FALSE))
-))
-## all three were empty in R <= 3.5.0
-
-
-## str(<invalid>)
-typeof(nn <- c(0xc4, 0x88, 0xa9, 0x02))
-cc <- ch <- rawToChar(as.raw(nn))
-str(ch)# worked already
-nchar(cc, type="bytes")# 4, but  nchar(cc)  gives  "invalid multibyte string"
-Encoding(cc) <- "UTF-8" # << makes it invalid for strtrim(.)!
-as.octmode(as.integer(nn))
-str(cc)
-## In R <= 3.5.0, [strtrim() & nchar()] gave invalid multibyte string at '<a9>\002"'
-
-
 
 
 ## keep at end
