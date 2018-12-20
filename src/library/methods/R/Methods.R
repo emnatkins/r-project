@@ -186,8 +186,8 @@ setGeneric <-
                     message(gettextf(
                          "Creating a new generic function for %s in %s",
                                      sQuote(name), thisPName),
-                         domain = NA)
-                    fdef@package <- packageSlot(fdef@generic) <- packageSlot(environment(fdef)$.Generic) <- thisPackage
+                        domain = NA)
+                    fdef@package <- attr(fdef@generic, "package") <- thisPackage
                 }
             }
             else { # generic prohibited
@@ -196,7 +196,7 @@ setGeneric <-
                                  sQuote(name), sQuote(package),
                                  thisPName),
                         domain = NA)
-                fdef@package <- packageSlot(fdef@generic) <- packageSlot(environment(fdef)$.Generic) <- thisPackage
+                fdef@package <- attr(fdef@generic, "package") <- thisPackage
             }
         }
     }
@@ -932,7 +932,7 @@ showMethods <-
         con <- printTo
     ## must resolve showEmpty in line; using an equivalent default
     ## fails because R resets the "missing()" result for f later on (grumble)
-    if(is.function(f)) {
+    if(is(f, "function")) {
         fdef <- f ## note that this causes missing(fdef) to be FALSE below
         if(missing(where))
             where <- environment(f)
@@ -1580,7 +1580,7 @@ findMethods <- function(f, where, classes = character(), inherited = FALSE, pack
                 fdef <- getGeneric(f, package = package)
         }
     }
-    else if(!is.function(f))
+    else if(!is(f, "function"))
         stop(gettextf("argument %s must be a generic function or a single character string; got an object of class %s",
                       sQuote("f"), dQuote(class(f))),
              domain = NA)

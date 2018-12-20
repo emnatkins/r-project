@@ -27,11 +27,11 @@
 get_timeout <- function(tlim)
 {
     if(is.character(tlim)) {
-        if(endsWith(tlim, "m"))
+        if(grepl("m$", tlim))
             tlim <- 60*as.numeric(sub("m$", "", tlim))
-        else if(endsWith(tlim, "h"))
+        else if(grepl("h$", tlim))
             tlim <- 3600*as.numeric(sub("h$", "", tlim))
-        else if(endsWith(tlim, "s"))  # for completeness, like GNU timeout.
+        else if(grepl("s$", tlim))  # for completeness, like GNU timeout.
             tlim <- as.numeric(sub("s$", "", tlim))
     }
     tlim <- as.numeric(tlim)
@@ -427,62 +427,6 @@ add_dummies <- function(dir, Log)
             do_exit(1L)
         }
 
-        if (config_val_to_logical(Sys.getenv("_R_CHECK_FUTURE_FILE_TIMESTAMPS_",
-                                             "FALSE"))) {
-            now_local <- Sys.time()
-            any <- FALSE
-            checkingLog(Log, "for future file timestamps")
-            ## allow skipping clock check on CRAN incoming systems
-            if(config_val_to_logical(Sys.getenv("_R_CHECK_SYSTEM_CLOCK_", "TRUE"))) {
-                ## First check time on system running 'check',
-                ## by reading an external source in UTC: gives time in mins
-                now <- tryCatch({
-                    foo <- readLines("http://worldclockapi.com/api/json/utc/now",
-                                     warn = FALSE)
-                    as.POSIXct(gsub(".*\"currentDateTime\":\"([^Z]*).*", "\\1", foo),
-                               "UTC", "%Y-%m-%dT%H:%M")
-                }, error = function(e) NA)
-                if (is.na(now)) {
-                    any <- TRUE
-                    warningLog(Log, "unable to verify current time")
-                } else {
-                    ## 5 mins leeway seems a reasonable compromise
-                    if (abs(unclass(now_local) - unclass(now)) > 300) {
-                        any <- TRUE
-                        fmt <- "%Y-%m-%d %H:%M"
-                        errorLog(Log, "This system is set to the wrong time: please correct")
-                        now0 <- sprintf("  correct: %s (UTC)\n",
-                                        format(now, fmt, tz = "UTC"))
-                        local0 <- sprintf("   system: %s (UTC)\n",
-                                          format(now_local, fmt, tz = "UTC"))
-                        printLog0(Log, local0, now0)
-                        summaryLog(Log)
-                        do_exit(1L)
-                    }
-                }
-            }
-
-            ## Both files and directories get timestamps in the
-            ## tarball, so future stamps give annoying messages.
-            files <- list.files(all.files = TRUE, full.names = TRUE,
-                                include.dirs = TRUE)
-            files <- setdiff(files, c("./.", "./.."))
-            ftimes <- file.mtime(files)
-            ## Default 5 mins leeway is to allow for clock-skew from a file server.
-            leeway <- Sys.getenv("_R_CHECK_FUTURE_FILE_TIMESTAMPS_LEEWAY_", "5m")
-            leeway <- get_timeout(leeway)
-            if (leeway <= 0) leeway <- 600
-            fu <- unclass(ftimes) > unclass(now_local) + leeway
-            if (any(fu)) {
-                if (!any) warningLog(Log)
-                any <- TRUE
-                wrong <- sub("^[.]/", "", files[fu])
-                printLog(Log, "Files with future time stamps:\n")
-                printLog0(Log, .format_lines_with_indent(wrong), "\n")
-            }
-            if(!any) resultLog(Log, "OK")
-        }
-
         haveR <- dir.exists("R") && !extra_arch
 
         if (!extra_arch) {
@@ -659,7 +603,7 @@ add_dummies <- function(dir, Log)
         allfiles <- filtergrep(ignore_re, allfiles)
         bad_files <- allfiles[grepl("[[:cntrl:]\"*/:<>?\\|]",
                                     basename(allfiles))]
-        is_man <- endsWith(dirname(allfiles), "man")
+        is_man <- grepl("man$", dirname(allfiles))
         bad <- sapply(strsplit(basename(allfiles[is_man]), ""),
                       function(x) any(grepl("[^ -~]|%", x)))
         if (length(bad))
@@ -1360,7 +1304,7 @@ add_dummies <- function(dir, Log)
         ## ./bicreduc/OldFiles/bicreduc.Rcheck
         ## ./waved/man/waved.Rcheck
         ## ./waved/..Rcheck
-        ind <- endsWith(all_dirs, ".Rcheck")
+        ind <- grepl("\\.Rcheck$", all_dirs)
         if(any(ind)) {
             if(!any) warningLog(Log)
             any <- TRUE
@@ -1685,8 +1629,7 @@ add_dummies <- function(dir, Log)
                       sprintf("tools::checkS3methods(dir = \"%s\")\n", pkgdir))
         out <- R_runR2(Rcmd)
         if (length(out)) {
-            pos <- which(startsWith(out,
-                                    "Found the following apparent S3 methods"))
+            pos <- grep("^Found the following apparent S3 methods", out)
             if(!length(pos)) {
                 out1 <- out
                 out2 <- character()
@@ -1826,8 +1769,9 @@ add_dummies <- function(dir, Log)
             if(config_val_to_logical(Sys.getenv("_R_CHECK_CODE_USAGE_WITH_ONLY_BASE_ATTACHED_",
                                                 "true"))) {
                 out3 <-  R_runR2(Rcmd, "R_DEFAULT_PACKAGES=NULL")
-                if(length(pos <- which(startsWith(out3,
-                                                  "Undefined global functions or variables:")))) {
+                if(length(pos <-
+                          grep("^Undefined global functions or variables:",
+                               out3))) {
                     Rcmd <-
                         sprintf("writeLines(strwrap(tools:::imports_for_undefined_globals(\"%s\"), exdent = 11))\n",
                                 paste(utils::tail(out3, -pos),
@@ -1835,8 +1779,8 @@ add_dummies <- function(dir, Log)
                     miss <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=")
                     ## base has no NAMESPACE
                     if(length(miss) && pkgname != "base") {
-                        msg3 <- if(any(startsWith(miss,
-                                                  "importFrom(\"methods\""))) {
+                        msg3 <- if(length(grep("^importFrom\\(\"methods\"",
+                                               miss))) {
                             strwrap("to your NAMESPACE file (and ensure that your DESCRIPTION Imports field contains 'methods').")
                         } else "to your NAMESPACE file."
                         out3 <- c(out3,
@@ -1899,9 +1843,7 @@ add_dummies <- function(dir, Log)
             length(out7) || length(out8)) {
             ini <- character()
             if(length(out4) ||
-               (length(out8) &&
-                any(startsWith(out8,
-                               "Found the defunct/removed function"))))
+               length(grep("^Found the defunct/removed function", out8)))
                 warningLog(Log) else noteLog(Log)
             if (length(out4)) {
                 first <- grep("^Found.* .Internal call", out4)[1L]
@@ -1915,7 +1857,7 @@ add_dummies <- function(dir, Log)
             }
             if (length(out8)) {
                 printLog0(Log, paste(c(ini, out8, ""), collapse = "\n"))
-                if(any(startsWith(out8, "Found the defunct/removed function")))
+                if(length(grep("^Found the defunct/removed function", out8)))
                     ini <- ""
             }
             ## All remaining checks give notes and not warnings.
@@ -1969,8 +1911,7 @@ add_dummies <- function(dir, Log)
             minlevel <- Sys.getenv("_R_CHECK_RD_CHECKRD_MINLEVEL_", "-1")
             Rcmd <- paste(opWarn_string, "\n",
                           sprintf("tools:::.check_package_parseRd('.', minlevel=%s)\n", minlevel))
-            ## This now evaluates \Sexpr, so run with usual packages.
-            out <- R_runR0(Rcmd, R_opts2, elibs)
+            out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 if(length(grep("^prepare.*Dropping empty section", out,
                                invert = TRUE)))
@@ -2066,9 +2007,9 @@ add_dummies <- function(dir, Log)
             } else R_runR2(Rcmd)
             ## Grr, get() in undoc can change the search path
             ## Current example is TeachingDemos
-            out <- out[!startsWith(out, "Loading required package:")]
-            err <- startsWith(out, "Error")
-            if (any(err)) {
+            out <- filtergrep("^Loading required package:", out)
+            err <- grep("^Error", out)
+            if (length(err)) {
                 errorLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
                 maybe_exit(1L)
@@ -2238,18 +2179,13 @@ add_dummies <- function(dir, Log)
         ## Check for non-ASCII characters in 'data'
         if (!is_base_pkg && R_check_ascii_data && dir.exists("data")) {
             checkingLog(Log, "data for non-ASCII characters")
-            out <- R_runR0("tools:::.check_package_datasets('.')",
-                           R_opts2, elibs)
+            out <- R_runR0("tools:::.check_package_datasets('.')", R_opts2)
             out <- filtergrep("Loading required package", out)
             out <- filtergrep("Warning: changing locked binding", out, fixed = TRUE)
-            if (length(out)) {
-                bad <- startsWith(out, "Warning:")
-                bad2 <-  any(grepl("(unable to find required package|there is no package called)", out))
-                if(any(bad) || bad2) warningLog(Log) else noteLog(Log)
+           if (length(out)) {
+                bad <- grep("^Warning:", out)
+                if (length(bad)) warningLog(Log) else noteLog(Log)
                 printLog0(Log, .format_lines_with_indent(out), "\n")
-                if(bad2)
-                     printLog0(Log,
-                               "  The dataset(s) may use package(s) not declared in the DESCRIPTION file.\n")
             } else resultLog(Log, "OK")
         }
 
@@ -2272,8 +2208,8 @@ add_dummies <- function(dir, Log)
             out <- R_runR0("tools:::.check_package_compact_sysdata('.', TRUE)",
                            R_opts2)
             if (length(out)) {
-                bad <- startsWith(out, "Warning:")
-                if (any(bad)) warningLog(Log) else noteLog(Log)
+                bad <- grep("^Warning:", out)
+                if (length(bad)) warningLog(Log) else noteLog(Log)
                 printLog0(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
@@ -2685,9 +2621,7 @@ add_dummies <- function(dir, Log)
             SysReq <- desc["SystemRequirements"]
             if (length(bad_files)) {
                 if(!is.na(SysReq) && grepl("GNU [Mm]ake", SysReq)) {
-                    if(!config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_NOTE_GNU_MAKE_", "FALSE"))) {
-                        noteLog(Log, "GNU make is a SystemRequirements.")
-                    } else resultLog(Log, "OK")
+                    noteLog(Log, "GNU make is a SystemRequirements.")
                 } else {
                     warningLog(Log, "Found the following file(s) containing GNU extensions:")
                     printLog0(Log, .format_lines_with_indent(bad_files), "\n")
@@ -2747,214 +2681,6 @@ add_dummies <- function(dir, Log)
                 }
             }
             if (!any) resultLog(Log, "OK")
-        }
-
-        test_omp <-
-            config_val_to_logical(Sys.getenv("_R_CHECK_SHLIB_OPENMP_FLAGS_", "FALSE"))
-        makefiles <- Sys.glob(file.path("src",
-                                        c("Makevars", "Makevars.in",
-                                          "Makevars.win",
-                                          "Makefile", "Makefile.win")))
-
-        if(length(makefiles) && test_omp) {
-            checkingLog(Log, "use of SHLIB_OPENMP_*FLAGS in Makefiles")
-            ## If any of these flags are included in PKG_*FLAGS, it
-            ## should also be included in PKG_LIBS.  And it is
-            ## not portable to use more than one of these in one package.
-            any <- msg2 <- msg3 <- FALSE
-            for (m in makefiles) {
-                lines <- readLines(m, warn = FALSE)
-                ## Combine lines ending in escaped newlines.
-                if(any(ind <- grepl("[\\]$", lines, useBytes = TRUE))) {
-                    ## Eliminate escape.
-                    lines[ind] <-
-                        sub("[\\]$", "", lines[ind], useBytes = TRUE)
-                    ## Determine ids of blocks that need to be joined.
-                    ind <- seq_along(ind) - c(0, cumsum(ind)[-length(ind)])
-                    ## And join.
-                    lines <- unlist(lapply(split(lines, ind), paste,
-                                           collapse = " "))
-                }
-                ## Truncate at first comment char, skip empty lines
-                lines <- sub("#.*", "", lines)
-                lines <- lines[nzchar(lines)]
-
-                c1 <- grepl("^[[:space:]]*PKG_LIBS", lines, useBytes = TRUE)
-                anyInLIBS <- any(grepl("SHLIB_OPENMP_", lines[c1], useBytes = TRUE))
-
-                ## Now see what sort of files we have
-                have_c <- length(dir('src', patt = "[.]c$")) > 0L
-                have_cxx <- length(dir('src', patt = "[.](cc|cpp)$")) > 0L
-                have_f <- length(dir('src', patt = "[.]f$")) > 0L
-                have_f9x <- length(dir('src', patt = "[.]f9[05]$")) > 0L
-                used <- character()
-                for (f in c("C", "CXX", "F", "FC"))  {
-                    this <- this2 <- paste0(f, "FLAGS")
-                    if (f == "FC") this2 <- "(F|FC)FLAGS"
-                    pat <- paste0("^[[:space:]]*PKG_", this, ".*SHLIB_OPENMP_", this2)
-                    if(any(grepl(pat, lines, useBytes = TRUE))) {
-                        used <- c(used, this)
-                        if(f == "C" && !have_c) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            msg <- "SHLIB_OPENMP_CFLAGS is included in PKG_CFLAGS without any C files\n"
-                            printLog(Log, "  ", m, ": ", msg)
-                            next
-                        }
-                        ## as from R 3.6.0, PKG_FFLAGS is by default
-                        ## used for both fixed- and free-form files.
-                        if(f == "F" && !(have_f || have_f9x)) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            msg <- "SHLIB_OPENMP_FFLAGS is included in PKG_FFLAGS without any fixed-form Fortran files\n"
-                            printLog(Log, "  ", m, ": ", msg)
-                            next
-                        }
-                        f_or_fc <- "F"
-                        if(f == "FC") {
-                            if(any(grepl("SHLIB_OPENMP_FCFLAGS",
-                                         lines, useBytes = TRUE))) {
-                                f_or_fc <- "FC"
-                                if (!any) noteLog(Log)
-                                any <- TRUE
-                                msg <- "SHLIB_OPENMP_FFLAGS is preferred to SHLIB_OPENMP_FCFLAGS in PKG_FCFLAGS\n"
-                                printLog(Log, "  ", m, ": ", msg)
-                            }
-                        }
-                        if(f == "FC" && !have_f9x) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            msg <- sprintf("SHLIB_OPENMP_%sFLAGS is included in PKG_FCFLAGS without any free-form Fortran files\n", f_or_fc)
-                            printLog(Log, "  ", m, ": ", msg)
-                            next
-                        }
-                        if(f == "CXX" && !have_cxx) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            msg <- "SHLIB_OPENMP_CXXFLAGS is included in PKG_CXXFLAGS without any C++ files\n"
-                            printLog(Log, "  ", m, ": ", msg)
-                            next
-                        }
-                        ## The recommendation is to use _F[C]FLAGS to
-                        ## compile and _CFLAGS or _CXXFLAGS to link with Fortran
-                        ## code (which is linked by the C or C++ compiler)
-                        c_or_cxx <- if(have_cxx) "CXXFLAGS" else "CFLAGS"
-                        this2 <- if (f %in% c("F", "FC")) c_or_cxx else this
-                        pat2 <- paste0("SHLIB_OPENMP_", this2)
-                        if(!any(grepl(pat2, lines[c1], useBytes = TRUE))) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            msg <- if(anyInLIBS) {
-                                if (f == "F")
-                                    sprintf("SHLIB_OPENMP_FFLAGS is included in PKG_FFLAGS but not SHLIB_OPENMP_%s in PKG_LIBS\n", c_or_cxx)
-                                 else if (f == "FC")
-                                     sprintf("SHLIB_OPENMP_%sFLAGS is included in PKG_FCFLAGS but not SHLIB_OPENMP_%s in PKG_LIBS\n", f_or_fc, c_or_cxx)
-                               else
-                                    sprintf("SHLIB_OPENMP_%s is included in PKG_%s but not in PKG_LIBS\n",
-                                            this, this)
-                            } else {
-                                msg3 <- TRUE
-                                sprintf("SHLIB_OPENMP_%s is included in PKG_%s but no OPENMP macro in PKG_LIBS\n",
-                                           this, this)
-                            }
-                            printLog(Log, "  ", m, ": ", msg)
-                        }
-                    } else {
-                        ## several packages have the wrong flag
-                        pat <- paste0("^[[:space:]]*PKG_", this, ".*SHLIB_OPENMP_")
-                        if(any(c2 <- grepl(pat, lines, useBytes = TRUE))) {
-                            if (!any) noteLog(Log)
-                            any <- TRUE
-                            if (!anyInLIBS) msg3 <- TRUE
-                            ## assume just one
-                            l <- lines[c2][1L]
-                            found <- sub(".*SHLIB_OPENMP_([A-Z]*).*", "\\1", l, useBytes = TRUE)
-                            printLog(Log,"  ", m, ": ",
-                                     sprintf("incorrect macro SHLIB_OPENMP_%s included in PKG_%s\n",
-                                             found, this))
-                        }
-                    }
-                }
-                ## Now check if PKG_LIBS includes a macro that is not used
-                ## in PKG_*FLAGS, or more than one.
-                cnt <- 0L
-                for (f in c("C", "CXX", "F", "FC"))  {
-                    this <- paste0(f, "FLAGS")
-                    pat2 <- paste0("SHLIB_OPENMP_", this)
-                    res <- any(grepl(pat2 , lines[c1], useBytes = TRUE))
-                    cnt <- cnt + res
-                    if (res && f %in% c( "F", "FC"))  {
-                        if (!any) noteLog(Log)
-                        any <- TRUE
-                        printLog(Log,"  ", m, ": ",
-                                 sprintf("SHLIB_OPENMP_%s is included in PKG_LIBS but linking is by %s\n",
-                                         this,
-                                         if(have_cxx) "C++" else "C"))
-                         next
-                    }
-                     if (res &&
-                         ((!have_cxx && f == "CXX") || (have_cxx && f == "C"))) {
-                        if (!any) noteLog(Log)
-                        any <- TRUE
-                        printLog(Log,"  ", m, ": ",
-                                 sprintf("SHLIB_OPENMP_%s is included in PKG_LIBS but linking is by %s\n",
-                                         this,
-                                         if(have_cxx) "C++" else "C"))
-                         next
-                    }
-                    if (this %in% used) next
-                    ## Fortran exceptions
-                    if (((!have_cxx && f == "C") || (have_cxx && f == "CXX"))
-                        && any(c("FFLAGS", "FCFLAGS") %in% used)) next
-                    if (res) {
-                        if (!any) noteLog(Log)
-                        any <- TRUE
-                        printLog(Log,"  ", m, ": ",
-                                 sprintf("SHLIB_OPENMP_%s is included in PKG_LIBS but not in PKG_%s\n",
-                                         this, this))
-                   }
-                }
-                if (cnt > 1L) {
-                    if (!any) noteLog(Log)
-                    any <- TRUE
-                    if (!anyInLIBS) msg3 <- TRUE
-                    printLog(Log, "  ", m, ": ",
-                             "it is not portable to include multiple",
-                             " SHLIB_OPENMP_*' macros in PKG_LIBS",
-                             "\n")
-                }
-
-                ## several packages include one of these in PKG_CPPFLAGS
-                ## which is used for both C and C++ code.
-                pat <- "^[[:space:]]*PKG_CPPFLAGS.*SHLIB_OPENMP_"
-                if(any(grepl(pat, lines, useBytes = TRUE))) {
-                    if (!any) noteLog(Log)
-                    any <- TRUE
-                    msg2 <- TRUE
-                    printLog(Log,"  ", m, ": ",
-                             "it is not portable to include",
-                             " SHLIB_OPENMP_*' macros in PKG_CPPFLAGS",
-                             "\n")
-                }
-            }
-            if (!any) resultLog(Log, "OK")
-            else {
-                wrapLog("Use of these macros is discussed in sect 1.2.1.1 of",
-                        paste0(sQuote("Writing R Extensions"), "."),
-                        "The macros for different languages may differ",
-                        "so the matching macro must be used in",
-                        "PKG_CXXFLAGS (etc) and match that used in",
-                        "PKG_LIBS (except for Fortran: see the manual).\n")
-                if (msg2)
-                    wrapLog("PKG_CPPFLAGS is used for both C and C++ code",
-                            "so it is not portable to use it",
-                            "for these macros.\n")
-                if (msg3)
-                    wrapLog("Using a SHLIB_OPENMP_ macro for compilation",
-                            "but none in PKG_LIBS",
-                            "is not portable and may result in",
-                            "installation errors.\n")
-            }
         }
 
         ## Check include directives for use of R_HOME which may contain
@@ -3064,7 +2790,7 @@ add_dummies <- function(dir, Log)
                 opts <- grep("-f(fast-math|unsafe-math-optimizations|associative-math|reciprocal-math)",
                              tokens, useBytes = TRUE, value = TRUE)
                 warns <- c(warns, diags, opts)
-                if(any(startsWith(warns, "-Wno-")) || length(diags)) {
+                if(any(grepl("^-Wno-", warns)) || length(diags)) {
                     warningLog(Log)
                     msg <- c("Compilation used the following non-portable flag(s):",
                              .pretty_format(sort(warns)),
@@ -3298,39 +3024,31 @@ add_dummies <- function(dir, Log)
                 ##   base/recommended packages which are overwritten
                 ##   when this package's namespace is loaded.
                 ## As of 2017-12, to make this work as documented we
-                ## really need to load all base and recommended
-                ## ("standard") packages which register S3 methods
-                ## first, which takes *quite some time*.
-                ## There really should be a better way ...
+                ## really need to load all base and recommended packages
+                ## which register S3 methods first, which takes *quite
+                ## some time*.  There really should be a better way ...
                 ## Running with
                 ##   R_DEFAULT_PACKAGES=MASS,Matrix,boot,class,cluster,grDevices,graphics,grid,lattice,mgcv,nlme,nnet,parallel,rpart,spatial,splines,stats,survival,tcltk,tools,utils
                 ## does not suppress package startup messages: so try to
-                ## load the relevant standard package namespaces quietly.
-                ## When checking a standard package p we should preload
-                ## only the standard packages not depending on p.
-                preloads <-
-                    c("MASS", "Matrix", "boot", "class", "cluster",
-                      "grDevices",  "graphics", "grid", "lattice",
-                      "mgcv", "nlme", "nnet", "parallel", "rpart",
-                      "spatial", "splines", "stats", "survival",
-                      "tcltk", "tools", "utils")
-                if(!is.na(match(pkgname, preloads))) {
-                    rdepends <-
-                        .get_standard_package_dependencies(reverse = TRUE,
-                                                           recursive = TRUE)
-                    preloads <- setdiff(preloads,
-                                        c(pkgname, rdepends[[pkgname]]))
-                }
+                ## load the relevant base and recommended package
+                ## namespaces quietly ...
                 Rcmd <-
                     c(sprintf("suppressPackageStartupMessages(loadNamespace('%s', lib.loc = '%s'))",
-                              preloads,
+                              ## Perhaps provide these sorted according
+                              ## to dependency?
+                              c("MASS", "Matrix", "boot", "class",
+                                "cluster", "grDevices",  "graphics",
+                                "grid", "lattice", "mgcv", "nlme",
+                                "nnet", "parallel", "rpart", "spatial",
+                                "splines", "stats", "survival", "tcltk",
+                                "tools", "utils"),
                               .Library),
                       Rcmd)
                 env <- c(env, "R_DEFAULT_PACKAGES=NULL")
                 out <- R_runR0(Rcmd, opts, env, arch = arch)
                 ## </FIXME>
-                if (any(grepl("^Registered S3 method.*standard package.*overwritten", out, useBytes = TRUE))) {
-                    out <- out[!startsWith(out, "<environment: namespace:")]
+                if (any(grepl("^Registered S3 method.*overwritten", out))) {
+                    out <- filtergrep("^<environment: namespace:", out)
                     warningLog(Log)
                     printLog0(Log, paste(out, collapse = "\n"), "\n")
                 } else resultLog(Log, "OK")
@@ -3368,11 +3086,8 @@ add_dummies <- function(dir, Log)
                          sQuote(basename(exfile)),
                          " failed")
                 ## Try to spot the offending example right away.
-                ## Sometimes processes need extra time to shut down,
-                ## particularly parallel cluster on Windows, hence a hack to retry after 2 sec:
-                txt <- tryCatch(suppressWarnings(readLines(exout, warn = FALSE)),
-                                error = function(e){Sys.sleep(2); readLines(exout, warn = FALSE)})
-                txt <- paste(txt, collapse = "\n")
+                txt <- paste(readLines(exout, warn = FALSE),
+                             collapse = "\n")
                 ## Look for the header section anchored by a
                 ## subsequent call to flush(): needs to be kept in
                 ## sync with the code in massageExamples (in
@@ -3399,10 +3114,7 @@ add_dummies <- function(dir, Log)
             ## deprecated , as the next release will make
             ## them defunct and hence using them an error.
             bad <- FALSE
-            ## Sometimes processes need extra time to shut down,
-            ## particularly parallel cluster on Windows, hence a hack to retry after 2 sec:
-            lines <- tryCatch(suppressWarnings(readLines(exout, warn = FALSE)),
-                              error = function(e){Sys.sleep(2); readLines(exout, warn = FALSE)})
+            lines <- readLines(exout, warn = FALSE)
             bad_lines <- grep("^Warning: .*is deprecated.$",
                               lines, useBytes = TRUE, value = TRUE)
             if(length(bad_lines)) {
@@ -4272,7 +3984,7 @@ add_dummies <- function(dir, Log)
                 ## avoid match to is_executable.Rd
                 ex <- grepl(" executable", lines, useBytes=TRUE)
                 ex2 <- grepl("script", lines, useBytes=TRUE) &
-                    grepl("text", lines, useBytes=TRUE)
+                       grepl("text", lines, useBytes=TRUE)
                 execs <- c(execs, lines[ex & !ex2])
             }
             if(length(execs)) {
@@ -4433,7 +4145,7 @@ add_dummies <- function(dir, Log)
                     ## but what if there is output from do_cleanup
                     ## in (Unix) R CMD INSTALL?
                     ## </NOTE>
-                    install_error <- !any(startsWith(lines, "* DONE"))
+                    install_error <- !any(grepl("^\\* DONE", lines))
                 } else {
                     ## record in the log what options were used
                     cat("* install options ", sQuote(INSTALL_opts),
@@ -4546,13 +4258,7 @@ add_dummies <- function(dir, Log)
                              ": warning: suggest parentheses around (comparison|assignment)",
                              ": warning: .* \\[-Wstringop", # mainly gcc8
                              ": warning: .* \\[-Wclass-memaccess\\]", # gcc8
-                             ## used for things deprecated in C++11, for example
-                             ": warning: .* \\[-Wdeprecated\\]",
-                             ": warning: .* \\[-Waligned-new",
-                             ## new in gcc 8
-                             ": warning: .* \\[-Wcatch-value=\\]",
-                             # warns on code deprecated in C++11
-                            ## Fatal, not warning, for clang and Solaris ODS
+                             ## Fatal on clang and Solaris ODS
                              ": warning: .* with a value, in function returning void"
                             )
 
@@ -4583,7 +4289,7 @@ add_dummies <- function(dir, Log)
 
                 lines <- grep(warn_re, lines, value = TRUE, useBytes = TRUE)
 
-                ## gcc (even 9) seems not to know the size of pointers, so skip
+                ## gcc seems not to know the size of pointers, so skip
                 ## some from -Walloc-size-larger-than= and -Wstringop-overflow=
                 lines <- grep("exceeds maximum object size.*-W(alloc-size-larger-than|stringop-overflow)", lines,
                               value = TRUE, useBytes = TRUE, invert = TRUE)
@@ -4732,7 +4438,7 @@ add_dummies <- function(dir, Log)
                 lines <- unique(lines)
 
                 ## Can get reports like
-                ## Warning: No generic function `as.vector' found corresponding to requested imported methods from package `Matrix' when loading `MatrixModels' (malformed exports?)
+                ## Warning: No generic function ‘as.vector’ found corresponding to requested imported methods from package ‘Matrix’ when loading ‘MatrixModels’ (malformed exports?)
                 ## Exclude these unless they are about the current package.
                 load_re <- "Warning: No generic function.*corresponding to requested imported methods"
                 ex <- grepl(load_re, lines, useBytes = TRUE) &
@@ -4790,8 +4496,7 @@ add_dummies <- function(dir, Log)
         dirs <- sub("^\\d*\\s*", "", res)
         res2 <- data.frame(size = sizes, dir = I(dirs))
         total <- res2[nrow(res2), 1L]
-        if(!is.na(total) &&
-           total > 1024 * as.numeric(Sys.getenv("_R_CHECK_PKG_SIZES_THRESHOLD_", unset = 5)) && # report at 5Mb
+        if(!is.na(total) && total > 1024*5 && # report at 5Mb
            pkgname != "Matrix") { # <- large recommended package
             noteLog(Log)
             printLog(Log, sprintf("  installed size is %4.1fMb\n", total/1024))
@@ -4842,7 +4547,7 @@ add_dummies <- function(dir, Log)
                 do_exit(1L)
             }
             if(!grepl("^[[:alpha:]][[:alnum:].]*[[:alnum:]]$", desc["Package"])
-               || endsWith(desc["Package"], ".")) {
+               || grepl("[.]$", desc["Package"])) {
                 warningLog(Log)
                 printLog(Log,"  Package name is not portable:\n",
                          "  It must start with a letter, contain letters, digits or dot\n",
@@ -5202,14 +4907,14 @@ add_dummies <- function(dir, Log)
             "as is re-building the vignette PDFs.",
             "",
             "Options:",
-            "  -h, --help       print short help message and exit",
-            "  -v, --version        print version info and exit",
+            "  -h, --help               print short help message and exit",
+            "  -v, --version            print version info and exit",
             "  -l, --library=LIB     library directory used for test installation",
-            "           of packages (default is outdir)",
+            "                   of packages (default is outdir)",
             "  -o, --output=DIR      directory for output, default is current directory.",
-            "           Logfiles, R output, etc. will be placed in 'pkg.Rcheck'",
-            "           in this directory, where 'pkg' is the name of the",
-            "           checked package",
+            "                   Logfiles, R output, etc. will be placed in 'pkg.Rcheck'",
+            "                   in this directory, where 'pkg' is the name of the",
+            "                   checked package",
             "      --no-clean        do not clean 'outdir' before using it",
             "      --no-codoc        do not check for code/documentation mismatches",
             "      --no-examples     do not run the examples in the Rd files",
@@ -5224,12 +4929,12 @@ add_dummies <- function(dir, Log)
             "      --use-gct         use 'gctorture(TRUE)' when running examples/tests",
             "      --use-valgrind    use 'valgrind' when running examples/tests/vignettes",
             "      --timings         record timings for examples",
-            "      --install-args=   command-line args to be passed to INSTALL",
+            "      --install-args=      command-line args to be passed to INSTALL",
             "      --test-dir=       look in this subdirectory for test scripts (default tests)",
             "      --no-stop-on-test-error   do not stop running tests after first error",
             "      --check-subdirs=default|yes|no",
-            "           run checks on the package subdirectories",
-            "           (default is yes for a tarball, no otherwise)",
+            "                   run checks on the package subdirectories",
+            "                   (default is yes for a tarball, no otherwise)",
             "      --as-cran         select customizations similar to those used",
             "                        for CRAN incoming checking",
             "",
@@ -5326,7 +5031,7 @@ add_dummies <- function(dir, Log)
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                .R_copyright_msg(1997),
+                "Copyright (C) 1997-2017 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep="\n")
@@ -5399,7 +5104,7 @@ add_dummies <- function(dir, Log)
             stop_on_test_error <- FALSE
         } else if (substr(a, 1, 9) == "--rcfile=") {
             warning("configuration files are not supported as from R 2.12.0")
-        } else if (startsWith(a, "-")) {
+        } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
         args <- args[-1L]
@@ -5586,11 +5291,7 @@ add_dummies <- function(dir, Log)
         if(!nzchar(Sys.getenv("_R_CHECK_R_DEPENDS_")))
             Sys.setenv("_R_CHECK_R_DEPENDS_" = "warn")
         ## until this is tested on Windows
-        Sys.setenv("_R_CHECK_R_ON_PATH_" = if(WINDOWS) "FALSE" else "TRUE")
-        Sys.setenv("_R_CHECK_PACKAGES_USED_IN_TESTS_USE_SUBDIRS_" = "TRUE")
-        Sys.setenv("_R_CHECK_CONNECTIONS_LEFT_OPEN_" = "TRUE")
-        Sys.setenv("_R_CHECK_SHLIB_OPENMP_FLAGS_" = "TRUE")
-        Sys.setenv("_R_CHECK_FUTURE_FILE_TIMESTAMPS_" = "TRUE")
+        Sys.setenv("_R_CHECK_R_ON_PATH_" = ifelse(WINDOWS, "FALSE", "TRUE"))
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE

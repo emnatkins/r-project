@@ -1076,9 +1076,7 @@ function(object, ...)
 {
     format_author <- function(author) paste(sapply(author, function(p) {
 	fnms <- p$family
-	only_given_or_family <-
-            (is.null(fnms) || is.null(p$given)) &&
-            !(identical(fnms, "others") || identical(p$given, "others"))
+	only_given_or_family <- is.null(fnms) || is.null(p$given)
 	fbrc <- if(length(fnms) > 1L ||
                    any(grepl("[[:space:]]", fnms)) ||
                    only_given_or_family) c("{", "}") else ""
@@ -1114,7 +1112,7 @@ function(object, ...)
 sort.bibentry <-
 function(x, decreasing = FALSE, .bibstyle = NULL, drop = FALSE, ...)
 {
-    x[order(tools::bibstyle(.bibstyle, .default = FALSE)$sortKeys(x),
+    x[order(tools::bibstyle(.bibstyle)$sortKeys(x),
             decreasing = decreasing),
       drop = drop]
 }
@@ -1213,7 +1211,8 @@ function(package = "base", lib.loc = NULL, auto = NULL)
         auto_was_meta <- FALSE
         dir <- system.file(package = package, lib.loc = lib.loc)
         if(dir == "")
-            stop(packageNotFoundError(package, lib.loc, sys.call()))
+            stop(gettextf("package %s not found", sQuote(package)),
+                 domain = NA)
         meta <- packageDescription(pkg = package,
                                    lib.loc = dirname(dir))
         ## if(is.null(auto)): Use default auto-citation if no CITATION

@@ -41,7 +41,7 @@
 #   and this notice are preserved.  This file is offered as-is, without any
 #   warranty.
 
-# cxx_compile_stdcxx serial 8
+# cxx_compile_stdcxx serial 7
 
 dnl  This macro is based on the code from the AX_CXX_COMPILE_STDCXX_11 macro
 dnl  (serial version number 13).
@@ -53,6 +53,7 @@ dnl  __cplusplus macro is not too recent so that a C++14 compiler does not
 dnl  pass as a C++11, for example. The tests for C++17 have also been
 dnl  modified and are not conditional on the compiler.
 
+AX_REQUIRE_DEFINED([AC_MSG_WARN])
 AC_DEFUN([AX_CXX_COMPILE_STDCXX], [dnl
   m4_if([$1], [98], [ax_cxx_compile_alternatives="98 03"],
 	[$1], [11], [ax_cxx_compile_alternatives="11 0x"],
@@ -105,10 +106,10 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX], [dnl
 
   m4_if([$2], [ext], [], [dnl
   if test x$ac_success = xno; then
-    dnl HP's aCC needs +std=c++11 according to:
-    dnl http://h21007.www2.hp.com/portal/download/files/unprot/aCxx/PDF_Release_Notes/769149-001.pdf
+    dnl HP's aCC needs +std=c++11
     dnl Cray's crayCC needs "-h std=c++11"
     dnl Both omitted here
+    dnl Oracle Developer Studio CC -library=stlport4 requires -std=sun03
     for alternative in ${ax_cxx_compile_alternatives}; do
       for switch in -std=c++${alternative} -std=sun${alternative}; do
         cachevar=AS_TR_SH([ax_cv_cxx_compile_cxx$1_$switch])
@@ -150,6 +151,7 @@ dnl    AC_DEFINE(HAVE_CXX$1,1,
 dnl              [define if the compiler supports basic C++$1 syntax])
   fi
   AC_SUBST(HAVE_CXX$1)
+dnl  m4_if([$1], [17], [AC_MSG_WARN([C++17 is not yet standardized, so the checks may change in incompatible ways anytime])])
 ])
 
 dnl  Test body for checking C++98 support
@@ -169,10 +171,12 @@ dnl  Test body for checking C++11 support
 m4_define([_AX_CXX_COMPILE_STDCXX_testbody_11],
 #ifndef __cplusplus
 # error "This is not a C++ compiler"
+#elif defined(__GNUC__)  && __GNUC__ == 4 && __GNUC_MINOR__ < 8
+  _AX_CXX_COMPILE_STDCXX_testbody_legacy_11
 #elif __cplusplus < 201103L
 # error "This is not a C++11 compiler"
 #elif __cplusplus >= 201402L
-# error "This is a compiler for C++14 or later"
+# error "This is a C++14 compiler"
 #else
   _AX_CXX_COMPILE_STDCXX_testbody_new_in_11
 #endif
@@ -185,8 +189,6 @@ m4_define([_AX_CXX_COMPILE_STDCXX_testbody_14],
 # error "This is not a C++ compiler"
 #elif __cplusplus < 201402L
 # error "This is not a C++14 compiler"
-#elif __cplusplus >= 201703L
-# error "This is a C++17 compiler"
 #else
   _AX_CXX_COMPILE_STDCXX_testbody_new_in_11
   _AX_CXX_COMPILE_STDCXX_testbody_new_in_14
@@ -198,7 +200,7 @@ dnl Test body for checking C++17 support
 m4_define([_AX_CXX_COMPILE_STDCXX_testbody_17],
 #ifndef __cplusplus
 #error "This is not a C++ compiler"
-#elif __cplusplus < 201703L
+#elif __cplusplus <= 201402L
 #error "This is not a C++17 compiler"
 #else
   _AX_CXX_COMPILE_STDCXX_testbody_new_in_11
@@ -208,6 +210,30 @@ m4_define([_AX_CXX_COMPILE_STDCXX_testbody_17],
 )
 
 dnl  Tests for new features in C++11
+
+m4_define([_AX_CXX_COMPILE_STDCXX_testbody_legacy_11], [[
+
+  //This is the earlier, less stringent test used in R 3.3.0
+  //Keep this for long-term support platforms with older gcc compilers
+
+  template <typename T>
+  struct check
+  {
+    static_assert(sizeof(int) <= sizeof(T), "not big enough");
+  };
+
+  typedef check<check<bool>> right_angle_brackets;
+
+  int a;
+  decltype(a) b;
+
+  typedef check<int> check_type;
+  check_type c;
+  check_type&& cr = static_cast<check_type&&>(c);
+
+  auto d = a;
+
+]])
 
 m4_define([_AX_CXX_COMPILE_STDCXX_testbody_new_in_11], [[
 
@@ -951,7 +977,10 @@ namespace cxx17
 #endif // !defined(REALLY_CLANG)
 */
 
-  // P0012R1: clang >= 4
+/*
+  P0012R1 is supported by clang 4.0.0 - MTP
+  #if !defined(REALLY_CLANG)
+*/
   namespace test_exception_spec_type_system
   {
 
@@ -974,6 +1003,9 @@ namespace cxx17
     static_assert (std::is_same_v<Good, decltype(f(g1, g2))>);
 
   }
+/*
+  #endif // !defined(REALLY_CLANG)
+*/
 
   namespace test_inline_variables
   {

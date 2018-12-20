@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999--2018  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1999-2017   The R Core Team.
  *
  *  This header file is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -11,7 +11,7 @@
  *  This file is part of R. R is distributed under the terms of the
  *  GNU General Public License, either Version 2, June 1991 or Version 3,
  *  June 2007. See doc/COPYRIGHTS for details of the copyright status of R.
- *
+ *  
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -183,19 +183,6 @@ typedef enum {
 
 typedef struct SEXPREC *SEXP;
 
-
-/* Define SWITH_TO_REFCNT to use reference counting instead of the
-   'NAMED' mechanism. */
-//#define SWITCH_TO_REFCNT
-
-#if defined(SWITCH_TO_REFCNT) && ! defined(COMPUTE_REFCNT_VALUES)
-# define COMPUTE_REFCNT_VALUES
-#endif
-#if defined(SWITCH_TO_REFCNT) && ! defined(ADJUST_ENVIR_REFCNTS)
-# define ADJUST_ENVIR_REFCNTS
-#endif
-
-
 // ======================= USE_RINTERNALS section
 #ifdef USE_RINTERNALS
 /* This is intended for use only within R itself.
@@ -272,9 +259,17 @@ struct promsxp_struct {
    field. Under the generational collector these are followed by the
    fields used to maintain the collector's linked list structures. */
 
-#ifdef SWITCH_TO_REFCNT
-# define REFCNTMAX ((1 << NAMED_BITS) - 1)
+/* Define SWITH_TO_REFCNT to use reference counting instead of the
+   'NAMED' mechanism. */
+//#define SWITCH_TO_REFCNT
+
+#if defined(SWITCH_TO_REFCNT) && ! defined(COMPUTE_REFCNT_VALUES)
+# define COMPUTE_REFCNT_VALUES
 #endif
+#if defined(SWITCH_TO_REFCNT) && ! defined(ADJUST_ENVIR_REFCNTS)
+# define ADJUST_ENVIR_REFCNTS
+#endif
+#define REFCNTMAX ((1 << NAMED_BITS) - 1)
 
 #define SEXPREC_HEADER \
     struct sxpinfo_struct sxpinfo; \
@@ -331,33 +326,6 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 # define REFCNT(x) 0
 # define TRACKREFS(x) FALSE
 #endif
-
-#if defined(COMPUTE_REFCNT_VALUES)
-# define SET_REFCNT(x,v) (REFCNT(x) = (v))
-# if defined(EXTRA_REFCNT_FIELDS)
-#  define SET_TRACKREFS(x,v) (TRACKREFS(x) = (v))
-# else
-#  define SET_TRACKREFS(x,v) ((x)->sxpinfo.spare = ! (v))
-# endif
-# define DECREMENT_REFCNT(x) do {					\
-	SEXP drc__x__ = (x);						\
-	if (REFCNT(drc__x__) > 0 && REFCNT(drc__x__) < REFCNTMAX)	\
-	    SET_REFCNT(drc__x__, REFCNT(drc__x__) - 1);			\
-    } while (0)
-# define INCREMENT_REFCNT(x) do {			      \
-	SEXP irc__x__ = (x);				      \
-	if (REFCNT(irc__x__) < REFCNTMAX)		      \
-	    SET_REFCNT(irc__x__, REFCNT(irc__x__) + 1);	      \
-    } while (0)
-#else
-# define SET_REFCNT(x,v) do {} while(0)
-# define SET_TRACKREFS(x,v) do {} while(0)
-# define DECREMENT_REFCNT(x) do {} while(0)
-# define INCREMENT_REFCNT(x) do {} while(0)
-#endif
-
-#define ENABLE_REFCNT(x) SET_TRACKREFS(x, TRUE)
-#define DISABLE_REFCNT(x) SET_TRACKREFS(x, FALSE)
 
 #ifdef SWITCH_TO_REFCNT
 # undef NAMED
@@ -550,19 +518,42 @@ Rboolean (Rf_isObject)(SEXP s);
 	DECREMENT_REFCNT(dl__x__);		\
     } while (0)
 
+#if defined(COMPUTE_REFCNT_VALUES)
+# define SET_REFCNT(x,v) (REFCNT(x) = (v))
+# if defined(EXTRA_REFCNT_FIELDS)
+#  define SET_TRACKREFS(x,v) (TRACKREFS(x) = (v))
+# else
+#  define SET_TRACKREFS(x,v) ((x)->sxpinfo.spare = ! (v))
+# endif
+# define DECREMENT_REFCNT(x) do {					\
+	SEXP drc__x__ = (x);						\
+	if (REFCNT(drc__x__) > 0 && REFCNT(drc__x__) < REFCNTMAX)	\
+	    SET_REFCNT(drc__x__, REFCNT(drc__x__) - 1);			\
+    } while (0)
+# define INCREMENT_REFCNT(x) do {			      \
+	SEXP irc__x__ = (x);				      \
+	if (REFCNT(irc__x__) < REFCNTMAX)		      \
+	    SET_REFCNT(irc__x__, REFCNT(irc__x__) + 1);	      \
+    } while (0)
+#else
+# define SET_REFCNT(x,v) do {} while(0)
+# define SET_TRACKREFS(x,v) do {} while(0)
+# define DECREMENT_REFCNT(x) do {} while(0)
+# define INCREMENT_REFCNT(x) do {} while(0)
+#endif
+
+#define ENABLE_REFCNT(x) SET_TRACKREFS(x, TRUE)
+#define DISABLE_REFCNT(x) SET_TRACKREFS(x, FALSE)
+
 /* Macros for some common idioms. */
 #ifdef SWITCH_TO_REFCNT
 # define MAYBE_SHARED(x) (REFCNT(x) > 1)
 # define NO_REFERENCES(x) (REFCNT(x) == 0)
-# ifdef USE_RINTERNALS
-#  define MARK_NOT_MUTABLE(x) SET_REFCNT(x, REFCNTMAX)
-# endif
+# define MARK_NOT_MUTABLE(x) SET_REFCNT(x, REFCNTMAX)
 #else
 # define MAYBE_SHARED(x) (NAMED(x) > 1)
 # define NO_REFERENCES(x) (NAMED(x) == 0)
-# ifdef USE_RINTERNALS
-#  define MARK_NOT_MUTABLE(x) SET_NAMED(x, NAMEDMAX)
-# endif
+# define MARK_NOT_MUTABLE(x) SET_NAMED(x, NAMEDMAX)
 #endif
 #define MAYBE_REFERENCED(x) (! NO_REFERENCES(x))
 #define NOT_SHARED(x) (! MAYBE_SHARED(x))
@@ -617,11 +608,6 @@ void (ENSURE_NAMEDMAX)(SEXP x);
 void (ENSURE_NAMED)(SEXP x);
 void (SETTER_CLEAR_NAMED)(SEXP x);
 void (RAISE_NAMED)(SEXP x, int n);
-void (DECREMENT_REFCNT)(SEXP x);
-void (INCREMENT_REFCNT)(SEXP x);
-void (DISABLE_REFCNT)(SEXP x);
-void (ENABLE_REFCNT)(SEXP x);
-void (MARK_NOT_MUTABLE)(SEXP x);
 
 /* S4 object testing */
 int (IS_S4_OBJECT)(SEXP x);
@@ -688,8 +674,6 @@ void *ALTVEC_DATAPTR(SEXP x);
 const void *ALTVEC_DATAPTR_RO(SEXP x);
 const void *ALTVEC_DATAPTR_OR_NULL(SEXP x);
 SEXP ALTVEC_EXTRACT_SUBSET(SEXP x, SEXP indx, SEXP call);
-
-/* data access */
 int ALTINTEGER_ELT(SEXP x, R_xlen_t i);
 void ALTINTEGER_SET_ELT(SEXP x, R_xlen_t i, int v);
 int ALTLOGICAL_ELT(SEXP x, R_xlen_t i);
@@ -701,57 +685,32 @@ void ALTSTRING_SET_ELT(SEXP, R_xlen_t, SEXP);
 Rcomplex ALTCOMPLEX_ELT(SEXP x, R_xlen_t i);
 void ALTCOMPLEX_SET_ELT(SEXP x, R_xlen_t i, Rcomplex v);
 Rbyte ALTRAW_ELT(SEXP x, R_xlen_t i);
-void ALTRAW_SET_ELT(SEXP x, R_xlen_t i, Rbyte v);
-
+void ALTRAW_SET_ELT(SEXP x, R_xlen_t i, int v);
 R_xlen_t INTEGER_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, int *buf);
-R_xlen_t REAL_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, double *buf);
-R_xlen_t LOGICAL_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, int *buf);
-R_xlen_t COMPLEX_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, Rcomplex *buf);
-R_xlen_t RAW_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, Rbyte *buf);
-
-/* metadata access */
 int INTEGER_IS_SORTED(SEXP x);
 int INTEGER_NO_NA(SEXP x);
-int REAL_IS_SORTED(SEXP x);
-int REAL_NO_NA(SEXP x);
-int LOGICAL_IS_SORTED(SEXP x);
-int LOGICAL_NO_NA(SEXP x);
-int STRING_IS_SORTED(SEXP x);
-int STRING_NO_NA(SEXP x);
-
-/* invoking ALTREP class methods */
 SEXP ALTINTEGER_SUM(SEXP x, Rboolean narm);
+SEXP ALTREAL_SUM(SEXP x, Rboolean narm);
 SEXP ALTINTEGER_MIN(SEXP x, Rboolean narm);
 SEXP ALTINTEGER_MAX(SEXP x, Rboolean narm);
-SEXP INTEGER_MATCH(SEXP, SEXP, int, SEXP, SEXP, Rboolean);
-SEXP INTEGER_IS_NA(SEXP x);
-SEXP ALTREAL_SUM(SEXP x, Rboolean narm);
 SEXP ALTREAL_MIN(SEXP x, Rboolean narm);
 SEXP ALTREAL_MAX(SEXP x, Rboolean narm);
+SEXP INTEGER_MATCH(SEXP, SEXP, int, SEXP, SEXP, Rboolean);
+SEXP INTEGER_IS_NA(SEXP x);
 SEXP REAL_MATCH(SEXP, SEXP, int, SEXP, SEXP, Rboolean);
+	
+R_xlen_t REAL_GET_REGION(SEXP sx, R_xlen_t i, R_xlen_t n, double *buf);
+int REAL_IS_SORTED(SEXP x);
+int REAL_NO_NA(SEXP x);
 SEXP REAL_IS_NA(SEXP x);
-SEXP ALTLOGICAL_SUM(SEXP x, Rboolean narm);
-
-/* constructors for internal ALTREP classes */
+int STRING_IS_SORTED(SEXP x);
+int STRING_NO_NA(SEXP x);
 SEXP R_compact_intrange(R_xlen_t n1, R_xlen_t n2);
-SEXP R_deferred_coerceToString(SEXP v, SEXP info);
+SEXP R_deferred_coerceToString(SEXP v, SEXP sp);
 SEXP R_virtrep_vec(SEXP, SEXP);
-SEXP R_tryWrap(SEXP);
-SEXP R_tryUnwrap(SEXP);
 
 #ifdef LONG_VECTOR_SUPPORT
     R_len_t NORET R_BadLongVector(SEXP, const char *, int);
-#endif
-
-/* checking for mis-use of multi-threading */
-#ifdef TESTING_WRITE_BARRIER
-# define THREADCHECK
-#endif
-#ifdef THREADCHECK
-void R_check_thread(const char *s);
-# define R_CHECK_THREAD R_check_thread(__func__)
-#else
-# define R_CHECK_THREAD do {} while (0)
 #endif
 
 /* List Access Functions */
@@ -927,7 +886,7 @@ LibExtern SEXP  R_dot_Generic;      /* ".Generic" */
 #define NA_STRING	R_NaString
 LibExtern SEXP	R_NaString;	    /* NA_STRING as a CHARSXP */
 LibExtern SEXP	R_BlankString;	    /* "" as a CHARSXP */
-LibExtern SEXP	R_BlankScalarString;/* "" as a STRSXP */
+LibExtern SEXP	R_BlankScalarString;	    /* "" as a STRSXP */
 
 /* srcref related functions */
 SEXP R_GetCurrentSrcref(int);
@@ -943,7 +902,6 @@ SEXP Rf_PairToVectorList(SEXP x);
 SEXP Rf_VectorToPairList(SEXP x);
 SEXP Rf_asCharacterFactor(SEXP x);
 int Rf_asLogical(SEXP x);
-int Rf_asLogical2(SEXP x, int checking, SEXP call, SEXP rho);
 int Rf_asInteger(SEXP x);
 double Rf_asReal(SEXP x);
 Rcomplex Rf_asComplex(SEXP x);
@@ -990,8 +948,6 @@ SEXP Rf_dimnamesgets(SEXP, SEXP);
 SEXP Rf_DropDims(SEXP);
 SEXP Rf_duplicate(SEXP);
 SEXP Rf_shallow_duplicate(SEXP);
-SEXP R_duplicate_attr(SEXP);
-SEXP R_shallow_duplicate_attr(SEXP);
 SEXP Rf_lazy_duplicate(SEXP);
 /* the next really should not be here and is also in Defn.h */
 SEXP Rf_duplicated(SEXP, Rboolean);
@@ -1047,7 +1003,6 @@ Rboolean Rf_pmatch(SEXP, SEXP, Rboolean);
 Rboolean Rf_psmatch(const char *, const char *, Rboolean);
 SEXP R_ParseEvalString(const char *, SEXP);
 void Rf_PrintValue(SEXP);
-void Rf_printwhere(void);
 #ifndef INLINE_PROTECT
 SEXP Rf_protect(SEXP);
 #endif
@@ -1318,11 +1273,6 @@ int R_check_class_etc      (SEXP x, const char **valid);
 void R_PreserveObject(SEXP);
 void R_ReleaseObject(SEXP);
 
-SEXP R_NewPreciousMSet(int);
-void R_PreserveInMSet(SEXP x, SEXP mset);
-void R_ReleaseFromMSet(SEXP x, SEXP mset);
-void R_ReleaseMSet(SEXP mset, int keepSize);
-
 /* Shutdown actions */
 void R_dot_Last(void);		/* in main.c */
 void R_RunExitFinalizers(void);	/* in memory.c */
@@ -1382,7 +1332,6 @@ void R_orderVector1(int *indx, int n, SEXP x,       Rboolean nalast, Rboolean de
 #define asComplex		Rf_asComplex
 #define asInteger		Rf_asInteger
 #define asLogical		Rf_asLogical
-#define asLogical2		Rf_asLogical2
 #define asReal			Rf_asReal
 #define asS4			Rf_asS4
 #define classgets		Rf_classgets
@@ -1502,7 +1451,6 @@ void R_orderVector1(int *indx, int n, SEXP x,       Rboolean nalast, Rboolean de
 #define pmatch			Rf_pmatch
 #define psmatch			Rf_psmatch
 #define PrintValue		Rf_PrintValue
-#define printwhere		Rf_printwhere
 #define protect			Rf_protect
 #define readS3VarsFromFrame	Rf_readS3VarsFromFrame
 #define reEnc			Rf_reEnc
@@ -1686,9 +1634,6 @@ void SET_REAL_ELT(SEXP x, R_xlen_t i, double v);
     } while (FALSE)
 #endif
 
-void R_BadValueInRCode(SEXP value, SEXP call, SEXP rho, const char *rawmsg,
-        const char *errmsg, const char *warnmsg, const char *varname,
-        Rboolean warnByDefault);
 
 #ifdef __cplusplus
 }

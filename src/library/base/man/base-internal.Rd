@@ -1,6 +1,6 @@
 % File src/library/base/man/base-internal.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2018 R Core Team
+% Copyright 1995-2016 R Core Team
 % Distributed under GPL 2 or later
 
 \name{base-internal}
@@ -8,8 +8,7 @@
 \alias{.subset2}
 \alias{.getRequiredPackages}
 \alias{.getRequiredPackages2}
-% removed for R 3.6.
-%\alias{testPlatformEquivalence}
+\alias{testPlatformEquivalence}
 \alias{.isMethodsDispatchOn}
 \alias{sys.save.image}
 \alias{sys.load.image}
@@ -74,8 +73,8 @@
 .getRequiredPackages2(pkgInfo, quietly = FALSE, lib.loc = NULL,
                       useImports = FALSE)
 
-%testPlatformEquivalence(built, run)
-%
+testPlatformEquivalence(built, run)
+
 .isMethodsDispatchOn(onOff = NULL)
 
 sys.load.image(name, quiet)
@@ -180,11 +179,11 @@ lazyLoadDBfetch(key, file, compressed, hook)
   \code{.getRequiredPackages} is a wrapper to
   \code{.getRequiredPackages2} using a \file{DESCRIPTION} file.
 
-%%   \code{testPlatformEquivalence} is used to test if a package with
-%%   compiled code can safely be loaded into a build of \R, which it does by
-%%   comparing their \sQuote{canonical} \code{"cpu-vendor-os"} descriptions.
-%%   The default function omits the \code{vendor} part and allows small
-%%   mismatches elsewhere.
+  \code{testPlatformEquivalence} is used to test if a package with
+  compiled code can safely be loaded into a build of \R, which it does by
+  comparing their \sQuote{canonical} \code{"cpu-vendor-os"} descriptions.
+  The default function omits the \code{vendor} part and allows small
+  mismatches elsewhere.
 
   The function \code{.isMethodsDispatchOn()} returns \code{TRUE} if
   the S4 method dispatch has been turned on in the evaluator (usually by

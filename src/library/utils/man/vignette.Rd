@@ -42,11 +42,10 @@ vignette(topic, package = NULL, lib.loc = NULL, all = TRUE)
 \details{
   Function \code{vignette} returns an object of the same class, the
   print method opens a viewer for it.
-
-  On Unix-alikes,
+#ifdef unix
   The program specified by the \code{pdfviewer} option is used for
   viewing PDF versions of vignettes.
-
+#endif
   If several vignettes have PDF/HTML versions with base name identical
   to \code{topic}, the first one found is used.
 

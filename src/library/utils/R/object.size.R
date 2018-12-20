@@ -36,9 +36,9 @@ format.object_size <- function(x, units = "b", standard = "auto", digits = 1L, .
     if (standard == "auto") { ## infer 'standard' from 'units':
 	standard <- "legacy" # default; may become "SI"
 	if (units != "auto") {
-	    if (endsWith(units, "iB"))
+	    if (grepl("iB$", units))
 		standard <- "IEC"
-	    else if (endsWith(units, "b"))
+	    else if (grepl("b$", units))
 		standard <- "legacy"   ## keep when "SI" is the default
 	    else if (units == "kB")
 		## SPECIAL: Drop when "SI" becomes the default

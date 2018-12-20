@@ -430,16 +430,7 @@ typedef struct {
 #define IS_ACTIVE_BINDING(b) ((b)->sxpinfo.gp & ACTIVE_BINDING_MASK)
 #define BINDING_IS_LOCKED(b) ((b)->sxpinfo.gp & BINDING_LOCK_MASK)
 #define SET_ACTIVE_BINDING_BIT(b) ((b)->sxpinfo.gp |= ACTIVE_BINDING_MASK)
-#define LOCK_BINDING(b) do {						\
-	SEXP lb__b__ = b;						\
-	if (! IS_ACTIVE_BINDING(lb__b__)) {				\
-	    if (TYPEOF(lb__b__) == SYMSXP)				\
-		MARK_NOT_MUTABLE(SYMVALUE(lb__b__));			\
-	    else							\
-		MARK_NOT_MUTABLE(CAR(lb__b__));				\
-	}								\
-	((lb__b__))->sxpinfo.gp |= BINDING_LOCK_MASK;			\
-    } while (0)
+#define LOCK_BINDING(b) ((b)->sxpinfo.gp |= BINDING_LOCK_MASK)
 #define UNLOCK_BINDING(b) ((b)->sxpinfo.gp &= (~BINDING_LOCK_MASK))
 
 #define BASE_SYM_CACHED_MASK (1<<13)
@@ -886,7 +877,6 @@ extern0 int R_PCRE_limit_recursion;
 
 # define allocCharsxp		Rf_allocCharsxp
 # define asVecSize		Rf_asVecSize
-# define asXLength		Rf_asXLength
 # define begincontext		Rf_begincontext
 # define BindDomain		Rf_BindDomain
 # define check_stack_balance	Rf_check_stack_balance
@@ -990,7 +980,6 @@ extern0 int R_PCRE_limit_recursion;
 # define onsigusr2              Rf_onsigusr2
 # define parse			Rf_parse
 # define patchArgsByActuals	Rf_patchArgsByActuals
-# define PrintInit              Rf_PrintInit
 # define PrintDefaults		Rf_PrintDefaults
 # define PrintGreeting		Rf_PrintGreeting
 # define PrintValueEnv		Rf_PrintValueEnv
@@ -1105,31 +1094,11 @@ SEXP Rf_StringFromReal(double, int*);
 SEXP Rf_StringFromComplex(Rcomplex, int*);
 SEXP Rf_EnsureString(SEXP);
 
-/* ../../main/print.c : */
-typedef struct {
-    int width;
-    int na_width;
-    int na_width_noquote;
-    int digits;
-    int scipen;
-    int gap;
-    int quote;
-    int right;
-    int max;
-    SEXP na_string;
-    SEXP na_string_noquote;
-    int useSource;
-    int cutoff; // for deparsed language objects
-    SEXP env;
-    SEXP callArgs;
-} R_PrintData;
-
 /* Other Internally Used Functions */
 
 SEXP Rf_allocCharsxp(R_len_t);
 SEXP Rf_append(SEXP, SEXP); /* apparently unused now */
 R_xlen_t asVecSize(SEXP x);
-R_xlen_t asXLength(SEXP x);
 void check1arg(SEXP, SEXP, const char *);
 void Rf_checkArityCall(SEXP, SEXP, SEXP);
 void CheckFormals(SEXP);
@@ -1225,11 +1194,10 @@ RETSIGTYPE onsigusr2(int);
 R_xlen_t OneIndex(SEXP, SEXP, R_xlen_t, int, SEXP*, int, SEXP);
 SEXP parse(FILE*, int);
 SEXP patchArgsByActuals(SEXP, SEXP, SEXP);
-void PrintInit(R_PrintData *, SEXP);
 void PrintDefaults(void);
 void PrintGreeting(void);
 void PrintValueEnv(SEXP, SEXP);
-void PrintValueRec(SEXP, R_PrintData *);
+void PrintValueRec(SEXP, SEXP);
 void PrintVersion(char *, size_t len);
 void PrintVersion_part_1(char *, size_t len);
 void PrintVersionString(char *, size_t len);
@@ -1370,14 +1338,13 @@ const wchar_t *wtransChar(SEXP x); /* from sysutils.c */
 #define mbs_init(x) memset(x, 0, sizeof(mbstate_t))
 size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps);
 Rboolean mbcsValid(const char *str);
-char *mbcsTruncateToValid(char *s);
 Rboolean utf8Valid(const char *str);
 char *Rf_strchr(const char *s, int c);
 char *Rf_strrchr(const char *s, int c);
 
 SEXP fixup_NaRm(SEXP args); /* summary.c */
 void invalidate_cached_recodings(void);  /* from sysutils.c */
-void resetICUcollator(Rboolean disable); /* from util.c */
+void resetICUcollator(void); /* from util.c */
 void dt_invalidate_locale(); /* from Rstrptime.h */
 extern int R_OutputCon; /* from connections.c */
 extern int R_InitReadItemDepth, R_ReadItemDepth; /* from serialize.c */

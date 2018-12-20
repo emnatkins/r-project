@@ -341,9 +341,8 @@ inRbuildignore <- function(files, pkgdir) {
                     tocopy <- c(vigns$docs, vigns$outputs, unlist(vigns$sources))
                     copied <- file.copy(tocopy, doc_dir, copy.date = TRUE)
                     if (!all(copied)) {
-                    	warning(sprintf(ngettext(sum(!copied),
-                                                 "%s file\n", "%s files\n"),
-                                        sQuote("inst/doc")),
+                    	warning(sQuote("inst/doc"),
+                    	        ngettext(sum(!copied), " file\n", " files\n"),
                     	        strwrap(paste(sQuote(basename(tocopy[!copied])), collapse=", "),
                     	                indent = 4, exdent = 2),
 			        "\n  ignored as vignettes have been rebuilt.",
@@ -420,8 +419,8 @@ inRbuildignore <- function(files, pkgdir) {
                 gs_quality <- "none"
             }
             qpdf <-
-                if(compact_vignettes %in% c("qpdf", "gs+qpdf", "both"))
-                    Sys.which(Sys.getenv("R_QPDF", "qpdf")) else ""
+                ifelse(compact_vignettes %in% c("qpdf", "gs+qpdf", "both"),
+                       Sys.which(Sys.getenv("R_QPDF", "qpdf")), "")
             res <- compactPDF(pdfs, qpdf = qpdf,
                               gs_cmd = gs_cmd, gs_quality = gs_quality)
             res <- format(res, diff = 1e5)
@@ -859,7 +858,7 @@ inRbuildignore <- function(files, pkgdir) {
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                .R_copyright_msg(1997),
+                "Copyright (C) 1997-2016 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
@@ -889,7 +888,7 @@ inRbuildignore <- function(files, pkgdir) {
             with_md5 <- TRUE
         } else if (a == "--log") {
             with_log <- TRUE
-        } else if (startsWith(a, "-")) {
+        } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
         args <- args[-1L]

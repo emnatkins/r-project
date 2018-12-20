@@ -156,7 +156,7 @@ packageVersion <- function(pkg, lib.loc = NULL)
     res <- suppressWarnings(packageDescription(pkg, lib.loc=lib.loc,
                                                fields = "Version"))
     if (!is.na(res)) package_version(res) else
-    stop(packageNotFoundError(pkg, lib.loc, sys.call()))
+    stop(gettextf("package %s not found", sQuote(pkg)), domain = NA)
 }
 
 ##' Auxiliary: generalize extraction from "Built"

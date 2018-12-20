@@ -69,7 +69,7 @@
 *     December 2016
 *
 *     .. Scalar Arguments ..
-      CHARACTER          CMACH
+      CHARACTER*1        CMACH
 *     ..
 *
 * =====================================================================

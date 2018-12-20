@@ -1,6 +1,6 @@
 % File src/library/tools/man/tools-deprecated.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2016, 2018 R Core Team
+% Copyright 1995-2016 R Core Team
 % Distributed under GPL 2 or later
 
 \name{tools-deprecated}
@@ -12,12 +12,13 @@
 \alias{getDepList}
 \alias{pkgDepends}
 \alias{installFoundDepends}
-\alias{vignetteDepends}
 \description{
   The functions or variables listed here are provided for compatibility
   with older versions of \R only, and may be defunct as soon as of the
   next release.
 }
+%% \usage{%% maybe use  funnname(\dots)   and have only \arguments{ \item{\dots}{} }
+%% }
 \usage{
 package.dependencies(x, check = FALSE,
                      depLevel = c("Depends", "Imports", "Suggests"))
@@ -29,9 +30,6 @@ pkgDepends(pkg, recursive = TRUE, local = TRUE, reduce = TRUE,
            lib.loc = NULL)
 
 installFoundDepends(depPkgList, ...)
-
-vignetteDepends(vignette, recursive = TRUE, reduce = TRUE,
-                local = TRUE, lib.loc = NULL)
 }
 \arguments{
   \item{x}{A matrix of package descriptions as returned by
@@ -57,9 +55,6 @@ vignetteDepends(vignette, recursive = TRUE, reduce = TRUE,
 
   \item{depPkgList}{A \code{Found} element from a \code{pkgDependsList} object}
   \item{\dots}{Arguments to pass on to \code{\link{install.packages}}}
-
-  %% for vignetteDepends() (if not above):
-  \item{vignette}{the path to the vignette source}
 }
 \seealso{
   \code{\link{Deprecated}},

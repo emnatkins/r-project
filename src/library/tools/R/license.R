@@ -619,7 +619,7 @@ function(x)
             Map(paste, expansions[ind], regmatches(components, m))
     }
 
-    if(any(startsWith(components, "Part of R"))) { # base package
+    if(any(grepl("^Part of R", components))) { # base package
         is_verified <- is_FOSS <- TRUE
         restricts_use <- FALSE
     }

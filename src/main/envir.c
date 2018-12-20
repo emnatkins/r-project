@@ -144,8 +144,7 @@
 
 static void setActiveValue(SEXP fun, SEXP val)
 {
-    SEXP qfun = lang3(R_DoubleColonSymbol, R_BaseSymbol, R_QuoteSymbol);
-    SEXP arg = lang2(qfun, val);
+    SEXP arg = lang2(R_Primitive("quote"), val);
     SEXP expr = lang2(fun, arg);
     PROTECT(expr);
     eval(expr, R_GlobalEnv);
@@ -1380,9 +1379,8 @@ SEXP ddfind(int i, SEXP rho)
 	    return(CAR(vl));
 	}
 	else // length(...) < i
-	    error(ngettext("the ... list contains fewer than %d element",
-			   "the ... list contains fewer than %d elements", i),
-                  i);
+	    error(ngettext("the ... list does not contain any elements",
+			   "the ... list does not contain %d elements", i), i);
     }
     else error(_("..%d used in an incorrect context, no ... to look in"), i);
 
@@ -2929,13 +2927,11 @@ SEXP attribute_hidden do_eapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("arguments must be symbolic"));
 
     /* 'all.names' : */
-    all = asLogical(PROTECT(eval(CADDR(args), rho)));
-    UNPROTECT(1);
+    all = asLogical(eval(CADDR(args), rho));
     if (all == NA_LOGICAL) all = 0;
 
     /* 'USE.NAMES' : */
-    useNms = asLogical(PROTECT(eval(CADDDR(args), rho)));
-    UNPROTECT(1);
+    useNms = asLogical(eval(CADDDR(args), rho));
     if (useNms == NA_LOGICAL) useNms = 0;
 
     if (env == R_BaseEnv || env == R_BaseNamespace)
@@ -3631,8 +3627,7 @@ SEXP attribute_hidden do_getRegNS(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP name, val;
     checkArity(op, args);
-    name = checkNSname(call, PROTECT(coerceVector(CAR(args), SYMSXP)));
-    UNPROTECT(1);
+    name = checkNSname(call, coerceVector(CAR(args), SYMSXP));
     val = findVarInFrame(R_NamespaceRegistry, name);
 
     switch(PRIMVAL(op)) {

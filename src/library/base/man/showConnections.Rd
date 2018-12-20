@@ -1,6 +1,6 @@
 % File src/library/base/man/showConnections.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2018 R Core Team
+% Copyright 1995-2011 R Core Team
 % Distributed under GPL 2 or later
 
 \name{showConnections}
@@ -11,7 +11,6 @@
 \alias{stdin}
 \alias{stdout}
 \alias{stderr}
-\alias{nullfile}
 \alias{isatty}
 \title{Display Connections}
 \description{
@@ -25,7 +24,6 @@ closeAllConnections()
 stdin()
 stdout()
 stderr()
-nullfile()
 
 isatty(con)
 }
@@ -51,9 +49,6 @@ isatty(con)
 
   The encoding for \code{\link{stdin}()} when redirected can
   be set by the command-line flag \option{--encoding}.
-
-  \code{nullfile()} returns filename of the null device (\code{"/dev/null"}
-  on Unix, \code{"nul:"} on Windows).
 
   \code{showConnections} returns a matrix of information.  If a
   connection object has been lost or forgotten, \code{getConnection}

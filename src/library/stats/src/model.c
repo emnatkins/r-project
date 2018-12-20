@@ -1652,6 +1652,7 @@ SEXP termsform(SEXP args)
 {
     SEXP a, ans, v, pattern, formula, varnames, term, termlabs, ord;
     SEXP specials, t, data, rhs, call;
+    R_xlen_t i, j, k, l, n;
     int keepOrder, allowDot;
 
     Rboolean hadFrameNames = FALSE;
@@ -1745,7 +1746,7 @@ SEXP termsform(SEXP args)
     a = CDR(a);
 
     nvar = length(varlist) - 1;
-
+    
     /* in allocating words need to allow for intercept term */
     nwords = (int)(nvar/ WORDSIZE + 1);
 //    printf("nvar = %d, nwords = %d\n", nvar, nwords);
@@ -1773,24 +1774,19 @@ SEXP termsform(SEXP args)
     /* Step 2a: Compute variable names */
 
     PROTECT(varnames = allocVector(STRSXP, nvar));
-    {
-	R_xlen_t i;
-	for (v = CDR(varlist), i = 0; v != R_NilValue; v = CDR(v))
-	    SET_STRING_ELT(varnames, i++,
-			   STRING_ELT(deparse1line(CAR(v), 0), 0));
-    }
+    for (v = CDR(varlist), i = 0; v != R_NilValue; v = CDR(v))
+	SET_STRING_ELT(varnames, i++, STRING_ELT(deparse1line(CAR(v), 0), 0));
 
     /* Step 2b: Find and remove any offset(s) */
 
     /* first see if any of the variables are offsets */
-    R_xlen_t k = 0;
-    for (R_xlen_t l = response; l < nvar; l++)
+    for (l = response, k = 0; l < nvar; l++)
 	if (!strncmp(CHAR(STRING_ELT(varnames, l)), "offset(", 7)) k++;
     if (k > 0) {
 	Rboolean foundOne = FALSE; /* has there been a non-offset term? */
 	/* allocate the "offsets" attribute */
 	SETCAR(a, v = allocVector(INTSXP, k));
-	for (int l = response, k = 0; l < nvar; l++)
+	for (l = response, k = 0; l < nvar; l++)
 	    if (!strncmp(CHAR(STRING_ELT(varnames, l)), "offset(", 7))
 		INTEGER(v)[k++] = l + 1;
 	SET_TAG(a, install("offset"));
@@ -1801,7 +1797,7 @@ SEXP termsform(SEXP args)
 	    SEXP thisterm = foundOne ? CDR(call) : call;
 	    Rboolean have_offset = FALSE;
 	    if(length(thisterm) == 0) break;
-	    for (int i = 1; i <= nvar; i++)
+	    for (i = 1; i <= nvar; i++)
 		if (GetBit(CAR(thisterm), i) &&
 		    !strncmp(CHAR(STRING_ELT(varnames, i-1)), "offset(", 7)) {
 		    have_offset = TRUE;
@@ -1823,7 +1819,6 @@ SEXP termsform(SEXP args)
 
     PROTECT(ord = allocVector(INTSXP, nterm));
     {
-	R_xlen_t n;
 	SEXP sCounts;
 	int *counts, bitmax = 0, *iord = INTEGER(ord), m = 0;
 
@@ -1842,7 +1837,7 @@ SEXP termsform(SEXP args)
 	} else {
 	    call = formula;
 	    m = 0;
-	    for (int i = 0; i <= bitmax; i++) /* can order 0 occur? */
+	    for (i = 0; i <= bitmax; i++) /* can order 0 occur? */
 		for (n = 0; n < nterm; n++)
 		    if (counts[n] == i) {
 			SETCAR(call, VECTOR_ELT(pattern, n));
@@ -1863,12 +1858,12 @@ SEXP termsform(SEXP args)
 	SETCAR(a, pattern = allocMatrix(INTSXP, nvar, nterm));
 	SET_TAG(a, install("factors"));
 	a = CDR(a);
-	for (R_xlen_t i = 0; i < ((R_xlen_t) nterm) * nvar; i++)
+	for (i = 0; i < nterm * nvar; i++)
 	    INTEGER(pattern)[i] = 0;
 	PROTECT(term = AllocTerm());
-	R_xlen_t n = 0;
+	n = 0;
 	for (call = formula; call != R_NilValue; call = CDR(call)) {
-	    for (int i = 1; i <= nvar; i++) {
+	    for (i = 1; i <= nvar; i++) {
 		if (GetBit(CAR(call), i))
 		    INTEGER(pattern)[i-1+n*nvar] =
 			TermCode(formula, call, i, term);
@@ -1886,10 +1881,10 @@ SEXP termsform(SEXP args)
     /* Step 5: Compute term labels */
 
     PROTECT(termlabs = allocVector(STRSXP, nterm));
-    R_xlen_t n = 0;
+    n = 0;
     for (call = formula; call != R_NilValue; call = CDR(call)) {
-	R_xlen_t l = 0;
-	for (int i = 1; i <= nvar; i++) {
+	l = 0;
+	for (i = 1; i <= nvar; i++) {
 	    if (GetBit(CAR(call), i)) {
 		if (l > 0)
 		    l += 1;
@@ -1899,7 +1894,7 @@ SEXP termsform(SEXP args)
 	char cbuf[l+1];
 	cbuf[0] = '\0';
 	l = 0;
-	for (int i = 1; i <= nvar; i++) {
+	for (i = 1; i <= nvar; i++) {
 	    if (GetBit(CAR(call), i)) {
 		if (l > 0)
 		    strcat(cbuf, ":");
@@ -1923,17 +1918,16 @@ SEXP termsform(SEXP args)
     /* If there are specials stick them in here */
 
     if (specials != R_NilValue) {
-	R_xlen_t j;
 	const void *vmax = vmaxget();
-	int i = length(specials);
+	i = length(specials);
 	PROTECT(v = allocList(i));
 	for (j = 0, t = v; j < i; j++, t = CDR(t)) {
 	    const char *ss = translateChar(STRING_ELT(specials, j));
 	    SET_TAG(t, install(ss));
-	    R_xlen_t n = (int) strlen(ss);
+	    n = (int) strlen(ss);
 	    SETCAR(t, allocVector(INTSXP, 0));
-	    R_xlen_t k = 0;
-	    for (R_xlen_t l = 0; l < nvar; l++) {
+	    k = 0;
+	    for (l = 0; l < nvar; l++) {
 		if (!strncmp(CHAR(STRING_ELT(varnames, l)), ss, n))
 		    if (CHAR(STRING_ELT(varnames, l))[n] == '(')
 			k++;
@@ -1941,7 +1935,7 @@ SEXP termsform(SEXP args)
 	    if (k > 0) {
 		SETCAR(t, allocVector(INTSXP, k));
 		k = 0;
-		for (int l = 0; l < nvar; l++) {
+		for (l = 0; l < nvar; l++) {
 		    if (!strncmp(CHAR(STRING_ELT(varnames, l)), ss, n))
 			if (CHAR(STRING_ELT(varnames, l))[n] == '('){
 			    INTEGER(CAR(t))[k++] = l+1;
@@ -1967,7 +1961,7 @@ SEXP termsform(SEXP args)
 	    PROTECT_INDEX ind;
 	    PROTECT_WITH_INDEX(rhs = installTrChar(STRING_ELT(framenames, 0)),
 			       &ind);
-	    for (R_xlen_t i = 1; i < LENGTH(framenames); i++) {
+	    for (i = 1; i < LENGTH(framenames); i++) {
 		REPROTECT(rhs = lang3(plusSymbol, rhs,
 				      installTrChar(STRING_ELT(framenames, i))),
 			  ind);
@@ -1983,8 +1977,8 @@ SEXP termsform(SEXP args)
     }
 
     SETCAR(a, allocVector(INTSXP, nterm));
+    n = 0;
     {
-	R_xlen_t n = 0;
 	int *ia = INTEGER(CAR(a)), *iord = INTEGER(ord);
 	for (call = formula; call != R_NilValue; call = CDR(call), n++)
 	    ia[n] = iord[n];

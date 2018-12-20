@@ -460,7 +460,8 @@ function(package = NULL, lib.loc = NULL,
 	    else find.package(p, lib.loc, quiet = TRUE)
 	    if(length(path) == 0L) {
                 if(is.null(package)) next
-		else stop(packageNotFoundError(p, lib.loc, sys.call()))
+		else stop(gettextf("could not find package %s", sQuote(p)),
+                          domain = NA)
             }
 	    ## Hsearch 'Meta/hsearch.rds' indices were introduced in
 	    ## R 1.8.0.	 If they are missing, we really cannot use
@@ -696,16 +697,16 @@ function(x, ...)
         browser <- getOption("browser")
         port <- tools::startDynamicHelp(NA)
 	if (port > 0L) {
-            tools:::.httpd_objects(port, x)
-            url <- sprintf("http://127.0.0.1:%d/doc/html/Search?objects=1&port=%d",
-                           port, port)
+            .hsearch_results(x)
+            url <- paste0("http://127.0.0.1:", port,
+                          "/doc/html/Search?results=1")
             ## <NOTE>
             ## Older versions used the following, which invokes the
             ## dynamic HTML help system in a way that this calls
             ## help.search() to give the results to be displayed.
             ## This is now avoided by passing the (already available)
             ## results to the dynamic help system using the dynamic
-            ## variable .httpd_objects().
+            ## variable .hsearch_results().
 	    ## url <-
             ##     paste0("http://127.0.0.1:", port,
             ##            "/doc/html/Search?pattern=",
@@ -820,6 +821,17 @@ function(x, ...)
     file.show(outFile, delete.file = TRUE)
     invisible(x)
 }
+
+.hsearch_results <-
+local({
+    res <- NULL
+    function(new) {
+	if(!missing(new))
+	    res <<- new
+	else
+	    res
+    }
+})
 
 hsearch_db_concepts <-
 function(db = hsearch_db())

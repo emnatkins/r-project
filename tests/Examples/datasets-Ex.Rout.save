@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2018-12-17 r75856) -- "Unsuffered Consequences"
+R version 3.5.2 RC (2018-12-13 r75856) -- "Eggshell Igloo"
 Copyright (C) 2018 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -3257,7 +3257,7 @@ F-statistic: 19.76 on 5 and 41 DF,  p-value: 5.594e-10
 > flush(stderr()); flush(stdout())
 > 
 > ### Name: trees
-> ### Title: Diameter, Height and Volume for Black Cherry Trees
+> ### Title: Girth, Height and Volume for Black Cherry Trees
 > ### Aliases: trees
 > ### Keywords: datasets
 > 
@@ -3513,7 +3513,7 @@ c0   -5.14
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  2.019 0.04 2.069 0 0 
+Time elapsed:  1.975 0.061 2.046 0 0 
 > grDevices::dev.off()
 null device 
           1 

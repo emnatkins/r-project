@@ -82,7 +82,8 @@ x <- "John (fishing, hunting), Paul (hiking, biking)"
 ## non-matched parts.
 ## First, match the parenthesized hobby lists.
 m <- gregexpr("\\\\([^)]*\\\\)", x)
-## Create blank strings with given numbers of characters.
+## Write a little utility for creating blank strings with given numbers
+## of characters.
 blanks <- function(n) strrep(" ", n)
 ## Create a copy of x with the parenthesized parts blanked out.
 s <- x

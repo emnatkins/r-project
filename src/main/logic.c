@@ -278,21 +278,18 @@ SEXP attribute_hidden do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
 
     s1 = CAR(args);
     s2 = CADR(args);
-    PROTECT(s1 = eval(s1, env));
+    s1 = eval(s1, env);
     if (!isNumber(s1))
 	errorcall(call, _("invalid 'x' type in 'x %s y'"),
 		  PRIMVAL(op) == 1 ? "&&" : "||");
-
-    x1 = asLogical2(s1, /*checking*/ 1, call, env);
-    UNPROTECT(1); /* s1 */
+    x1 = asLogical(s1);
 
 #define get_2nd							\
-	PROTECT(s2 = eval(s2, env));				\
+	s2 = eval(s2, env);					\
 	if (!isNumber(s2))					\
 	    errorcall(call, _("invalid 'y' type in 'x %s y'"),	\
 		      PRIMVAL(op) == 1 ? "&&" : "||");		\
-	x2 = asLogical2(s2, 1, call, env);			\
-	UNPROTECT(1); /* s2 */
+	x2 = asLogical(s2);
 
     switch (PRIMVAL(op)) {
     case 1: /* && */
@@ -459,7 +456,7 @@ SEXP attribute_hidden do_logic3(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 
     ans = matchArgExact(R_NaRmSymbol, &args);
-    narm = asLogical2(ans, /*warn_level*/ 1, call, env);
+    narm = asLogical(ans);
 
     for (s = args; s != R_NilValue; s = CDR(s)) {
 	t = CAR(s);

@@ -207,9 +207,6 @@ if(FALSE) {
             "      --with-keep.source",
             "      --without-keep.source",
             "			use (or not) 'keep.source' for R code",
-            "      --with-keep.parse.data",
-            "      --without-keep.parse.data",
-            "			use (or not) 'keep.parse.data' for R code",
             "      --byte-compile	byte-compile R code",
             "      --no-byte-compile	do not byte-compile R code",
             "      --no-test-load	skip test of loading installed package",
@@ -274,7 +271,7 @@ if(FALSE) {
     ## 'pkg' is the absolute path to package sources.
     do_install <- function(pkg)
     {
-        if (WINDOWS && endsWith(pkg, ".zip")) {
+        if (WINDOWS && grepl("\\.zip$", pkg)) {
             pkg_name <- basename(pkg)
             pkg_name <- sub("\\.zip$", "", pkg_name)
             pkg_name <- sub("_[0-9.-]+$", "", pkg_name)
@@ -1160,8 +1157,7 @@ if(FALSE) {
             } else libs0 <- NULL
 	    res <- try({
                 suppressPackageStartupMessages(.getRequiredPackages(quietly = TRUE))
-                makeLazyLoading(pkg_name, lib, keep.source = keep.source,
-                                keep.parse.data = keep.parse.data)
+                makeLazyLoading(pkg_name, lib, keep.source = keep.source)
             })
             if (BC) compiler::compilePKGS(0L)
 	    if (inherits(res, "try-error"))
@@ -1269,9 +1265,8 @@ if(FALSE) {
                 opts <- paste(if(deps_only) "--vanilla" else "--no-save",
                               "--slave")
                 out <- R_runR(cmd, opts, env = env, timeout = tlim)
-                if(length(out)) {
+                if(length(out))
                     cat(paste(c(out, ""), collapse = "\n"))
-                }
                 if(length(attr(out, "status")))
                     errmsg("loading failed") # does not return
             }
@@ -1323,7 +1318,6 @@ if(FALSE) {
     resave_data <- FALSE
     compact_docs <- FALSE
     keep.source <- getOption("keep.source.pkgs")
-    keep.parse.data <- getOption("keep.parse.data.pkgs")
     built_stamp <- character()
 
     install_libs <- TRUE
@@ -1446,10 +1440,6 @@ if(FALSE) {
             keep.source <- TRUE
         } else if (a == "--without-keep.source") {
             keep.source <- FALSE
-        } else if (a == "--with-keep.parse.data") {
-            keep.parse.data <- TRUE
-        } else if (a == "--without-keep.parse.data") {
-            keep.parse.data <- FALSE
         } else if (a == "--byte-compile") {
             byte_compile <- TRUE
         } else if (a == "--no-byte-compile") {
@@ -1458,7 +1448,7 @@ if(FALSE) {
             dsym <- TRUE
         } else if (substr(a, 1, 18) == "--built-timestamp=") {
             built_stamp <- substr(a, 19, 1000)
-        } else if (startsWith(a, "-")) {
+        } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a), domain = NA)
         } else pkgs <- c(pkgs, a)
         args <- args[-1L]
@@ -1550,7 +1540,7 @@ if(FALSE) {
     for(pkg in pkgs) {
         if (debug) message("processing ", sQuote(pkg), domain = NA)
         if (file_test("-f", pkg)) {
-            if (WINDOWS && endsWith(pkg, ".zip")) {
+            if (WINDOWS && grepl("\\.zip$", pkg)) {
                 if (debug) message("a zip file", domain = NA)
                 pkgname <- basename(pkg)
                 pkgname <- sub("\\.zip$", "", pkgname)
@@ -1774,13 +1764,6 @@ if(FALSE) {
 
     OBJ_EXT <- ".o" # all currrent compilers, but not some on Windows
 
-    ## The order of inclusion of Makefiles on a Unix-alike is
-    ## package's src/Makevars
-    ## etc/Makeconf
-    ## site Makevars
-    ## share/make/shlib.mk
-    ## user Makevars
-    ## and similarly elsewhere
     objs <- character()
     shlib <- ""
     site <- Sys.getenv("R_MAKEVARS_SITE", NA_character_)
@@ -2007,7 +1990,10 @@ if(FALSE) {
     }
 
     makeargs <- paste0("SHLIB=", shQuote(shlib))
-    if (with_cxx) {
+    if (with_f9x) {
+        makeargs <- c("SHLIB_LDFLAGS='$(SHLIB_FCLDFLAGS)'",
+                      "SHLIB_LD='$(SHLIB_FCLD)'", makeargs)
+    } else if (with_cxx) {
         makeargs <- if (use_cxx17)
             c("CXX='$(CXX17) $(CXX17STD)'",
               "CXXFLAGS='$(CXX17FLAGS)'",
@@ -2037,8 +2023,8 @@ if(FALSE) {
               "SHLIB_LD='$(SHLIB_CXXLD)'", makeargs)
     }
     if (with_objc) shlib_libadd <- c(shlib_libadd, "$(OBJC_LIBS)")
-    if (with_f77 || with_f9x)
-        shlib_libadd <- c(shlib_libadd, "$(FLIBS) $(FCLIBS_XTRA)")
+    if (with_f77) shlib_libadd <- c(shlib_libadd, "$(FLIBS)")
+    if (with_f9x) shlib_libadd <- c(shlib_libadd, "$(FCLIBS)")
 
     if (length(pkg_libs))
         makeargs <- c(makeargs,
@@ -2046,9 +2032,6 @@ if(FALSE) {
     if (length(shlib_libadd))
         makeargs <- c(makeargs,
                       paste0("SHLIB_LIBADD='", p1(shlib_libadd), "'"))
-    if (with_f9x && file.exists("Makevars") &&
-        length(grep("^\\s*PKG_FCFLAGS", lines, perl = TRUE, useBytes = TRUE)))
-        makeargs <- c(makeargs, "P_FCFLAGS='$(PKG_FCFLAGS)'")
 
     if (WINDOWS && debug) makeargs <- c(makeargs, "DEBUG=T")
     ## TCLBIN is needed for tkrplot and tcltk2
@@ -2116,7 +2099,7 @@ if(FALSE) {
 
     firstLetterCategory <- function(x)
     {
-        x[endsWith(x, "-package")] <- " "
+        x[grep("-package$", x)] <- " "
         x <- toupper(substr(x, 1, 1))
         x[x > "Z"] <- "misc"
         x[x < "A" & x != " "] <- "misc"

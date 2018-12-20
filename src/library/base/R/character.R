@@ -1,7 +1,7 @@
 #  File src/library/base/R/character.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -122,10 +122,11 @@ toupper <- function(x)
 casefold <- function(x, upper = FALSE)
     if(upper) toupper(x) else tolower(x)
 
-sQuote <- function(x, q = getOption("useFancyQuotes"))
+sQuote <- function(x)
 {
     if (!length(x)) return(character())
     before <- after <- "'"
+    q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
         if(isTRUE(q)) {
             li <- l10n_info()
@@ -157,10 +158,11 @@ sQuote <- function(x, q = getOption("useFancyQuotes"))
     paste0(before, x, after)
 }
 
-dQuote <- function(x, q = getOption("useFancyQuotes"))
+dQuote <- function(x)
 {
     if (!length(x)) return(character())
     before <- after <- "\""
+    q <- getOption("useFancyQuotes")
     if(!is.null(q)) {
         if(isTRUE(q)) {
             li <- l10n_info()

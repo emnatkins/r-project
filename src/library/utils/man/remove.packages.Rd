@@ -22,9 +22,9 @@ remove.packages(pkgs, lib)
 }
 
 \seealso{
-  On Unix-alikes,
+#ifdef unix
   \code{\link{REMOVE}} for a command line version;
-
+#endif
   \code{\link{install.packages}} for installing packages.
 }
 \keyword{utilities}

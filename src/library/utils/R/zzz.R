@@ -49,7 +49,4 @@
     op.utils <- c(op.utils, extra)
     toset <- !(names(op.utils) %in% names(.Options))
     if(any(toset)) options(op.utils[toset])
-
-    ns <- environment(sys.function()) # the namespace
-    assign("osVersion", .osVersion(), envir = ns)
 }

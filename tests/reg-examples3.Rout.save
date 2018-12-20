@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2018-12-17 r75856) -- "Unsuffered Consequences"
+R version 3.5.2 RC (2018-12-13 r75856) -- "Eggshell Igloo"
 Copyright (C) 2018 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -602,13 +602,10 @@ $R
 attr(,"class")
 [1] "DependsList"
 Warning messages:
-1: 'vignetteDepends' is deprecated.
-Use 'vignetteInfo()$depends or package_dependencies()' instead.
-See help("Deprecated") 
-2: 'getDepList' is deprecated.
+1: 'getDepList' is deprecated.
 Use 'dependsOnPkgs() or package_dependencies()' instead.
 See help("Deprecated") 
-3: 'package.dependencies' is deprecated.
+2: 'package.dependencies' is deprecated.
 Use 'package_dependencies' instead.
 See help("Deprecated") 
 > 

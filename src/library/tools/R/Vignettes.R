@@ -1,7 +1,7 @@
 #  File src/library/tools/R/Vignettes.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -609,7 +609,7 @@ buildVignette <-
 
     if (!is.null(buildPkg))
 	for (pkg in buildPkg)
-	    suppressPackageStartupMessages(loadNamespace(pkg))
+	    loadNamespace(pkg)
 
     if (is.null(engine))
     # Infer vignette engine from vignette content
@@ -768,7 +768,8 @@ function(lines, tag)
     trimws(gsub(meta_RE, "\\1", meta))
 }
 
-vignetteInfo <- function(file)
+vignetteInfo <-
+function(file)
 {
     lines <- readLines(file, warn = FALSE)
 
@@ -935,6 +936,23 @@ function(pkg, con, vignetteIndex = NULL)
     writeLines(html, con=con)
 }
 
+vignetteDepends <-
+    function(vignette, recursive = TRUE, reduce = TRUE,
+             local = TRUE, lib.loc = NULL)
+{
+    if (length(vignette) != 1L)
+        stop("argument 'vignette' must be of length 1")
+    if (!nzchar(vignette)) return(invisible()) # lets examples work.
+    if (!file.exists(vignette))
+        stop(gettextf("file '%s' not found", vignette), domain = NA)
+
+    vigDeps <- vignetteInfo(vignette)$depends
+
+    depMtrx <- getVigDepMtrx(vigDeps)
+    instPkgs <- utils::installed.packages(lib.loc=lib.loc)
+    getDepList(depMtrx, instPkgs, recursive, local, reduce)
+}
+
 getVigDepMtrx <-
 function(vigDeps)
 {
@@ -1054,7 +1072,7 @@ vignetteEngine <- local({
                 } else {
                     key <- engineKey(name)
                 }
-		suppressPackageStartupMessages(loadNamespace(key[1]))
+		loadNamespace(key[1])
                 name <- paste(key, collapse = "::")
                 result <- registry[[name]]
                 if (is.null(result))
@@ -1063,8 +1081,7 @@ vignetteEngine <- local({
             } else {
                 for (pkg in package) {
                     key <- engineKey(name, pkg)
-		    try(suppressPackageStartupMessages(loadNamespace(key[1])),
-                        silent = TRUE)
+		    try(loadNamespace(key[1]), silent = TRUE)
                     nameT <- paste(key, collapse = "::")
                     result <- registry[[nameT]]
                     if (!is.null(result))
@@ -1166,8 +1183,7 @@ function(pkgdir, mustwork = TRUE)
     pkgs <- unique(c(pkgs, "utils"))
 
     for (pkg in pkgs) {
-	res <- tryCatch(suppressPackageStartupMessages(loadNamespace(pkg)),
-                        error = identity)
+	res <- tryCatch(loadNamespace(pkg), error = function(e)e)
 	if (mustwork && inherits(res, "error"))
             stop(gettextf("vignette builder '%s' not found", pkg), domain = NA)
     }
@@ -1178,13 +1194,11 @@ function(pkgdir, mustwork = TRUE)
 
 getVignetteInfo <- function(package = NULL, lib.loc = NULL, all = TRUE)
 {
-    paths <-
-        if (is.null(package)) {
-            package <- .packages(all.available = all, lib.loc)
-            ## allow for misnamed dirs
-            find.package(package, lib.loc, quiet = TRUE)
-        } else
-            find.package(package, lib.loc)
+    if (is.null(package)) {
+        package <- .packages(all.available = all, lib.loc)
+        ## allow for misnamed dirs
+        paths <- find.package(package, lib.loc, quiet = TRUE)
+    } else paths <- find.package(package, lib.loc)
 
     ## Find the directories with a 'doc' subdirectory *possibly*
     ## containing vignettes.

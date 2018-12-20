@@ -1,7 +1,7 @@
 #  File src/library/tools/R/sotools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2011-2018 The R Core Team
+#  Copyright (C) 2011-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,29 +17,14 @@
 #  https://www.R-project.org/Licenses/
 
 if(.Platform$OS.type == "windows") {
-    read_symbols_from_dll_state <- new.env(hash = FALSE) # small
     read_symbols_from_dll <- function(f, rarch)
     {
-	DLL_nm <- read_symbols_from_dll_state$DLL_nm
-	if (is.null(DLL_nm)) {
-	    ## R CMD config will fail when 'sh' (from Rtools) is not on PATH
-	    DLL_nm <- tryCatch(
-	        Rcmd(c("config", "OBJDUMP"), stdout = TRUE, stderr = FALSE),
-		error = function(x) NULL,
-		warning = function(x) NULL)
-
-	    if (is.null(DLL_nm) || !nzchar(DLL_nm) ||
-	        !file.exists(paste0(DLL_nm, ".exe"))) {
-
-		## fall back to the old behavior: take OBJDUMP from PATH
-		DLL_nm <- "objdump.exe"
-		if(!nzchar(Sys.which(DLL_nm))) {
-		    warning("this requires 'objdump.exe' to be on the PATH")
-		    return()
-		}
-	    }
-	    read_symbols_from_dll_state$DLL_nm <- DLL_nm
-	}
+        ## reasonable to assume this on the path
+        DLL_nm <- "objdump.exe"
+        if(!nzchar(Sys.which(DLL_nm))) {
+            warning("this requires 'objdump.exe' to be on the PATH")
+            return()
+        }
         f <- file_path_as_absolute(f)
         s0 <- suppressWarnings(system2(DLL_nm, c("-x", shQuote(f)),
                                        stdout = TRUE, stderr = TRUE))
@@ -236,34 +221,6 @@ so_symbol_names_table <-
       "solaris, Fortran, solf95, stop, __f90_stop_char",
       "solaris, Fortran, solf95, runtime, abort",
       "solaris, Fortran, solf95, rand, rand_",
-
-      "solaris, C, gcc, abort, abort",
-      "solaris, C, gcc, assert, __assert_c99",
-      "solaris, C, gcc, exit, exit",
-      "solaris, C, gcc, _exit, _exit",
-      "solaris, C, gcc, _Exit, _Exit",
-      "solaris, C, gcc, printf, printf",
-      "solaris, C, gcc, printf, puts",
-      "solaris, C, gcc, puts, puts",
-      "solaris, C, gcc, putchar, putchar",
-      "solaris, C, gcc, vprintf, vprintf",
-      "solaris, C, gcc, rand, rand",
-      "solaris, C, gcc, random, random",
-      "solaris, C, gcc, rand_r, rand_r",
-      "solaris, C, gcc, srand, srand",
-      "solaris, C, gcc, srandom, srandom",
-      "solaris, C, gcc, srand48, srand48",
-      "solaris, C++, gxx, std::cout, _ZSt4cout",
-      "solaris, C++, gxx, std::cerr, _ZSt4cerr",
-      "solaris, Fortran, gfortran, open, _gfortran_st_open",
-      "solaris, Fortran, gfortran, close, _gfortran_st_close",
-      "solaris, Fortran, gfortran, rewind, _gfortran_st_rewind",
-      "solaris, Fortran, gfortran, read, _gfortran_st_read",
-      "solaris, Fortran, gfortran, write, _gfortran_st_write",
-      "solaris, Fortran, gfortran, print, _gfortran_st_write",
-      "solaris, Fortran, gfortran, stop, _gfortran_stop_numeric_f08",
-      "solaris, Fortran, gfortran, stop, _gfortran_stop_string",
-      "solaris, Fortran, gfortran, rand, _gfortran_rand",
 
       ## Windows statically links libstdc++, libgfortran
       ## only in .o, positions hard-coded in check_so_symbols
@@ -770,7 +727,7 @@ function(file = "symbols.rds")
     objects <- commandArgs(trailingOnly = TRUE)
     tables <- lapply(objects, read_symbols_from_object_file)
     names(tables) <- objects
-    saveRDS(tables, file = file, version = 2)
+    saveRDS(tables, file = file)
 }
 
 

@@ -604,7 +604,6 @@ newBasic <-
                "numeric" =,
                "character" =,
                "complex" =,
-               "double" =,
                "integer" =,
                "raw" =,
                "list" =  as.vector(c(...), Class),
@@ -1341,30 +1340,28 @@ validSlotNames <- function(names) {
 }
 
 ### utility function called from primitive code for "@"
-getDataPart <- function(object, NULL.for.none = FALSE) {
-    if(typeof(object) == "S4") {
+getDataPart <- function(object) {
+    if(identical(typeof(object),"S4")) {
         ## explicit .Data or .xData slot
         ## Some day, we may merge both of these as .Data
         value <- attr(object, ".Data")
         if(is.null(value)) {
             value <- attr(object, ".xData")
-            if(is.null(value) && !NULL.for.none)
+            if(is.null(value))
               stop("Data part is undefined for general S4 object")
-        }
-        return(if(identical(value, .pseudoNULL)) NULL else value)
+          }
+        if(identical(value, .pseudoNULL))
+          return(NULL)
+        else
+          return(value)
     }
     temp <- getClass(class(object))@slots
     if(length(temp) == 0L)
         return(object)
-    if(is.na(match(".Data", names(temp)))) {
-        if(NULL.for.none)
-            return(NULL)
-        else
-            stop(gettextf("no '.Data' slot defined for class %s",
-                          dQuote(class(object))),
-                 domain = NA)
-    }
-    ## else
+    if(is.na(match(".Data", names(temp))))
+       stop(gettextf("no '.Data' slot defined for class %s",
+                     dQuote(class(object))),
+            domain = NA)
     dataPart <- temp[[".Data"]]
     switch(dataPart,
            ## the common cases, for efficiency
@@ -1400,7 +1397,7 @@ getDataPart <- function(object, NULL.for.none = FALSE) {
 }
 
 setDataPart <- function(object, value, check = TRUE) {
-    if(check || typeof(object) == "S4") {
+    if(check || identical(typeof(object), "S4")) {
         classDef <- getClass(class(object))
         slots <- getSlots(classDef)
         dataSlot <- .dataSlot(names(slots))
@@ -1413,7 +1410,7 @@ setDataPart <- function(object, value, check = TRUE) {
         else # this case occurs in making the methods package. why?
           return(.mergeAttrs(value, object))
         value <- as(value, dataClass)  # note that this is strict as()
-        if(typeof(object) == "S4") {
+        if(identical(typeof(object), "S4")) {
             if(is.null(value))
               value <- .pseudoNULL
             attr(object, dataSlot) <- value
@@ -1431,10 +1428,8 @@ setDataPart <- function(object, value, check = TRUE) {
     else
         ClassDef <- getClass(cl, TRUE)
 
-    value <- switch(cl,
-                    matrix = , array = cl,
-                    ## otherwise
-                    elNamed(ClassDef@slots, ".Data"))
+    switch(cl, matrix = , array = value <- cl,
+           value <- elNamed(ClassDef@slots, ".Data"))
     if(is.null(value)) {
         if(.identC(cl, "structure"))
             value <- "vector"
@@ -1754,7 +1749,7 @@ substituteFunctionArgs <-
 
 .makeValidityMethod <- function(Class, validity) {
     if(!is.null(validity)) {
-        if(!is.function(validity))
+        if(!is(validity, "function"))
             stop(gettextf("a validity method must be a function of one argument, got an object of class %s",
                           dQuote(class(validity))),
                  domain = NA)
@@ -2024,7 +2019,7 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
         prevWhat <- prevClasses[[what]]
         if(!identical(as.character(clWhat), as.character(prevWhat)) ||
            (dupsExist && !identical(as.character(packageSlot(clWhat)),
-                                    as.character(packageSlot(prevWhat)))))
+              as.character(packageSlot(prevWhat)))))
             return(FALSE)
     }
     if(verbose)
@@ -2505,3 +2500,4 @@ isMixin <- function(classDef) {
     is.environment(env) && exists(what, envir = env, inherits = FALSE) &&
        bindingIsLocked(what, env)
 }
+

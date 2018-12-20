@@ -16,20 +16,19 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-## Usage removed in 3.6.0
-## testPlatformEquivalence <-
-## function(built, run)
-## {
-##     ## args are "cpu-vendor-os", but os might be 'linux-gnu'!
-##     ## remove vendor field
-##     built <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", built)
-##     run <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", run)
-##     ## macOS supports multiple CPUs by using 'universal' binaries
-##     if (startsWith(built, "universal-darwin") && nzchar(.Platform$r_arch))
-##         built <- sub("^universal", R.version$arch, built)
-##     ## allow for small mismatches, e.g. OS version number and i686 vs i586.
-##     length(agrep(built, run)) > 0
-## }
+testPlatformEquivalence <-
+function(built, run)
+{
+    ## args are "cpu-vendor-os", but os might be 'linux-gnu'!
+    ## remove vendor field
+    built <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", built)
+    run <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", run)
+    ## macOS supports multiple CPUs by using 'universal' binaries
+    if (startsWith(built, "universal-darwin") && nzchar(.Platform$r_arch))
+        built <- sub("^universal", R.version$arch, built)
+    ## allow for small mismatches, e.g. OS version number and i686 vs i586.
+    length(agrep(built, run)) > 0
+}
 
 library <-
 function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
@@ -83,11 +82,11 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             ## allow mismatches if r_arch is in use, e.g.
             ## i386-gnu-linux vs x86-gnu-linux depending on
             ## build system.
-##             if(!nzchar(r_arch) && grepl("\\w", platform) &&
-##                !testPlatformEquivalence(platform, R.version$platform))
-##                 stop(gettextf("package %s was built for %s",
-##                               sQuote(pkgname), platform),
-##                      call. = FALSE, domain = NA)
+            if(!nzchar(r_arch) && grepl("\\w", platform) &&
+               !testPlatformEquivalence(platform, R.version$platform))
+                stop(gettextf("package %s was built for %s",
+                              sQuote(pkgname), platform),
+                     call. = FALSE, domain = NA)
         } else {  # Windows
             ## a check for 'mingw' suffices, since i386 and x86_64
             ## have DLLs in different places.  This allows binary packages
@@ -213,8 +212,6 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 	    pkgpath <- find.package(package, lib.loc, quiet = TRUE,
                                     verbose = verbose)
             if(length(pkgpath) == 0L) {
-                if(length(lib.loc) && !logical.return)
-                    stop(packageNotFoundError(package, lib.loc, sys.call()))
                 txt <- if(length(lib.loc))
                     gettextf("there is no package called %s", sQuote(package))
                 else
@@ -725,27 +722,24 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
     }
 
     if(!quiet && length(bad)) {
-        if(length(out) == 0L)
-            stop(packageNotFoundError(bad, lib.loc, sys.call()))
+        if(length(out) == 0L) {
+            if(length(bad) == 1L) {
+                stop(gettextf("there is no package called %s", sQuote(pkg)),
+                     domain = NA)
+            } else {
+                stop(ngettext(length(bad),
+                              "there is no package called",
+                              "there are no packages called"), " ",
+                     paste(sQuote(bad), collapse = ", "), domain = NA)
+
+            }
+        }
         for(pkg in bad)
             warning(gettextf("there is no package called %s", sQuote(pkg)),
                     domain = NA)
     }
 
     out
-}
-
-packageNotFoundError <-
-function(package, lib.loc, call = NULL) {
-    if(length(package) == 1L)
-        msg <- gettextf("there is no package called %s", sQuote(package))
-    else
-        msg <- paste0(ngettext(length(package),
-                               "there is no package called",
-                               "there are no packages called"), " ",
-                      paste(sQuote(package), collapse = ", "))
-    errorCondition(msg, package = package, lib.loc = lib.loc, call = call,
-                   "packageNotFoundError")
 }
 
 format.packageInfo <-

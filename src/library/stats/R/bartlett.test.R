@@ -50,7 +50,7 @@ function(x, g, ...)
         n <- sapply(x, function(obj) obj$df.resid)
         v <- sapply(x, function(obj) sum(obj$residuals^2))/n
     } else {
-        n <- lengths(x) - 1L
+        n <- sapply(x, "length") - 1
         if (any(n <= 0))
             stop("there must be at least 2 observations in each group")
         v <- sapply(x, "var")
