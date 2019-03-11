@@ -74,9 +74,9 @@ static const R_CallMethodDef CallEntries[] = {
 
 static const R_ExternalMethodDef ExtEntries[] = {
 #ifdef Win32
-    EXTDEF(download, 7),
-#else
     EXTDEF(download, 6),
+#else
+    EXTDEF(download, 5),
 #endif
     EXTDEF(unzip, 7),
     EXTDEF(Rprof, 8),

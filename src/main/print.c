@@ -27,22 +27,21 @@
  *  PrintValue, R_PV are similar to auto-printing.
  *
  *  do_printdefault
- *	    -> PrintObject (if S4 dispatch needed)
+ *	-> PrintDefaults
+ *	-> CustomPrintValue
  *	    -> PrintValueRec
- *		-> PrintGenericVector	-> PrintDispatch & PrintValueRec
- *		-> printList		-> PrintDispatch & PrintValueRec
+ *		-> __ITSELF__  (recursion)
+ *		-> PrintGenericVector	-> PrintValueRec  (recursion)
+ *		-> printList		-> PrintValueRec  (recursion)
  *		-> printAttributes	-> PrintValueRec  (recursion)
  *		-> PrintSpecial
  *		-> PrintExpression
- *		-> PrintClosure         -> PrintLanguage
+ *		-> PrintLanguage        -> PrintLanguageEtc
+ *		-> PrintClosure         -> PrintLanguageEtc
  *		-> printVector		>>>>> ./printvector.c
  *		-> printNamedVector	>>>>> ./printvector.c
  *		-> printMatrix		>>>>> ./printarray.c
  *		-> printArray		>>>>> ./printarray.c
- *
- * PrintDispatch
- *	-> PrintObject
- *      -> PrintValueRec
  *
  *  do_prmatrix
  *	-> PrintDefaults
@@ -55,6 +54,10 @@
  *  Also ./printvector.c,  ./printarray.c
  *
  *  do_sink moved to connections.c as of 1.3.0
+ *
+ *  <FIXME> These routines are not re-entrant: they reset the
+ *  global R_print.
+ *  </FIXME>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -70,44 +73,39 @@
 #include <R_ext/RS.h>
 
 /* Global print parameter struct: */
-R_PrintData R_print;
+R_print_par_t R_print;
 
-static void printAttributes(SEXP, R_PrintData *, Rboolean);
-static void PrintObject(SEXP, R_PrintData *);
+static void printAttributes(SEXP, SEXP, Rboolean);
+static void PrintSpecial(SEXP);
+static void PrintLanguageEtc(SEXP, Rboolean, Rboolean);
 
 
 #define TAGBUFLEN 256
 #define TAGBUFLEN0 TAGBUFLEN + 6
 static char tagbuf[TAGBUFLEN0 * 2]; /* over-allocate to allow overflow check */
 
-void PrintInit(R_PrintData *data, SEXP env)
-{
-    data->na_string = NA_STRING;
-    data->na_string_noquote = mkChar("<NA>");
-    data->na_width = (int) strlen(CHAR(data->na_string));
-    data->na_width_noquote = (int) strlen(CHAR(data->na_string_noquote));
-    data->quote = 1;
-    data->right = Rprt_adj_left;
-    data->digits = GetOptionDigits();
-    data->scipen = asInteger(GetOption1(install("scipen")));
-    if (data->scipen == NA_INTEGER) data->scipen = 0;
-    data->max = asInteger(GetOption1(install("max.print")));
-    if (data->max == NA_INTEGER || data->max < 0) data->max = 99999;
-    else if(data->max == INT_MAX) data->max--; // so we can add
-    data->gap = 1;
-    data->width = GetOptionWidth();
-    data->useSource = USESOURCE;
-    data->cutoff = GetOptionCutoff();
-    data->env = env;
-    data->callArgs = R_NilValue;
-}
 
 /* Used in X11 module for dataentry */
 /* NB this is called by R.app even though it is in no public header, so
    alter there if you alter this */
 void PrintDefaults(void)
 {
-    PrintInit(&R_print, R_GlobalEnv);
+    R_print.na_string = NA_STRING;
+    R_print.na_string_noquote = mkChar("<NA>");
+    R_print.na_width = (int) strlen(CHAR(R_print.na_string));
+    R_print.na_width_noquote = (int) strlen(CHAR(R_print.na_string_noquote));
+    R_print.quote = 1;
+    R_print.right = Rprt_adj_left;
+    R_print.digits = GetOptionDigits();
+    R_print.scipen = asInteger(GetOption1(install("scipen")));
+    if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
+    R_print.max = asInteger(GetOption1(install("max.print")));
+    if (R_print.max == NA_INTEGER || R_print.max < 0) R_print.max = 99999;
+    else if(R_print.max == INT_MAX) R_print.max--; // so we can add
+    R_print.gap = 1;
+    R_print.width = GetOptionWidth();
+    R_print.useSource = USESOURCE;
+    R_print.cutoff = GetOptionCutoff();
 }
 
 SEXP attribute_hidden do_invisible(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -162,242 +160,178 @@ SEXP attribute_hidden do_prmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     return x;
 }/* do_prmatrix */
 
-static void PrintLanguage(SEXP s, R_PrintData *data)
+/* .Internal( print.function(f, useSource, ...)) */
+SEXP attribute_hidden do_printfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    checkArity(op,args);
+    SEXP s = CAR(args);
+    switch (TYPEOF(s)) {
+    case CLOSXP:
+	PrintLanguageEtc(s, asLogical(CADR(args)), /*is closure = */ TRUE);
+	printAttributes(s, rho, FALSE);
+	break;
+    case BUILTINSXP:
+    case SPECIALSXP:
+	PrintSpecial(s);
+	break;
+
+    default: /* if(!isFunction(s)) */
+	error(_("non-function argument to .Internal(print.function(.))"));
+    }
+    return s;
+}
+
+/* PrintLanguage() or PrintClosure() : */
+static void PrintLanguageEtc(SEXP s, Rboolean useSource, Rboolean isClosure)
 {
     int i;
     SEXP t = getAttrib(s, R_SrcrefSymbol);
-    Rboolean useSrc = data->useSource && isInteger(t);
+    Rboolean useSrc = useSource && isInteger(t);
     if (useSrc) {
 	PROTECT(t = lang2(R_AsCharacterSymbol, t));
 	t = eval(t, R_BaseEnv);
 	UNPROTECT(1);
     } else {
-	t = deparse1w(s, 0, data->useSource | DEFAULTDEPARSE);
-	R_print = *data; /* Deparsing calls PrintDefaults() */
+	t = deparse1w(s, 0, useSource | DEFAULTDEPARSE);
     }
     PROTECT(t);
     for (i = 0; i < LENGTH(t); i++) {
  	Rprintf("%s\n", translateChar(STRING_ELT(t, i))); // translate: for srcref part (PR#16732)
     }
     UNPROTECT(1);
-}
-
-static void PrintClosure(SEXP s, R_PrintData *data)
-{
-    PrintLanguage(s, data);
-
-    if (isByteCode(BODY(s)))
-	Rprintf("<bytecode: %p>\n", BODY(s));
-    SEXP t = CLOENV(s);
-    if (t != R_GlobalEnv)
-	Rprintf("%s\n", EncodeEnvironment(t));
-}
-
-/* This advances `args` and `prev`. If an argument should not be
-   forwarded because it was not explicitly supplied by the user,
-   `prev` skips one element. If an argument is found to be
-   non-missing, we set `allMissing` to false so we know we cannot use
-   show() on S4 objects. */
-static void advancePrintArgs(SEXP* args, SEXP* prev,
-			     int** missingArg, int* allMissing) {
-    *args = CDR(*args);
-
-    if (**missingArg) {
-	SETCDR(*prev, *args);
-    } else {
-	*allMissing = 0;
-	*prev = CDR(*prev);
+    if (isClosure) {
+	if (isByteCode(BODY(s))) Rprintf("<bytecode: %p>\n", BODY(s));
+	t = CLOENV(s);
+	if (t != R_GlobalEnv)
+	    Rprintf("%s\n", EncodeEnvironment(t));
     }
-
-    ++(*missingArg);
 }
 
-/* .Internal(print.default(x, args, missings)) */
+static
+void PrintClosure(SEXP s, Rboolean useSource)
+{
+    PrintLanguageEtc(s, useSource, TRUE);
+}
+
+static
+void PrintLanguage(SEXP s, Rboolean useSource)
+{
+    PrintLanguageEtc(s, useSource, FALSE);
+}
+
+/* .Internal(print.default(x, digits, quote, na.print, print.gap,
+			   right, max, useS4)) */
 SEXP attribute_hidden do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
+    SEXP x, naprint;
+    int tryS4;
+    Rboolean callShow = FALSE;
+
     checkArity(op, args);
+    PrintDefaults();
 
-    SEXP x = CAR(args); args = CDR(args);
-
-    R_PrintData data;
-    PrintInit(&data, rho);
-
-    /* These indicate whether an argument should be forwarded */
-    int* missingArg = LOGICAL(CADR(args));
-    int allMissing = 1;
-
-    /* The remaining arguments are wrapped in another pairlist that
-       will be forwarded on recursion */
-    args = CAR(args);
-
-    /* Wrap in a parent node to facilitate rechaining */
-    SEXP orig = PROTECT(CONS(R_NilValue, args));
-    SEXP prev = orig;
+    x = CAR(args); args = CDR(args);
 
     if(!isNull(CAR(args))) {
-	data.digits = asInteger(CAR(args));
-	if (data.digits == NA_INTEGER ||
-	    data.digits < R_MIN_DIGITS_OPT ||
-	    data.digits > R_MAX_DIGITS_OPT)
+	R_print.digits = asInteger(CAR(args));
+	if (R_print.digits == NA_INTEGER ||
+	    R_print.digits < R_MIN_DIGITS_OPT ||
+	    R_print.digits > R_MAX_DIGITS_OPT)
 	    error(_("invalid '%s' argument"), "digits");
     }
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    data.quote = asLogical(CAR(args));
-    if(data.quote == NA_LOGICAL)
+    R_print.quote = asLogical(CAR(args));
+    if(R_print.quote == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "quote");
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    SEXP naprint = CAR(args);
+    naprint = CAR(args);
     if(!isNull(naprint))  {
 	if(!isString(naprint) || LENGTH(naprint) < 1)
 	    error(_("invalid 'na.print' specification"));
-	data.na_string = data.na_string_noquote = STRING_ELT(naprint, 0);
-	data.na_width = data.na_width_noquote =
-	    (int) strlen(CHAR(data.na_string));
+	R_print.na_string = R_print.na_string_noquote = STRING_ELT(naprint, 0);
+	R_print.na_width = R_print.na_width_noquote =
+	    (int) strlen(CHAR(R_print.na_string));
     }
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    SEXP gap = CAR(args);
-    if(!isNull(gap)) {
-	data.gap = asInteger(gap);
-	if (data.gap == NA_INTEGER || data.gap < 0)
+    if(!isNull(CAR(args))) {
+	R_print.gap = asInteger(CAR(args));
+	if (R_print.gap == NA_INTEGER || R_print.gap < 0)
 	    error(_("'gap' must be non-negative integer"));
     }
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    data.right = (Rprt_adj) asLogical(CAR(args)); /* Should this be asInteger()? */
-    if(data.right == NA_LOGICAL)
+    R_print.right = (Rprt_adj) asLogical(CAR(args)); /* Should this be asInteger()? */
+    if(R_print.right == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "right");
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    SEXP max = CAR(args);
-    if(!isNull(max)) {
-	data.max = asInteger(max);
-	if(data.max == NA_INTEGER || data.max < 0)
+    if(!isNull(CAR(args))) {
+	R_print.max = asInteger(CAR(args));
+	if(R_print.max == NA_INTEGER || R_print.max < 0)
 	    error(_("invalid '%s' argument"), "max");
-	else if(data.max == INT_MAX) data.max--; // so we can add
+	else if(R_print.max == INT_MAX) R_print.max--; // so we can add
     }
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    args = CDR(args);
 
-    data.useSource = asLogical(CAR(args));
-    if(data.useSource == NA_LOGICAL)
+    R_print.useSource = asLogical(CAR(args));
+    if(R_print.useSource == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "useSource");
-    if(data.useSource) data.useSource = USESOURCE;
-    advancePrintArgs(&args, &prev, &missingArg, &allMissing);
+    if(R_print.useSource) R_print.useSource = USESOURCE;
+    args = CDR(args);
 
-    /* The next arguments are those forwarded in `...`. If all named
-       arguments were missing and there are no arguments in `...`, the
-       user has not supplied any parameter and we can use show() on S4
-       objects */
-    int noParams = allMissing && args == R_NilValue;
+    tryS4 = asLogical(CAR(args));
+    if(tryS4 == NA_LOGICAL)
+	error(_("invalid 'tryS4' internal argument"));
 
-    data.callArgs = CDR(orig);
+    if(tryS4 && IS_S4_OBJECT(x) && isMethodsDispatchOn())
+	callShow = TRUE;
 
-    /* Initialise the global R_init as other routines still depend on it */
-    R_print = data;
-
-    tagbuf[0] = '\0';
-    if (noParams && IS_S4_OBJECT(x) && isMethodsDispatchOn())
-	PrintObject(x, &data);
-    else
-	PrintValueRec(x, &data);
+    if(callShow) {
+	/* we need to get show from the methods namespace if it is
+	   not visible on the search path. */
+	SEXP call, showS;
+	showS = findVar(install("show"), rho);
+	if(showS == R_UnboundValue) {
+	    SEXP methodsNS = R_FindNamespace(mkString("methods"));
+	    if(methodsNS == R_UnboundValue)
+		error("missing methods namespace: this should not happen");
+	    PROTECT(methodsNS);
+	    showS = findVarInFrame3(methodsNS, install("show"), TRUE);
+	    UNPROTECT(1);
+	    if(showS == R_UnboundValue)
+		error("missing show() in methods namespace: this should not happen");
+	}
+	PROTECT(call = lang2(showS, x));
+	eval(call, rho);
+	UNPROTECT(1);
+    } else {
+	CustomPrintValue(x, rho);
+    }
 
     PrintDefaults(); /* reset, as na.print etc may have been set */
-
-    UNPROTECT(1);
     return x;
 }/* do_printdefault */
 
-/*
-  NOTE: The S3/S4 versions do not save and restore state like
-	PrintObject() does.
-*/
-static void PrintObjectS4(SEXP s, R_PrintData *data)
-{
-    /*
-      Note that can assume there is a loaded "methods"
-      namespace.  It is tempting to cache the value of show in
-      the namespace, but the latter could be unloaded and
-      reloaded in a session.
-    */
-    SEXP methodsNS = PROTECT(R_FindNamespace(mkString("methods")));
-    if (methodsNS == R_UnboundValue)
-	error("missing methods namespace: this should not happen");
 
-    SEXP fun = findVarInFrame3(methodsNS, install("show"), TRUE);
-    if (TYPEOF(fun) == PROMSXP) {
-	PROTECT(fun);
-	fun = eval(fun, R_BaseEnv);
-	UNPROTECT(1);
-    }
-    if (fun == R_UnboundValue)
-	error("missing show() in methods namespace: this should not happen");
+/* FIXME : We need a general mechanism for "rendering" symbols. */
+/* It should make sure that it quotes when there are special */
+/* characters and also take care of ansi escapes properly. */
 
-    SEXP call = PROTECT(lang2(fun, s));
-
-    eval(call, data->env);
-    UNPROTECT(2);
-}
-
-static void PrintObjectS3(SEXP s, R_PrintData *data)
-{
-    /*
-      Bind value to a variable in a local environment, similar to
-      a local({ x <- <value>; print(x) }) call. This avoids
-      problems in previous approaches with value duplication and
-      evaluating the value, which might be a call object.
-    */
-    SEXP xsym = install("x");
-    SEXP mask = PROTECT(NewEnvironment(R_NilValue, R_NilValue, data->env));
-    defineVar(xsym, s, mask);
-
-    /* Forward user-supplied arguments to print() */
-    SEXP fun = PROTECT(findFun(install("print"), R_BaseNamespace));
-    SEXP args = PROTECT(cons(xsym, data->callArgs));
-    SEXP call = PROTECT(lcons(fun, args));
-
-    eval(call, mask);
-
-    defineVar(xsym, R_NilValue, mask); /* To eliminate reference to s */
-    UNPROTECT(4); /* mask, fun, args, call */
-}
-
-static void PrintObject(SEXP s, R_PrintData *data)
-{
-    /* Save the tagbuffer to restore indexing tags after evaluation
-       because calling into base::print() resets the buffer */
-    char save[TAGBUFLEN0];
-    strcpy(save, tagbuf);
-
-    if (isMethodsDispatchOn() && IS_S4_OBJECT(s))
-	PrintObjectS4(s, data);
-    else
-	PrintObjectS3(s, data);
-
-    R_print = *data;
-    strcpy(tagbuf, save);
-}
-
-static void PrintDispatch(SEXP s, R_PrintData *data) {
-    if (isObject(s))
-	PrintObject(s, data);
-    else
-	PrintValueRec(s, data);
-}
-
-static void PrintGenericVector(SEXP s, R_PrintData *data)
+static void PrintGenericVector(SEXP s, SEXP env)
 {
     int i, taglen, ns, w, d, e, wr, dr, er, wi, di, ei;
-    SEXP dims, t, names, tmp;
-    char pbuf[115], *ptag;
+    SEXP dims, t, names, newcall, tmp;
+    char pbuf[115], *ptag, save[TAGBUFLEN0];
 
     ns = length(s);
     if((dims = getAttrib(s, R_DimSymbol)) != R_NilValue && length(dims) > 1) {
 	// special case: array-like list
 	PROTECT(dims);
 	PROTECT(t = allocArray(STRSXP, dims));
-	/* FIXME: check (ns <= data->max +1) ? ns : data->max; */
+	/* FIXME: check (ns <= R_print.max +1) ? ns : R_print.max; */
 	for (i = 0; i < ns; i++) {
 	    switch(TYPEOF(PROTECT(tmp = VECTOR_ELT(s, i)))) {
 	    case NILSXP:
@@ -439,9 +373,9 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 		if (LENGTH(tmp) == 1) {
 		    const Rcomplex *x = COMPLEX_RO(tmp);
 		    if (ISNA(x[0].r) || ISNA(x[0].i))
-			/* formatReal(NA) --> w=data->na_width, d=0, e=0 */
+			/* formatReal(NA) --> w=R_print.na_width, d=0, e=0 */
 			snprintf(pbuf, 115, "%s",
-				 EncodeReal0(NA_REAL, data->na_width, 0, 0, OutDec));
+				 EncodeReal0(NA_REAL, R_print.na_width, 0, 0, OutDec));
 		    else {
 			formatComplex(x, 1, &wr, &dr, &er, &wi, &di, &ei, 0);
 			snprintf(pbuf, 115, "%s",
@@ -491,7 +425,7 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 	    const char *rn, *cn;
 	    GetMatrixDimnames(s, &rl, &cl, &rn, &cn);
 	    /* as from 1.5.0: don't quote here as didn't in array case */
-	    printMatrix(t, 0, dims, 0, data->right, rl, cl,
+	    printMatrix(t, 0, dims, 0, R_print.right, rl, cl,
 			rn, cn);
 	}
 	else {
@@ -499,15 +433,18 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 	    printArray(t, dims, 0, Rprt_adj_left, names);
 	    UNPROTECT(1);
 	}
-	UNPROTECT(1);
+	UNPROTECT(2);
     }
     else { // no dim()
 	PROTECT(names = getAttrib(s, R_NamesSymbol));
 	taglen = (int) strlen(tagbuf);
 	ptag = tagbuf + taglen;
+	PROTECT(newcall = allocList(2));
+	SETCAR(newcall, install("print"));
+	SET_TYPEOF(newcall, LANGSXP);
 
 	if(ns > 0) {
-	    int n_pr = (ns <= data->max +1) ? ns : data->max;
+	    int n_pr = (ns <= R_print.max +1) ? ns : R_print.max;
 	    /* '...max +1'  ==> will omit at least 2 ==> plural in msg below */
 	    for (i = 0; i < n_pr; i++) {
 		if (i > 0) Rprintf("\n");
@@ -557,9 +494,23 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 		    } else
 			sprintf(ptag, "[[%d]]", i+1);
 		}
-                Rprintf("%s\n", tagbuf);
-		PrintDispatch(VECTOR_ELT(s, i), data);
-                *ptag = '\0';
+		Rprintf("%s\n", tagbuf);
+		if(isObject(VECTOR_ELT(s, i))) {
+		    SEXP x = VECTOR_ELT(s, i);
+		    int nprot = 0;
+		    if (TYPEOF(x) == LANGSXP) {
+			// quote(x)  to not accidentally evaluate it with newcall() below:
+			x = PROTECT(lang2(R_Primitive("quote"), x)); nprot++;
+		    }
+		    /* need to preserve tagbuf */
+		    strcpy(save, tagbuf);
+		    SETCADR(newcall, x);
+		    eval(newcall, env);
+		    strcpy(tagbuf, save);
+		    UNPROTECT(nprot);
+		}
+		else PrintValueRec(VECTOR_ELT(s, i), env);
+		*ptag = '\0';
 	    }
 	    Rprintf("\n");
 	    if(n_pr < ns)
@@ -578,14 +529,14 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 		    char str[201];
 		    const char *ss = translateChar(STRING_ELT(klass, 0));
 		    snprintf(str, 200, ".__C__%s", ss);
-		    if(findVar(install(str), data->env) != R_UnboundValue)
+		    if(findVar(install(str), env) != R_UnboundValue)
 			className = ss;
 		}
 	    }
 	    if(className) {
 		Rprintf("An object of class \"%s\"\n", className);
-		UNPROTECT(1); /* names */
-		printAttributes(s, data, TRUE);
+		UNPROTECT(2); /* newcall, names */
+		printAttributes(s, env, TRUE);
 		vmaxset(vmax);
 		return;
 	    }
@@ -595,18 +546,18 @@ static void PrintGenericVector(SEXP s, R_PrintData *data)
 	    }
 	    vmaxset(vmax);
 	}
-	UNPROTECT(1); /* names */
+	UNPROTECT(2); /* newcall, names */
     }
-    printAttributes(s, data, FALSE);
+    printAttributes(s, env, FALSE);
 } // PrintGenericVector
 
 
 // For pairlist()s only --- the predecessor of PrintGenericVector() above,
 // and hence very similar  (and no longer compatible!)
-static void printList(SEXP s, R_PrintData *data)
+static void printList(SEXP s, SEXP env)
 {
     int i, taglen;
-    SEXP dims, dimnames, t;
+    SEXP dims, dimnames, t, newcall;
     char pbuf[101], *ptag;
     const char *rn, *cn;
 
@@ -662,7 +613,7 @@ static void printList(SEXP s, R_PrintData *data)
 	if (LENGTH(dims) == 2) {
 	    SEXP rl, cl;
 	    GetMatrixDimnames(s, &rl, &cl, &rn, &cn);
-	    printMatrix(t, 0, dims, data->quote, data->right, rl, cl,
+	    printMatrix(t, 0, dims, R_print.quote, R_print.right, rl, cl,
 			rn, cn);
 	}
 	else {
@@ -676,6 +627,9 @@ static void printList(SEXP s, R_PrintData *data)
 	i = 1;
 	taglen = (int) strlen(tagbuf);
 	ptag = tagbuf + taglen;
+	PROTECT(newcall = allocList(2));
+	SETCAR(newcall, install("print"));
+	SET_TYPEOF(newcall, LANGSXP);
 	while (TYPEOF(s) == LISTSXP) {
 	    if (i > 1) Rprintf("\n");
 	    if (TAG(s) != R_NilValue && isSymbol(TAG(s))) {
@@ -700,38 +654,45 @@ static void printList(SEXP s, R_PrintData *data)
 		} else
 		    sprintf(ptag, "[[%d]]", i);
 	    }
-
-            Rprintf("%s\n", tagbuf);
-	    PrintDispatch(CAR(s), data);
-            *ptag = '\0';
-
+	    Rprintf("%s\n", tagbuf);
+	    if(isObject(CAR(s))) {
+		SEXP x = CAR(s);
+		int nprot = 0;
+		if (TYPEOF(x) == LANGSXP) {
+		    x = PROTECT(lang2(R_Primitive("quote"), x)); nprot++;
+		}
+		SETCADR(newcall, x);
+		eval(newcall, env);
+		UNPROTECT(nprot);
+	    }
+	    else PrintValueRec(CAR(s),env);
+	    *ptag = '\0';
 	    s = CDR(s);
 	    i++;
 	}
 	if (s != R_NilValue) {
 	    Rprintf("\n. \n\n");
-	    PrintValueRec(s, data);
+	    PrintValueRec(s,env);
 	}
 	Rprintf("\n");
+	UNPROTECT(1);
     }
-    printAttributes(s, data, FALSE);
+    printAttributes(s, env, FALSE);
 }
 
-static void PrintExpression(SEXP s, R_PrintData *data)
+static void PrintExpression(SEXP s)
 {
     SEXP u;
     int i, n;
 
-    u = PROTECT(deparse1w(s, 0, data->useSource | DEFAULTDEPARSE));
-    R_print = *data; /* Deparsing calls PrintDefaults() */
-
+    u = PROTECT(deparse1w(s, 0, R_print.useSource | DEFAULTDEPARSE));
     n = LENGTH(u);
     for (i = 0; i < n; i++)
 	Rprintf("%s\n", CHAR(STRING_ELT(u, i))); /*translated */
     UNPROTECT(1); /* u */
 }
 
-static void PrintSpecial(SEXP s, R_PrintData *data)
+static void PrintSpecial(SEXP s)
 {
     /* This is OK as .Internals are not visible to be printed */
     char *nm = PRIMNAME(s);
@@ -754,8 +715,6 @@ static void PrintSpecial(SEXP s, R_PrintData *data)
 	SEXP t;
 	PROTECT(s2);
 	t = deparse1m(s2, 0, DEFAULTDEPARSE); // or deparse1() ?
-	R_print = *data; /* Deparsing calls PrintDefaults() */
-
 	Rprintf("%s ", CHAR(STRING_ELT(t, 0))); /* translated */
 	Rprintf(".Primitive(\"%s\")\n", PRIMNAME(s));
 	UNPROTECT(1);
@@ -775,7 +734,7 @@ static void print_cleanup(void *data)
 
  * This is the "dispatching" function for  print.default()
  */
-void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
+void attribute_hidden PrintValueRec(SEXP s, SEXP env)
 {
     SEXP t;
 
@@ -818,15 +777,14 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
     case NILSXP:
 	Rprintf("NULL\n");
 	break;
-    case SYMSXP:
-	/* Use deparse here to handle backtick quotification of "weird names". */
+    case SYMSXP: /* Use deparse here to handle backtick quotification
+		  * of "weird names" */
 	t = deparse1(s, 0, SIMPLEDEPARSE); // TODO ? rather deparse1m()
-	R_print = *data; /* Deparsing calls PrintDefaults() */
 	Rprintf("%s\n", CHAR(STRING_ELT(t, 0))); /* translated */
 	break;
     case SPECIALSXP:
     case BUILTINSXP:
-	PrintSpecial(s, data);
+	PrintSpecial(s);
 	break;
     case CHARSXP:
 	Rprintf("<CHARSXP: ");
@@ -835,13 +793,13 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
 	goto done; /* skip attribute printing for CHARSXP; they are used */
 		   /* in managing the CHARSXP cache. */
     case EXPRSXP:
-	PrintExpression(s, data);
+	PrintExpression(s);
 	break;
     case LANGSXP:
-	PrintLanguage(s, data);
+	PrintLanguage(s, FALSE);
 	break;
     case CLOSXP:
-	PrintClosure(s, data);
+	PrintClosure(s, FALSE);
 	break;
     case ENVSXP:
 	Rprintf("%s\n", EncodeEnvironment(s));
@@ -853,10 +811,10 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
 	Rprintf("<...>\n");
 	break;
     case VECSXP:
-	PrintGenericVector(s, data); /* handles attributes/slots */
+	PrintGenericVector(s, env); /* handles attributes/slots */
 	goto done;
     case LISTSXP:
-	printList(s, data);
+	printList(s,env);
 	break;
     case LGLSXP:
     case INTSXP:
@@ -876,10 +834,10 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
 		    if (!isNull(nn))
 			title = translateChar(STRING_ELT(nn, 0));
 
-		    printNamedVector(s, VECTOR_ELT(t, 0), data->quote, title);
+		    printNamedVector(s, VECTOR_ELT(t, 0), R_print.quote, title);
 		}
 		else
-		    printVector(s, 1, data->quote);
+		    printVector(s, 1, R_print.quote);
 		UNPROTECT(1);
 		vmaxset(vmax);
 	    }
@@ -887,13 +845,13 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
 		SEXP rl, cl;
 		const char *rn, *cn;
 		GetMatrixDimnames(s, &rl, &cl, &rn, &cn);
-		printMatrix(s, 0, t, data->quote, data->right, rl, cl,
+		printMatrix(s, 0, t, R_print.quote, R_print.right, rl, cl,
 			    rn, cn);
 	    }
 	    else {
 		SEXP dimnames;
 		PROTECT(dimnames = GetArrayDimnames(s));
-		printArray(s, t, data->quote, data->right, dimnames);
+		printArray(s, t, R_print.quote, R_print.right, dimnames);
 		UNPROTECT(1);
 	    }
 	}
@@ -901,9 +859,9 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
 	    UNPROTECT(1);
 	    PROTECT(t = getAttrib(s, R_NamesSymbol));
 	    if (t != R_NilValue)
-		printNamedVector(s, t, data->quote, NULL);
+		printNamedVector(s, t, R_print.quote, NULL);
 	    else
-		printVector(s, 1, data->quote);
+		printVector(s, 1, R_print.quote);
 	}
 	UNPROTECT(1);
 	break;
@@ -925,7 +883,7 @@ void attribute_hidden PrintValueRec(SEXP s, R_PrintData *data)
     default:
 	UNIMPLEMENTED_TYPE("PrintValueRec", s);
     }
-    printAttributes(s, data, FALSE);
+    printAttributes(s, env, FALSE);
 
 done:
 
@@ -941,7 +899,7 @@ done:
    to avoid $a$battr("foo").  Need to save and restore, since
    attributes might be lists with attributes or just have attributes ...
  */
-static void printAttributes(SEXP s, R_PrintData *data, Rboolean useSlots)
+static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 {
     SEXP a;
     char *ptag;
@@ -992,11 +950,69 @@ static void printAttributes(SEXP s, R_PrintData *data, Rboolean useSlots)
 		/* need special handling AND protection */
 		SEXP val;
 		PROTECT(val = getAttrib(s, R_RowNamesSymbol));
-		PrintValueRec(val, data);
+		PrintValueRec(val, env);
 		UNPROTECT(1);
 		goto nextattr;
 	    }
-	    PrintDispatch(CAR(a), data);
+	    if (isMethodsDispatchOn() && IS_S4_OBJECT(CAR(a))) {
+		SEXP s, showS;
+
+		showS = findVar(install("show"), env);
+		if(showS == R_UnboundValue) {
+		    SEXP methodsNS = R_FindNamespace(mkString("methods"));
+		    if(methodsNS == R_UnboundValue)
+			error("missing methods namespace: this should not happen");
+		    PROTECT(methodsNS);
+		    showS = findVarInFrame3(methodsNS, install("show"), TRUE);
+		    UNPROTECT(1);
+		    if(showS == R_UnboundValue)
+			error("missing show() in methods namespace: this should not happen");
+		}
+		PROTECT(s = lang2(showS, CAR(a)));
+		eval(s, env);
+		UNPROTECT(1);
+	    } else if (isObject(CAR(a))) {
+		/* Need to construct a call to
+		   print(CAR(a), digits)
+		   based on the R_print structure, then eval(call, env).
+		   See do_docall for the template for this sort of thing.
+
+		   quote, right, gap should probably be included if
+		   they have non-missing values.
+
+		   This will not dispatch to show() as 'digits' is supplied.
+		*/
+		SEXP s, t, na_string = R_print.na_string,
+		    na_string_noquote = R_print.na_string_noquote;
+		int quote = R_print.quote,
+		    digits = R_print.digits, gap = R_print.gap,
+		    na_width = R_print.na_width,
+		    na_width_noquote = R_print.na_width_noquote;
+		Rprt_adj right = R_print.right;
+
+		SEXP x = CAR(a);
+		int nprot = 0;
+		if (TYPEOF(x) == LANGSXP) {
+		    x = PROTECT(lang2(R_Primitive("quote"), x)); nprot++;
+		}
+		PROTECT(t = s = allocList(3)); nprot++;
+		SET_TYPEOF(s, LANGSXP);
+		SETCAR(t, install("print")); t = CDR(t);
+		SETCAR(t, x); t = CDR(t);
+		SETCAR(t, ScalarInteger(digits));
+		SET_TAG(t, install("digits"));
+		eval(s, env);
+		UNPROTECT(nprot);
+		R_print.quote = quote;
+		R_print.right = right;
+		R_print.digits = digits;
+		R_print.gap = gap;
+		R_print.na_width = na_width;
+		R_print.na_width_noquote = na_width_noquote;
+		R_print.na_string = na_string;
+		R_print.na_string_noquote = na_string_noquote;
+	    } else
+		PrintValueRec(CAR(a), env);
 	nextattr:
 	    *ptag = '\0';
 	    a = CDR(a);
@@ -1014,11 +1030,44 @@ void attribute_hidden PrintValueEnv(SEXP s, SEXP env)
     PrintDefaults();
     tagbuf[0] = '\0';
     PROTECT(s);
+    if(isObject(s) || isFunction(s)) {
+	/*
+	  The intention here is to call show() on S4 objects, otherwise
+	  print(), so S4 methods for show() have precedence over those for
+	  print() to conform with the "green book", p. 332
+	*/
+	SEXP call, prinfun;
+	SEXP xsym = install("x");
+	if(isMethodsDispatchOn() && IS_S4_OBJECT(s)) {
+	    /*
+	      Note that can assume there is a loaded "methods"
+	      namespace.  It is tempting to cache the value of show in
+	      the namespace, but the latter could be unloaded and
+	      reloaded in a session.
+	    */
+	    SEXP methodsNS = R_FindNamespace(mkString("methods"));
+	    if(methodsNS == R_UnboundValue)
+		error("missing methods namespace: this should not happen");
+	    PROTECT(methodsNS);
+	    prinfun = findVarInFrame3(methodsNS, install("show"), TRUE);
+	    UNPROTECT(1);
+	    if(prinfun == R_UnboundValue)
+		error("missing show() in methods namespace: this should not happen");
+	}
+	else /* S3 */
+	    prinfun = findVar(install("print"), R_BaseNamespace);
 
-    R_PrintData data;
-    PrintInit(&data, env);
-    PrintDispatch(s, &data);
-
+	/* Bind value to a variable in a local environment, similar to
+	   a local({ x <- <value>; print(x) }) call. This avoids
+	   problems in previous approaches with value duplication and
+	   evaluating the value, which might be a call object. */
+	PROTECT(call = lang2(prinfun, xsym));
+	PROTECT(env = NewEnvironment(R_NilValue, R_NilValue, env));
+	defineVar(xsym, s, env);
+	eval(call, env);
+	defineVar(xsym, R_NilValue, env); /* to eliminate reference to s */
+	UNPROTECT(2);
+    } else PrintValueRec(s, env);
     UNPROTECT(1);
 }
 
@@ -1042,10 +1091,7 @@ void R_PV(SEXP s)
 void attribute_hidden CustomPrintValue(SEXP s, SEXP env)
 {
     tagbuf[0] = '\0';
-
-    R_PrintData data;
-    PrintInit(&data, env);
-    PrintValueRec(s, &data);
+    PrintValueRec(s, env);
 }
 
 

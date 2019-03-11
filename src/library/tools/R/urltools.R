@@ -1,7 +1,7 @@
 #  File src/library/tools/R/urltools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2015-2019 The R Core Team
+#  Copyright (C) 2015-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -209,14 +209,15 @@ function(dir, meta, installed = FALSE)
 url_db_from_package_news <-
 function(dir, installed = FALSE)
 {
+    urls <- character()
     path <- if(installed) "NEWS.Rd" else file.path("inst", "NEWS.Rd")
     nfile <- file.path(dir, path)
-    urls <-
-        if(file.exists(nfile)) {
-            macros <- initialRdMacros()
-            .get_urls_from_Rd(prepare_Rd(parse_Rd(nfile, macros = macros),
-                                         stages = "install"))
-        } else character()
+    if(file.exists(nfile)) {
+        macros <- initialRdMacros()
+        urls <- .get_urls_from_Rd(prepare_Rd(parse_Rd(nfile,
+                                                      macros = macros),
+                                             stages = "install"))
+    }
     url_db(urls, rep.int(path, length(urls)))
 }
 
@@ -473,7 +474,7 @@ function(db, remote = TRUE, verbose = FALSE)
                  (grepl("^https?://cran.r-project.org/web/views/[[:alnum:]]+[.]html$",
                         ul)) ||
                  startsWith(ul, "http://cran.r-project.org") ||
-                 any(startsWith(ul, mirrors)))
+                 any(substring(ul, 1L, nchar(mirrors)) == mirrors))
         R <- grepl("^http://(www|bugs|journal).r-project.org", ul)
         spaces <- grepl(" ", u)
         c(if(cran) u else "", if(spaces) u else "", if(R) u else "")
@@ -589,7 +590,7 @@ function(x, ...)
 
     paste0(sprintf("URL: %s", u),
            sprintf("\nFrom: %s",
-                   vapply(x$From, paste, "", collapse = "\n      ")),
+                   sapply(x$From, paste, collapse = "\n      ")),
            ifelse((s <- x$Status) == "",
                   "",
                   sprintf("\nStatus: %s", s)),
@@ -633,18 +634,7 @@ function(u, verbose = FALSE)
 {
     if(verbose)
         message(sprintf("processing %s", u))
-    ## Configure curl handle for better luck with JSTOR URLs/DOIs.
-    ## Alternatively, special-case requests to
-    ##   https?://doi.org/10.2307
-    ##   https?://www.jstor.org
-    h <- curl::new_handle()
-    curl::handle_setopt(h,
-                        cookiesession = 1,
-                        followlocation = 1,
-                        http_version = 2L,
-                        ssl_enable_alpn = 0)
-    g <- tryCatch(curl::curl_fetch_memory(u, handle = h),
-                  error = identity)
+    g <- tryCatch(curl::curl_fetch_memory(u), error = identity)
     if(inherits(g, "error"))
         -1L
     else

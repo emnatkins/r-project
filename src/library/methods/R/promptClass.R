@@ -374,7 +374,7 @@ refClassPrompt <- function(clDef, Rdtxt, nmeths, nslots, .meths.head) {
 	    name <- def
 	def <- getFunction(def)
     }
-    if (is.function(def))
+    if (is(def, "function"))
 	paste0(name, "(", paste(args, collapse = ", "), ")")
     else ""
 }

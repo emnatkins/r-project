@@ -1639,7 +1639,7 @@ fontMetricsFileName(const char *family, int faceIndex,
 
 static const char *getFontType(const char *family, const char *fontdbname)
 {
-    const char *result = NULL;
+    const char *result = "";
     SEXP font = getFont(family, fontdbname);
     if (!isNull(font)) {
         result = CHAR(STRING_ELT(getAttrib(font, R_ClassSymbol), 0));
@@ -1662,13 +1662,9 @@ static Rboolean isType1Font(const char *family, const char *fontdbname,
 	    return TRUE;
 	else
 	    return FALSE;
-    } else {
-        const char *fontType = getFontType(family, fontdbname);
-        if (fontType) 
-            return !strcmp(fontType, "Type1Font");
-        else
-            return FALSE;
-    }
+    } else
+	return !strcmp(getFontType(family, fontdbname),
+		       "Type1Font");
 }
 
 static Rboolean isCIDFont(const char *family, const char *fontdbname,
@@ -1685,13 +1681,9 @@ static Rboolean isCIDFont(const char *family, const char *fontdbname,
 	    return TRUE;
 	else
 	    return FALSE;
-    } else {
-        const char *fontType = getFontType(family, fontdbname);
-        if (fontType) 
-            return !strcmp(fontType, "CIDFont");
-        else
-            return FALSE;
-    }
+    } else
+	return !strcmp(getFontType(family, fontdbname),
+		       "CIDFont");
 }
 
 /*
@@ -5881,9 +5873,6 @@ PDFDeviceDriver(pDevDesc dd, const char *file, const char *paper,
 
     pd->versionMajor = versionMajor;
     pd->versionMinor = versionMinor;
-    /* Precaution: should be initialized in PDF_newpage, but package
-       PerformanceAnalytics manages to call PDF_Clip without.  */
-    pd->inText = FALSE;
 
     /* This is checked at the start of every page.  We typically have
        three objects per page plus one or two for each raster image, 

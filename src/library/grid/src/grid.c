@@ -1276,94 +1276,6 @@ SEXP L_convert(SEXP x, SEXP whatfrom,
 }
 
 /*
- * Convert locations or dimensions to device inches
- */
-SEXP L_devLoc(SEXP x, SEXP y) {
-    double xx, yy;
-    double vpWidthCM, vpHeightCM;
-    double rotationAngle;
-    LViewportContext vpc;
-    R_GE_gcontext gc;
-    LTransform transform;
-    SEXP devx, devy, result;
-    SEXP currentvp, currentgp;
-    int i, maxn, ny;
-    /* Get the current device 
-     */
-    pGEDevDesc dd = getDevice();
-    currentvp = gridStateElement(dd, GSS_VP);
-    currentgp = gridStateElement(dd, GSS_GPAR);
-    getViewportTransform(currentvp, dd, 
-			 &vpWidthCM, &vpHeightCM, 
-			 transform, &rotationAngle);
-    getViewportContext(currentvp, &vpc);
-    gcontextFromgpar(currentgp, 0, &gc, dd);
-    /* Convert the x and y values to device inches locations */
-    maxn = unitLength(x); 
-    ny = unitLength(y); 
-    if (ny > maxn)
-	maxn = ny;
-    PROTECT(devx = allocVector(REALSXP, maxn));
-    PROTECT(devy = allocVector(REALSXP, maxn));
-    PROTECT(result = allocVector(VECSXP, 2));
-    for (i=0; i<maxn; i++) {
-        transformLocn(x, y, i, vpc, &gc,
-                      vpWidthCM, vpHeightCM,
-                      dd,
-                      transform,
-                      &xx, &yy);
-        REAL(devx)[i] = xx;
-        REAL(devy)[i] = yy;
-    }
-    SET_VECTOR_ELT(result, 0, devx);
-    SET_VECTOR_ELT(result, 1, devy);
-    UNPROTECT(3);
-    return result;
-}
-
-SEXP L_devDim(SEXP x, SEXP y) {
-    double xx, yy;
-    double vpWidthCM, vpHeightCM;
-    double rotationAngle;
-    LViewportContext vpc;
-    R_GE_gcontext gc;
-    LTransform transform;
-    SEXP devx, devy, result;
-    SEXP currentvp, currentgp;
-    int i, maxn, ny;
-    /* Get the current device 
-     */
-    pGEDevDesc dd = getDevice();
-    currentvp = gridStateElement(dd, GSS_VP);
-    currentgp = gridStateElement(dd, GSS_GPAR);
-    getViewportTransform(currentvp, dd, 
-			 &vpWidthCM, &vpHeightCM, 
-			 transform, &rotationAngle);
-    getViewportContext(currentvp, &vpc);
-    gcontextFromgpar(currentgp, 0, &gc, dd);
-    /* Convert the x and y values to device inches locations */
-    maxn = unitLength(x); 
-    ny = unitLength(y); 
-    if (ny > maxn)
-	maxn = ny;
-    PROTECT(devx = allocVector(REALSXP, maxn));
-    PROTECT(devy = allocVector(REALSXP, maxn));
-    PROTECT(result = allocVector(VECSXP, 2));
-    for (i=0; i<maxn; i++) {
-        transformDimn(x, y, i, vpc, &gc,
-                      vpWidthCM, vpHeightCM,
-                      dd, rotationAngle,
-                      &xx, &yy);
-        REAL(devx)[i] = xx;
-        REAL(devy)[i] = yy;
-    }
-    SET_VECTOR_ELT(result, 0, devx);
-    SET_VECTOR_ELT(result, 1, devy);
-    UNPROTECT(3);
-    return result;
-}
-
-/*
  * Given a layout.pos.row and a layout.pos.col, calculate
  * the region allocated by the layout of the current viewport
  *
@@ -1582,10 +1494,10 @@ static void polygonEdge(double *x, double *y, int n,
 	 * so check is more complicated
 	 */
 	if ((vangle1 >= vangle2 && 
-	     vangle1 >= angle && vangle2 <= angle) || 
+	     vangle1 >= angle && vangle2 < angle) || 
 	    (vangle1 < vangle2 && 
 	     ((vangle1 >= angle && 0 <= angle) ||
-	      (vangle2 <= angle && 2*M_PI >= angle)))) {
+	      (vangle2 < angle && 2*M_PI >= angle)))) {
 	    found = 1;
 	    break;
 	}
@@ -2906,7 +2818,7 @@ SEXP L_rectBounds(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust,
 
 SEXP L_path(SEXP x, SEXP y, SEXP index, SEXP rule)
 {
-    int i, j, k, h, npoly, *nper, ntot;
+    int i, j, k, npoly, *nper, ntot;
     double *xx, *yy;
     const void *vmax;
     double vpWidthCM, vpHeightCM;
@@ -2925,52 +2837,46 @@ SEXP L_path(SEXP x, SEXP y, SEXP index, SEXP rule)
 			 transform, &rotationAngle);
     getViewportContext(currentvp, &vpc);
     GEMode(1, dd);
-    /*
-     * Iterate over all paths
+    vmax = vmaxget();
+    /* 
+     * Number of polygons 
      */
-    for (h = 0; h < LENGTH(index); h++) {
-    	SEXP polyInd = VECTOR_ELT(index, h);
-    	/* 
-    	 * Number of polygons 
-    	 */
-    	npoly = LENGTH(polyInd);
-    	/* 
-    	 * Total number of points and 
-    	 * Number of points per polygon
-    	 */ 
-    	ntot = 0;
-    	nper = (int *) R_alloc(npoly, sizeof(int));
-    	for (i=0; i < npoly; i++) {
-    		nper[i] = LENGTH(VECTOR_ELT(polyInd, i));
-    		ntot = ntot + nper[i];
-    	}
-    	vmax = vmaxget();
-    	xx = (double *) R_alloc(ntot, sizeof(double));
-    	yy = (double *) R_alloc(ntot, sizeof(double));
-    	k = 0;
-    	for (i=0; i < npoly; i++) {
-            int *indices = INTEGER(VECTOR_ELT(polyInd, i));
-            for (j=0; j < nper[i]; j++) {            
-                transformLocn(x, y, indices[j] - 1, vpc, &gc,
-                              vpWidthCM, vpHeightCM,
-                              dd,
-                              transform,
-                              &(xx[k]), &(yy[k]));
-                /* The graphics engine only takes device coordinates
-                 */
-                xx[k] = toDeviceX(xx[k], GE_INCHES, dd);
-                yy[k] = toDeviceY(yy[k], GE_INCHES, dd);
-                /* NO NA values allowed in 'x' or 'y'
-                 */
-                if (!R_FINITE(xx[k]) || !R_FINITE(yy[k]))
-                    error(_("non-finite x or y in graphics path"));
-                k++;
-            }
-    	}
-    	gcontextFromgpar(currentgp, h, &gc, dd);
-    	GEPath(xx, yy, npoly, nper, INTEGER(rule)[0], &gc, dd);
-    	vmaxset(vmax);
+    npoly = LENGTH(index);
+    /* 
+     * Total number of points and 
+     * Number of points per polygon
+     */ 
+    ntot = 0;
+    nper = (int *) R_alloc(npoly, sizeof(int));
+    for (i=0; i < npoly; i++) {
+        nper[i] = LENGTH(VECTOR_ELT(index, i));
+        ntot = ntot + nper[i];
     }
+    xx = (double *) R_alloc(ntot, sizeof(double));
+    yy = (double *) R_alloc(ntot, sizeof(double));
+    k = 0;
+    for (i=0; i < npoly; i++) {
+        SEXP indices = VECTOR_ELT(index, i);
+        for (j=0; j < nper[i]; j++) {            
+	    transformLocn(x, y, INTEGER(indices)[j] - 1, vpc, &gc,
+			  vpWidthCM, vpHeightCM,
+			  dd,
+			  transform,
+			  &(xx[k]), &(yy[k]));
+	    /* The graphics engine only takes device coordinates
+	     */
+	    xx[k] = toDeviceX(xx[k], GE_INCHES, dd);
+	    yy[k] = toDeviceY(yy[k], GE_INCHES, dd);
+            /* NO NA values allowed in 'x' or 'y'
+             */
+            if (!R_FINITE(xx[k]) || !R_FINITE(yy[k]))
+                error(_("non-finite x or y in graphics path"));
+            k++;
+        }
+    }
+    gcontextFromgpar(currentgp, 0, &gc, dd);
+    GEPath(xx, yy, npoly, nper, INTEGER(rule)[0], &gc, dd);
+    vmaxset(vmax);
     GEMode(0, dd);
     return R_NilValue;
 }
@@ -3395,18 +3301,15 @@ SEXP L_textBounds(SEXP label, SEXP x, SEXP y,
 
 SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 {
-    int i, nx, npch, nss;
+    int i, nx, npch;
     /*    double *xx, *yy;*/
-    double *xx, *yy, *ss;
-    int *ps;
-    int pType;
+    double *xx, *yy;
     double vpWidthCM, vpHeightCM;
     double rotationAngle;
     double symbolSize;
     const void *vmax;
-    int gpIsScalar[15] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     LViewportContext vpc;
-    R_GE_gcontext gc, gcCache;
+    R_GE_gcontext gc;
     LTransform transform;
     SEXP currentvp, currentgp;
     /* Get the current device 
@@ -3418,16 +3321,14 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 			 &vpWidthCM, &vpHeightCM, 
 			 transform, &rotationAngle);
     getViewportContext(currentvp, &vpc);
-    initGContext(currentgp, &gc, dd, gpIsScalar, &gcCache);
     nx = unitLength(x); 
     npch = LENGTH(pch);
-    nss = unitLength(size);
     /* Convert the x and y values to CM locations */
     vmax = vmaxget();
     xx = (double *) R_alloc(nx, sizeof(double));
     yy = (double *) R_alloc(nx, sizeof(double));
     for (i=0; i<nx; i++) {
-	updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
+	gcontextFromgpar(currentgp, i, &gc, dd);
 	transformLocn(x, y, i, vpc, &gc,
 		      vpWidthCM, vpHeightCM,
 		      dd,
@@ -3438,35 +3339,6 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	xx[i] = toDeviceX(xx[i], GE_INCHES, dd);
 	yy[i] = toDeviceY(yy[i], GE_INCHES, dd);
     }
-    ss = (double *) R_alloc(nss, sizeof(double));
-    for (i=0; i < nss; i++) {
-        ss[i] = transformWidthtoINCHES(size, i, vpc, &gc,
-                                       vpWidthCM, vpHeightCM, dd);
-        ss[i] = toDeviceWidth(ss[i], GE_INCHES, dd);
-    }
-    ps = (int *) R_alloc(npch, sizeof(int));
-    if (isString(pch)) pType = 0;
-    else if (isInteger(pch)) pType = 1;
-    else if (isReal(pch)) pType = 2;
-    else pType = 3;
-    for (i=0; i < npch; i++) {
-        switch (pType) {
-        case 0:
-            /* 
-             * FIXME:
-             * Resolve any differences between this and FixupPch()
-             * in plot.c ? 
-             */
-            ps[i] = GEstring_to_pch(STRING_ELT(pch, i));
-            break;
-        case 1:
-            ps[i] = INTEGER(pch)[i];
-            break;
-        case 2:
-            ps[i] = R_FINITE(REAL(pch)[i]) ? (int) REAL(pch)[i] : NA_INTEGER;
-            break;
-        }
-    }
     GEMode(1, dd);
     for (i=0; i<nx; i++)
 	if (R_FINITE(xx[i]) && R_FINITE(yy[i])) {
@@ -3474,23 +3346,36 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	     * rotations !!!
 	     */
 	    int ipch = NA_INTEGER /* -Wall */;
-	    updateGContext(currentgp, i, &gc, dd, gpIsScalar, &gcCache);
-	    symbolSize = ss[i % nss];
+	    gcontextFromgpar(currentgp, i, &gc, dd);
+	    symbolSize = transformWidthtoINCHES(size, i, vpc, &gc,
+						vpWidthCM, vpHeightCM, dd);
+	    /* The graphics engine only takes device coordinates
+	     */
+	    symbolSize = toDeviceWidth(symbolSize, GE_INCHES, dd);
 	    if (R_FINITE(symbolSize)) {
-	        if (pType == 3) {
-	            error(_("invalid plotting symbol"));
-	        }
-	        ipch = ps[i % npch];
-	        /*
-	         * special case for pch = "."
-	         */
-	        if (ipch == 46) symbolSize = gpCex(currentgp, i);
-            /*
-             * FIXME: 
-             * For character-based symbols, we need to modify
-             * gc->cex so that the FONT size corresponds to
-             * the specified symbolSize.
-             */
+                /* 
+                 * FIXME:
+                 * Resolve any differences between this and FixupPch()
+                 * in plot.c ? 
+                 */
+	        if (isString(pch)) {
+		    ipch = GEstring_to_pch(STRING_ELT(pch, i % npch));
+		} else if (isInteger(pch)) {
+		    ipch = INTEGER(pch)[i % npch];
+		} else if (isReal(pch)) {
+		    ipch = R_FINITE(REAL(pch)[i % npch]) ? 
+			(int) REAL(pch)[i % npch] : NA_INTEGER;
+		} else error(_("invalid plotting symbol"));
+		/*
+		 * special case for pch = "."
+		 */
+		if (ipch == 46) symbolSize = gpCex(currentgp, i);
+                /*
+                 * FIXME: 
+                 * For character-based symbols, we need to modify
+                 * gc->cex so that the FONT size corresponds to
+                 * the specified symbolSize.
+                 */
 	        GESymbol(xx[i], yy[i], ipch, symbolSize, &gc, dd);
 	    }
 	}

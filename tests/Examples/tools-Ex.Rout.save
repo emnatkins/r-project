@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2019-03-04 r76193) -- "Unsuffered Consequences"
+R version 3.5.3 RC (2019-03-03 r76193) -- "Great Truth"
 Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -203,7 +203,7 @@ Error in assertWarning(ff()) :
 > bibstyle("unsorted", sortKeys = function(refs) seq_along(refs),
 +     fmtPrefix = function(paper) paste0("[", paper$.index, "]"),
 +        .init = TRUE)
-<environment: 0x3952718>
+<environment: 0x2ca7178>
 > print(refs, .bibstyle = "unsorted")
 [1] R Core Team (2013). _R: A Language and Environment for Statistical
 Computing_. R Foundation for Statistical Computing, Vienna, Austria.
@@ -916,6 +916,20 @@ An illustration of lexical scoping.
 > 
 > 
 > cleanEx()
+> nameEx("vignetteDepends")
+> ### * vignetteDepends
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: vignetteDepends
+> ### Title: Retrieve Dependency Information for a Vignette
+> ### Aliases: vignetteDepends
+> ### Keywords: utilities
+> 
+> ### ** Examples
+> 
+> 
+> cleanEx()
 > nameEx("vignetteEngine")
 > ### * vignetteEngine
 > 
@@ -939,20 +953,6 @@ List of 6
   ..$ filter : chr "Sweave"
   ..$ control: chr "-t"
 > 
-> 
-> 
-> cleanEx()
-> nameEx("vignetteInfo")
-> ### * vignetteInfo
-> 
-> flush(stderr()); flush(stdout())
-> 
-> ### Name: vignetteInfo
-> ### Title: Basic Information about a Vignette
-> ### Aliases: vignetteInfo
-> ### Keywords: utilities
-> 
-> ### ** Examples
 > 
 > 
 > cleanEx()
@@ -998,7 +998,7 @@ List of 6
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.32 0.015 0.337 0 0 
+Time elapsed:  0.306 0.018 0.338 0 0 
 > grDevices::dev.off()
 null device 
           1 

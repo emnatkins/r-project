@@ -552,13 +552,11 @@ function(x)
         ## Otherwise we do not know.
         is_FOSS <- if(any(components == "Unlimited")) {
             TRUE
-        } else if(any(vapply(expansions,
-                             function(e) verifiable(e$FOSS),
-                             NA))) {
+        } else if(any(sapply(expansions,
+                             function(e) verifiable(e$FOSS)))) {
             TRUE
-        } else if(all(vapply(expansions,
-                             function(e) any(e$FOSS == "no"),
-                             NA))) {
+        } else if(all(sapply(expansions,
+                             function(e) any(e$FOSS == "no")))) {
             FALSE
         } else
             NA
@@ -575,16 +573,14 @@ function(x)
         ## Otherwise, we do not know.
         restricts_use <- if(is_verified) {
             FALSE
-        } else if(any(vapply(expansions,
+        } else if(any(sapply(expansions,
                              function(e)
                              (length(e) &&
-                              all(e$Restricts_use == "no")),
-                             NA))) {
+                              all(e$Restricts_use == "no"))))) {
             FALSE
-        } else if(all(vapply(expansions,
+        } else if(all(sapply(expansions,
                              function(e)
-                                 any(e$Restricts_use == "yes"),
-                             NA))) {
+                             any(e$Restricts_use == "yes")))) {
             TRUE
         } else
             NA
@@ -601,10 +597,9 @@ function(x)
                 extensions <-
                     data.frame(components = elements[ind],
                                extensible =
-                               vapply(expansions[pos[ind]],
+                               sapply(expansions[pos[ind]],
                                       function(e)
-                                          verifiable(e$Extensible),
-                                      NA),
+                                      verifiable(e$Extensible)),
                                stringsAsFactors = FALSE)
         }
 
@@ -624,7 +619,7 @@ function(x)
             Map(paste, expansions[ind], regmatches(components, m))
     }
 
-    if(any(startsWith(components, "Part of R"))) { # base package
+    if(any(grepl("^Part of R", components))) { # base package
         is_verified <- is_FOSS <- TRUE
         restricts_use <- FALSE
     }
@@ -747,9 +742,8 @@ function(db)
     ## To get the 'packages' list into a data frame without I() ...
     out$Packages <- packages
     cat(formatDL(out$Licenses,
-                 vapply(out$Packages,
-                        function(p) paste(unique(p), collapse = " "),
-                        ""),
+                 sapply(out$Packages,
+                        function(p) paste(unique(p), collapse = " ")),
                  style = "list"),
         sep = "\n\n")
     invisible(out)
@@ -808,10 +802,9 @@ function(x)
             constraints <-
                 unlist(strsplit(v, "[[:space:]]*,[[:space:]]*"))
             entries <-
-                entries[vapply(entries$Version,
+                entries[sapply(entries$Version,
                                .numeric_version_meets_constraints_p,
-                               constraints,
-                               FUN.VALUE = NA), ]
+                               constraints), ]
         }
         entries
     }

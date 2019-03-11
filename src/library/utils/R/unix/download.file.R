@@ -18,8 +18,7 @@
 
 download.file <-
     function(url, destfile, method, quiet = FALSE, mode = "w",
-             cacheOK = TRUE, extra = getOption("download.file.extra"),
-             headers = NULL, ...)
+             cacheOK = TRUE, extra = getOption("download.file.extra"), ...)
 {
     destfile # check supplied
     method <- if (missing(method))
@@ -31,27 +30,17 @@ download.file <-
         if(length(url) != 1L || typeof(url) != "character")
             stop("'url' must be a length-one character vector");
         ## As from 3.3.0 all Unix-alikes support libcurl.
-	method <- if(startsWith(url, "file:")) "internal" else "libcurl"
+	method <- if(grepl("^file:", url)) "internal" else "libcurl"
     }
-
-    nh <- names(headers)
-    if(length(nh) != length(headers) || any(nh == "") || anyNA(headers) || anyNA(nh))
-        stop("'headers' must have names and must not be NA")
 
     switch(method,
 	   "internal" = {
-	       if(!is.null(headers))
-		   headers <- paste0(nh, ": ", headers, "\r\n", collapse = "")
-	       status <- .External(C_download, url, destfile, quiet, mode,
-				   cacheOK, headers)
+	       status <- .External(C_download, url, destfile, quiet, mode, cacheOK)
 	       ## needed for Mac GUI from download.packages etc
 	       if(!quiet) flush.console()
 	   },
 	   "libcurl" = {
-	       if(!is.null(headers))
-		   headers <- paste0(nh, ": ", headers)
-	       status <- .Internal(curlDownload(url, destfile, quiet, mode,
-						cacheOK, headers))
+	       status <- .Internal(curlDownload(url, destfile, quiet, mode, cacheOK))
 	       if(!quiet) flush.console()
 	   },
 	   "wget" = {

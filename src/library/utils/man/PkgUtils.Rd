@@ -60,16 +60,21 @@
   has been needed to overcome permissions issues on some Windows
   systems.)
 }
+#ifdef windows
 \note{
-  Only on Windows:
   They make use of a temporary directory specified by the environment
   variable \code{TMPDIR} and defaulting to \samp{c:/TEMP}.  Do ensure
   that if set forward slashes are used.
 }
+#endif
 \seealso{
   The sections on \dQuote{Checking and building packages} and
   \dQuote{Processing Rd format} in \dQuote{Writing \R Extensions}
-  (see on Unix-alikes the \file{doc/manual} subdirectory of the \R source tree,
-   on Windows, see the Manuals sub-menu of the Help menu on the console).
+#ifdef unix
+  (see the \file{doc/manual} subdirectory of the \R source tree).
+#endif
+#ifdef windows
+  (see the Manuals sub-menu of the Help menu on the console).
+#endif
 }
 \keyword{utilities}

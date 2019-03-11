@@ -20,12 +20,8 @@
 
 getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
     env <- as.environment(where)
-    pkg <- get0(".packageName", env, inherits = FALSE)
-    saved <- !is.null(pkg)
-    if (saved) {
-        return(pkg)
-    }
-    else {
+    notSaved <- is.null(pkg <- get0(".packageName", env, inherits = FALSE))
+    if(notSaved) {
 	pkg <- if(identical(where, 1) || identical(env, topenv(parent.frame())))
 	    Sys.getenv("R_PACKAGE_NAME")
 	else ""
@@ -76,7 +72,8 @@ getPackageName <- function(where = topenv(parent.frame()), create = TRUE) {
         warning(gettextf("Created a package name, %s, when none found",
                          sQuote(pkg)),
                 domain = NA)
-	if(!saved && !environmentIsLocked(env))
+        assign(pkg, env, envir = .PackageEnvironments)
+	if(notSaved && !environmentIsLocked(env))
             setPackageName(pkg, env)
     }
     pkg

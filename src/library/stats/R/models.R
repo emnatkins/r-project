@@ -1,7 +1,7 @@
 #  File src/library/stats/R/models.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -39,13 +39,17 @@ formula.default <- function (x = NULL, env = parent.frame(), ...)
 formula.formula <- function(x, ...) x
 formula.terms <- function(x, ...) {
     env <- environment(x)
-    attributes(x) <- list(class = "formula") # dropping all other attr.
-    environment(x) <- if(is.null(env)) globalenv() else env
+    attributes(x) <- list(class="formula")
+    if (!is.null(env))
+    	environment(x) <- env
+    else
+    	environment(x) <- globalenv()
     x
 }
 
-DF2formula <- function(x, env = parent.frame()) {
-    nm <- unlist(lapply(names(x), as.name))
+formula.data.frame <- function (x, ...)
+{
+    nm <- sapply(names(x), as.name)
     if (length(nm) > 1L) {
         rhs <- nm[-1L]
         lhs <- nm[1L]
@@ -56,15 +60,8 @@ DF2formula <- function(x, env = parent.frame()) {
     ff <- parse(text = paste(lhs, paste(rhs, collapse = "+"), sep = "~"),
                 keep.source = FALSE)
     ff <- eval(ff)
-    environment(ff) <- env
+    environment(ff) <- parent.frame()
     ff
-}
-
-formula.data.frame <- function (x, ...)
-{
-    if(length(tx <- attr(x, "terms")) && length(ff <- formula.terms(tx)))
-	ff
-    else DF2formula(x, parent.frame())
 }
 
 formula.character <- function(x, env = parent.frame(), ...)
@@ -157,7 +154,6 @@ reformulate <- function (termlabels, response=NULL, intercept = TRUE)
 		      paste(termlabels, collapse = "+"),
 		      collapse = "")
     if(!intercept) termtext <- paste(termtext, "- 1")
-    ## basically formula.character() :
     rval <- eval(parse(text = termtext, keep.source = FALSE)[[1L]])
     if(has.resp) rval[[2L]] <-
         if(is.character(response)) as.symbol(response) else response
@@ -176,7 +172,7 @@ drop.terms <- function(termobj, dropx = NULL, keep.response = FALSE)
                           dQuote("terms")),
                  domain = NA)
 	newformula <- reformulate(attr(termobj, "term.labels")[-dropx],
-				  if (keep.response) termobj[[2L]],
+				  if (keep.response) termobj[[2L]] else NULL,
                                   attr(termobj, "intercept"))
         environment(newformula) <- environment(termobj)
 	result <- terms(newformula, specials=names(attr(termobj, "specials")))
@@ -208,7 +204,7 @@ drop.terms <- function(termobj, dropx = NULL, keep.response = FALSE)
 
 `[.terms` <- function (termobj, i)
 {
-    resp <- if (attr(termobj, "response")) termobj[[2L]]
+    resp <- if (attr(termobj, "response")) termobj[[2L]] else NULL
     newformula <- attr(termobj, "term.labels")[i]
     if (length(newformula) == 0L) newformula <- "1"
     newformula <- reformulate(newformula, resp, attr(termobj, "intercept"))
@@ -515,8 +511,7 @@ model.frame.default <-
                              domain = NA)
 		    data[[nm]] <- factor(xi, levels=xl, exclude=NULL)
 		    if (!identical(attr(data[[nm]], "contrasts"), ctr))
-		    	warning(gettext(sprintf("contrasts dropped from factor %s",
-						nm), domain = NA),
+		    	warning(gettext(sprintf("contrasts dropped from factor %s", nm), domain = NA),
 		    	        call. = FALSE)
 		}
 	    }
@@ -528,9 +523,8 @@ model.frame.default <-
 	        ctr <- attr(x, "contrasts")
 		data[[nm]] <- x[, drop = TRUE]
 		if (!identical(attr(data[[nm]], "contrasts"), ctr))
-		    warning(gettext(sprintf(
-				"contrasts dropped from factor %s due to missing levels",
-					    nm), domain = NA), call. = FALSE)
+		    warning(gettext(sprintf("contrasts dropped from factor %s due to missing levels", nm), domain = NA),
+		            call. = FALSE)
 	    }
 	}
     }
@@ -589,12 +583,9 @@ model.matrix.default <- function(object, data = environment(object),
                 contrasts(data[[nn]]) <- contr.funs[1 + isOF[nn]]
         ## it might be safer to have numerical contrasts:
         ##	  get(contr.funs[1 + isOF[nn]])(nlevels(data[[nn]]))
-        if (!is.null(contrasts.arg)) {
-          if (!is.list(contrasts.arg))
-              warning("non-list contrasts argument ignored")
-          else {  ## contrasts.arg is a list
+        if (!is.null(contrasts.arg) && is.list(contrasts.arg)) {
             if (is.null(namC <- names(contrasts.arg)))
-                stop("'contrasts.arg' argument must be named")
+                stop("invalid 'contrasts.arg' argument")
             for (nn in namC) {
                 if (is.na(ni <- match(nn, namD)))
                     warning(gettextf("variable '%s' is absent, its contrast will be ignored", nn),
@@ -605,15 +596,15 @@ model.matrix.default <- function(object, data = environment(object),
                     else contrasts(data[[ni]]) <- contrasts.arg[[nn]]
                 }
             }
-          }
-        } ## non-null contrasts.arg
+        }
     } else { #  no rhs terms ('~1', or '~0'): internal model.matrix needs some variable
 	isF <- FALSE
 	data[["x"]] <- raw(nrow(data))
     }
     ans <- .External2(C_modelmatrix, t, data) # modelmatrix() in ../src/model.c
-    if(any(isF))
-	attr(ans, "contrasts") <- lapply(data[isF], attr, "contrasts")
+    cons <- if(any(isF))
+	lapply(data[isF], attr, "contrasts") ## else NULL
+    attr(ans, "contrasts") <- cons
     ans
 }
 
@@ -683,11 +674,13 @@ makepredictcall.default  <- function(var, call)
     xvars <- vapply(attr(Terms, "variables"), deparse2, "")[-1L]
     if((yvar <- attr(Terms, "response")) > 0) xvars <- xvars[-yvar]
     if(length(xvars)) {
-	xlev <- lapply(m[xvars], function(x)
-	    if(is.factor(x)) levels(x)
-	    else if(is.character(x)) levels(as.factor(x))) # else NULL
-	xlev[!vapply(xlev, is.null, NA)]
-    }
+        xlev <- lapply(m[xvars],
+        	    function(x)
+        	    	if(is.factor(x)) levels(x)
+        	    	else if (is.character(x)) levels(as.factor(x))
+        	    	else NULL)
+        xlev[!vapply(xlev, is.null, NA)]
+    } else NULL
 }
 
 get_all_vars <- function(formula, data = NULL, ...)
@@ -717,8 +710,8 @@ get_all_vars <- function(formula, data = NULL, ...)
     env <- environment(formula)
     rownames <- .row_names_info(data, 0L) #attr(data, "row.names")
     varnames <- all.vars(formula)
-    inp <- parse(text = paste0("list(", paste(varnames, collapse = ","), ")"),
-                 keep.source = FALSE) # ->  expression( list(v1, v2, ..) )
+    inp <- parse(text = paste("list(", paste(varnames, collapse = ","), ")"),
+                 keep.source = FALSE)
     variables <- eval(inp, data, env)
     if(is.null(rownames) && (resp <- attr(formula, "response")) > 0) {
         ## see if we can get rownames from the response

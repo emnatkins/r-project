@@ -364,7 +364,7 @@ Rboolean fastpass_sortcheck(SEXP x, int wanted) {
 	return FALSE;
 
     int sorted = UNKNOWN_SORTEDNESS;
-    Rboolean noNA = FALSE, done = FALSE;
+    Rboolean noNA, done = FALSE;
 
     switch(TYPEOF(x)) {
     case INTSXP:
@@ -379,7 +379,6 @@ Rboolean fastpass_sortcheck(SEXP x, int wanted) {
 	/* keep sorted == UNKNOWN_SORTEDNESS */
 	break;
     }
-
     /* we know wanted is not NA_INTEGER or 0 at this point because
        of the immediate return at the beginning for that case */
     if(!KNOWN_SORTED(sorted)) {
@@ -387,31 +386,9 @@ Rboolean fastpass_sortcheck(SEXP x, int wanted) {
     } else if(sorted == wanted) {   
 	done = TRUE;
 	/* if there are no NAs, na.last can be ignored */
-    } else if(noNA && sorted * wanted > 0) {
-	/* same sign, thus same direction of sort */
+    } else if(noNA && sorted * wanted > 0) { /* same sign, thus same direction of sort */
 	done = TRUE;
     }
-
-    /* Increasing, usually fairly short, sequences of integers often
-       arise as levels in as.factor.  A quick check here allows a fast
-       return in sort.int. */
-    if (! done && TYPEOF(x) == INTSXP && wanted > 0 && ! ALTREP(x)) {
-	R_xlen_t len = XLENGTH(x);
-	if (len > 0) {
-	    int *px = INTEGER(x);
-	    int last = px[0];
-	    if (last != NA_INTEGER) {
-		for (R_xlen_t i = 1; i < len; i++) {
-		    int next = px[i];
-		    if (next < last || next == NA_INTEGER)
-			return FALSE;
-		    else last = next;
-		}
-		return TRUE;
-	    }
-	}
-    }
-
     return done;
 }
 

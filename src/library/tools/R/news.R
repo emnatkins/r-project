@@ -1,7 +1,7 @@
 #  File src/library/tools/R/news.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -59,18 +59,13 @@ function(package, lib.loc = NULL, format = NULL, reader = NULL)
     ## little point in providing format/reader support ...
     ## </FIXME>
 
-    ## Look for new-style inst/NEWS.Rd installed as NEWS.Rd
-    ## If not found, look for NEWS.md.
-    ## If not found, look at old-style
+    ## Look for new-style inst/NEWS.Rd installed as NEWS.Rd.
+    ## If not found, look for old-style
     ##   NEWS inst/NEWS
     ## installed as NEWS (and ignore ChangeLog files).
     nfile <- file.path(dir, "NEWS.Rd")
     if(file_test("-f", nfile))
         return(.build_news_db_from_package_NEWS_Rd(nfile))
-
-    nfile <- file.path(dir, "NEWS.md")
-    if(file_test("-f", nfile))
-        return(.build_news_db_from_package_NEWS_md(nfile))
 
     nfile <- file.path(dir, "NEWS")
     if(!file_test("-f", nfile))
@@ -301,17 +296,16 @@ function(file)
 .make_news_db <-
 function(x, bad = NULL, classes = NULL)
 {
-    ## Expect x to be a character matrix giving at least
+    ## Expect x to be a 4 column
     ##   version date category text
-    ## in its first 4 columns.
+    ## character matrix.
     ## Could of course check for this using
-    ##   if(!is.character(x) || ncol(x) < 4L)
+    ##   if(!is.character(x) || ncol(x) != 4L)
     out <- data.frame(x, row.names = NULL, stringsAsFactors = FALSE)
     ## Note that we cannot do
     ##   dimnames(out) <- list(NULL,
     ##                         c("Version", "Date", "Category", "Text"))
-    colnames(out)[1L : 4L] <-
-        c("Version", "Date", "Category", "Text")
+    colnames(out) <- c("Version", "Date", "Category", "Text")
     if(!is.null(bad))
         attr(out, "bad") <- bad
     class(out) <- unique(c(classes, "news_db", "data.frame"))
@@ -327,7 +321,7 @@ Rd2txt_NEWS_in_Rd_options <-
 
 Rd2txt_NEWS_in_Rd <-
 function(f, out = "") {
-    if (endsWith(f, ".rds")) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- readRDS(f)
     Rd2txt(f, out,
            stages = c("install", "render"),
            outputEncoding = if(l10n_info()[["UTF-8"]]) "" else "ASCII//TRANSLIT",
@@ -337,7 +331,7 @@ function(f, out = "") {
 
 Rd2HTML_NEWS_in_Rd <-
 function(f, out, ...) {
-    if (endsWith(f, ".rds")) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- readRDS(f)
     Rd2HTML(f, out, stages = c("install", "render"),
            macros = file.path(R.home("share"), "Rd", "macros", "system.Rd"), ...)
 }
@@ -345,7 +339,7 @@ function(f, out, ...) {
 Rd2pdf_NEWS_in_Rd <-
 function(f, pdf_file)
 {
-    if (endsWith(f, ".rds")) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- readRDS(f)
     f2 <- tempfile()
     ## See the comments in ?texi2dvi about spaces in paths
     f3 <- if(grepl(" ", Sys.getenv("TMPDIR")))
@@ -559,9 +553,8 @@ function(file = NULL)
     .make_news_db(cbind(sub("^CHANGES IN (R )?(VERSION )?", "", db[, 1L]),
                         NA_character_,
                         db[, 2L],
-                        Text = sub("\n*$", "", db[, 3L]),
-                        HTML = db[, 4L]),
-                  NULL,
+                        sub("\n*$", "", db[, 3L])),
+                  logical(nrow(db)),
                   "news_db_from_Rd")
 }
 
@@ -595,9 +588,8 @@ function(file)
 				      sub(re_d2, "\\1", nms, perl = TRUE),
 				      NA_character_)),
 			db[, 2L],
-                        Text = sub("\n*$", "", db[, 3L]),
-                        HTML = db[, 4L]),
-                  NULL,
+                        sub("\n*$", "", db[, 3L])),
+                  logical(nrow(db)),
                   "news_db_from_Rd")
 }
 
@@ -627,269 +619,56 @@ function(x)
                     domain = NA)
             pos <- pos[1L]
         }
+        x <- x[pos]
 
-        x <- x[[pos]]
+        out <- NULL
+        zz <- textConnection("out", "w", local = TRUE)
+        on.exit(close(zz))
+        Rd2txt(x, out = zz, fragment = TRUE,
+               options =
+               c(Rd2txt_NEWS_in_Rd_options,
+                 list(itemBullet = "\036  ")))
 
-        out <- file()
-        on.exit(close(out))
+        ## Try to find the column offset of the top-level bullets.
+        pat <- "^( *)\036.*"
+        pos <- grep(pat, out)
+        if(!length(pos)) return(character())
+        off <- min(nchar(sub(pat, "\\1", out[pos])))
+        pat <- sprintf("^%s\036 *", strrep(" ", off))
+        s <- sub(pat, "\036", out)
+        ## Try to remove some indent for nested material.
+        pat <- sprintf("^%s", strrep(" ", off + 2L))
+        s <- sub(pat, "", s)
 
-        Rd2txt_options <- Rd2txt_NEWS_in_Rd_options
-        Rd2txt_options$width <- 72L
-
-        ## Extract and process \item chunks:
-        y <- split(x, cumsum(RdTags(x) == "\\item"))
-        y <- y[names(y) != "0"]
-        if(!length(y)) {
-            warning(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains no \\item.",
-                             substring(sub("^[[:space:]]*", "",
-                                           .Rd_deparse(x)),
-                                       1L, 60L)),
-                    domain = NA)
-            return(matrix(character(), 0L, 2L,
-                          dimnames = list(NULL, c("Text", "HTML"))))
-        }
-        do.call(rbind,
-                lapply(y,
-                       function(e) {
-                           ## Drop \item.
-                           e <- e[-1L]
-                           ## Convert to text.
-                           Rd2txt(e, fragment = TRUE, out = out,
-                                  options = Rd2txt_options)
-                           one <- paste(readLines(out, warn = FALSE),
-                                        collapse = "\n")
-                           ## Need warn = FALSE to avoid warning about
-                           ## incomplete final line for e.g. 'cluster'.
-                           ## Convert to HTML.
-                           Rd2HTML(e, fragment = TRUE, out = out)
-                           two <- paste(readLines(out, warn = FALSE),
-                                        collapse = "\n")
-                           cbind(Text = one, HTML = two)
-                       }))
+        s <- paste(s, collapse = "\n")
+        s <- trimws(gsub("\036", "*",
+                         unlist(strsplit(s, "\n\036", fixed = TRUE))))
+        s[nzchar(s)]
     }
 
     cbind_safely <- function(u, v)
         cbind(rep_len(u, NROW(v)), v)
 
-    x <- x[RdTags(x) == "\\section"]
-    y <- Map(cbind_safely,
-             get_section_names(x),
-             lapply(x,
-                    function(e) {
-                        z <- e[[2L]]
-                        ind <- RdTags(z) == "\\subsection"
-                        if(any(ind)) {
-                            z <- z[ind]
-                            do.call(rbind,
-                                    Map(cbind_safely,
-                                        get_section_names(z),
-                                        lapply(z,
-                                               function(e)
-                                                   get_item_texts(e[[2L]]))))
-                        } else {
-                            cbind_safely(NA_character_,
-                                         get_item_texts(z))
-                        }
-                    }))
-    y <- do.call(rbind, y)
-    ## Sanitze HTML.
-    s <- trimws(y[, "HTML"])
-    i <- startsWith(s, "<p>") & !endsWith(s, "</p>")
-    s[i] <- paste0(s[i], "</p>")
-    y[, "HTML"] <- s
+    y <- x[RdTags(x) == "\\section"]
+    do.call(rbind,
+            Map(cbind_safely,
+                get_section_names(y),
+                lapply(y,
+                       function(e) {
+                           z <- e[[2L]]
+                           ind <- RdTags(z) == "\\subsection"
+                           if(any(ind)) {
+                               z <- z[ind]
+                               do.call(rbind,
+                                       Map(cbind_safely,
+                                           get_section_names(z),
+                                           lapply(z,
+                                                  function(e)
+                                                  get_item_texts(e[[2L]]))))
+                           } else {
+                               cbind_safely(NA_character_,
+                                            get_item_texts(z))
+                           }
+                       })))
 
-    y
-
-}
-
-.build_news_db_from_package_NEWS_md <-
-function(f)
-{
-    md <- readLines(f, encoding = "UTF-8", warn = FALSE)
-
-    ## Handle YAML header.
-    if(md[1L] == "---") {
-        for(pos in seq.int(2L, length(md)))
-            if(md[pos] == "---") break
-        md[seq_len(pos)] <- ""
-    }
-
-    doc <- commonmark::markdown_xml(md,
-                                    extensions = TRUE,
-                                    sourcepos = TRUE)
-    doc <- xml2::xml_ns_strip(xml2::read_xml(doc))
-
-    nodes <- xml2::xml_children(doc)    # Need xml2::xml_root()?
-
-    ## Inline for efficiency.
-    .markdown_text <- commonmark::markdown_text
-    .markdown_html <- commonmark::markdown_html
-    .xml_attr <- xml2::xml_attr
-    .xml_name <- xml2::xml_name
-    .xml_text <- xml2::xml_text
-    
-    get_text_and_HTML <- function(sp) {
-        ## Sourcepos sp already split into l1 c2 l2 c2, for legibility:
-        l1 <- sp[1L]; c1 <- sp[2L]; l2 <- sp[3L]; c2 <- sp[4L]
-        txt <- if(l1 < l2) {
-                   c(substring(md[l1], c1),
-                     md[seq.int(from = l1 + 1L,
-                                length.out = l2 - l1 - 1L)],
-                     substring(md[l2], 1L, c2))
-               } else
-                   substring(md[l1], c1, c2)
-        c(.markdown_text(txt, width = 72L),
-          .markdown_html(txt))
-    }
-
-    do_vchunk <- function(nodes) {
-        ## Get version and date from heading.
-        version <- .xml_text(nodes[[1L]])
-        nodes <- nodes[-1L]
-        if(!length(nodes))
-            return(rbind(c(version, "", "", "")))
-        ## Unlike news in Rd where we (currently) insist on all news to
-        ## be given as items in itemize lists, for md we only split news
-        ## in version chunks according to category.  If the chunks has
-        ## headings, we take those with the same level as the first one
-        ## to start category chunks, and everything before the first
-        ## such heading as a chunk with an empty category (empty instead
-        ## of missing to make querying more convenient).  If there are
-        ## no headings, we have a single version chunk with no (empty)
-        ## category.
-        ind <- .xml_name(nodes) == "heading"
-        pos <- which(ind)
-        if(length(pos)) {
-            lev <- .xml_attr(nodes[pos], "level")
-            ind[pos] <- (lev == lev[1L])
-            if((pos[1L]) > 1L) {
-                ini <- seq_len(pos[1L] - 1L)
-                out <- list(do_cchunk(nodes[ini], FALSE))
-                nodes <- nodes[-ini]
-                ind <- ind[-ini]
-            } else
-                out <- list()
-            out <- c(out,
-                     lapply(split(nodes, cumsum(ind)),
-                            do_cchunk, TRUE))
-            cbind(version, do.call(rbind, out))
-        } else {
-            rbind(c(version,
-                    do_cchunk(nodes, FALSE)))
-        }
-
-    }
-
-    do_cchunk <- function(nodes, heading) {
-        ## See above: if the category chunk has a heading, we extract
-        ## the category from it.  Otherwise, the category is empty.
-        if(heading) {
-            category <- .xml_text(nodes[[1L]])
-            nodes <- nodes[-1L]
-        } else {
-            category <- ""
-        }
-        
-        if(!length(nodes))
-            return(c(category, "", ""))
-
-        ## Compute text and HTML by converting everything from the start
-        ## of the first sourcepos to the end of the last sourcepos.
-        sp <- c(.xml_attr(nodes[[1L]], "sourcepos"),
-                .xml_attr(nodes[[length(nodes)]], "sourcepos"))
-        ## (If there is one node, nodes[c(1L, length(nodes))] would give
-        ## that node only once.  Could also special case ...)
-        sp <- as.integer(unlist(strsplit(sp, "[:-]"))[c(1L, 2L, 7L, 8L)])
-        
-        c(category, get_text_and_HTML(sp))
-    }
-         
-    ind <- .xml_name(nodes) == "heading"
-    pos <- which(ind)
-    if(!length(pos)) return()
-
-    ## Skip leading headings until we find one from which we can extract
-    ## a version number.  Then drop everything ahead of this, and take 
-    ## all headings with the same level to start version chunks.
-    
-    re_v <- sprintf("(^|.*[[:space:]]+)[vV]?(%s).*$",
-                    .standard_regexps()$valid_package_version)
-    while(length(pos) &&
-          !grepl(re_v, .xml_text(nodes[[pos[1L]]])))
-        pos <- pos[-1L]
-    if(!length(pos)) return()
-
-    lev <- .xml_attr(nodes[pos], "level")
-    ind[pos] <- (lev == lev[1L])
-    if(pos[1L] > 1L) {
-        ini <- seq_len(pos[1L] - 1L)
-        nodes <- nodes[-ini]
-        ind <- ind[-ini]
-    }
-    vchunks <- split(nodes, cumsum(ind))
-    db <- do.call(rbind, lapply(vchunks, do_vchunk))
-
-    ## Very similar to .build_news_db_from_package_NEWS_Rd() ...
-
-    ## Post-process section names to extract versions and dates.
-    reDt <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
-    rEnd <- "[[:punct:][:space:]]*$"
-    re_d1 <- sprintf(paste0("^.*(%s)", rEnd), reDt)
-    ## or ending with '(YYYY-MM-DD, <note>)'
-    re_d2 <- sprintf(paste0("^.*\\((%s)[[:punct:]] .*\\)", rEnd), reDt)
-    nms <- db[, 1L]
-    ind <- grepl(re_v, nms, ignore.case = TRUE)
-    if(!all(ind))
-        warning("Cannot extract version info from the following section titles:\n",
-                paste(unique(nms[!ind]), collapse = "  "))
-
-    .make_news_db(cbind(ifelse(ind,
-                               sub(re_v, "\\2", nms, ignore.case = TRUE),
-                               NA_character_),
-                        ifelse(grepl(re_d1, nms, perl = TRUE),
-                               sub(re_d1, "\\1", nms, perl = TRUE),
-                               ifelse(grepl(re_d2, nms, perl = TRUE),
-                                      sub(re_d2, "\\1", nms, perl = TRUE),
-                                      NA_character_)),
-                        db[, 2L],
-                        Text = sub("\n*$", "", db[, 3L]),
-                        HTML = db[, 4L]),
-                  NULL,
-                  "news_db_from_md")
-}
-
-format.news_db_from_md <-
-function(x, ...)
-{
-    do_vchunk <- function(vchunk) {
-        z <- unlist(Map(c, vchunk$Category, vchunk$Text),
-                    use.names = FALSE)
-        z[nzchar(z)]
-    }
-
-    vchunks <- split(x, x$Version)
-    ## Re-order according to decreasing version.
-    vchunks <- vchunks[order(numeric_version(names(vchunks),
-                                             strict = FALSE),
-                             decreasing = TRUE)]
-    if(!length(vchunks))
-        return(character())
-    
-    dates <- sapply(vchunks, function(v) v$Date[1L])
-    vheaders <-
-        format(sprintf("Changes in version %s%s",
-                       names(vchunks),
-                       ifelse(is.na(dates), "",
-                              sprintf(" (%s)", dates))),
-               justify = "centre", width = 72L)
-
-    Map(c, vheaders, lapply(vchunks, do_vchunk),
-        USE.NAMES = FALSE)
-}
-
-.news_db_has_no_bad_entries <-
-function(x)     
-{
-    (is.null(bad <- attr(x, "bad")) ||
-     (length(bad) == NROW(x)) && !any(bad))
 }

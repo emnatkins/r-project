@@ -185,7 +185,7 @@
                       .Object
                   else if(missing(functionDef))
                       .MakeSignature(.Object, , list(...))
-                  else if(!is.function(functionDef))
+                  else if(!is(functionDef, "function"))
                       .MakeSignature(.Object, , list(functionDef, ...))
                   else
                       .MakeSignature(.Object, functionDef, list(...))
@@ -412,7 +412,7 @@
         if(is(fdef, "genericFunction"))
             formalNames <- fdef@signature
         else if(is.function(def)) {
-            if(!is.function(fdef)) fdef <- def
+            if(!is(fdef, "function")) fdef <- def
             formalNames <- formalArgs(fdef)
             dots <- match("...", formalNames)
             if(!is.na(dots))

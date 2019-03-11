@@ -315,7 +315,7 @@ double rwilcox(double m, double n)
     for (i = 0; i < k; i++)
 	x[i] = i;
     for (i = 0; i < n; i++) {
-	j = (int) R_unif_index(k);
+	j = (int) floor(k * unif_rand());
 	r += x[j];
 	x[j] = x[--k];
     }

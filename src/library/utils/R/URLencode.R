@@ -30,11 +30,10 @@ URLencode <- function(URL, reserved = FALSE, repeated = FALSE)
     x <- strsplit(URL, "")[[1L]]
     z <- grep(OK, x)
     if(length(z)) {
-        y <- vapply(x[z],
+        y <- sapply(x[z],
                     function(x)
                         paste0("%", toupper(as.character(charToRaw(x))),
-                               collapse = ""),
-                    "")
+                               collapse = ""))
         x[z] <- y
     }
     paste(x, collapse = "")

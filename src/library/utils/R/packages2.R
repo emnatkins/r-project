@@ -215,7 +215,7 @@ install.packages <-
             paste(INSTALL_opts[[get_package_name(pkg)]], collapse = " ")
     }
 
-    if(missing(pkgs)) {
+    if(missing(pkgs) || !length(pkgs)) {
         if(!interactive()) stop("no packages were specified")
         ## if no packages were specified, use a menu
 	if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA"
@@ -242,10 +242,9 @@ install.packages <-
                                 multiple = TRUE,
                                 title = "Packages", graphics = TRUE)
 	}
+	if(!length(pkgs)) stop("no packages were specified")
     }
 
-    if(!length(pkgs)) return(invisible())
-        
     if(missing(lib) || is.null(lib)) {
         lib <- .libPaths()[1L]
 	if(!quiet && length(.libPaths()) > 1L)
@@ -301,18 +300,18 @@ install.packages <-
     ## check if we should infer repos = NULL
     if(length(pkgs) == 1L && missing(repos) && missing(contriburl)) {
         if((type == "source" && any(grepl("[.]tar[.](gz|bz2|xz)$", pkgs))) ||
-           (type %in% "win.binary" && endsWith(pkgs, ".zip")) ||
-           (startsWith(type, "mac.binary") && endsWith(pkgs, ".tgz"))) {
+           (type %in% "win.binary" && length(grep("[.]zip$", pkgs))) ||
+           (substr(type, 1L, 10L) == "mac.binary" && grepl("[.]tgz$", pkgs))) {
             repos <- NULL
             message("inferring 'repos = NULL' from 'pkgs'")
         }
         if (type == "both") {
-            if (type2 %in% "win.binary" && endsWith(pkgs, ".zip")) {
+            if (type2 %in% "win.binary" && grepl("[.]zip$", pkgs)) {
                 repos <- NULL
                 type <- type2
                 message("inferring 'repos = NULL' from 'pkgs'")
-            } else if (startsWith(type2, "mac.binary")
-                       && endsWith(pkgs, ".tgz")) {
+            } else if (substr(type2, 1L, 10L) == "mac.binary"
+                       && grepl("[.]tgz$", pkgs)) {
                 repos <- NULL
                 type <- type2
                 message("inferring 'repos = NULL' from 'pkgs'")
@@ -326,9 +325,9 @@ install.packages <-
 
     ## check if we should infer the type
     if (length(pkgs) == 1L && is.null(repos) && type == "both") {
-    	if (  (type2 %in% "win.binary" && endsWith(pkgs, ".zip"))
-	    ||(startsWith(type2, "mac.binary")
-		   && endsWith(pkgs, ".tgz"))) {
+    	if (  (type2 %in% "win.binary" && grepl("[.]zip$", pkgs))
+	    ||(substr(type2, 1L, 10L) == "mac.binary"
+		   && grepl("[.]tgz$", pkgs))) {
 	    type <- type2
 	} else if (grepl("[.]tar[.](gz|bz2|xz)$", pkgs)) {
 	    type <- "source"
@@ -495,7 +494,7 @@ install.packages <-
 	flush.console()
         ## end of "both"
     } else if (getOption("install.packages.check.source", "yes") %in% "yes"
-               && (type %in% "win.binary" || startsWith(type, "mac.binary"))) {
+               && (type %in% "win.binary" || substr(type, 1L, 10L) == "mac.binary")) {
         if (missing(contriburl) && is.null(available) && !is.null(repos)) {
             contriburl2 <- contrib.url(repos, "source")
 	    # The line above may have changed the repos option, so..
@@ -549,7 +548,7 @@ install.packages <-
     }
 
     if(.Platform$OS.type == "windows") {
-        if(startsWith(type, "mac.binary"))
+        if(substr(type, 1L, 10L) == "mac.binary")
             stop("cannot install macOS binary packages on Windows")
 
         if(type %in% "win.binary") {
@@ -574,7 +573,7 @@ install.packages <-
         ## -- will mess up UNC names, but they don't work
         pkgs <- gsub("\\\\", "/", pkgs)
     } else {
-        if(startsWith(type, "mac.binary")) {
+        if(substr(type, 1L, 10L) == "mac.binary") {
             if(!grepl("darwin", R.version$platform))
                 stop("cannot install macOS binary packages on this platform")
             .install.macbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
@@ -688,7 +687,7 @@ install.packages <-
     }
 
     tmpd <- destdir
-    nonlocalrepos <- !all(startsWith(contriburl, "file:"))
+    nonlocalrepos <- length(grep("^file:", contriburl)) < length(contriburl)
     if(is.null(destdir) && nonlocalrepos) {
         tmpd <- file.path(tempdir(), "downloaded_packages")
         if (!file.exists(tmpd) && !dir.create(tmpd))
@@ -741,12 +740,12 @@ install.packages <-
             ## if --no-lock or --lock was specified in INSTALL_opts
             ## that will override this.
             args0 <- c(args0, "--pkglock")
-            tmpd2 <- file.path(tempdir(), "make_packages")
-            if (!file.exists(tmpd2) && !dir.create(tmpd2))
+            tmpd <- file.path(tempdir(), "make_packages")
+            if (!file.exists(tmpd) && !dir.create(tmpd))
                 stop(gettextf("unable to create temporary directory %s",
-                              sQuote(tmpd2)),
+                              sQuote(tmpd)),
                      domain = NA)
-            mfile <- file.path(tmpd2, "Makefile")
+            mfile <- file.path(tmpd, "Makefile")
             conn <- file(mfile, "wt")
             deps <- paste(paste0(update[, 1L], ".ts"), collapse=" ")
             deps <- strwrap(deps, width = 75, exdent = 2)
@@ -790,7 +789,7 @@ install.packages <-
                     "", sep = "\n", file = conn)
             }
             close(conn)
-            cwd <- setwd(tmpd2)
+            cwd <- setwd(tmpd)
             on.exit(setwd(cwd))
             ## MAKE will be set by sourcing Renviron
             status <- system2(Sys.getenv("MAKE", "make"),
@@ -810,7 +809,7 @@ install.packages <-
             if(keep_outputs)
                 file.copy(paste0(update[, 1L], ".out"), outdir)
             setwd(cwd); on.exit()
-            unlink(tmpd2, recursive = TRUE)
+            unlink(tmpd, recursive = TRUE)
         } else {
             outfiles <- paste0(update[, 1L], ".out")
             for(i in seq_len(nrow(update))) {

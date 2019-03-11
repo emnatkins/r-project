@@ -198,7 +198,7 @@ validGP <- function(gpars) {
                       # used in C code (it gets mapped to font)
                       "fontface")
 
-set.gpar <- function(gp, engineDL=TRUE) {
+set.gpar <- function(gp) {
   if (!is.gpar(gp))
     stop("argument must be a 'gpar' object")
   temp <- grid.Call(C_getGPar)
@@ -227,12 +227,8 @@ set.gpar <- function(gp, engineDL=TRUE) {
   temp$cex <- tempcex
   temp$alpha <- tempalpha
   temp$lex <- templex
-  if (engineDL) {
-      ## Do this as a .Call.graphics to get it onto the base display list
-      grid.Call.graphics(C_setGPar, temp)
-  } else {
-      grid.Call(C_setGPar, temp)
-  }
+  # Do this as a .Call.graphics to get it onto the base display list
+  grid.Call.graphics(C_setGPar, temp)
 }
 
 get.gpar <- function(names=NULL) {

@@ -44,10 +44,12 @@
   description of the \code{options} argument) and before any options
   given on the command line.
 }
+#ifdef unix
 \note{
-  On Unix-alikes only: Unlike \command{Splus BATCH}, this does not run the \R
+  Unlike \command{Splus BATCH} on a Unix-alike, this does not run the \R
   process in the background.
   In most shells, \preformatted{R CMD BATCH [options] infile [outfile] &}
   will do so.
 }
+#endif
 \keyword{utilities}

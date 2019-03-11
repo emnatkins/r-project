@@ -604,7 +604,6 @@ newBasic <-
                "numeric" =,
                "character" =,
                "complex" =,
-               "double" =,
                "integer" =,
                "raw" =,
                "list" =  as.vector(c(...), Class),
@@ -765,16 +764,15 @@ reconcilePropertiesAndPrototype <-
           if(is(clDef, "classRepresentation")) {
               theseProperties <- getSlots(clDef)
               theseSlots <- names(theseProperties)
-              theseSlots <- theseSlots[theseSlots != ".Data"] # handled already
-              dups <- !is.na(match(theseSlots, names(allProps)))
+              theseSlots <- theseSlots[theseSlots == ".Data"] # handled already
+              dups <- !is.na(match(theseSlots, allProps))
               for(dup in theseSlots[dups])
                   if(!extends(elNamed(allProps, dup), elNamed(theseProperties, dup)))
-                      stop(gettextf("Definition of slot %s, in class %s, as %s conflicts with definition, inherited from class %s, as %s",
+                      stop(gettextf("slot %s in class %s currently defined (or inherited) as \"%s\", conflicts with an inherited definition in class %s",
                                     sQuote(dup),
                                     dQuote(name),
-                                    dQuote(elNamed(allProps, dup)),
-                                    dQuote(cl),
-                                    dQuote(elNamed(theseProperties, dup))),
+                                    elNamed(allProps, dup),
+                                    dQuote(cl)),
                            domain = NA)
               theseSlots <- theseSlots[!dups]
               if(length(theseSlots))
@@ -784,12 +782,6 @@ reconcilePropertiesAndPrototype <-
               stop(gettextf("class %s extends an undefined class (%s)",
                             dQuote(name), dQuote(cl)),
                    domain = NA)
-      }
-      undefinedPrototypeSlots <- setdiff(names(prototype), names(allProps))
-      if (length(undefinedPrototypeSlots) > 0L) {
-          stop(gettextf("The prototype for class %s has undefined slot(s): %s",
-                        dQuote(name), paste0("'", undefinedPrototypeSlots, "'",
-                                             collapse = ", ")))
       }
       if(is.null(dataPartClass)) {
           if(extends(prototypeClass, "classPrototypeDef"))
@@ -1346,30 +1338,28 @@ validSlotNames <- function(names) {
 }
 
 ### utility function called from primitive code for "@"
-getDataPart <- function(object, NULL.for.none = FALSE) {
-    if(typeof(object) == "S4") {
+getDataPart <- function(object) {
+    if(identical(typeof(object),"S4")) {
         ## explicit .Data or .xData slot
         ## Some day, we may merge both of these as .Data
         value <- attr(object, ".Data")
         if(is.null(value)) {
             value <- attr(object, ".xData")
-            if(is.null(value) && !NULL.for.none)
+            if(is.null(value))
               stop("Data part is undefined for general S4 object")
-        }
-        return(if(identical(value, .pseudoNULL)) NULL else value)
+          }
+        if(identical(value, .pseudoNULL))
+          return(NULL)
+        else
+          return(value)
     }
     temp <- getClass(class(object))@slots
     if(length(temp) == 0L)
         return(object)
-    if(is.na(match(".Data", names(temp)))) {
-        if(NULL.for.none)
-            return(NULL)
-        else
-            stop(gettextf("no '.Data' slot defined for class %s",
-                          dQuote(class(object))),
-                 domain = NA)
-    }
-    ## else
+    if(is.na(match(".Data", names(temp))))
+       stop(gettextf("no '.Data' slot defined for class %s",
+                     dQuote(class(object))),
+            domain = NA)
     dataPart <- temp[[".Data"]]
     switch(dataPart,
            ## the common cases, for efficiency
@@ -1405,7 +1395,7 @@ getDataPart <- function(object, NULL.for.none = FALSE) {
 }
 
 setDataPart <- function(object, value, check = TRUE) {
-    if(check || typeof(object) == "S4") {
+    if(check || identical(typeof(object), "S4")) {
         classDef <- getClass(class(object))
         slots <- getSlots(classDef)
         dataSlot <- .dataSlot(names(slots))
@@ -1418,7 +1408,7 @@ setDataPart <- function(object, value, check = TRUE) {
         else # this case occurs in making the methods package. why?
           return(.mergeAttrs(value, object))
         value <- as(value, dataClass)  # note that this is strict as()
-        if(typeof(object) == "S4") {
+        if(identical(typeof(object), "S4")) {
             if(is.null(value))
               value <- .pseudoNULL
             attr(object, dataSlot) <- value
@@ -1436,10 +1426,8 @@ setDataPart <- function(object, value, check = TRUE) {
     else
         ClassDef <- getClass(cl, TRUE)
 
-    value <- switch(cl,
-                    matrix = , array = cl,
-                    ## otherwise
-                    elNamed(ClassDef@slots, ".Data"))
+    switch(cl, matrix = , array = value <- cl,
+           value <- elNamed(ClassDef@slots, ".Data"))
     if(is.null(value)) {
         if(.identC(cl, "structure"))
             value <- "vector"
@@ -1759,7 +1747,7 @@ substituteFunctionArgs <-
 
 .makeValidityMethod <- function(Class, validity) {
     if(!is.null(validity)) {
-        if(!is.function(validity))
+        if(!is(validity, "function"))
             stop(gettextf("a validity method must be a function of one argument, got an object of class %s",
                           dQuote(class(validity))),
                  domain = NA)
@@ -1802,6 +1790,8 @@ substituteFunctionArgs <-
 .requirePackage <- function(package, mustFind = TRUE)
     topenv(parent.frame())
 
+.PackageEnvironments <- new.env(hash=TRUE) # caching for required packages
+
 ## real version of .requirePackage
 ..requirePackage <- function(package, mustFind = TRUE) {
     value <- package
@@ -1815,6 +1805,8 @@ substituteFunctionArgs <-
                 return(.GlobalEnv)
             if(identical(package, "methods"))
                 return(topenv(parent.frame())) # booting methods
+            if(!is.null(pkg <- .PackageEnvironments[[package]]))
+                return(pkg) #cached, but only if no namespace
         }
     }
     if(is.environment(value))
@@ -1834,11 +1826,29 @@ substituteFunctionArgs <-
         else
           return(NULL)
     }
-    getNamespace(package)
+    value <- .asEnvironmentPackage(package)
+    assign(package, value, envir = .PackageEnvironments)
+    value
 }
 
 .classDefEnv <- function(classDef) {
     .requirePackage(classDef@package)
+}
+
+
+.asEnvironmentPackage <- function(package) {
+    if(identical(package, ".GlobalEnv"))
+        .GlobalEnv
+    else {
+        ##FIXME:  the paste should not be needed
+        pkg <- paste0("package:", package)
+        ## need to allow for versioned installs: prefer exact match.
+        m <- charmatch(pkg, search())
+        if(is.na(m)) # not attached, better be an available namespace
+            getNamespace(package)
+        else
+          as.environment(search()[m])
+    }
 }
 
 ## bootstrap version, mustn't fail
@@ -1929,8 +1939,8 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
 }
 
 .cacheClass <- function(name, def, doSubclasses = FALSE, env) {
-    if(!isFALSE(doSubclasses)) # only when is(def, "ClassUnionRepresentation")
-      .recacheSubclasses(def@className, def, env)
+    if(!isFALSE(doSubclasses))
+      .recacheSubclasses(def@className, def, doSubclasses, env)
     if(!is.null(prev <- .classTable[[name]])) {
 	newpkg <- def@package
 	if(is(prev, "classRepresentation")) {
@@ -2092,9 +2102,10 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
     value
 }
 
-##' Insert superclass information into all the subclasses of this class.
-## Used (in 1 place only) to incorporate inheritance information from classUnions
-.recacheSubclasses <- function(class, def, env) {
+### insert superclass information into all the subclasses of this
+### class.  Used to incorporate inheritance information from
+### ClassUnions
+.recacheSubclasses <- function(class, def, doSubclasses, env) {
     subs <- def@subclasses
     subNames <- names(subs)
     for(i in seq_along(subs)) {
@@ -2131,22 +2142,24 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
         if(.identC(what, class2))
             next # catch recursive relations
         cname <- classMetaName(what)
-	if(!is.null(subDef <- get0(cname, envir = where, inherits = FALSE))) {
+        if(exists(cname, envir = where, inherits = FALSE)) {
+            subDef <- get(cname, envir = where)
             cwhere <- where
         }
-	else if(!is.null(subDef <- get0(cname, envir = where2, inherits = FALSE))) {
+        else if(exists(cname, envir = where2, inherits = FALSE)) {
+            subDef <- get(cname, envir = where2)
             cwhere <- where2
         }
         else {
             ## happens (wrongly) in a package which imports 'class' but not 'subclass' from another package
             ## *and* extends 'class', e.g., by defining a class union with it as member.
             ## Fact is that at the end, the subclass is seen to be updated fine.
-	    message(gettextf(paste("From .checkSubclasses(): subclass %s of class %s is not local and",
-				   "is not updated for new inheritance information currently;",
+            message(gettextf(paste("From .checkSubclasses(): subclass %s of class %s is not local and is ",
+                                   "not updated for new inheritance information currently;",
                                    "\n[where=%s, where2=%s]"),
                            .dQ(what), .dQ(class), format(where), format(where2)),
                     domain = NA)
-	    next
+          next
         }
         extension <- extDefs[[what]]
         if(is.null(extension)) # not possible if the setIs behaved?
@@ -2154,13 +2167,6 @@ assign("#HAS_DUPLICATE_CLASS_NAMES", FALSE, envir = .classTable)
                            .dQ(what), .dQ(def2@className), .dQ(class)),
                   call. = FALSE, domain = NA)
         else if(is.na(match(class2, names(subDef@contains)))) {
-            ## The only "real action": seems only necessary to be called
-            ## during 'methods' "initializing class and method definitions":
-            if(isTRUE(as.logical(Sys.getenv("_R_METHODS_SHOW_CHECKSUBCLASSES", "false"))))
-            message(sprintf(paste( # currently only seen from setClassUnion() -> setIs() ->
-                "Debugging .checkSubclasses(): assignClassDef(what=\"%s\", *, where=%s, force=TRUE);\n",
-                "E := environment(): %s; parent.env(E): %s"), what, format(cwhere),
-                format(E <- environment()), format(parent.env(E))))
             subDef@contains[[class2]] <- extension
             assignClassDef(what, subDef, cwhere, TRUE)
         } # else  no action (incl no warning!) at all

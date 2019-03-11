@@ -17,27 +17,26 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-## mlm := multivariate lm();  ny, names: for efficiency in vcov.mlm()
-summary.mlm <- function(object, ny = ncol(coef), names = TRUE, ...)
+## mlm := multivariate lm()
+summary.mlm <- function(object, ...)
 {
     coef <- coef(object)
+    ny <- ncol(coef)
     effects <- object$effects
     resid <- object$residuals
     fitted <- object$fitted.values
-    value <-
-        if(names) {
-            ynames <- colnames(coef)
-            if(is.null(ynames)) ynames <- {
-                lhs <- object$terms[[2L]]
-                if(mode(lhs) == "call" && lhs[[1L]] == "cbind")
-                    as.character(lhs)[-1L]
-                else paste0("Y", seq_len(ny))
-            }
-            ## we need to ensure that _all_ responses are named
-            ind <- ynames == ""
-            if(any(ind)) ynames[ind] <-  paste0("Y", seq_len(ny))[ind]
-            setNames(vector("list", ny), paste("Response", ynames))
-        } else       vector("list", ny)
+    ynames <- colnames(coef)
+    if(is.null(ynames)) ynames <- {
+	lhs <- object$terms[[2L]]
+	if(mode(lhs) == "call" && lhs[[1L]] == "cbind")
+	    as.character(lhs)[-1L]
+	else paste0("Y", seq_len(ny))
+    }
+    ## we need to ensure that _all_ responses are named
+    ind <- ynames == ""
+    if(any(ind)) ynames[ind] <-  paste0("Y", seq_len(ny))[ind]
+
+    value <- setNames(vector("list", ny), paste("Response", ynames))
     cl <- oldClass(object)
     class(object) <- cl[match("mlm", cl):length(cl)][-1L]
     # Need to put the evaluated formula in place
@@ -48,8 +47,7 @@ summary.mlm <- function(object, ny = ncol(coef), names = TRUE, ...)
 	object$residuals <- resid[, i]
 	object$fitted.values <- fitted[, i]
 	object$effects <- effects[, i]
-	object$call$formula[[2L]] <- object$terms[[2L]] <-
-            as.name(if(names) ynames[i] else paste0("Y", i))
+	object$call$formula[[2L]] <- object$terms[[2L]] <- as.name(ynames[i])
 	value[[i]] <- summary(object, ...)
     }
     class(value) <- "listof"
@@ -71,10 +69,9 @@ SSD.mlm <- function(object, ...){
         stop("'mlm' objects with weights are not supported")
     ## avoid residuals(objects) -- if na.exclude was used
     ## that will introduce NAs
-    structure(list(SSD = crossprod(object$residuals),
-                   call= object$call,
-                   df  = object$df.residual),
-              class="SSD")
+    structure(list(SSD=crossprod(object$residuals),
+                   call=object$call,
+                   df=object$df.residual), class="SSD")
 }
 estVar.SSD <- function(object, ...)
     object$SSD/object$df
@@ -271,7 +268,7 @@ anova.mlm <-
 # This was broken. Something similar might work if we implement
 #  split.matrix a la split.data.frame
 #            ss <- lapply(split(comp,asgn), function(x) crossprod(t(x)))
-            df <- lengths(split(asgn, asgn))
+            df <- sapply(split(asgn,  asgn), length)
         } else {
 #            ss <- ssr
 #            df <- dfr

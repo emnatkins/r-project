@@ -1,7 +1,7 @@
 toHTML <- function(x, ...) UseMethod("toHTML")
 
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 
 HTMLheader <-
 function(title="R", logo=TRUE,
@@ -107,14 +107,15 @@ function(x, ...)
 
     ## For now, only do something if the NEWS file could be read without
     ## problems, see utils:::print.news_db():
-    if(!.news_db_has_no_bad_entries(x))
+    if(is.null(bad <- attr(x, "bad"))
+       || (length(bad) != NROW(x))
+       || any(bad))
         return(character())
 
     print_items <- function(x)
-        c("<ul>", sprintf("<li>%s</li>", x), "</ul>")
+        c("<ul>", sprintf("<li>%s</li>", htmlify2(x)), "</ul>")
 
-    if(is.null(x$HTML))
-        x$HTML <- htmlify2(iconv(x$Text, to = "UTF-8"))
+    x$Text <- iconv(x$Text, to = "UTF-8")
 
     vchunks <- split(x, x$Version)
     vchunks <-
@@ -134,7 +135,7 @@ function(x, ...)
                                              factor(category, levels=unique(category)))
                             c(vheaders[i],
                               Map(function(h, t)
-                                  c(h, print_items(t$HTML)),
+                                  c(h, print_items(t$Text)),
                                   sprintf("<h3>%s</h3>",
                                           htmlify2(names(cchunks))),
                                   cchunks))
@@ -147,35 +148,6 @@ function(x, ...)
       "</body></html>")
 }
 
-toHTML.news_db_from_md <-
-function(x, ...)
-{
-    do_vchunk <- function(vchunk) {
-        cheaders <- vchunk$Category
-        ind <- nzchar(cheaders)
-        cheaders[ind] <- paste0("<h3>", cheaders[ind], "</h3>")
-        z <- unlist(Map(c, cheaders, vchunk$HTML),
-                    use.names = FALSE)
-        z[nzchar(z)]
-    }
-
-    vchunks <- split(x, x$Version)
-    ## Re-order according to decreasing version.
-    vchunks <- vchunks[order(numeric_version(names(vchunks),
-                                             strict = FALSE),
-                             decreasing = TRUE)]
-
-    dates <- sapply(vchunks, function(v) v$Date[1L])    
-    vheaders <- sprintf("<h2>Changes in version %s%s</h2>",
-                        names(vchunks),
-                        ifelse(is.na(dates), "",
-                               sprintf(" (%s)", dates)))
-
-    c(HTMLheader(...),
-      unlist(Map(c, vheaders, lapply(vchunks, do_vchunk))),
-      "</body></html>")
-}
-
 # To support static linking, URLs should be relative.
 # Argument "depth" below says how far down in the hierarchy
 # we are starting from, e.g. /library/stats/html/mean.html
@@ -183,11 +155,11 @@ function(x, ...)
 
 makeVignetteTable <- function(vignettes, depth=2) {
     out <- c('<table width="100%">',
-             '<col style="width: 22%;" />',
-             '<col style="width:  2%;" />',
-             '<col style="width: 50%;" />',
-             '<col style="width:  8%;" />',
-             '<col style="width:  8%;" />',
+	      '<col style="width: 22%;" />',
+	      '<col style="width:  2%;" />',
+	      '<col style="width: 50%;" />',
+	      '<col style="width:  8%;" />',
+	      '<col style="width:  8%;" />',
              '<col style="width:  8%;" />')
     for (i in seq_len(nrow(vignettes))) {
 	Outfile <- vignettes[i, "PDF"]
@@ -196,7 +168,7 @@ makeVignetteTable <- function(vignettes, depth=2) {
 	File  <- vignettes[i, "File"]
 	R     <- vignettes[i, "R"]
 	pkg   <- vignettes[i, "Package"]
-        root <- c(rep.int("../", depth), "library/", pkg, "/doc/")
+        root <- c(rep("../", depth), "library/", pkg, "/doc/")
 	link  <- c('<a href="', root,
 		  if (nchar(Outfile)) Outfile else File, '">',
 		  pkg, "::", topic, '</a>')
@@ -225,7 +197,7 @@ makeDemoTable <- function(demos, depth=2) {
     for (i in seq_len(nrow(demos))) {
 	topic <- demos[i, "Topic"]
 	pkg <- demos[i, "Package"]
-        root <- c(rep.int("../", depth), "library/", pkg, "/")
+        root <- c(rep("../", depth), "library/", pkg, "/")
 	Title <- demos[i, "Title"]
 	path <- file.path(demos[i, "LibPath"], "demo")
 	files <- basename(list_files_with_type(path, "demo", full.names=FALSE))
@@ -338,12 +310,12 @@ function(x, header = TRUE, ...)
                                                 urlify,
                                                 2L)
             s <- .gsub_with_transformed_matches("&lt;(DOI|doi):[[:space:]]*([^<[:space:]]+[[:alnum:]])&gt;",
-                                                "&lt;<a href=\"https://doi.org/%s\">doi:\\2</a>&gt;",
+                                                "&lt;<a href=\"http://dx.doi.org/%s\">doi:\\2</a>&gt;",
                                                 s,
                                                 urlify,
                                                 2L)
             s <- .gsub_with_transformed_matches("[^>\"](DOI|doi):[[:space:]]*([^<[:space:]]+[[:alnum:]])",
-                                                "&lt;<a href=\"https://doi.org/%s\">doi:\\2</a>&gt;",
+                                                "&lt;<a href=\"http://dx.doi.org/%s\">doi:\\2</a>&gt;",
                                                 s,
                                                 urlify,
                                                 2L)

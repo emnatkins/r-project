@@ -18,8 +18,7 @@
   function, and the (internal) default method is described here.
 
   \code{rep.int} and \code{rep_len} are faster simplified versions for
-  two common cases.  Internally, they are generic, so methods can be
-  defined for them.
+  two common cases.  They are not generic.
 }
 \usage{
 rep(x, \dots)

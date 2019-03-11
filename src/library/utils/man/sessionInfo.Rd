@@ -1,12 +1,11 @@
 % File src/library/utils/man/sessionInfo.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2018 R Core Team
+% Copyright 1995-2017 R Core Team
 % Distributed under GPL 2 or later
 
 \name{sessionInfo}
 \title{Collect Information About the Current R Session}
 \alias{sessionInfo}
-\alias{osVersion}
 \alias{toLatex.sessionInfo}
 \alias{print.sessionInfo}
 \description{
@@ -16,7 +15,6 @@
 sessionInfo(package = NULL)
 \S3method{print}{sessionInfo}(x, locale = TRUE, ...)
 \S3method{toLatex}{sessionInfo}(object, locale = TRUE, ...)
-osVersion
 }
 \arguments{
  \item{package}{a character vector naming installed packages, or \code{NULL}
@@ -27,15 +25,15 @@ osVersion
   \item{\dots}{currently not used.}
 }
 \value{
-  \code{sessionInfo()} returns an object of class \code{"sessionInfo"}
-  which has \code{print} and
+  An object of class \code{"sessionInfo"} which has \code{print} and
   \code{\link{toLatex}} methods.  This is a list with components
   \item{R.version}{a list, the result of calling \code{\link{R.Version}()}.}
   \item{platform}{a character string describing the platform \R was
     built under.  Where sub-architectures are in use this is of the form
     \samp{platform/sub-arch (nn-bit)}.}
-  \item{running}{a character string (or possibly \code{NULL}), the same
-    as \code{osVersion}, see below.}
+  \item{running}{a character string describing the OS and version which
+    it is running under (as distinct from built under).  This attempts
+    to name a Linux distribution and give the OS name on an Apple Mac.}
   \item{matprod}{a character string, the result of calling
     \code{\link{options}("matprod")}.}
   \item{BLAS}{a character string, the result of calling
@@ -51,27 +49,18 @@ osVersion
     calling \code{\link{packageDescription}} on packages whose
     namespaces are loaded but are not attached.}
 }
-\section{\code{osVersion}}{
-  \code{osVersion} is a character string (or possibly \code{NULL} on
-  bizarre platforms) describing the OS and version which it is running
-  under (as distinct from built under).  This attempts to name a Linux
-  distribution and give the OS name on an Apple Mac.
-
-  It is the same as \code{sessionInfo()$running}
-  and created when loading the \pkg{utils} package.
-
-  Windows may report unexpected versions: see the help for
-  \code{\link{win.version}}.
-
-  How OSes identify themselves and their versions can be arcane: where
-  possible \code{osVersion} (and hence \code{sessionInfo()$running}) uses
-  a human-readable form.
-}
 \note{
   The information on \sQuote{loaded} packages and namespaces is the
   \emph{current} version installed at the location the package was
   loaded from: it can be wrong if another process has been changing
   packages during the session.
+
+  How OSes identify themselves and their versions can be arcane: where
+  possible \code{running} uses a human-readable form.
+#ifdef windows
+  Windows may report unexpected versions: see the help for
+  \code{\link{win.version}}.
+#endif
 }
 \seealso{\code{\link{R.version}}
 }

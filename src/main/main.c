@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2019   The R Core Team
+ *  Copyright (C) 1998-2017   The R Core Team
  *  Copyright (C) 2002-2005  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -80,9 +80,8 @@ static void R_ReplFile(FILE *fp, SEXP rho)
     ParseStatus status;
     int count=0;
     int savestack;
-    RCNTXT cntxt;
 
-    R_InitSrcRefState(&cntxt);
+    R_InitSrcRefState();
     savestack = R_PPStackTop;
     for(;;) {
 	R_PPStackTop = savestack;
@@ -109,7 +108,6 @@ static void R_ReplFile(FILE *fp, SEXP rho)
 	    parseError(R_NilValue, R_ParseError);
 	    break;
 	case PARSE_EOF:
-	    endcontext(&cntxt);
 	    R_FinalizeSrcRefState();
 	    return;
 	    break;
@@ -505,11 +503,6 @@ static void sigactionSegv(int signum, siginfo_t *ip, void *context)
 	if((intptr_t) R_CStackLimit != -1) upper += R_CStackLimit;
 	if(diff > 0 && diff < upper) {
 	    REprintf(_("Error: segfault from C stack overflow\n"));
-#if defined(linux) || defined(__linux__) || defined(__sun) || defined(sun)
-	    sigset_t ss;
-	    sigaddset(&ss, signum);
-	    sigprocmask(SIG_UNBLOCK, &ss, NULL);
-#endif
 	    jump_to_toplevel();
 	}
     }
@@ -844,12 +837,12 @@ void setup_Rmainloop(void)
     srand(TimeToSeed());
 
     InitArithmetic();
+    InitParser();
     InitTempDir(); /* must be before InitEd */
     InitMemory();
     InitStringHash(); /* must be before InitNames */
     InitBaseEnv();
     InitNames(); /* must be after InitBaseEnv to use R_EmptyEnv */
-    InitParser();  /* must be after InitMemory, InitNames */
     InitGlobalEnv();
     InitDynload();
     InitOptions();
@@ -878,6 +871,9 @@ void setup_Rmainloop(void)
     R_Toplevel.conexit = R_NilValue;
     R_Toplevel.vmax = NULL;
     R_Toplevel.nodestack = R_BCNodeStackTop;
+#ifdef BC_INT_STACK
+    R_Toplevel.intstack = R_BCIntStackTop;
+#endif
     R_Toplevel.cend = NULL;
     R_Toplevel.cenddata = NULL;
     R_Toplevel.intsusp = FALSE;
@@ -1096,7 +1092,7 @@ void mainloop(void)
 /*this functionality now appears in 3
   places-jump_to_toplevel/profile/here */
 
-void attribute_hidden printwhere(void)
+static void printwhere(void)
 {
   RCNTXT *cptr;
   int lct = 1;
@@ -1190,11 +1186,7 @@ static void PrintCall(SEXP call, SEXP rho)
 	blines = asInteger(GetOption1(install("deparse.max.lines")));
     if(blines != NA_INTEGER && blines > 0)
 	R_BrowseLines = blines;
-
-    R_PrintData pars;
-    PrintInit(&pars, rho);
-    PrintValueRec(call, &pars);
-
+    PrintValueRec(call, rho);
     R_BrowseLines = old_bl;
 }
 
@@ -1618,7 +1610,7 @@ R_taskCallbackRoutine(SEXP expr, SEXP value, Rboolean succeeded,
     SETCAR(e, VECTOR_ELT(f, 0));
     cur = CDR(e);
     SETCAR(cur, tmp = allocVector(LANGSXP, 2));
-	SETCAR(tmp, lang3(R_DoubleColonSymbol, R_BaseSymbol, R_QuoteSymbol));
+	SETCAR(tmp, R_QuoteSymbol);
 	SETCAR(CDR(tmp), expr);
     cur = CDR(cur);
     SETCAR(cur, value);

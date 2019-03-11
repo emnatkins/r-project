@@ -1,7 +1,7 @@
 #  File src/library/utils/R/sessionInfo.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2018 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,64 +16,6 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-## FIXME?  alternatively, just define 'osVersion' directly in .onLoad()  in zzz.R
-.osVersion <- function() {
-    ## Now try to figure out the OS we are running under
-    if (.Platform$OS.type == "windows") {
-        win.version()
-    } else if (nzchar(Sys.which('uname'))) { ## we could try /usr/bin/uname
-        uname <- system("uname -a", intern = TRUE)
-        os <- sub(" .*", "", uname)
-        switch(os,
-               "Linux" =
-                   if(file.exists("/etc/os-release")) {
-                       ## http://www.freedesktop.org/software/systemd/man/os-release.html
-                       tmp <- readLines("/etc/os-release")
-                       t2 <- if (any(startsWith(tmp, "PRETTY_NAME=")))
-                                 sub("^PRETTY_NAME=", "",
-                                     grep("^PRETTY_NAME=", tmp, value = TRUE)[1L])
-                             else if (any(startsWith(tmp, "NAME")))
-                                 ## could check for VERSION or VERSION_ID
-                                 sub("^NAME=", "",
-                                     grep("^NAME=", tmp, value = TRUE)[1L])
-                             else "Linux (unknown distro)"
-                       sub('"(.*)"', "\\1", t2)
-                   } else if(file.exists("/etc/system-release")) {
-                       ## RHEL-like
-                       readLines("/etc/system-release")
-                   },
-               "Darwin" = {
-                   ver <- readLines("/System/Library/CoreServices/SystemVersion.plist")
-                   ind <- grep("ProductUserVisibleVersion", ver)
-                   ver <- ver[ind + 1L]
-                   ver <- sub(".*<string>", "", ver)
-                   ver <- sub("</string>$", "", ver)
-                   ver1 <- strsplit(ver, ".", fixed = TRUE)[[1L]][2L]
-                   sprintf("%s %s %s",
-                           ifelse(as.numeric(ver1) < 12, "OS X", "macOS"),
-                           switch(ver1,
-                                  ## 10.6 is earliest that can be installed
-                                  "6" = "Snow Leopard",
-                                  "7" = "Lion",
-                                  "8" = "Mountain Lion",
-                                  "9" = "Mavericks",
-                                  "10" = "Yosemite",
-                                  "11" = "El Capitan",
-                                  "12" = "Sierra",
-                                  "13" = "High Sierra",
-                                  "14" = "Mojave",
-                                  ""), ver)
-               },
-               "SunOS" = {
-                   ver <- system('uname -r', intern = TRUE)
-                   paste("Solaris",
-                         strsplit(ver, ".", fixed = TRUE)[[1L]][2L])
-               },
-               uname)
-    } # using system('uname ..')
-    ## else NULL
-}
-
 sessionInfo <- function(package = NULL)
 {
     z <- list()
@@ -83,7 +25,60 @@ sessionInfo <- function(package = NULL)
         z$platform <- paste(z$platform, .Platform$r_arch, sep = "/")
     z$platform <- paste0(z$platform, " (", 8*.Machine$sizeof.pointer, "-bit)")
     z$locale <- Sys.getlocale()
-    z$running <- osVersion
+    ## Now try to figure out the OS we are running under
+    if (.Platform$OS.type == "windows") {
+        z$running <- win.version()
+    } else if (nzchar(Sys.which('uname'))) { ## we could try /usr/bin/uname
+        uname <- system("uname -a", intern = TRUE)
+        os <- sub(" .*", "", uname)
+        z$running <-
+            switch(os,
+                   "Linux" = if(file.exists("/etc/os-release")) {
+    ## http://www.freedesktop.org/software/systemd/man/os-release.html
+                       tmp <- readLines("/etc/os-release")
+                       t2 <- if (any(startsWith(tmp, "PRETTY_NAME=")))
+                           sub("^PRETTY_NAME=", "",
+                               grep("^PRETTY_NAME=", tmp, value = TRUE)[1L])
+                       else if (any(startsWith(tmp, "NAME")))
+                           ## could check for VERSION or VERSION_ID
+                           sub("^NAME=", "",
+                               grep("^NAME=", tmp, value = TRUE)[1L])
+                       else "Linux (unknown distro)"
+                       sub('"(.*)"', "\\1", t2)
+                   } else if(file.exists("/etc/system-release")) {
+                       ## RHEL-like
+                       readLines("/etc/system-release")
+                   },
+                   "Darwin" = {
+                       ver <- readLines("/System/Library/CoreServices/SystemVersion.plist")
+                       ind <- grep("ProductUserVisibleVersion", ver)
+                       ver <- ver[ind + 1L]
+                       ver <- sub(".*<string>", "", ver)
+                       ver <- sub("</string>$", "", ver)
+                       ver1 <- strsplit(ver, ".", fixed = TRUE)[[1L]][2L]
+                       sprintf("%s %s %s",
+                               ifelse(as.numeric(ver1) < 12, "OS X", "macOS"),
+                               switch(ver1,
+                                      ## 10.6 is earliest that can be installed
+                                      "6" = "Snow Leopard",
+                                      "7" = "Lion",
+                                      "8" = "Mountain Lion",
+                                      "9" = "Mavericks",
+                                      "10" = "Yosemite",
+                                      "11" = "El Capitan",
+                                      "12" = "Sierra",
+                                      "13" = "High Sierra",
+                                      "14" = "Mojave",
+                                      ""), ver)
+                   },
+                   "SunOS" = {
+                       ver <- system('uname -r', intern = TRUE)
+                       paste("Solaris",
+                             strsplit(ver, ".", fixed = TRUE)[[1L]][2L])
+                   },
+                   uname)
+    }
+
     if(is.null(package)){
         package <- grep("^package:", search(), value=TRUE)
         # weed out environments which are not really packages

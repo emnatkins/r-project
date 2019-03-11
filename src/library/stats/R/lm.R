@@ -44,23 +44,22 @@ lm <- function (formula, data, subset, weights, na.action,
     w <- as.vector(model.weights(mf))
     if(!is.null(w) && !is.numeric(w))
         stop("'weights' must be a numeric vector")
-    offset <- model.offset(mf)
-    mlm <- is.matrix(y)
-    ny <- if(mlm) nrow(y) else length(y)
+    offset <- as.vector(model.offset(mf))
     if(!is.null(offset)) {
-        if(!mlm) offset <- as.vector(offset)
-        if(NROW(offset) != ny)
+        if(length(offset) != NROW(y))
             stop(gettextf("number of offsets is %d, should equal %d (number of observations)",
-                          NROW(offset), ny), domain = NA)
+                          length(offset), NROW(y)), domain = NA)
     }
 
     if (is.empty.model(mt)) {
 	x <- NULL
-	z <- list(coefficients = if(mlm) matrix(NA_real_, 0, ncol(y))
+	z <- list(coefficients = if(is.matrix(y)) matrix(NA_real_, 0, ncol(y))
 				 else numeric(),
 		  residuals = y,
 		  fitted.values = 0 * y, weights = w, rank = 0L,
-		  df.residual = if(!is.null(w)) sum(w != 0) else ny)
+		  df.residual = if(!is.null(w)) sum(w != 0)
+				else if(is.matrix(y)) nrow(y)
+				else length(y))
         if(!is.null(offset)) {
             z$fitted.values <- offset
             z$residuals <- y - offset
@@ -72,7 +71,7 @@ lm <- function (formula, data, subset, weights, na.action,
                                    singular.ok=singular.ok, ...)
 	else lm.wfit(x, y, w, offset = offset, singular.ok=singular.ok, ...)
     }
-    class(z) <- c(if(mlm) "mlm", "lm")
+    class(z) <- c(if(is.matrix(y)) "mlm", "lm")
     z$na.action <- attr(mf, "na.action")
     z$offset <- offset
     z$contrasts <- attr(x, "contrasts")
@@ -317,7 +316,7 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     resvar <- rss/rdf
     ## see thread at https://stat.ethz.ch/pipermail/r-help/2014-March/367585.html
     if (is.finite(resvar) &&
-        resvar < (mean(f)^2 + var(c(f))) * 1e-30)  # a few times .Machine$double.eps^2
+        resvar < (mean(f)^2 + var(f)) * 1e-30)  # a few times .Machine$double.eps^2
         warning("essentially perfect fit: summary may be unreliable")
     p1 <- 1L:p
     R <- chol2inv(Qr$qr[p1, p1, drop = FALSE])
@@ -590,8 +589,8 @@ anova.lm <- function(object, ...)
         asgn <- object$assign[qr.lm(object)$pivot][p1]
         nmeffects <- c("(Intercept)", attr(object$terms, "term.labels"))
         tlabels <- nmeffects[1 + unique(asgn)]
-        ss <- c(vapply( split(comp^2,asgn), sum, 1.0), ssr)
-        df <- c(lengths(split(asgn,  asgn)),           dfr)
+        ss <- c(unlist(lapply(split(comp^2,asgn), sum)), ssr)
+        df <- c(lengths(split(asgn,  asgn)), dfr)
     } else {
         ss <- ssr
         df <- dfr
@@ -879,20 +878,8 @@ model.matrix.lm <- function(object, ...)
     if(n_match <- match("x", names(object), 0L)) object[[n_match]]
     else {
         data <- model.frame(object, xlev = object$xlevels, ...)
-        if(exists(".GenericCallEnv", inherits = FALSE)) # in dispatch
-            NextMethod("model.matrix", data = data,
-                       contrasts.arg = object$contrasts)
-        else {
-            ## model.matrix.lm() is exported for historic reasons.  If
-            ## called directly, calling NextMethod() will not work "as
-            ## expected", so call the "next" method directly.
-            dots <- list(...)
-            dots$data <- dots$contrasts.arg <- NULL
-            do.call("model.matrix.default",
-                    c(list(object = object, data = data,
-                           contrasts.arg = object$contrasts),
-                      dots))
-        }
+        NextMethod("model.matrix", data = data,
+                   contrasts.arg = object$contrasts)
     }
 }
 

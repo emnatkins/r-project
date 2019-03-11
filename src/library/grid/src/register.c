@@ -74,8 +74,6 @@ static const R_CallMethodDef callMethods[] = {
     LCALLDEF(pretty, 1),
     LCALLDEF(locator, 0),
     LCALLDEF(convert, 4),
-    LCALLDEF(devLoc, 2),
-    LCALLDEF(devDim, 2),
     LCALLDEF(layoutRegion, 2),
     LCALLDEF(getGPar, 0),
     LCALLDEF(setGPar, 1),

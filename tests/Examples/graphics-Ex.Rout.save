@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2019-03-04 r76193) -- "Unsuffered Consequences"
+R version 3.5.3 RC (2019-03-03 r76193) -- "Great Truth"
 Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -255,24 +255,6 @@ Hair    Brown Blue Hazel Green
 > # one way to have a custom x axis
 > plot(1:10, xaxt = "n")
 > axis(1, xaxp = c(2, 9, 7))
-> 
-> ## Changing default gap between labels:
-> plot(0:100, type="n", axes=FALSE, ann=FALSE)
-> title(quote("axis(1, .., gap.axis = f)," ~~ f >= 0))
-> axis(2, at = 5*(0:20), las = 1, gap.axis = 1/4)
-> gaps <- c(4, 2, 1, 1/2, 1/4, 0.1, 0)
-> chG <- paste0(ifelse(gaps == 1, "default:  ", ""),
-+               "gap.axis=", formatC(gaps))
-> jj <- seq_along(gaps)
-> linG <- -2.5*(jj-1)
-> for(j in jj) {
-+     isD <- gaps[j] == 1 # is default
-+     axis (1, at=5*(0:20), gap.axis = gaps[j], padj=-1, line = linG[j],
-+           col.axis = if(isD) "forest green" else 1, font.axis= 1+isD)
-+ }
-> mtext(chG, side=1, padj=-1, line = linG -1/2, cex=3/4,
-+       col = ifelse(gaps == 1, "forest green", "blue3"))
-> ## now shrink the window (in x- and y-direction) and observe the axis labels drawn
 > 
 > 
 > 
@@ -705,7 +687,7 @@ temperature no yes
 > 
 > op <- par(omd=c(0.1, 0.9, 0.1, 0.9), mfrow = c(1, 2))
 > plot(1:4)
-> for(tp in c("in", "dev", "ndc", "nfc", "npc", "nic", "lines", "chars"))
+> for(tp in c("in", "dev", "ndc", "nfc", "npc", "nic"))
 +     print(grconvertX(c(1.0, 4.0), "user", tp))
 [1] 1.577778 3.022222
 [1] 113.6 217.6
@@ -713,8 +695,6 @@ temperature no yes
 [1] 0.3134921 0.8293651
 [1] 0.03703704 0.96296296
 [1] 0.1567460 0.4146825
-[1]  7.888889 15.111111
-[1]  7.888889 15.111111
 > par(op)
 > 
 > 
@@ -1535,7 +1515,7 @@ List of 2
 +     rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
 + }
 > pairs(USJudgeRatings[1:5], panel = panel.smooth,
-+       cex = 1.5, pch = 24, bg = "light blue", horOdd=TRUE,
++       cex = 1.5, pch = 24, bg = "light blue",
 +       diag.panel = panel.hist, cex.labels = 2, font.labels = 2)
 > 
 > ## put (absolute) correlations on the upper panels,
@@ -2102,7 +2082,7 @@ N
 > points.default # to see how it calls "plot.xy(xy.coords(x, y), ...)"
 function (x, y = NULL, type = "p", ...) 
 plot.xy(xy.coords(x, y), type = type, ...)
-<bytecode: 0x3fb37e8>
+<bytecode: 0x15f6cb0>
 <environment: namespace:graphics>
 > 
 > 
@@ -2972,7 +2952,7 @@ function (xy = 1, warn.log = TRUE)
     u <- par("usr")
     xy * c(u[2L] - u[1L], u[4L] - u[3L])/par("pin")
 }
-<bytecode: 0x3c65cf0>
+<bytecode: 0x26a1f88>
 <environment: namespace:graphics>
 > 
 > ## plot labels offset 0.12 inches to the right
@@ -3053,7 +3033,7 @@ function (xy = 1, warn.log = TRUE)
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  2.806 0.063 2.883 0 0 
+Time elapsed:  2.777 0.043 2.834 0 0 
 > grDevices::dev.off()
 null device 
           1 

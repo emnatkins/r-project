@@ -1,7 +1,7 @@
 #  File src/library/base/R/format.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ format.default <-
 	     zero.print = NULL, drop0trailing = FALSE, ...)
 {
     justify <- match.arg(justify)
+    adj <- match(justify, c("left", "right", "centre", "none")) - 1L
     if(is.list(x)) {
 	## do it this way to force evaluation of args
 	if(missing(trim)) trim <- TRUE
@@ -45,36 +46,22 @@ format.default <-
     } else {
 	switch(mode(x),
 	       NULL = "NULL",
-	       character = {
-		   adj <- match(justify, c("left", "right", "centre", "none")) - 1L
-		   .Internal(format(x, trim, digits, nsmall, width, adj,
-				    na.encode, scientific, NA_character_))
-	       },
+	       character = .Internal(format(x, trim, digits, nsmall, width, adj,
+					    na.encode, scientific, NA_character_)),
 	       call =, expression =, "function" =, "(" = deparse(x, backtick=TRUE),
 	       raw = as.character(x),
-	       S4 = {
-		   cld <- methods::getClassDef(cl <- class(x))
-		   pkg <- attr(cl, "package")
-		   paste0("<S4 class ", sQuote(cl),
-			  if(!is.null(pkg)) paste0(" [package ", dQuote(pkg), "]"),
-			  if(!is.null(cld) && !is.null(sls <- cld@slots))
-			      paste(" with", length(sls),
-				    if(length(sls) == 1L) "slot" else "slots"), ">")
-	       },
-	       numeric =, logical =, complex =,
-	       environment =
-		   prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L,
-					      na.encode, scientific, decimal.mark)),
-			     big.mark = big.mark, big.interval = big.interval,
-			     small.mark = small.mark,
-			     small.interval = small.interval,
-			     decimal.mark = decimal.mark, input.d.mark = decimal.mark,
-			     zero.print = zero.print, drop0trailing = drop0trailing,
-			     is.cmplx = is.complex(x),
-			     preserve.width = if (trim) "individual" else "common"),
-	       ## all others (for now):
-	       stop(gettextf("Found no format() method for class \"%s\"",
-			     class(x)), domain = NA))
+           {
+	       ## else: logical, numeric, complex, .. :
+	       prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L,
+					  na.encode, scientific, decimal.mark)),
+			 big.mark = big.mark, big.interval = big.interval,
+			 small.mark = small.mark,
+			 small.interval = small.interval,
+			 decimal.mark = decimal.mark, input.d.mark = decimal.mark,
+			 zero.print = zero.print, drop0trailing = drop0trailing,
+			 is.cmplx = is.complex(x),
+			 preserve.width = if (trim) "individual" else "common")
+           })
     }
 }
 
@@ -122,7 +109,6 @@ formatC <- function (x, digits = NULL, width = NULL,
 		     small.mark = "", small.interval = 5L,
                      decimal.mark = getOption("OutDec"),
                      preserve.width = "individual", zero.print = NULL,
-		     replace.zero = TRUE,
                      drop0trailing = FALSE)
 {
     if(is.object(x)) {
@@ -222,7 +208,6 @@ formatC <- function (x, digits = NULL, width = NULL,
 		       small.mark = small.mark, small.interval = small.interval,
 		       decimal.mark = decimal.mark, input.d.mark = ".",
 		       preserve.width = preserve.width, zero.print = zero.print,
-		       replace.zero = replace.zero,
 		       drop0trailing = drop0trailing, is.cmplx = FALSE)
 
     if (!is.null(x.atr <- attributes(x)))
@@ -285,9 +270,7 @@ format.AsIs <- function(x, width = 12, ...)
     format.default(rvec, justify = "right")
 }
 
-.format.zeros <- function(x, zero.print, nx = suppressWarnings(as.numeric(x)),
-                          replace = FALSE, warn.non.fitting = TRUE)
-{
+.format.zeros <- function(x, zero.print, nx = suppressWarnings(as.numeric(x))) {
     if (!is.null(zero.print) && any(i0 <- nx == 0 & !is.na(nx))) {
 	## print zeros according to 'zero.print' (logical or string):
 	if(length(zero.print) > 1L) stop("'zero.print' has length > 1")
@@ -296,19 +279,10 @@ format.AsIs <- function(x, width = 12, ...)
 	if(!is.character(zero.print))
 	    stop("'zero.print' must be character, logical or NULL")
 	nz <- nchar(zero.print, "c")
-	nc <- nchar(x[i0],      "c") # vector
-	ind0 <- as.vector(regexpr("0", x[i0], fixed = TRUE))# first '0' in string
-	if(replace) {
-	    x[i0] <- zero.print
-	} else { ## default -- the x[i0] strings should keep their width!
-            if(any(nc < nz) && warn.non.fitting)
-                warning("'zero.print' is truncated to fit into formatted zeros; consider 'replace=TRUE'")
-            i2 <- pmin(nc, nz-1L+ind0)
-            i1 <- pmax(1L, i2-nz+1L) # i2 == i1+k  means k+1 chars !
-            substr(x[i0], i1, i2) <- zero.print
-            if(any(P <- nc > i2))
-                substr(x[i0][P], i2[P]+1L, nc[P]) <- strrep(" ", (nc - i2)[P])
-        }
+	nc <- nchar(x[i0], "c")
+	ind0 <- regexpr("0", x[i0], fixed = TRUE)# first '0' in string
+	substr(x[i0], ind0, (i1 <- ind0+nz-1L)) <- zero.print
+	substr(x[i0], ind0+nz, nc) <- strrep(" ", nc - i1)
     }
     x
 }
@@ -319,8 +293,7 @@ prettyNum <-
 	     small.mark = "", small.interval = 5L,
              decimal.mark = getOption("OutDec"), input.d.mark = decimal.mark,
 	     preserve.width = c("common", "individual", "none"),
-	     zero.print = NULL, replace.zero = FALSE,
-	     drop0trailing = FALSE, is.cmplx = NA, ...)
+	     zero.print = NULL, drop0trailing = FALSE, is.cmplx = NA, ...)
 {
     if(notChar <- !is.character(x)) {
 	is.cmplx <- is.complex(x)
@@ -343,7 +316,7 @@ prettyNum <-
 
     ## else
     if(nMark && !drop0trailing)# zero.print was only non-default
-	return(.format.zeros(x, zero.print, replace=replace.zero))
+	return(.format.zeros(x, zero.print))
 
     ## else
     if(is.na(is.cmplx)) { ## find if 'x' is format from a *complex*
@@ -355,8 +328,7 @@ prettyNum <-
     preserve.width <- match.arg(preserve.width)
     if(is.cmplx) {
 	## should be rare .. taking an easy route
-        ## FIXME - or only at return(.) time ??
-        x <- .format.zeros(x, zero.print, replace=replace.zero)
+        x <- .format.zeros(x, zero.print) # FIXME - or only at return(.) time ??
 	z.sp <- strsplit(sub("([0-9] *)([-+])( *[0-9])",
 			     "\\1::\\2::\\3", x), "::", fixed=TRUE)
 	## be careful, if x had an  "	NA":
@@ -374,8 +346,7 @@ prettyNum <-
 				  small.mark=small.mark, small.interval=small.interval,
 				  decimal.mark=decimal.mark, input.d.mark=input.d.mark,
 				  preserve.width=preserve.width,
-				  zero.print=zero.print, replace.zero=replace.zero,
-				  drop0trailing=drop0trailing,
+				  zero.print=zero.print, drop0trailing=drop0trailing,
 				  is.cmplx=FALSE, ...))
 	    r[[2]][has.i] <- paste0(r[[2]][has.i], "i")
 	    x[i3] <- paste0(r[[1]], vapply(z.sp, `[[`, "", 2L), r[[2]])
@@ -423,7 +394,7 @@ prettyNum <-
     }
     ## extraneous trailing dec.marks: paste(B., A., sep = decimal.mark)
     A. <- .format.zeros(paste0(B., c(decimal.mark, "")[iN+ 1L], A.),
-			zero.print, replace=replace.zero)
+			zero.print)
     if(preserve.width != "none") {
 	nnc <- nchar(A., "c")
 	d.len <- nnc - nchar(x, "c") # extra space added by 'marks' above

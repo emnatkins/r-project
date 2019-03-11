@@ -264,7 +264,7 @@ c.person <-
 function(..., recursive = FALSE)
 {
     args <- list(...)
-    if(!all(vapply(args, inherits, NA, "person")))
+    if(!all(sapply(args, inherits, "person")))
         warning(gettextf("method is only applicable to %s objects",
                          sQuote("person")),
                 domain = NA)
@@ -324,7 +324,7 @@ function(x)
     pattern <- "[[:space:]]?(,|,?[[:space:]]and)[[:space:]]+"
     x <- do.call("c",
                  regmatches(x, gregexpr(pattern, y), invert = TRUE))
-    x <- x[!vapply(x, .is_not_nonempty_text, NA)]
+    x <- x[!sapply(x, .is_not_nonempty_text)]
 
     ## don't expect Jr. to be a person
     jr <- which(!is.na(match(x, c("Jr", "Jr.", "jr", "jr."))))
@@ -389,7 +389,7 @@ personList <-
 function(...)
 {
     z <- list(...)
-    if(!all(vapply(z, inherits, NA, "person")))
+    if(!all(sapply(z, inherits, "person")))
         stop(gettextf("all arguments must be of class %s",
                       dQuote("person")),
              domain = NA)
@@ -532,7 +532,7 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
     args <- c(list(...), other)
     if(!length(args))
         return(structure(list(), class = "bibentry"))
-    if(any(vapply(names(args), .is_not_nonempty_text, NA)))
+    if(any(sapply(names(args), .is_not_nonempty_text)))
         stop("all fields have to be named")
 
     ## arrange all arguments in lists of equal length
@@ -574,7 +574,7 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
 
         ## process fields
         rval <- c(list(...), other)
-        rval <- rval[!vapply(rval, .is_not_nonempty_text, NA)]
+        rval <- rval[!sapply(rval, .is_not_nonempty_text)]
 	fields <- tolower(names(rval))
         names(rval) <- fields
         attr(rval, "bibtype") <- bibtype
@@ -630,7 +630,7 @@ function(x, force = FALSE)
         strsplit(tools:::BibTeX_entry_field_db[[bibtype]], "|",
                  fixed = TRUE)
     if(length(rfields) > 0L) {
-        ok <- vapply(rfields, function(f) any(f %in% fields), NA)
+        ok <- sapply(rfields, function(f) any(f %in% fields))
         if(any(!ok))
             stop(sprintf(ngettext(sum(!ok),
                                   "A bibentry of bibtype %s has to specify the field: %s",
@@ -841,7 +841,7 @@ function(x, more = list())
                          function(e)
                          tryCatch(.bibentry_check_bibentry1(e, TRUE),
                                   error = identity))
-        bad <- which(vapply(status, inherits, NA, "error"))
+        bad <- which(sapply(status, inherits, "error"))
         if(length(bad)) {
             for(b in bad) {
                 warning(gettextf("Dropping invalid entry %d:\n%s",
@@ -940,7 +940,7 @@ function(x, collapse = FALSE)
     s <- lapply(unclass(x),
                 function(e) {
                     a <- Filter(length, attributes(e)[anames])
-                    e <- e[!vapply(e, is.null, NA)]
+                    e <- e[!sapply(e, is.null)]
                     ind <- !is.na(match(names(e),
                                        c(anames, manames, "other")))
                     if(any(ind)) {
@@ -982,7 +982,7 @@ function(x)
 {
     s <- lapply(unclass(x),
                 function(e) {
-                    e <- e[!vapply(e, is.null, NA)]
+                    e <- e[!sapply(e, is.null)]
                     cargs <-
                         sprintf("%s = %s", names(e), sapply(e, deparse))
                     .format_call_RR("person", cargs)
@@ -1061,7 +1061,7 @@ c.bibentry <-
 function(..., recursive = FALSE)
 {
     args <- list(...)
-    if(!all(vapply(args, inherits, NA, "bibentry")))
+    if(!all(sapply(args, inherits, "bibentry")))
         warning(gettextf("method is only applicable to %s objects",
                          sQuote("bibentry")),
                 domain = NA)
@@ -1076,9 +1076,7 @@ function(object, ...)
 {
     format_author <- function(author) paste(sapply(author, function(p) {
 	fnms <- p$family
-	only_given_or_family <-
-            (is.null(fnms) || is.null(p$given)) &&
-            !(identical(fnms, "others") || identical(p$given, "others"))
+	only_given_or_family <- is.null(fnms) || is.null(p$given)
 	fbrc <- if(length(fnms) > 1L ||
                    any(grepl("[[:space:]]", fnms)) ||
                    only_given_or_family) c("{", "}") else ""
@@ -1114,7 +1112,7 @@ function(object, ...)
 sort.bibentry <-
 function(x, decreasing = FALSE, .bibstyle = NULL, drop = FALSE, ...)
 {
-    x[order(tools::bibstyle(.bibstyle, .default = FALSE)$sortKeys(x),
+    x[order(tools::bibstyle(.bibstyle)$sortKeys(x),
             decreasing = decreasing),
       drop = drop]
 }
@@ -1213,7 +1211,8 @@ function(package = "base", lib.loc = NULL, auto = NULL)
         auto_was_meta <- FALSE
         dir <- system.file(package = package, lib.loc = lib.loc)
         if(dir == "")
-            stop(packageNotFoundError(package, lib.loc, sys.call()))
+            stop(gettextf("package %s not found", sQuote(package)),
+                 domain = NA)
         meta <- packageDescription(pkg = package,
                                    lib.loc = dirname(dir))
         ## if(is.null(auto)): Use default auto-citation if no CITATION

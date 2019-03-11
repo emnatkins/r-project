@@ -60,6 +60,7 @@ is.loaded(symbol, PACKAGE = "", type = "")
     default), \code{"Fortran"}, \code{"Call"} or \code{"External"}.}
 }
 \details{
+  
   The objects \code{dyn.load} loads are called \sQuote{dynamically
     loadable libraries} (abbreviated to \sQuote{DLL}) on all platforms
   except macOS, which uses the term for a different sort
@@ -145,9 +146,7 @@ is.loaded(symbol, PACKAGE = "", type = "")
 
   The function \code{dyn.unload} unlinks the DLL.  Note that unloading a
   DLL and then re-loading a DLL of the same name may or may not work: on
-  Solaris it uses the first version loaded. Note also that some DLLs cannot
-  be safely unloaded at all: unloading a DLL which implements C finalizers
-  but does not unregister them on unload causes R to crash.
+  Solaris it uses the first version loaded.
 
   \code{is.loaded} checks if the symbol name is loaded \emph{and
   searchable} and hence available for use as a character string value
