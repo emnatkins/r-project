@@ -5,44 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{assertError()} and \code{assertWarning()} (package
-      \pkg{tools}) now can check for \emph{specific} error or warning
-      classes via new optional 2nd argument \code{classes} (which is not
-      back compatible with previous use of unnamed 2nd arg.)
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item Make macro \samp{F77_VISIBILITY} has been removed
-      and replaced by \samp{F_VISIBILITY}.
-
-      \item Make macros \samp{F77}, \samp{FCPIFCPLAGS} and
-      \samp{SHLIB_OPENMP_FCFLAGS} have been removed and replaced by
-      \samp{FC}, \samp{FPICFLAGS} and \samp{SHLIB_OPENMP_FFLAGS}
-      respectively.  (Most \command{make} programs will set \samp{F77}
-      to the value of \samp{FC}, which is set for package compilation.
-      But portable code should not rely on this.)
-
-      \item \command{R CMD config} no longer knows about the
-      unused settings \samp{F77} and \samp{FCPIFCPLAGS}.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{format(x)} with \code{length(x) > 1} character vectors,
-      is deprecated now.  Such use has been very rare, and has \sQuote{worked}
-      as expected in some cases only, also in one CRAN package. (As long as
-      it's not defunct, it at least works consistently as
-      \code{format(paste(x, collapse = " "))}.)
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 3.6.0}{
 
    \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
@@ -865,12 +827,6 @@
       ensures that each converted input line is terminated with a
       newline even if re-encoding fails.
 
-      \item Class unions are unloaded when their namespace is
-      unloaded (\PR{17531}, adapted from a patch by Brodie Gaslam).
-
-      \item \code{selectMethod()} is robust to ANY-truncation of method
-      signatures (thanks to Herve Pages for the report).
-
       \item \code{as.matrix.data.frame()} now produces better strings from
       logicals, thanks to \PR{17548} from Gabe Becker.
 
@@ -880,6 +836,12 @@
 
       \item \code{match(x, tab)} now works for long \emph{character}
       vectors \code{x}, thanks to \PR{17552} by Andreas Kersting.
+
+      \item Class unions are unloaded when their namespace is
+      unloaded (\PR{17531}, adapted from a patch by Brodie Gaslam).
+
+      \item \code{selectMethod()} is robust to ANY-truncation of method
+      signatures (thanks to Herve Pages for the report).
     }
   }
 }

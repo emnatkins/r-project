@@ -226,7 +226,6 @@ if(FALSE) {
             "      --configure-vars=VARS",
             "			set variables for the configure scripts (if any)",
             "      --strip           strip shared object(s)",
-            "      --strip-lib       strip static/dynamic libraries under lib/",
             "      --dsym            (macOS only) generate dSYM directory",
             "      --built-timestamp=STAMP",
             "                   set timestamp for Built: entry in DESCRIPTION",
@@ -537,9 +536,10 @@ if(FALSE) {
 		## is no way to create it later.
 
 		if (dsym && startsWith(R.version$os, "darwin")) {
-		    starsmsg(stars, gettextf("generating debug symbols (%s)", "dSYM"))
+		    message(gettextf("generating debug symbols (%s)", "dSYM"),
+                            domain = NA)
 		    dylib <- Sys.glob(paste0(dest, "/*", SHLIB_EXT))
-                    for (d in dylib) system(paste0("dsymutil ", d))
+                    for (file in dylib) system(paste0("dsymutil ", file))
 		}
 
                 if(config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
@@ -1682,27 +1682,6 @@ if(FALSE) {
                            sQuote("--no-staged-install"))
             }
         }
-
-        if (do_strip_lib &&
-            nzchar(strip_cmd <- Sys.getenv("R_STRIP_STATIC_LIB")) &&
-            length(a_s <- Sys.glob(file.path(file.path(lib, curPkg),
-                                             "lib", "*.a")))) {
-            if(length(a_s) > 1L)
-                starsmsg(stars, "stripping static libraries under lib")
-            else
-                starsmsg(stars, "stripping static library under lib")
-            system(paste(c(strip_cmd, shQuote(a_s)), collapse = " "))
-        }
-        if (do_strip_lib &&
-            nzchar(strip_cmd <- Sys.getenv("R_STRIP_SHARED_LIB")) &&
-            length(so_s <- Sys.glob(file.path(file.path(lib, curPkg), "lib",
-                                              paste0("*", SHLIB_EXT))))) {
-            if(length(so_s) > 1L)
-                starsmsg(stars, "stripping dynamic libraries under lib")
-            else
-                starsmsg(stars, "stripping dynamic library under lib")
-            system(paste(c(strip_cmd, shQuote(so_s)), collapse = " "))
-        }
     }
 
     options(showErrorCalls = FALSE)
@@ -1762,7 +1741,7 @@ if(FALSE) {
     install_inst <- TRUE
     install_help <- TRUE
     install_tests <- FALSE
-    do_strip <- do_strip_lib <- FALSE
+    do_strip <- FALSE
 
     while(length(args)) {
         a <- args[1L]
@@ -1891,8 +1870,6 @@ if(FALSE) {
             dsym <- TRUE
         } else if (a == "--strip") {
             do_strip <- TRUE
-        } else if (a == "--strip-lib") {
-            do_strip_lib <- TRUE
         } else if (substr(a, 1, 18) == "--built-timestamp=") {
             built_stamp <- substr(a, 19, 1000)
         } else if (startsWith(a, "-")) {

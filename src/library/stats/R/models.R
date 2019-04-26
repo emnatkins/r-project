@@ -29,9 +29,9 @@ formula.default <- function (x = NULL, env = parent.frame(), ...)
     else {
         form <- switch(mode(x),
                        NULL = structure(list(), class = "formula"),
-                       character = eval(str2expression(x)), # ever used?  formula.character!
-                       call = eval(x),
-                       stop("invalid formula"))
+                       character = formula(
+                           eval(parse(text = x, keep.source = FALSE)[[1L]])),
+                       call = eval(x), stop("invalid formula"))
         environment(form) <- env
         form
     }
@@ -53,7 +53,8 @@ DF2formula <- function(x, env = parent.frame()) {
         rhs <- nm[1L]
         lhs <- NULL
     } else stop("cannot create a formula from a zero-column data frame")
-    ff <- str2lang(paste(lhs, paste(rhs, collapse = "+"), sep = "~"))
+    ff <- parse(text = paste(lhs, paste(rhs, collapse = "+"), sep = "~"),
+                keep.source = FALSE)
     ff <- eval(ff)
     environment(ff) <- env
     ff
@@ -66,37 +67,9 @@ formula.data.frame <- function (x, ...)
     else DF2formula(x, parent.frame())
 }
 
-## Future version {w/o .Deprecated etc}:
 formula.character <- function(x, env = parent.frame(), ...)
 {
-    ff <- str2lang(x)
-    if(!(is.call(ff) && is.symbol(c. <- ff[[1L]]) && c. == quote(`~`)))
-        stop(gettextf("invalid formula: %s", deparse(x, 500L)[[1]]), domain=NA)
-    class(ff) <- "formula"
-    environment(ff) <- env
-    ff
-}
-
-## Active version helping to move towards future version:
-formula.character <- function(x, env = parent.frame(), ...)
-{
-    ## Next lines upto 'ff <- str2lang(x)' instead of  'ff <- str2expression(x)[[1L]]'
-    if(length(x) > 1L) {
-        .Deprecated(msg=
- "Using formula(x) is deprecated when x is a character vector of length > 1.
-  Consider formula(paste(x, collapse = \" \")) instead.")
-        x <- paste(x, collapse = " ")
-    }
-    ff <- str2lang(x)
-    if(!(is.call(ff) && is.symbol(c. <- ff[[1L]]) && c. == quote(`~`))) {
-        msg <- gettextf("invalid formula: %s", deparse(x, 500L)[[1]])
-        if(is.call(ff) && is.symbol(c. <- ff[[1L]]) && c. == quote(`=`)) {
-            .Deprecated(msg = c(msg, " *assignment* is deprecated"))
-            ff <- ff[[3L]] # the RHS of "v = <form>" (pkgs 'GeNetIt', 'KMgene')
-        }
-        else stop(msg, domain=NA)
-    }
-    class(ff) <- "formula"
+    ff <- formula(eval(parse(text=x, keep.source = FALSE)[[1L]]))
     environment(ff) <- env
     ff
 }
@@ -178,11 +151,12 @@ delete.response <- function (termobj)
 reformulate <- function (termlabels, response=NULL, intercept = TRUE, env = parent.frame())
 {
     ## an extension of formula.character()
+    str2code <- function(s) parse(text = s, keep.source = FALSE)[[1L]]
     if(!is.character(termlabels) || !length(termlabels))
         stop("'termlabels' must be a character vector of length at least one")
     termtext <- paste(termlabels, collapse = "+")
     if(!intercept) termtext <- paste(termtext, "- 1")
-    terms <- str2lang(termtext)
+    terms <- str2code(termtext)
     fexpr <-
 	if(is.null(response))
 	    call("~", terms)
@@ -190,7 +164,7 @@ reformulate <- function (termlabels, response=NULL, intercept = TRUE, env = pare
 	    call("~",
 		 ## response can be a symbol or call as  Surv(ftime, case)
 		 if(is.character(response))
-                     tryCatch(str2lang(response),
+                     tryCatch(str2code(response),
                               error = function(e) {
                                   sc <- sys.calls()
                                   sc1 <- lapply(sc, `[[`, 1L)
@@ -761,7 +735,8 @@ get_all_vars <- function(formula, data = NULL, ...)
     env <- environment(formula)
     rownames <- .row_names_info(data, 0L) #attr(data, "row.names")
     varnames <- all.vars(formula)
-    inp <- str2lang(paste0("list(", paste(varnames, collapse = ","), ")"))
+    inp <- parse(text = paste0("list(", paste(varnames, collapse = ","), ")"),
+                 keep.source = FALSE) # ->  expression( list(v1, v2, ..) )
     variables <- eval(inp, data, env)
     if(is.null(rownames) && (resp <- attr(formula, "response")) > 0) {
         ## see if we can get rownames from the response
