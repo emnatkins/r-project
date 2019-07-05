@@ -709,13 +709,10 @@ extern0 Rboolean R_CBoundsCheck	INI_as(FALSE);	/* options(CBoundsCheck) */
 extern0 MATPROD_TYPE R_Matprod	INI_as(MATPROD_DEFAULT);  /* options(matprod) */
 extern0 int	R_WarnLength	INI_as(1000);	/* Error/warning max length */
 extern0 int	R_nwarnings	INI_as(50);
-
-/* C stack checking */
 extern uintptr_t R_CStackLimit	INI_as((uintptr_t)-1);	/* C stack limit */
 extern uintptr_t R_OldCStackLimit INI_as((uintptr_t)0); /* Old value while
 							   handling overflow */
 extern uintptr_t R_CStackStart	INI_as((uintptr_t)-1);	/* Initial stack address */
-/* Default here is for Windows: set from configure in src/unix/system.c */
 extern int	R_CStackDir	INI_as(1);	/* C stack direction */
 
 #ifdef R_USE_SIGNALS
@@ -777,7 +774,6 @@ LibExtern Rboolean mbcslocale  INI_as(FALSE);  /* is this a MBCS locale? */
 extern0   Rboolean latin1locale INI_as(FALSE); /* is this a Latin-1 locale? */
 #ifdef Win32
 LibExtern unsigned int localeCP  INI_as(1252); /* the locale's codepage */
-LibExtern unsigned int systemCP  INI_as(437);  /* the ANSI codepage, GetACP */
 extern0   Rboolean WinUTF8out  INI_as(FALSE);  /* Use UTF-8 for output */
 extern0   void WinCheckUTF8(void);
 #endif

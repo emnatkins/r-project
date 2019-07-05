@@ -329,13 +329,13 @@ static void handle_destroy(object obj)
 static void handle_focus(object obj, int gained_focus)
 {
     if (gained_focus) {
-	obj->state |= GA_Focus;
+	obj->state |= Focus;
 	if (obj->caretwidth < 0) {
 	    setcaret(obj, 0,0, -obj->caretwidth, obj->caretheight);
 	    showcaret(obj, 1);
 	}
     } else {
-	obj->state &= ~GA_Focus;
+	obj->state &= ~Focus;
 	if (obj->caretwidth > 0) {
 	    setcaret(obj, 0,0, -obj->caretwidth, obj->caretheight);
 	    showcaret(obj, 0);
@@ -911,7 +911,7 @@ app_control_procedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	     * when we use TAB to set focus to them. */
 #if USE_NATIVE_TOGGLES
 	    if (isenabled(obj)) {
-		obj->state &= ~GA_Enabled;
+		obj->state &= ~Enabled;
 		prevent_activation = 1;
 	    }
 #endif
@@ -940,7 +940,7 @@ app_control_procedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     /* Re-activate the control if necessary. */
     if (prevent_activation)
-	obj->state |= GA_Enabled;
+	obj->state |= Enabled;
     return result;
 }
 

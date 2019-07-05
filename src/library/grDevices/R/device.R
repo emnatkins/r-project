@@ -1,7 +1,7 @@
 #  File src/library/grDevices/R/device.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2016 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -327,16 +327,15 @@ dev.new <- function(..., noRStudioGD = FALSE)
     do.call(dev, a)
 }
 
-## Check string to contain at most one valid integer format (starting with '%')
-## 's' is typically the file(name) or title argument of a graphical device.
+### Check for a single valid integer format
 checkIntFormat <- function(s)
 {
     ## OK if no unescaped %, so first remove those
-    s <- gsub("%%", "", s, fixed=TRUE)
+    s <- gsub("%%", "", s)
     if(length(grep("%", s)) == 0L) return(TRUE)
     ## now remove at most one valid(ish) integer format
     s <- sub("%[#0 ,+-]*[0-9.]*[diouxX]", "", s)
-    length(grep("%", s, fixed=TRUE)) == 0L
+    length(grep("%", s)) == 0L
 }
 
 devAskNewPage <- function(ask=NULL) .External2(C_devAskNewPage, ask)

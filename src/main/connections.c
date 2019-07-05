@@ -6164,7 +6164,7 @@ static void init_filters(void)
 }
 
 attribute_hidden
-SEXP R_compress3(SEXP in)
+SEXP R_compress3(SEXP in, Rboolean *err)
 {
     const void *vmax = vmaxget();
     unsigned int inlen, outlen;

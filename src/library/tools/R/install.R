@@ -129,7 +129,7 @@ if(FALSE) {
     # command sent to another R process.  Currently it only fixes backslashes;
     # more extensive escaping might be a good idea
     quote_path <- function(path, quote = "'")
-    	paste0(quote, gsub("\\", "\\\\", path, fixed=TRUE), quote)
+    	paste0(quote, gsub("\\\\", "\\\\\\\\", path), quote)
 
     on.exit(do_exit_on_error())
     WINDOWS <- .Platform$OS.type == "windows"
@@ -226,7 +226,6 @@ if(FALSE) {
             "      --configure-vars=VARS",
             "			set variables for the configure scripts (if any)",
             "      --strip           strip shared object(s)",
-            "      --strip-lib       strip static/dynamic libraries under lib/",
             "      --dsym            (macOS only) generate dSYM directory",
             "      --built-timestamp=STAMP",
             "                   set timestamp for Built: entry in DESCRIPTION",
@@ -539,9 +538,10 @@ if(FALSE) {
 		## is no way to create it later.
 
 		if (dsym && startsWith(R.version$os, "darwin")) {
-		    starsmsg(stars, gettextf("generating debug symbols (%s)", "dSYM"))
+		    message(gettextf("generating debug symbols (%s)", "dSYM"),
+                            domain = NA)
 		    dylib <- Sys.glob(paste0(dest, "/*", SHLIB_EXT))
-                    for (d in dylib) system(paste0("dsymutil ", d))
+                    for (file in dylib) system(paste0("dsymutil ", file))
 		}
 
                 if(config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
@@ -646,12 +646,12 @@ if(FALSE) {
                         hardcoded_paths <- TRUE
                         qp <- gsub('([" \\])', "\\\\\\1", paths[i])
                         qp <- gsub("'", "\\\\'", qp)
-                        cmd <- paste0("elfedit -e \"dyn:value -dynndx -s ",
-                                     idxs[i], " ", qp, "\" ", shQuote(l))
+                        cmd <- paste("elfedit -e \"dyn:value -dynndx -s",
+                                     idxs[i], qp, "\"", shQuote(l))
                         message(cmd)
                         ret <- suppressWarnings(system(cmd, intern = FALSE))
                         if (ret == 0)
-                            message("NOTE: fixed path ", sQuote(old_paths[i]))
+                            message("NOTE: fixed path ", old_paths[i])
                     }
                     out <- suppressWarnings(
                         system(paste("elfedit -re dyn:value", shQuote(l)), intern = TRUE))
@@ -682,7 +682,7 @@ if(FALSE) {
                             ## NOTE: install_name does not signal an error in
                             ## some cases
                             message("NOTE: fixed library identification name ",
-                                    sQuote(oldid))
+                                    oldid)
                     }
 
                     ## change paths to other libraries
@@ -709,7 +709,7 @@ if(FALSE) {
                             ## NOTE: install_name does not signal an error in
                             ## some cases
                             message("NOTE: fixed library path ",
-                                    sQuote(old_paths[i]))
+                                    old_paths[i])
                     }
                     out <- suppressWarnings(
                         system(paste("otool -L", shQuote(l)), intern = TRUE))
@@ -743,7 +743,7 @@ if(FALSE) {
                             ret <- suppressWarnings(system(cmd))
                             if (ret == 0)
                                 message("NOTE: fixed rpath ",
-                                        sQuote(old_paths[i]))
+                                        old_paths[i])
                         }
                     }
 
@@ -772,7 +772,7 @@ if(FALSE) {
                         message(cmd)
                         ret <- suppressWarnings(system(cmd))
                         if (ret == 0)
-                            message("NOTE: fixed rpath ", sQuote(old_rpath))
+                            message("NOTE: fixed rpath ", old_rpath)
                         rpath <- suppressWarnings(
                             system(paste("patchelf --print-rpath",
                                          shQuote(l)), intern = TRUE))
@@ -803,7 +803,7 @@ if(FALSE) {
                             ret <- suppressWarnings(system(cmd))
                             if (ret == 0)
                                 message("NOTE: fixed library path ",
-                                        sQuote(old_paths[i]))
+                                        old_paths[i])
                         }
                         out <- suppressWarnings(
                             system(paste("readelf -d", shQuote(l)), intern = TRUE))
@@ -833,7 +833,7 @@ if(FALSE) {
                         message(cmd)
                         ret <- suppressWarnings(system(cmd))
                         if (ret == 0)
-                            message("NOTE: fixed rpath ", sQuote(old_rpath))
+                            message("NOTE: fixed rpath ", old_rpath)
                         out <- suppressWarnings(
                             system(paste("chrpath", shQuote(l)), intern = TRUE))
                         rpath <- grep(".*PATH=", out, value = TRUE)
@@ -1717,27 +1717,6 @@ if(FALSE) {
                            sQuote("--no-staged-install"))
             }
         }
-
-        if (do_strip_lib &&
-            nzchar(strip_cmd <- Sys.getenv("R_STRIP_STATIC_LIB")) &&
-            length(a_s <- Sys.glob(file.path(file.path(lib, curPkg),
-                                             "lib", "*.a")))) {
-            if(length(a_s) > 1L)
-                starsmsg(stars, "stripping static libraries under lib")
-            else
-                starsmsg(stars, "stripping static library under lib")
-            system(paste(c(strip_cmd, shQuote(a_s)), collapse = " "))
-        }
-        if (do_strip_lib &&
-            nzchar(strip_cmd <- Sys.getenv("R_STRIP_SHARED_LIB")) &&
-            length(so_s <- Sys.glob(file.path(file.path(lib, curPkg), "lib",
-                                              paste0("*", SHLIB_EXT))))) {
-            if(length(so_s) > 1L)
-                starsmsg(stars, "stripping dynamic libraries under lib")
-            else
-                starsmsg(stars, "stripping dynamic library under lib")
-            system(paste(c(strip_cmd, shQuote(so_s)), collapse = " "))
-        }
     }
 
     options(showErrorCalls = FALSE)
@@ -1797,7 +1776,7 @@ if(FALSE) {
     install_inst <- TRUE
     install_help <- TRUE
     install_tests <- FALSE
-    do_strip <- do_strip_lib <- FALSE
+    do_strip <- FALSE
 
     while(length(args)) {
         a <- args[1L]
@@ -1926,8 +1905,6 @@ if(FALSE) {
             dsym <- TRUE
         } else if (a == "--strip") {
             do_strip <- TRUE
-        } else if (a == "--strip-lib") {
-            do_strip_lib <- TRUE
         } else if (substr(a, 1, 18) == "--built-timestamp=") {
             built_stamp <- substr(a, 19, 1000)
         } else if (startsWith(a, "-")) {
@@ -2708,11 +2685,11 @@ if(FALSE) {
     htmlize <- function(x, backtick)
     {
         x <- gsub("&", "&amp;", x, fixed = TRUE)
-        x <- gsub("<", "&lt;",  x, fixed = TRUE)
-        x <- gsub(">", "&gt;",  x, fixed = TRUE)
+        x <- gsub("<", "&lt;", x, fixed = TRUE)
+        x <- gsub(">", "&gt;", x, fixed = TRUE)
         if (backtick) {
             x <- gsub("---", "-", x, fixed = TRUE)
-            x <- gsub("--",  "-", x, fixed = TRUE)
+            x <- gsub("--", "-", x, fixed = TRUE)
             ## these have been changed in the Rd parser
             #x <- gsub("``", "&ldquo;", x, fixed = TRUE)
             #x <- gsub("''", "&rdquo;", x, fixed = TRUE)
@@ -2722,7 +2699,7 @@ if(FALSE) {
         x
     }
     M$HTopic <- htmlize(M$Topic, FALSE)
-    M$ Title <- htmlize(M$Title, TRUE)
+    M$Title <- htmlize(M$Title, TRUE)
 
     ## No need to handle encodings: everything is in UTF-8
 
@@ -2887,21 +2864,21 @@ if(FALSE) {
     if ("html" %in% types) {
         type <- "html"
         have <- list.files(file.path(outDir, dirname[type]))
-        have2 <- sub(".html", "", basename(have), fixed=TRUE)
+        have2 <- sub("\\.html", "", basename(have))
         drop <- have[have2 %notin% c(bfs, "00Index", "R.css")]
         unlink(file.path(outDir, dirname[type], drop))
     }
     if ("latex" %in% types) {
         type <- "latex"
         have <- list.files(file.path(outDir, dirname[type]))
-        have2 <- sub(".tex", "", basename(have), fixed=TRUE)
+        have2 <- sub("\\.tex", "", basename(have))
         drop <- have[have2 %notin% bfs]
         unlink(file.path(outDir, dirname[type], drop))
     }
     if ("example" %in% types) {
         type <- "example"
         have <- list.files(file.path(outDir, dirname[type]))
-        have2 <- sub(".R", "", basename(have), fixed=TRUE)
+        have2 <- sub("\\.R", "", basename(have))
         drop <- have[have2 %notin% bfs]
         unlink(file.path(outDir, dirname[type], drop))
     }

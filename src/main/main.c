@@ -726,22 +726,6 @@ void attribute_hidden BindDomain(char *R_Home)
 #endif
 }
 
-/* #define DEBUG_STACK_DETECTION */
-/* Not to be enabled in production use: the debugging code is more fragile
-   than the detection itself. */
-
-#ifdef DEBUG_STACK_DETECTION
-static uintptr_t almostFillStack() {
-    volatile uintptr_t dummy;
-
-    dummy = (uintptr_t) &dummy;
-    if (R_CStackStart - R_CStackDir * R_CStackLimit + R_CStackDir * 1024 < R_CStackDir * dummy)
-	return almostFillStack();
-    else
-	return dummy;
-}
-#endif
-
 void setup_Rmainloop(void)
 {
     volatile int doneit;
@@ -750,7 +734,7 @@ void setup_Rmainloop(void)
     char deferred_warnings[11][250];
     volatile int ndeferred_warnings = 0;
 
-#ifdef DEBUG_STACK_DETECTION 
+#if 0 
     /* testing stack base and size detection */
     printf("stack limit %ld, start %lx dir %d \n",
 	(unsigned long) R_CStackLimit,
@@ -765,17 +749,11 @@ void setup_Rmainloop(void)
     printf("accessing first byte...\n");
     volatile char dummy = *(char *)firstb;
     if (R_CStackLimit != (uintptr_t)(-1)) {
-	/* have to access all bytes in order to map stack, e.g. on Linux
-	   just reading does not seem to always do the job, so better
-	   first almost fill up the stack using recursive function calls
-	 */
-	printf("almost filling up stack...\n");
-	printf("filled stack up to %lx\n", almostFillStack());
 	printf("accessing all bytes...\n");
+	/* have to access all bytes in order to map stack, e.g. on Linux */
 	for(uintptr_t o = 0; o < R_CStackLimit; o++)
 	    /* with exact bounds, o==-1 and o==R_CStackLimit will segfault */
-	    /* +dummy to silence -Wunused-but-set-variable */
-	    dummy = *((char *)firstb - R_CStackDir * o) + dummy;
+	    dummy = *((char *)firstb - R_CStackDir * o);
     }
 #endif
 
@@ -1708,21 +1686,24 @@ R_addTaskCallback(SEXP f, SEXP data, SEXP useData, SEXP name)
 
 #ifndef Win32
 /* this is here solely to pull in xxxpr.o */
-# include <R_ext/RS.h>
-# if defined FC_LEN_T
-# include <stddef.h>
-void F77_SYMBOL(rwarnc)(char *msg, int *nchar, FC_LEN_T msg_len);
-void attribute_hidden dummy54321(void)
+#include <R_ext/RS.h>
+void F77_SYMBOL(intpr) (const char *, int *, int *, int *);
+void attribute_hidden dummy12345(void)
 {
-    int nc = 5;
-    F77_CALL(rwarnc)("dummy", &nc, (FC_LEN_T) 5);
+    int i = 0;
+    F77_CALL(intpr)("dummy", &i, &i, &i);
 }
-# else
-void F77_SYMBOL(rwarnc)(char *msg, int *nchar);
-void attribute_hidden dummy54321(void)
+
+/* Used in unix/system.c, avoid inlining by using an extern there. */
+uintptr_t dummy_ii(void)
 {
-    int nc = 5;
-    F77_CALL(rwarnc)("dummy", &nc);
+    int ii;
+
+    /* This is intended to return a local address. We could just return
+       (uintptr_t) &ii, but doing it indirectly through ii_addr avoids
+       a compiler warning (-Wno-return-local-addr would do as well).
+    */
+    volatile uintptr_t ii_addr = (uintptr_t) &ii;
+    return ii_addr;
 }
-# endif
 #endif

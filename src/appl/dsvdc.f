@@ -104,8 +104,7 @@ c     fortran dabs,dmax1,max0,min0,mod,dsqrt
 c
       subroutine dsvdc(x,ldx,n,p,s,e,u,ldu,v,ldv,work,job,info)
       integer ldx,n,p,ldu,ldv,job,info
-      double precision x(ldx,p),s(min(n+1,p)),e(p),
-     + u(ldu,n),v(ldv,p),work(n)
+      double precision x(ldx,*),s(*),e(*),u(ldu,*),v(ldv,*),work(*)
 c
 c     internal variables
 c

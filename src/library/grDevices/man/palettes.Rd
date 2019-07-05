@@ -96,12 +96,6 @@ palette with relatively high chroma throughout so that it also works reasonably
 well as a qualitative palette. However, while viridis is a rather robust default
 palette, more suitable HCL palettes are available for most visualizations.
 
-For example, \code{"Dark 3"} works well for shading points or lines in
-up to five groups, \code{"YlGnBu"} is a sequential palette similar to
-\code{"viridis"} but with aligned chroma/luminance, and
-\code{"Green-Brown"} or \code{"Blue-Red 3"} are colorblind-safe
-diverging palettes.
-  
 Note that the \code{rainbow} function implements the (in-)famous rainbow (or
 jet) color palette that was used very frequently in many software packages but
 has been widely criticized for its many perceptual problems.
@@ -172,7 +166,7 @@ demo.pal <-
     plot(i, i+d, type = "n", yaxt = "n", ylab = "", main = main)
     for (k in 1:nt) {
         rect(i-.5, (k-1)*j+ dy, i+.4, k*j,
-             col = eval(str2lang(ch.col[k])), border = border)
+             col = eval(parse(text = ch.col[k])), border = border)
         text(2*j,  k * j + dy/4, ch.col[k])
     }
 }

@@ -20,11 +20,8 @@
  *  EXPORTS	printVector()
  *		printNamedVector()
  *		printRealVector()
- *		printRealVectorS()
  *		printIntegerVector()
- *		printIntegerVectorS()
  *		printComplexVector()
- *		printComplexVectorS()
  *
  *  See ./printutils.c	 for remarks on Printing and the Encoding utils.
  *  See ./format.c	 for the formatXXXX functions used below.
@@ -36,7 +33,6 @@
 
 #include "Rinternals.h"
 #include "Print.h"
-#include <R_ext/Itermacros.h> /* for ITERATE_BY_REGION */
 
 #define DO_first_lab			\
     if (indx) {				\
@@ -57,66 +53,22 @@
     else				\
 	width = 0
 
-/* print*Vector (* in {Real, Integer, Complex}) are exported, but no
-   longer directly called by internal R sources (which now call
-   print*VectorS for ALTREP support). Macros are used to prevent drift
-   between print*Vector and print*VectorS. 
-
-   printIntegerVector(INTEGER(x)) and printIntegerVector(x) must
-   always give identical output, unless INTEGER(x) fails, en.g. during
-   allocation. */
-
-/* i must be defined and contain the overall position in the vector
-   because DO_newline uses it
-   ENCCALL is the full invocation of Encode*() which 
-   is passed to Rprintf
-*/
-
-/* used for logical, integer, numeric and complex vectors */
-#define NUMVECTOR_TIGHTLOOP(ENCCALL) do {	\
-	if (i > 0 && width + w > R_print.width) {	\
-	    DO_newline;					\
-	}						\
-	Rprintf("%s", ENCCALL);				\
-	width += w;					\
-    } while(0)
-
-/* used when printing character vectors */
-#define CHARVECTOR_TIGHTLOOP(ENCCALL) do {			\
-	if (i > 0 && width + w + R_print.gap > R_print.width) {	\
-	    DO_newline;						\
-	}							\
-	Rprintf("%*s%s", R_print.gap, "",			\
-		ENCCALL);					\
-	width += w + R_print.gap;				\
-    } while (0)
-
-/* used for raw vectors. Could be combined with character vectors
-   above but NB the different second conditions for the if
-   (width + w vs width + w + R_print.gap) and the different increment
-   on width.
-*/
-#define RAWVECTOR_TIGHTLOOP(ptr, pos) do {				\
-	if (i > 0 && width + w > R_print.width) {			\
-	    DO_newline;							\
-	}								\
-	Rprintf("%*s%s", R_print.gap, "", EncodeRaw(ptr[pos], ""));	\
-	width += w;							\
-    } while (0)
-
 static
-void printLogicalVectorS(SEXP x, R_xlen_t n, int indx) {
+void printLogicalVector(const int *x, R_xlen_t n, int indx)
+{
     int w, labwidth=0, width;
-    R_xlen_t i;
+
     DO_first_lab;
-    formatLogicalS(x,XLENGTH(x), &w);
+    formatLogical(x, n, &w);
     w += R_print.gap;
 
-    ITERATE_BY_REGION(x, px, idx, nb, int, LOGICAL,
-		      for(R_xlen_t j = 0; j < nb; j++) {
-			  i = idx + j; /* for Do_newline */
-			  NUMVECTOR_TIGHTLOOP( EncodeLogical(px[j], w) );
-		      });
+    for (R_xlen_t i = 0; i < n; i++) {
+	if (i > 0 && width + w > R_print.width) {
+	    DO_newline;
+	}
+	Rprintf("%s", EncodeLogical(x[i], w));
+	width += w;
+    }
     Rprintf("\n");
 }
 
@@ -130,31 +82,16 @@ void printIntegerVector(const int *x, R_xlen_t n, int indx)
     w += R_print.gap;
 
     for (R_xlen_t i = 0; i < n; i++) {
-	NUMVECTOR_TIGHTLOOP(EncodeInteger(x[i], w));
+	if (i > 0 && width + w > R_print.width) {
+	    DO_newline;
+	}
+	Rprintf("%s", EncodeInteger(x[i], w));
+	width += w;
     }
     Rprintf("\n");
 }
 
-attribute_hidden
-void printIntegerVectorS(SEXP x, R_xlen_t n, int indx)
-{
-    int w, labwidth=0, width;
-    R_xlen_t i;
-    DO_first_lab;
-    formatIntegerS(x, XLENGTH(x), &w);
-    w += R_print.gap;
-
-    ITERATE_BY_REGION(x, px, idx, nb, int, INTEGER,
-		      for (R_xlen_t j = 0; j < nb; j++) {
-			  i = idx + j; /* for macros */
-			  NUMVECTOR_TIGHTLOOP(EncodeInteger(px[j], w));
-		      });
-    
-    Rprintf("\n");
-}
-
 // used in uncmin.c
-// Not easily converted to printRealVectorS calls
 attribute_hidden
 void printRealVector(const double *x, R_xlen_t n, int indx)
 {
@@ -165,30 +102,15 @@ void printRealVector(const double *x, R_xlen_t n, int indx)
     w += R_print.gap;
 
     for (R_xlen_t i = 0; i < n; i++) {
-	NUMVECTOR_TIGHTLOOP( EncodeReal0(x[i], w, d, e, OutDec) );
+	if (i > 0 && width + w > R_print.width) {
+	    DO_newline;
+	}
+	Rprintf("%s", EncodeReal0(x[i], w, d, e, OutDec));
+	width += w;
     }
     Rprintf("\n");
 }
 
-attribute_hidden
-void printRealVectorS(SEXP x, R_xlen_t n, int indx)
-{
-    int w, d, e, labwidth=0, width;
-    R_xlen_t i;
-    DO_first_lab;
-    formatRealS(x, n, &w, &d, &e, 0);
-    w += R_print.gap;
-
-    ITERATE_BY_REGION(x, px, idx, nb, double, REAL,
-		      for(R_xlen_t j = 0; j < nb; j++) {
-			  i = idx + j; /* for macros */
-			  NUMVECTOR_TIGHTLOOP(EncodeReal0(px[j], w, d, e, OutDec));
-		      });
-    
-    Rprintf("\n");
-}
-
-#define CMPLX_ISNA(cplx) (ISNA(cplx.r) || ISNA(cplx.i))
 attribute_hidden
 void printComplexVector(const Rcomplex *x, R_xlen_t n, int indx)
 {
@@ -201,35 +123,18 @@ void printComplexVector(const Rcomplex *x, R_xlen_t n, int indx)
     w += R_print.gap;
 
     for (R_xlen_t i = 0; i < n; i++) {
-	NUMVECTOR_TIGHTLOOP(CMPLX_ISNA(x[i]) ?
-			EncodeReal0(NA_REAL, w, 0, 0, OutDec) :
-			EncodeComplex(x[i], wr + R_print.gap,
-				      dr, er, wi, di, ei, OutDec));
+	if (i > 0 && width + w > R_print.width) {
+	    DO_newline;
+	}
+	if (ISNA(x[i].r) || ISNA(x[i].i))
+	    Rprintf("%s", EncodeReal0(NA_REAL, w, 0, 0, OutDec));
+	else
+	    Rprintf("%s", EncodeComplex(x[i], wr + R_print.gap , dr, er,
+					wi, di, ei, OutDec));
+	width += w;
     }
     Rprintf("\n");
 }
-
-attribute_hidden
-void printComplexVectorS(SEXP x, R_xlen_t n, int indx)
-{
-    int w, wr, dr, er, wi, di, ei, labwidth=0, width;
-    R_xlen_t i;
-    DO_first_lab;
-    formatComplexS(x, n, &wr, &dr, &er, &wi, &di, &ei, 0);
-
-    w = wr + wi + 2;	/* +2 for "+" and "i" */
-    w += R_print.gap;
-
-    ITERATE_BY_REGION(x, px, idx, nb, Rcomplex, COMPLEX,
-		      for(R_xlen_t j = 0; j < nb; j++) {
-			  i = idx + j; /* for macros */
-			  NUMVECTOR_TIGHTLOOP(CMPLX_ISNA(px[j]) ?
-					  EncodeReal0(NA_REAL, w, 0, 0, OutDec) :
-					  EncodeComplex(px[j], wr + R_print.gap , dr, er, wi, di, ei, OutDec));
-		      });
-    Rprintf("\n");
-}
-
 
 static void printStringVector(const SEXP *x, R_xlen_t n, int quote, int indx)
 {
@@ -249,39 +154,7 @@ static void printStringVector(const SEXP *x, R_xlen_t n, int quote, int indx)
     Rprintf("\n");
 }
 
-static void printStringVectorS(SEXP x, R_xlen_t n, int quote, int indx)
-{
-    /* because there's no get_region method for ALTSTRINGs
-       we hit the old version if we can to avoid the
-       STRING_ELT in the tight loop. 
-
-       This will work for all nonALTREP STRSXPs as well as whenever
-       the ALTSTRING class is willing to give us a full dataptr from
-       Dataptr_or_null method. */
-
-    const SEXP *xptr = (const SEXP *) DATAPTR_OR_NULL(x);
-    if(xptr != NULL) {
-	printStringVector(xptr, n, quote, indx);
-	return;
-    }
-    
-    int w, labwidth=0, width;
-
-    DO_first_lab;
-    formatStringS(x, n, &w, quote);
-
-    for (R_xlen_t i = 0; i < n; i++) {
-	CHARVECTOR_TIGHTLOOP(
-	    EncodeString(STRING_ELT(x, i), w, quote, R_print.right)
-	    );
-    }
-    Rprintf("\n");
-}
-
-
-
-
-attribute_hidden
+static
 void printRawVector(const Rbyte *x, R_xlen_t n, int indx)
 {
     int w, labwidth=0, width;
@@ -291,29 +164,14 @@ void printRawVector(const Rbyte *x, R_xlen_t n, int indx)
     w += R_print.gap;
 
     for (R_xlen_t i = 0; i < n; i++) {
-	RAWVECTOR_TIGHTLOOP(x, i);
+	if (i > 0 && width + w > R_print.width) {
+	    DO_newline;
+	}
+	Rprintf("%*s%s", R_print.gap, "", EncodeRaw(x[i], ""));
+	width += w;
     }
     Rprintf("\n");
 }
-
-
-static
-void printRawVectorS(SEXP x, R_xlen_t n, int indx)
-{
-    int w, labwidth=0, width;
-    R_xlen_t i;
-    DO_first_lab;
-    formatRawS(x, n, &w);
-    w += R_print.gap;
-
-    ITERATE_BY_REGION(x, px, idx, nb, Rbyte, RAW,
-		      for(R_xlen_t j = 0; j < nb; j++) {
-			  i = idx + j; /* for macros */
-			  RAWVECTOR_TIGHTLOOP(px, j);
-		      });
-    Rprintf("\n");
-}
-
 
 void printVector(SEXP x, int indx, int quote)
 {
@@ -325,25 +183,25 @@ void printVector(SEXP x, int indx, int quote)
 	/* '...max +1'  ==> will omit at least 2 ==> plural in msg below */
 	switch (TYPEOF(x)) {
 	case LGLSXP:
-	    printLogicalVectorS(x, n_pr, indx);
+	    printLogicalVector(LOGICAL_RO(x), n_pr, indx);
 	    break;
 	case INTSXP:
-	    printIntegerVectorS(x, n_pr, indx);
+	    printIntegerVector(INTEGER_RO(x), n_pr, indx);
 	    break;
 	case REALSXP:
-	    printRealVectorS(x, n_pr, indx);
+	    printRealVector(REAL_RO(x), n_pr, indx);
 	    break;
 	case STRSXP:
 	    if (quote)
-		printStringVectorS(x, n_pr, '"', indx);
+		printStringVector(STRING_PTR_RO(x), n_pr, '"', indx);
 	    else
-		printStringVectorS(x, n_pr, 0, indx);
+		printStringVector(STRING_PTR_RO(x), n_pr, 0, indx);
 	    break;
 	case CPLXSXP:
-	    printComplexVectorS(x, n_pr, indx);
+	    printComplexVector(COMPLEX_RO(x), n_pr, indx);
 	    break;
 	case RAWSXP:
-	    printRawVectorS(x, n_pr, indx);
+	    printRawVector(RAW_RO(x), n_pr, indx);
 	    break;
 	}
 	if(n_pr < n)
@@ -371,97 +229,93 @@ void printVector(SEXP x, int indx, int quote)
 
  * Primitives for each type of vector are presented first, followed
  * by the main (dispatching) function.
- * 1) These primitives are almost identical... ==> use PRINT_N_VECTOR_SEXP macro
+ * 1) These primitives are almost identical... ==> use PRINT_N_VECTOR macro
  * 2) S prints a _space_ in the first column for named vectors; we dont.
  */
 
-#define PRINT_N_VECTOR_SEXP(INI_FORMAT, PRINT_1)			\
-    {									\
-	int i, j, k, nlines, nperline, w, wn;				\
-	INI_FORMAT;							\
+#define PRINT_N_VECTOR(INI_FORMAT, PRINT_1)				\
+{									\
+    int i, j, k, nlines, nperline, w, wn;				\
+    INI_FORMAT;								\
 									\
-	formatStringS(names, n, &wn, 0);				\
-	if (w < wn) w = wn;						\
-	nperline = R_print.width / (w + R_print.gap);			\
-	if (nperline <= 0) nperline = 1;				\
-	nlines = n / nperline;						\
-	if (n % nperline) nlines += 1;					\
+    formatString(names, n, &wn, 0);					\
+    if (w < wn) w = wn;							\
+    nperline = R_print.width / (w + R_print.gap);			\
+    if (nperline <= 0) nperline = 1;					\
+    nlines = n / nperline;						\
+    if (n % nperline) nlines += 1;					\
 									\
-	for (i = 0; i < nlines; i++) {					\
-	    if (i) Rprintf("\n");					\
-	    for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) \
-		Rprintf("%s%*s",					\
-			EncodeString(STRING_ELT(names, k), w, 0,	\
-				     Rprt_adj_right),			\
-			R_print.gap, "");				\
-	    Rprintf("\n");						\
-	    for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) \
-		PRINT_1;						\
-	}								\
+    for (i = 0; i < nlines; i++) {					\
+	if (i) Rprintf("\n");						\
+	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)	\
+	    Rprintf("%s%*s",						\
+		    EncodeString(names[k], w, 0, Rprt_adj_right),	\
+		    R_print.gap, "");					\
 	Rprintf("\n");							\
-    }
+	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)	\
+	    PRINT_1;							\
+    }									\
+    Rprintf("\n");							\
+}
 
-static void printNamedLogicalVectorS(SEXP x, int n, SEXP names)
-    PRINT_N_VECTOR_SEXP(formatLogicalS(x, n, &w),
-			Rprintf("%s%*s", EncodeLogical(LOGICAL_ELT(x, k), w),
-				R_print.gap,""))
 
-static void printNamedIntegerVectorS(SEXP x, int n, SEXP names)
-    PRINT_N_VECTOR_SEXP(formatIntegerS(x, n, &w),
-			Rprintf("%s%*s", EncodeInteger(INTEGER_ELT(x, k), w),
-				R_print.gap,""))
+static void printNamedLogicalVector(const int * x, int n, const SEXP * names)
+    PRINT_N_VECTOR(formatLogical(x, n, &w),
+		   Rprintf("%s%*s", EncodeLogical(x[k],w), R_print.gap,""))
 
-#undef INI_F_REAL_S
-#define INI_F_REAL_S	int d, e; formatRealS(x, n, &w, &d, &e, 0)
+static void printNamedIntegerVector(const int * x, int n, const SEXP * names)
+    PRINT_N_VECTOR(formatInteger(x, n, &w),
+		   Rprintf("%s%*s", EncodeInteger(x[k],w), R_print.gap,""))
 
-static void printNamedRealVectorS(SEXP x, int n, SEXP names)
-    PRINT_N_VECTOR_SEXP(INI_F_REAL_S,
-			Rprintf("%s%*s",
-				EncodeReal0(REAL_ELT(x, k), w, d, e, OutDec),
-				R_print.gap,""))
+#undef INI_F_REAL
+#define INI_F_REAL	int d, e; formatReal(x, n, &w, &d, &e, 0)
 
-#undef INI_F_CPLX_S
-#define INI_F_CPLX_S						\
-    int wr, dr, er, wi, di, ei;					\
-    formatComplexS(x, n, &wr, &dr, &er, &wi, &di, &ei, 0);	\
-    w = wr + wi + 2;						\
-    Rcomplex tmp
+static void printNamedRealVector(const double * x, int n, const SEXP * names)
+    PRINT_N_VECTOR(INI_F_REAL,
+		   Rprintf("%s%*s",
+			   EncodeReal0(x[k],w,d,e, OutDec),R_print.gap,""))
+
+#undef INI_F_CPLX
+#define INI_F_CPLX					\
+    int wr, dr, er, wi, di, ei;				\
+    formatComplex(x, n, &wr, &dr, &er, &wi, &di, &ei, 0);	\
+    w = wr + wi + 2
 
 #undef P_IMAG_NA
-#define P_IMAG_NA(VALUE)			\
-	    if(ISNAN(VALUE.i))			\
+#define P_IMAG_NA				\
+	    if(ISNAN(x[k].i))			\
 		Rprintf("+%si", "NaN");		\
 	    else
 
-static void printNamedComplexVectorS(SEXP x, int n, SEXP names)
-    PRINT_N_VECTOR_SEXP(INI_F_CPLX_S,
+static void printNamedComplexVector(const Rcomplex * x, int n,
+				    const SEXP * names)
+    PRINT_N_VECTOR(INI_F_CPLX,
 	{ /* PRINT_1 */
-	    tmp = COMPLEX_ELT(x, j);
 	    if(j) Rprintf("%*s", R_print.gap, "");
-	    if (ISNA(tmp.r) || ISNA(tmp.i)) {
+	    if (ISNA(x[j].r) || ISNA(x[j].i)) {
 		Rprintf("%s", EncodeReal0(NA_REAL, w, 0, 0, OutDec));
 	    }
 	    else {
-		Rprintf("%s", EncodeReal0(tmp.r, wr, dr, er, OutDec));
-		P_IMAG_NA(tmp)
-		if (tmp.i >= 0)
-		    Rprintf("+%si", EncodeReal0(tmp.i, wi, di, ei, OutDec));
+		Rprintf("%s", EncodeReal0(x[k].r, wr, dr, er, OutDec));
+		P_IMAG_NA
+		if (x[k].i >= 0)
+		    Rprintf("+%si", EncodeReal0(x[k].i, wi, di, ei, OutDec));
 		else
-		    Rprintf("-%si", EncodeReal0(-tmp.i, wi, di, ei, OutDec));
+		    Rprintf("-%si", EncodeReal0(-x[k].i, wi, di, ei, OutDec));
 	    }
 	})
 
-static void printNamedStringVectorS(SEXP x, int n, int quote, SEXP names)
-    PRINT_N_VECTOR_SEXP(formatStringS(x, n, &w, quote),
+static void printNamedStringVector(const SEXP * x, int n, int quote,
+				   const SEXP * names)
+    PRINT_N_VECTOR(formatString(x, n, &w, quote),
 		   Rprintf("%s%*s",
-			   EncodeString(STRING_ELT(x, k), w, quote,
-					Rprt_adj_right),
+			   EncodeString(x[k], w, quote, Rprt_adj_right),
 			   R_print.gap, ""))
 
-static void printNamedRawVectorS(SEXP x, int n, SEXP names)
-    PRINT_N_VECTOR_SEXP(formatRawS(x, n, &w),
+static void printNamedRawVector(const Rbyte * x, int n, const SEXP * names)
+    PRINT_N_VECTOR(formatRaw(x, n, &w),
 		   Rprintf("%*s%s%*s", w - 2, "",
-			   EncodeRaw(RAW_ELT(x, k), ""), R_print.gap,""))
+			   EncodeRaw(x[k], ""), R_print.gap,""))
 
 attribute_hidden
 void printNamedVector(SEXP x, SEXP names, int quote, const char *title)
@@ -476,23 +330,24 @@ void printNamedVector(SEXP x, SEXP names, int quote, const char *title)
 	/* '...max +1'  ==> will omit at least 2 ==> plural in msg below */
 	switch (TYPEOF(x)) {
 	case LGLSXP:
-	    printNamedLogicalVectorS(x, n_pr, names);
+	    printNamedLogicalVector(LOGICAL_RO(x), n_pr, STRING_PTR_RO(names));
 	    break;
 	case INTSXP:
-	    printNamedIntegerVectorS(x, n_pr, names);
+	    printNamedIntegerVector(INTEGER_RO(x), n_pr, STRING_PTR_RO(names));
 	    break;
 	case REALSXP:
-	    printNamedRealVectorS(x, n_pr, names);
+	    printNamedRealVector(REAL_RO(x), n_pr, STRING_PTR_RO(names));
 	    break;
 	case CPLXSXP:
-	    printNamedComplexVectorS(x, n_pr, names);
+	    printNamedComplexVector(COMPLEX_RO(x), n_pr, STRING_PTR_RO(names));
 	    break;
 	case STRSXP:
 	    if(quote) quote = '"';
-	    printNamedStringVectorS(x, n_pr, quote, names);
+	    printNamedStringVector(STRING_PTR_RO(x), n_pr, quote,
+				   STRING_PTR_RO(names));
 	    break;
 	case RAWSXP:
-	    printNamedRawVectorS(x, n_pr, names);
+	    printNamedRawVector(RAW_RO(x), n_pr, STRING_PTR_RO(names));
 	    break;
 	}
 	if(n_pr < n)

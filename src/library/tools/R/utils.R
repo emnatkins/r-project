@@ -194,6 +194,7 @@ env_path <- function(...) file.path(..., fsep = .Platform$path.sep)
 ### * Text utilities.
 
 ### ** delimMatch
+
 delimMatch <-
 function(x, delim = c("{", "}"), syntax = "Rd")
 {
@@ -207,12 +208,6 @@ function(x, delim = c("{", "}"), syntax = "Rd")
 
     .Call(C_delim_match, x, delim)
 }
-
-### ** lines2str
-lines2str <-
-function(txt, sep = "")
-    trimws(gsub("\n", sep, paste(txt, collapse = sep),
-                fixed = TRUE, useBytes = TRUE))
 
 
 ### * LaTeX utilities
@@ -562,8 +557,11 @@ function(x, y)
 
 ### ** .OStype
 
-.OStype <- function() {
-    Sys.getenv("R_OSTYPE", unset = .Platform$OS.type, names = FALSE)
+.OStype <-
+function()
+{
+    OS <- Sys.getenv("R_OSTYPE")
+    if(nzchar(OS)) OS else .Platform$OS.type
 }
 
 ### ** .R_copyright_msg
@@ -921,29 +919,16 @@ function(package, lib.loc = NULL)
     path <- system.file(package = package, lib.loc = lib.loc)
     if(!nzchar(path)) return(NULL)
     if(package == "base") {
-        len <- nrow(.S3_methods_table)
         return(data.frame(generic = .S3_methods_table[, 1L],
-                          home = rep_len("base", len),
+                          home = rep_len("base",
+                                         nrow(.S3_methods_table)),
                           class = .S3_methods_table[, 2L],
-                          delayed = rep_len(FALSE, len),
                           stringsAsFactors = FALSE))
     }
     lib.loc <- dirname(path)
     nsinfo <- parseNamespaceFile(package, lib.loc)
     S3methods <- nsinfo$S3methods
     if(!length(S3methods)) return(NULL)
-    tab <- NULL
-    ind <- is.na(S3methods[, 4L])
-    if(!all(ind)) {
-        ## Delayed registrations can be handled directly.
-        pos <- which(!ind)
-        tab <- data.frame(generic = S3methods[pos, 1L],
-                          home = S3methods[pos, 4L],
-                          class = S3methods[pos, 2L],
-                          delayed = rep_len(TRUE, length(pos)),
-                          stringsAsFactors = FALSE)
-        S3methods <- S3methods[ind, , drop = FALSE]
-    }
     generic <- S3methods[, 1L]
     nsenv <- loadNamespace(package, lib.loc)
     ## Possibly speed things up by only looking up the unique generics.
@@ -961,10 +946,7 @@ function(package, lib.loc = NULL)
     homes[!ind] <- "base"
     home <- homes[match(generic, generics)]
     class <- S3methods[, 2L]
-    delayed <- rep_len(FALSE, length(class))
-    rbind(data.frame(generic, home, class, delayed,
-                     stringsAsFactors = FALSE),
-          tab)
+    data.frame(generic, home, class, stringsAsFactors = FALSE)
 }
 
 ### ** .get_package_metadata
@@ -1792,9 +1774,10 @@ function(packages = NULL, FUN, ...,
 function(ifile, ofile)
 {
     .system_with_capture("pandoc",
-                         paste(shQuote(normalizePath(ifile)),
-                               "-s", "--mathjax",
+                         paste(shQuote(normalizePath(ifile)), "-s",
                                "--email-obfuscation=references",
+                               ## "--css=https://cran.r-project.org/web/CRAN_web.css",
+                               "--self-contained",
                                "-o", shQuote(ofile)))
 }
 
@@ -1863,7 +1846,7 @@ function(txt)
     ## separated by white space, possibly quoted.  Note that we could
     ## have newlines in DCF entries but do not allow them in file names,
     ## hence we gsub() them out.
-    con <- textConnection(gsub("\n", " ", txt, fixed=TRUE))
+    con <- textConnection(gsub("\n", " ", txt))
     on.exit(close(con))
     scan(con, what = character(), strip.white = TRUE, quiet = TRUE)
 }
@@ -2357,11 +2340,11 @@ function(...)
 str_parse_logic <-
 function(ch, default = TRUE, otherwise = default, n = 1L)
 {
-    if(is.na(ch)) default
-    else switch(tolower(ch),
-                "1" =, "yes" =, "true" = TRUE,
-                "0" =, "no" =, "false" = FALSE,
-                eval.parent(otherwise, n = n))
+    if (is.na(ch)) default
+    else switch(ch,
+                "yes"=, "Yes" =, "true" =, "True" =, "TRUE" = TRUE,
+                "no" =, "No" =, "false" =, "False" =, "FALSE" = FALSE,
+                eval.parent(otherwise, n=n))
 }
 
 ### ** str_parse

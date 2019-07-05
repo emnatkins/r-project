@@ -1259,7 +1259,7 @@ cbind.data.frame <- function(..., deparse.level = 1)
 
 rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
                              stringsAsFactors = default.stringsAsFactors(),
-                             factor.exclude = TRUE)
+                             factor.exclude = NA)
 {
     match.names <- function(clabs, nmi)
     {

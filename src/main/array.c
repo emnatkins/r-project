@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2019   The R Core Team
+ *  Copyright (C) 1998-2018   The R Core Team
  *  Copyright (C) 2002-2015   The R Foundation
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
@@ -26,8 +26,8 @@
 #include <Defn.h>
 #include <Internal.h>
 #include <Rmath.h>
-#include <R_ext/RS.h>     /* for Calloc/Free, F77_CALL */
-#include <R_ext/BLAS.h>
+#include <R_ext/RS.h>     /* for Calloc/Free */
+#include <R_ext/Applic.h> /* for dgemm */
 #include <R_ext/Itermacros.h>
 
 #include "duplicate.h"
@@ -801,15 +801,15 @@ static void matprod(double *x, int nrx, int ncx,
 
     if (ncy == 1) /* matrix-vector or dot product */
 	F77_CALL(dgemv)(transN, &nrx, &ncx, &one, x,
-			&nrx, y, &ione, &zero, z, &ione FCONE);
+			&nrx, y, &ione, &zero, z, &ione);
     else if (nrx == 1) /* vector-matrix */
 	/* Instead of xY, compute (xY)^T == (Y^T)(x^T)
 	   The result is a vector, so transposing its content is no-op */
 	F77_CALL(dgemv)(transT, &nry, &ncy, &one, y,
-			&nry, x, &ione, &zero, z, &ione FCONE);
+			&nry, x, &ione, &zero, z, &ione);
     else /* matrix-matrix or outer product */
-	F77_CALL(dgemm)(transN, transN, &nrx, &ncy, &ncx, &one, x, 
-			&nrx, y, &nry, &zero, z, &nrx FCONE FCONE);
+	F77_CALL(dgemm)(transN, transN, &nrx, &ncy, &ncx, &one,
+			x, &nrx, y, &nry, &zero, z, &nrx);
 }
 
 static void internal_cmatprod(Rcomplex *x, int nrx, int ncx,
@@ -947,7 +947,7 @@ static void cmatprod(Rcomplex *x, int nrx, int ncx,
     one.r = 1.0; one.i = zero.r = zero.i = 0.0;
 
     F77_CALL(zgemm)(transa, transb, &nrx, &ncy, &ncx, &one,
-                    x, &nrx, y, &nry, &zero, z, &nrx FCONE FCONE);
+                    x, &nrx, y, &nry, &zero, z, &nrx);
 #endif
 }
 
@@ -984,8 +984,7 @@ static void symcrossprod(double *x, int nr, int nc, double *z)
     char *trans = "T", *uplo = "U";
     double one = 1.0, zero = 0.0;
 
-    F77_CALL(dsyrk)(uplo, trans, &nc, &nr, &one, x, &nr, &zero, z, &nc
-		    FCONE FCONE);
+    F77_CALL(dsyrk)(uplo, trans, &nc, &nr, &one, x, &nr, &zero, z, &nc);
     for (int i = 1; i < nc; i++)
 	for (int j = 0; j < i; j++) z[i + NC *j] = z[j + NC * i];
 }
@@ -1029,15 +1028,15 @@ static void crossprod(double *x, int nrx, int ncx,
 
     if (ncy == 1) /* matrix-vector or dot product */
 	F77_CALL(dgemv)(transT, &nrx, &ncx, &one, x,
-			&nrx, y, &ione, &zero, z, &ione FCONE);
+			&nrx, y, &ione, &zero, z, &ione);
     else if (ncx == 1) /* vector-matrix */
 	/* Instead of (x^T)Y, compute ((x^T)Y)^T == (Y^T)x
 	   The result is a vector, so transposing its content is no-op */
 	F77_CALL(dgemv)(transT, &nry, &ncy, &one, y,
-			&nry, x, &ione, &zero, z, &ione FCONE);
+			&nry, x, &ione, &zero, z, &ione);
     else /* matrix-matrix  or outer product */
 	F77_CALL(dgemm)(transT, transN, &ncx, &ncy, &nrx, &one,
-		        x, &nrx, y, &nry, &zero, z, &ncx FCONE FCONE);
+		        x, &nrx, y, &nry, &zero, z, &ncx);
 }
 
 static void ccrossprod(Rcomplex *x, int nrx, int ncx,
@@ -1083,7 +1082,7 @@ static void ccrossprod(Rcomplex *x, int nrx, int ncx,
     one.r = 1.0; one.i = zero.r = zero.i = 0.0;
 
     F77_CALL(zgemm)(transa, transb, &ncx, &ncy, &nrx, &one,
-                    x, &nrx, y, &nry, &zero, z, &ncx FCONE FCONE);
+                    x, &nrx, y, &nry, &zero, z, &ncx);
 #endif
 }
 
@@ -1120,8 +1119,7 @@ static void symtcrossprod(double *x, int nr, int nc, double *z)
     char *trans = "N", *uplo = "U";
     double one = 1.0, zero = 0.0;
 
-    F77_CALL(dsyrk)(uplo, trans, &nr, &nc, &one, x, &nr, &zero, z, &nr
-		    FCONE FCONE);
+    F77_CALL(dsyrk)(uplo, trans, &nr, &nc, &one, x, &nr, &zero, z, &nr);
     for (int i = 1; i < nr; i++)
 	for (int j = 0; j < i; j++) z[i + nr *j] = z[j + nr * i];
 }
@@ -1163,15 +1161,15 @@ static void tcrossprod(double *x, int nrx, int ncx,
 
     if (nry == 1) /* matrix-vector or dot product */
 	F77_CALL(dgemv)(transN, &nrx, &ncx, &one, x,
-			&nrx, y, &ione, &zero, z, &ione FCONE);
+			&nrx, y, &ione, &zero, z, &ione);
     else if (nrx == 1) /* vector-matrix */
 	/* Instead of x(Y^T), compute (x(Y^T))^T == Y(x^T)
 	   The result is a vector, so transposing its content is no-op */
 	F77_CALL(dgemv)(transN, &nry, &ncy, &one, y,
-			&nry, x, &ione, &zero, z, &ione FCONE);
+			&nry, x, &ione, &zero, z, &ione);
     else /* matrix-matrix or outer product */
 	F77_CALL(dgemm)(transN, transT, &nrx, &nry, &ncx, &one,
-			x, &nrx, y, &nry, &zero, z, &nrx FCONE FCONE);
+		    x, &nrx, y, &nry, &zero, z, &nrx);
 }
 
 static void tccrossprod(Rcomplex *x, int nrx, int ncx,
@@ -1216,7 +1214,7 @@ static void tccrossprod(Rcomplex *x, int nrx, int ncx,
     one.r = 1.0; one.i = zero.r = zero.i = 0.0;
 
     F77_CALL(zgemm)(transa, transb, &nrx, &nry, &ncx, &one,
-                    x, &nrx, y, &nry, &zero, z, &nrx FCONE FCONE);
+                    x, &nrx, y, &nry, &zero, z, &nrx);
 #endif
 }
 
@@ -2285,8 +2283,7 @@ SEXP attribute_hidden do_backsolve(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    memcpy(REAL(ans) + j*k, REAL(b) + j*nrb, (size_t)k *sizeof(double));
 	double one = 1.0;
 	F77_CALL(dtrsm)("L", upper ? "U" : "L", trans ? "T" : "N", "N",
-			&k, &ncb, &one, rr, &nrr, REAL(ans), &k
-			FCONE FCONE FCONE FCONE);
+			&k, &ncb, &one, rr, &nrr, REAL(ans), &k);
     }
     UNPROTECT(nprot);
     return ans;

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997-2019  The R Core Team
- *  Copyright (C) 2003-2019  The R Foundation
+ *  Copyright (C) 1997-2018  The R Core Team
+ *  Copyright (C) 2003-2018  The R Foundation
  *  Copyright (C) 1995,1996  Robert Gentleman, Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -969,12 +969,14 @@ static SEXP coerceToPairList(SEXP v)
 /* Coerce a pairlist to the given type */
 static SEXP coercePairList(SEXP v, SEXPTYPE type)
 {
+    int i, n=0;
+    SEXP rval= R_NilValue, vp, names;
+
     /* Hmm, this is also called to LANGSXP, and coerceVector already
        did the check of TYPEOF(v) == type */
     if(type == LISTSXP) return v;/* IS pairlist */
 
-    int i;
-    SEXP rval= R_NilValue, vp;
+    names = v;
     if (type == EXPRSXP) {
 	PROTECT(rval = allocVector(type, 1));
 	SET_VECTOR_ELT(rval, 0, v);
@@ -982,7 +984,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	return rval;
     }
     else if (type == STRSXP) {
-	int n = length(v);
+	n = length(v);
 	PROTECT(rval = allocVector(type, n));
 	for (vp = v, i = 0; vp != R_NilValue; vp = CDR(vp), i++) {
 	    if (isString(CAR(vp)) && length(CAR(vp)) == 1)
@@ -996,7 +998,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	return rval;
     }
     else if (isVectorizable(v)) {
-	int n = length(v);
+	n = length(v);
 	PROTECT(rval = allocVector(type, n));
 	switch (type) {
 	case LGLSXP:
@@ -1034,9 +1036,8 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	    i = 1;
 
     if (i) {
-	int n = length(v);
-	SEXP names = allocVector(STRSXP, n);
 	i = 0;
+	names = allocVector(STRSXP, n);
 	for (vp = v; vp != R_NilValue; vp = CDR(vp), i++)
 	    if (TAG(vp) != R_NilValue)
 		SET_STRING_ELT(names, i, PRINTNAME(TAG(vp)));
@@ -1358,12 +1359,13 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     /* -> as.vector(..) or as.XXX(.) : coerce 'u' to 'type' : */
     /* code assumes u is protected */
 
+    SEXP v;
     if (type == CLOSXP) {
 	return asFunction(u);
     }
     else if (isVector(u) || isList(u) || isLanguage(u)
 	     || (isSymbol(u) && type == EXPRSXP)) {
-	SEXP v;
+	v = u;
 	if (type != ANYSXP && TYPEOF(u) != type) v = coerceVector(u, type);
 	else v = u;
 
@@ -1383,7 +1385,7 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     else if (isSymbol(u) && type == SYMSXP)
 	return u;
     else if (isSymbol(u) && type == VECSXP) {
-	SEXP v = allocVector(VECSXP, 1);
+	v = allocVector(VECSXP, 1);
 	SET_VECTOR_ELT(v, 0, u);
 	return v;
     }

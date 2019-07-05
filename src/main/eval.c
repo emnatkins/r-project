@@ -2150,8 +2150,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
        the setjmp and longjmp calls. Theoretically this does not
        include n and bgn, but gcc -O2 -Wclobbered warns about these so
        to be safe we declare them volatile as well. */
-    volatile R_xlen_t i = 0, n;
-    volatile int bgn;
+    volatile int i = 0, n, bgn;
     volatile SEXP v, val, cell;
     int dbg, val_type;
     SEXP sym, body;
@@ -2188,7 +2187,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (isList(val) || isNull(val))
 	n = length(val);
     else
-	n = XLENGTH(val);
+	n = LENGTH(val);
 
     val_type = TYPEOF(val);
 
@@ -4770,8 +4769,6 @@ typedef int BCODE;
 #define BCCODE(e) INTEGER(BCODE_CODE(e))
 #endif
 
-#define BNDCELL_UNBOUND(v) (CAR(v) == R_UnboundValue)
-
 static R_INLINE SEXP BINDING_VALUE(SEXP loc)
 {
     if (loc != R_NilValue && ! IS_ACTIVE_BINDING(loc))
@@ -4863,13 +4860,13 @@ static R_INLINE SEXP GET_BINDING_CELL_CACHE(SEXP symbol, SEXP rho,
        binding cell or R_NilValue.  TAG(R_NilValue) is R_NilValue, and
        that will not equal symbol. So a separate test for cell !=
        R_NilValue is not needed. */
-    if (TAG(cell) == symbol && ! BNDCELL_UNBOUND(cell))
+    if (TAG(cell) == symbol && CAR(cell) != R_UnboundValue)
 	return cell;
     else {
 	SEXP ncell = GET_BINDING_CELL(symbol, rho);
 	if (ncell != R_NilValue)
 	    SET_CACHED_BINDING(vcache, idx, ncell);
-	else if (cell != R_NilValue && BNDCELL_UNBOUND(cell))
+	else if (cell != R_NilValue && CAR(cell) == R_UnboundValue)
 	    SET_CACHED_BINDING(vcache, idx, R_NilValue);
 	return ncell;
     }
@@ -5249,18 +5246,17 @@ static int tryAssignDispatch(char *generic, SEXP call, SEXP lhs, SEXP rhs,
 
 #define DO_STARTDISPATCH_N(generic) do { \
     int callidx = GETOP(); \
+    int label = GETOP(); \
     SEXP value = GETSTACK(-1); \
     if (isObject(value)) { \
 	SEXP call = VECTOR_ELT(constants, callidx); \
 	if (tryDispatch(generic, call, value, rho, &value)) { \
 	    SETSTACK(-1, value); \
 	    BC_CHECK_SIGINT(); \
-	    int label = GETOP(); \
 	    pc = codebase + label; \
 	    NEXT(); \
 	} \
     } \
-    SKIP_OP(); \
     INCREMENT_LINKS(value); \
     NEXT(); \
 } while (0)
@@ -5860,11 +5856,6 @@ static R_INLINE void checkForMissings(SEXP args, SEXP call)
 	signalMissingArgError(args, call);
 }
 
-typedef struct {
-    R_xlen_t idx, len;
-    int type;
-} R_loopinfo_t;
-
 #define FOR_LOOP_STATE_SIZE 4
 
 #define GET_VEC_LOOP_VALUE(var, pos) do {		\
@@ -6361,27 +6352,27 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 	defineVar(symbol, R_NilValue, rho);
 	BCNPUSH(GET_BINDING_CELL(symbol, rho));
 
-	SEXP value = allocVector(RAWSXP, sizeof(R_loopinfo_t));
-	R_loopinfo_t *loopinfo = (R_loopinfo_t *) RAW0(value);
-	loopinfo->idx = -1;
+	SEXP value = allocVector(INTSXP, 3);
+	int *info = INTEGER0(value);
+	info[0] = -1;
 #ifdef COMPACT_INTSEQ
 	if (iscompact) {
 	    int n1 = INTEGER(seq)[0];
 	    int n2 = INTEGER(seq)[1];
-	    loopinfo->len = n1 <= n2 ? n2 - n1 + 1 : n1 - n2 + 1;
+	    INTEGER(value)[1] = n1 <= n2 ? n2 - n1 + 1 : n1 - n2 + 1;
 	}
 	else
 #endif
 	if (isVector(seq))
-	  loopinfo->len = XLENGTH(seq);
+	  info[1] = LENGTH(seq);
 	else if (isList(seq) || isNull(seq))
-	  loopinfo->len = length(seq);
+	  info[1] = length(seq);
 	else errorcall(VECTOR_ELT(constants, callidx),
 		       _("invalid for() loop sequence"));
 #ifdef COMPACT_INTSEQ
-	loopinfo->type = iscompact ? INTSEQSXP : TYPEOF(seq);
+	info[2] = iscompact ? INTSEQSXP : TYPEOF(seq);
 #else
-	loopinfo->type = TYPEOF(seq);
+	info[2] = TYPEOF(seq);
 #endif
 	BCNPUSH(value);
 
@@ -6411,13 +6402,13 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
     OP(STEPFOR, 1):
       {
 	int label = GETOP();
-	R_loopinfo_t *loopinfo = (R_loopinfo_t *) RAW0(GETSTACK_SXPVAL(-2));
-	R_xlen_t i = ++(loopinfo->idx);
-	R_xlen_t n = loopinfo->len;
+	int *loopinfo = INTEGER0(GETSTACK_SXPVAL(-2));
+	int i = ++loopinfo[0];
+	int n = loopinfo[1];
 	if (i < n) {
 	  BC_CHECK_SIGINT_LOOP(i);
 	  pc = codebase + label;
-	  int type = loopinfo->type;
+	  int type = loopinfo[2];
 	  SEXP seq = GETSTACK_SXPVAL(-4);
 	  SEXP cell = GETSTACK_SXPVAL(-3);
 	  SEXP value = NULL;
@@ -6448,8 +6439,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 		int *info = INTEGER(seq);
 		int n1 = info[0];
 		int n2 = info[1];
-		int ii = (int) i;
-		int ival = n1 <= n2 ? n1 + ii : n1 - ii;
+		int ival = n1 <= n2 ? n1 + i : n1 - i;
 		value = CAR(cell);
 		if (NOT_SHARED(value) && IS_SIMPLE_SCALAR(value, INTSXP)) {
 		    SET_SCALAR_IVAL(value, ival);
@@ -7576,33 +7566,18 @@ static Rboolean checkConstantsInRecord(SEXP crec, Rboolean abortOnError)
     return constsOK;
 }
 
-static void const_cleanup(void *data)
-{
-    Rboolean *inProgress = (Rboolean *)data;
-    *inProgress = FALSE;
-}
-
 /* Checks if constants of any registered BCODESXP have been modified.
    Returns TRUE if the constants are ok, otherwise returns false or aborts.*/
 Rboolean attribute_hidden R_checkConstants(Rboolean abortOnError)
 {
     if (R_check_constants <= 0 || R_ConstantsRegistry == NULL)
 	return TRUE;
-
     static Rboolean checkingInProgress = FALSE;
-    RCNTXT cntxt;
-
     if (checkingInProgress)
 	/* recursive invocation is possible because of allocation
            in R_compute_identical */
 	return TRUE;
-
-    /* set up context to recover checkingInProgress */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-                 R_NilValue, R_NilValue);
-    cntxt.cend = &const_cleanup;
-    cntxt.cenddata = &checkingInProgress;
-
+    /* NOTE: non-local return could disable checking */
     checkingInProgress = TRUE;
     SEXP prev_crec = R_ConstantsRegistry;
     SEXP crec = VECTOR_ELT(prev_crec, 0);
@@ -7619,7 +7594,6 @@ Rboolean attribute_hidden R_checkConstants(Rboolean abortOnError)
             prev_crec = crec;
 	crec = VECTOR_ELT(crec, 0);
     }
-    endcontext(&cntxt);
     checkingInProgress = FALSE;
     return constsOK;
 }

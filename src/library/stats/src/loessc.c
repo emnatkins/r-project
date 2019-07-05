@@ -20,14 +20,7 @@
  *  Altered by B.D. Ripley to use F77_*, declare routines before use.
  *
  *  'protoize'd to ANSI C headers; indented: M.Maechler
- *
- *  Changes to the C/Fortran interface to support LTO in May 2019.
  */
-
-#ifdef HAVE_CONFIG_H
-// for FC_LEN_T
-#include <config.h>
-#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -70,14 +63,9 @@ void F77_NAME(ehg169)(int*, int*, int*, int*, int*, int*,
 void F77_NAME(ehg196)(int*, int*, double*, double*);
 /* exported (for loessf.f) : */
 void F77_SUB(ehg182)(int *i);
-#ifdef FC_LEN_T
-# include <stddef.h>
-void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc, FC_LEN_T c1);
-void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc, FC_LEN_T c1);
-#else
 void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc);
 void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc);
-#endif
+
 
 
 #undef min
@@ -410,11 +398,7 @@ warning(msg);
 }
 #undef MSG
 
-#ifdef FC_LEN_T
-void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc, FC_LEN_T c1)
-#else
 void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc)
-#endif
 {
     int nnc = *nc;
     char mess[4000], num[20];
@@ -428,11 +412,7 @@ void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc)
     warning(mess);
 }
 
-#ifdef FC_LEN_T
-void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc, FC_LEN_T c1)
-#else
 void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc)
-#endif
 {
     int nnc = *nc;
     char mess[4000], num[30];

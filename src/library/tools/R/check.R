@@ -366,7 +366,7 @@ add_dummies <- function(dir, Log)
     ## .get_S3_generics_as_seen_from_package needs utils,graphics,stats
     ##  Used by checkDocStyle (which needs the generic visible) and checkS3methods.
     R_runR2 <-
-        if(WINDOWS) {
+        status <- if(WINDOWS) {
             function(cmd,
                      env = "R_DEFAULT_PACKAGES=utils,grDevices,graphics,stats",
                      timeout = 0)
@@ -514,7 +514,7 @@ add_dummies <- function(dir, Log)
 
         if (!extra_arch) {
             if(dir.exists("build")) check_build()
-            check_meta()  # Check DESCRIPTION meta-information.
+            db <- check_meta()  # Check DESCRIPTION meta-information.
             check_top_level()
             check_detritus()
             check_indices()
@@ -951,7 +951,7 @@ add_dummies <- function(dir, Log)
             ## and there might be stale Authors and Maintainer fields
             yorig <- db[c("Author", "Maintainer")]
             if(check_incoming && any(!is.na(yorig))) {
-                ## enc <- db["Encoding"]
+                enc <- db["Encoding"]
                 aar <- utils:::.read_authors_at_R_field(aar)
                 y <- c(Author =
                        utils:::.format_authors_at_R_field_for_author(aar),
@@ -1091,9 +1091,8 @@ add_dummies <- function(dir, Log)
             }
         }
         if (!any) resultLog(Log, "OK")
-        ## return (<never used in caller>):
-        db
-    } # check_meta()
+        return(db)
+    }
 
     check_build <- function()
     {
@@ -2923,43 +2922,13 @@ add_dummies <- function(dir, Log)
             if (!any) resultLog(Log, "OK")
         }
 
+        test_omp <-
+            config_val_to_logical(Sys.getenv("_R_CHECK_SHLIB_OPENMP_FLAGS_", "FALSE"))
         makefiles <- Sys.glob(file.path("src",
                                         c("Makevars", "Makevars.in",
                                           "Makevars.win",
                                           "Makefile", "Makefile.win")))
 
-        if(length(makefiles)) {
-            checkingLog(Log, "use of PKG_*FLAGS in Makefiles")
-            any <- msg <- character()
-            for (m in makefiles) {
-                lines <- readLines(m, warn = FALSE)
-                have_c <- length(dir('src', pattern = "[.]c$", recursive = TRUE)) > 0L
-                have_cxx <- length(dir('src', pattern = "[.](cc|cpp)$", recursive = TRUE)) > 0L
-                have_f <- length(dir('src', pattern = "[.]f$", recursive = TRUE)) > 0L
-                have_f9x <- length(dir('src', pattern = "[.]f9[05]$", recursive = TRUE)) > 0L
-                for (f in c("C", "CXX", "F", "FC", "CPP"))  {
-                    this <- paste0(f, "FLAGS")
-                    this2 <- paste0("PKG_", this)
-                    pat <- paste0("^[[:space:]]*", this2)
-                    if(any(grepl(pat, lines, useBytes = TRUE))) {
-                        if(!switch(f, C = have_c, CXX = have_cxx,
-                                   F = have_f | have_f9x, FC =  have_f9x,
-                                   CPP = have_c | have_cxx)) {
-                            msg <- c(msg,
-                                     paste("  ", this2, "set in", sQuote(m),
-                                           "without any corresponding files\n"))
-                        }
-                    }
-                }
-            }
-            if (length(msg)) {
-                noteLog(Log)
-                printLog0(Log, msg)
-            } else resultLog(Log, "OK")
-        }
-
-        test_omp <-
-            config_val_to_logical(Sys.getenv("_R_CHECK_SHLIB_OPENMP_FLAGS_", "FALSE"))
         if(length(makefiles) && test_omp) {
             checkingLog(Log, "use of SHLIB_OPENMP_*FLAGS in Makefiles")
             ## If any of these flags are included in PKG_*FLAGS, it
@@ -2987,10 +2956,10 @@ add_dummies <- function(dir, Log)
                 anyInLIBS <- any(grepl("SHLIB_OPENMP_", lines[c1], useBytes = TRUE))
 
                 ## Now see what sort of files we have
-                have_c <- length(dir('src', pattern = "[.]c$", recursive = TRUE)) > 0L
-                have_cxx <- length(dir('src', pattern = "[.](cc|cpp)$", recursive = TRUE)) > 0L
-                have_f <- length(dir('src', pattern = "[.]f$", recursive = TRUE)) > 0L
-                have_f9x <- length(dir('src', pattern = "[.]f9[05]$", recursive = TRUE)) > 0L
+                have_c <- length(dir('src', patt = "[.]c$", recursive = TRUE)) > 0L
+                have_cxx <- length(dir('src', patt = "[.](cc|cpp)$", recursive = TRUE)) > 0L
+                have_f <- length(dir('src', patt = "[.]f$", recursive = TRUE)) > 0L
+                have_f9x <- length(dir('src', patt = "[.]f9[05]$", recursive = TRUE)) > 0L
                 used <- character()
                 for (f in c("C", "CXX", "F", "FC"))  {
                     this <- this2 <- paste0(f, "FLAGS")
@@ -2998,17 +2967,6 @@ add_dummies <- function(dir, Log)
                     pat <- paste0("^[[:space:]]*PKG_", this, ".*SHLIB_OPENMP_", this2)
                     if(any(grepl(pat, lines, useBytes = TRUE))) {
                         used <- c(used, this)
-                        f_or_fc <- "F"
-                        if(f == "FC") {
-                            if(any(grepl("SHLIB_OPENMP_FCFLAGS",
-                                         lines, useBytes = TRUE))) {
-                                f_or_fc <- "FC"
-                                if (!any) warningLog(Log)
-                                any <- TRUE
-                                msg <- "SHLIB_OPENMP_FCFLAGS is defunct (used in PKG_FCFLAGS)\n"
-                                printLog(Log, "  ", m, ": ", msg)
-                            }
-                        }
                         if(f == "C" && !have_c) {
                             if (!any) noteLog(Log)
                             any <- TRUE
@@ -3022,6 +2980,24 @@ add_dummies <- function(dir, Log)
                             if (!any) noteLog(Log)
                             any <- TRUE
                             msg <- "SHLIB_OPENMP_FFLAGS is included in PKG_FFLAGS without any Fortran files\n"
+                            printLog(Log, "  ", m, ": ", msg)
+                            next
+                        }
+                        f_or_fc <- "F"
+                        if(f == "FC") {
+                            if(any(grepl("SHLIB_OPENMP_FCFLAGS",
+                                         lines, useBytes = TRUE))) {
+                                f_or_fc <- "FC"
+                                if (!any) noteLog(Log)
+                                any <- TRUE
+                                msg <- "SHLIB_OPENMP_FFLAGS is preferred to SHLIB_OPENMP_FCFLAGS in PKG_FCFLAGS\n"
+                                printLog(Log, "  ", m, ": ", msg)
+                            }
+                        }
+                        if(f == "FC" && !have_f9x) {
+                            if (!any) noteLog(Log)
+                            any <- TRUE
+                            msg <- sprintf("SHLIB_OPENMP_%sFLAGS is included in PKG_FCFLAGS without any free-form Fortran files\n", f_or_fc)
                             printLog(Log, "  ", m, ": ", msg)
                             next
                         }
@@ -4123,26 +4099,6 @@ add_dummies <- function(dir, Log)
             }
         }
 
-        if(R_check_vignette_titles) {
-            bad_vignettes <- character()
-            for(v in vigns$docs) {
-                if(trimws(vignetteInfo(v)$title == "Vignette Title"))
-                    bad_vignettes <- c(bad_vignettes, v)
-            }
-            if(nb <- length(bad_vignettes)) {
-                if(!any) noteLog(Log)
-                any <- TRUE
-                msg <- ngettext(nb,
-                                "Package vignette with placeholder title 'Vignette Title':\n",
-                                "Package vignettes with placeholder title 'Vignette Title':\n",
-                                domain = NA)
-                wrapLog(msg)
-                printLog0(Log,
-                          .format_lines_with_indent(sQuote(basename(bad_vignettes))),
-                          "\n")
-            }
-        }
-
         if (!any) resultLog(Log, "OK")
 
         if (do_install && do_vignettes) {
@@ -4179,6 +4135,8 @@ add_dummies <- function(dir, Log)
             if(!skip_run_maybe || any(file.exists(savefiles))) {
                 checkingLog(Log, "running R code from vignettes")
                 res <- character()
+                def_enc <- desc["Encoding"]
+                if( (is.na(def_enc))) def_enc <- ""
                 t1 <- proc.time()
                 iseq <- seq_along(savefiles)
                 if(skip_run_maybe)
@@ -4191,7 +4149,7 @@ add_dummies <- function(dir, Log)
                     name <- vigns$names[i]
                     enc <- vigns$encodings[i]
                     out1 <- c("  ", sQuote(basename(file)),
-                              if(nzchar(enc)) paste(" using", sQuote(enc)),
+                              if(nzchar(enc)) paste("using", sQuote(enc)),
                               "...")
                     Rcmd <- paste0(opWarn_string, "\ntools:::.run_one_vignette('",
                                    basename(file), "', '", vigns$dir, "'",
@@ -4835,8 +4793,7 @@ add_dummies <- function(dir, Log)
                              ## new in gcc 8
                              ": warning: .* \\[-Wcatch-value=\\]",
                              # warns on code deprecated in C++11
-                             ": warning: .* \\[-Wlto-type-mismatch\\]",
-                             ## Fatal, not warning, for clang and Solaris ODS
+                            ## Fatal, not warning, for clang and Solaris ODS
                              ": warning: .* with a value, in function returning void"
                             )
 
@@ -5083,7 +5040,7 @@ add_dummies <- function(dir, Log)
             noteLog(Log)
             printLog(Log, sprintf("  installed size is %4.1fMb\n", total/1024))
             rest <- res2[-nrow(res2), ]
-            rest[, 2L] <- sub("./", "", rest[, 2L], fixed=TRUE)
+            rest[, 2L] <- sub("./", "", rest[, 2L])
             ## keep only top-level directories
             rest <- rest[!grepl("/", rest[, 2L]), ]
             rest <- rest[rest[, 1L] > 1024, ] # > 1Mb
@@ -5847,12 +5804,6 @@ add_dummies <- function(dir, Log)
                                          "FALSE"))
     R_check_serialization <-
         config_val_to_logical(Sys.getenv("_R_CHECK_SERIALIZATION_", "FALSE"))
-    R_check_things_in_check_dir <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_THINGS_IN_CHECK_DIR_",
-                                         "FALSE"))
-    R_check_vignette_titles <-
-        config_val_to_logical(Sys.getenv("_R_CHECK_VIGNETTE_TITLES_",
-                                         "FALSE"))
 
     if (!nzchar(check_subdirs)) check_subdirs <- R_check_subdirs_strict
 
@@ -5890,8 +5841,7 @@ add_dummies <- function(dir, Log)
         Sys.setenv("_R_CHECK_FUTURE_FILE_TIMESTAMPS_" = "TRUE")
         Sys.setenv("_R_CHECK_RD_CONTENTS_KEYWORDS_" = "TRUE")
         Sys.setenv("_R_CHECK_LENGTH_1_LOGIC2_" =
-                       "package:_R_CHECK_PACKAGE_NAME_,verbose")
-        Sys.setenv("_R_CHECK_CODOC_VARIABLES_IN_USAGES_" = "TRUE")
+                       "package:_R_CHECK_PACKAGE_NAME_,abort,verbose")
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE
@@ -5906,8 +5856,6 @@ add_dummies <- function(dir, Log)
         R_check_toplevel_files <- TRUE
         R_check_vignettes_skip_run_maybe <- TRUE
         R_check_serialization <- TRUE
-        R_check_things_in_check_dir <- TRUE
-        R_check_vignette_titles <- TRUE
     } else {
         ## do it this way so that INSTALL produces symbols.rds
         ## when called from check but not in general.
@@ -6305,41 +6253,6 @@ add_dummies <- function(dir, Log)
                 }
             }
         }
-
-        if(R_check_things_in_check_dir) {
-            checkingLog(Log,
-                        "for non-standard things in the check directory")
-            things <-
-                setdiff(list.files(pkgoutdir, all.files = TRUE,
-                                   include.dirs = TRUE, no.. = TRUE),
-                        c("00check.log",
-                          "00install.out",
-                          "00package.dcf",
-                          "00_pkg_src",
-                          pkgname,
-                          sprintf("%s-Ex.%s",
-                                  pkgname,
-                                  c("R", "Rout", "pdf", "timings")),
-                          sprintf("%s-manual.%s",
-                                  pkgname,
-                                  c("log", "pdf")),
-                          "Rdlatex.log",
-                          "R_check_bin",
-                          "build_vignettes.log",
-                          "tests", "vign_test"))
-            ## Examples calling dev.new() give files Rplots*.pdf,
-            ## building vignettes give *.log files: be nice ...
-            things <- things[!grepl("^Rplots.*[.]pdf$|[.]log$", things)]
-            if(length(things)) {
-                noteLog(Log)
-                msg <- c("Found the following files/directories:",
-                         strwrap(paste(sQuote(things), collapse = " "),
-                                 indent = 2L, exdent = 2L))
-                printLog0(Log, paste(msg, collapse = "\n"), "\n")
-            } else
-                resultLog(Log, "OK")
-        }
-
         summaryLog(Log)
 
         if(config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_STATUS_SUMMARY_",

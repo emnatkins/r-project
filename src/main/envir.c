@@ -1434,10 +1434,7 @@ SEXP attribute_hidden do_dotsElt(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     check1arg(args, call, "n");
 
-    SEXP si = CAR(args);
-    if (! isNumeric(si) || XLENGTH(si) != 1)
-	errorcall(call, _("indexing '...' with an invalid index"));
-    int i = asInteger(si);
+    int i = asInteger(CAR(args));
     return eval(ddfind(i, env), env);
 }
 

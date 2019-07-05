@@ -21,7 +21,7 @@
 cbind(\dots, deparse.level = 1)
 rbind(\dots, deparse.level = 1)
 \method{rbind}{data.frame}(\dots, deparse.level = 1, make.row.names = TRUE,
-      stringsAsFactors = default.stringsAsFactors(), factor.exclude = TRUE)
+      stringsAsFactors = default.stringsAsFactors(), factor.exclude = NA)
 }
 \arguments{
   \item{\dots}{(generalized) vectors or matrices.  These can be given as named
@@ -41,7 +41,7 @@ rbind(\dots, deparse.level = 1)
   \item{stringsAsFactors}{logical, passed to \code{\link{as.data.frame}};
     only has an effect when the \code{\dots} arguments contain a
     (non-\code{data.frame}) \code{\link{character}}.}
-  \item{factor.exclude}{if the data frames contain factors, the default
+  \item{factor.exclude}{if the data frames contain factors,
     \code{TRUE} ensures that \code{NA} levels of factors are kept, see
     \PR{17562} and the \sQuote{Data frame methods}.  In \R versions up
     to 3.6.x, \code{factor.exclude = NA} has been implicitly hardcoded

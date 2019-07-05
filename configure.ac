@@ -335,12 +335,6 @@ if test "x${want_lto}" = xyes; then
   LTOALL=-flto
 elif  test "x${want_lto}" = xR; then
   LTO=-flto
-elif  test "x${want_lto}" = xcheck; then
-  ## use for maintainer checking.
-  LTO=-flto
-  LTOALL=-flto
-  LIBR0="-L\"\$(R_HOME)/lib\$(R_ARCH)\""
-  LIBR1="${LIBR1} -lLinpack"
 elif  test "x${want_lto}" != xno; then
   AC_MSG_WARN([Unknown value --enable-lto=${enableval}])
 fi
@@ -348,7 +342,6 @@ AC_SUBST(LTO)
 AC_SUBST(LTOALL)
 ## used in src/main/Makefile
 AM_CONDITIONAL(BUILD_LTO, [test "x${want_lto}" != xno])
-AM_CONDITIONAL(BUILD_LTO_CHECK, [test "x${want_lto}" = xcheck])
 
 AC_ARG_ENABLE([java],
 [AS_HELP_STRING([--enable-java],[enable Java @<:@yes@:>@])],
@@ -899,19 +892,6 @@ AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(size_t)
-
-R_CSTACK_DIRECTION
-
-if test "${r_cv_cstack_direction}" = "up"; then
-  cstack_dir=-1
-else
-  cstack_dir=1
-fi
-AC_DEFINE_UNQUOTED([C_STACK_DIRECTION], ${cstack_dir}, 
-                    [C stack direction: 1 (down) or -1 (up)])
-
-
-
 AC_ARG_ENABLE([long-double],
 [AS_HELP_STRING([--enable-long-double],[use long double type @<:@yes@:>@])],
 [if test "${enableval}" = no; then
@@ -1084,22 +1064,6 @@ if test "x${r_cv_have_gfortran7}" = xyes; then
 else
   AC_MSG_RESULT([no])
 fi
-
-### type for Fortran 'hidden' character lengths, if any
-AC_MSG_CHECKING([for type of 'hidden' Fortran character lengths])
-if test "x${FC_LEN_T}" != "x"; then
-  fc_len_t=${FC_LEN_T}
-else
-  R_PROG_FC_CHAR_LEN_T
-  fc_len_t=${r_cv_prog_fc_char_len_t}
-fi
-AC_MSG_RESULT([${fc_len_t}])
-
-if test "x${fc_len_t}" != "xunknown"; then
-   AC_DEFINE_UNQUOTED([FC_LEN_T], ${fc_len_t}, 
-                      [C type used for Fortran character lengths])
-fi
-
 
 AC_SUBST(CFLAGS)
 AC_SUBST(MAIN_CFLAGS)
