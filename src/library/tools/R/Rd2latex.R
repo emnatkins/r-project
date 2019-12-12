@@ -1,7 +1,7 @@
 #  File src/library/tools/R/Rd2latex.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -205,7 +205,9 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
             tag <- "\\Rhref"
         }
         ## cleanup URL
-        url <- lines2str(url)
+        url <- trimws(gsub("\n", "",
+                           paste(as.character(url), collapse = ""),
+                           fixed = TRUE, useBytes = TRUE))
         ## escape % for LaTeX
         url <- gsub("%", "\\%",  url, fixed = TRUE, useBytes = TRUE)
     	of0(tag, "{", url, "}")
@@ -256,19 +258,6 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
         ## avoid conversion to guillemets
         x <- fsub("<<", "<{}<", x)
         x <- fsub(">>", ">{}>", x)
-        x
-    }
-
-    latex_escape_name_for_index <- function(x) {
-        ## In the index, ! @ | are escape characters, and one must quote
-        ## these characters in the \index command by putting a double
-        ## quotation mark (") in front of them, and one can only place a
-        ## " in the index by quoting it.
-        x <- latex_escape_name(x)
-        ## <FIXME>
-        ## Should really handle all of the above ...
-        x <- fsub("@", "\"@", x)
-        ## </FIXME>
         x
     }
 
@@ -560,7 +549,7 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
 	    ## need \n unless one follows, so
 	    nxt <- section[[1L]]
 	    if (attr(nxt, "Rd_tag") %notin% c("TEXT", "RCODE") ||
-		!startsWith(as.character(nxt), "\n")) of1("\n")
+		substr(as.character(nxt), 1L, 1L) != "\n") of1("\n")
 	    writeContent(section, tag)
 	    inCodeBlock <<- FALSE
 	    if (last_char != "\n") of1("\n")
@@ -568,7 +557,7 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
     }
 
     writeSection <- function(section, tag) {
-        if (tag == "\\encoding")
+        if (tag %in% c("\\encoding", "\\concept"))
             return()
         save <- sectionLevel
         sectionLevel <<- sectionLevel + 1
@@ -576,15 +565,10 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
             writeAlias(section, tag)
         else if (tag == "\\keyword") {
             key <- trim(section)
-            if(any(key %in% .Rd_keywords_auto))
+            if(key %in% .Rd_keywords_auto)
                 return()
             of0("\\keyword{", latex_escape_name(key), "}{", ltxname, "}\n")
-        }
-        else if (tag == "\\concept") {
-            key <- trim(section)
-            of0("\\keyword{", latex_escape_name_for_index(key), "}{", ltxname, "}\n")
-        }
-        else if (tag == "\\section" || tag == "\\subsection") {
+        } else if (tag == "\\section" || tag == "\\subsection") {
             macro <- c("Section", "SubSection", "SubSubSection")[min(sectionLevel, 3)]
     	    of0("%\n\\begin{", macro, "}{")
             writeContent(section[[1L]], tag)

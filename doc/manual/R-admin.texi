@@ -56,22 +56,22 @@ This is a guide to installation and administration for R.
 @end ifnottex
 
 @menu
-* Obtaining R::
-* Installing R under Unix-alikes::
-* Installing R under Windows::
-* Installing R under macOS::
-* Running R::
-* Add-on packages::
-* Internationalization::
-* Choosing between 32- and 64-bit builds::
-* The standalone Rmath library::
-* Essential and useful other programs under a Unix-alike::
-* Configuration on a Unix-alike::
-* Platform notes::
-* The Windows toolset::
-* Function and variable index::
-* Concept index::
-* Environment variable index::
+* Obtaining R::                 
+* Installing R under Unix-alikes::  
+* Installing R under Windows::  
+* Installing R under macOS::    
+* Running R::                   
+* Add-on packages::             
+* Internationalization::        
+* Choosing between 32- and 64-bit builds::  
+* The standalone Rmath library::  
+* Essential and useful other programs under a Unix-alike::  
+* Configuration on a Unix-alike::  
+* Platform notes::              
+* The Windows toolset::         
+* Function and variable index::  
+* Concept index::               
+* Environment variable index::  
 @end menu
 
 @node Obtaining R, Installing R under Unix-alikes, Top, Top
@@ -83,8 +83,8 @@ Sources, binaries and documentation for @R{} can be obtained via
 members are listed at @uref{https://CRAN.R-project.org/@/mirrors.html}.
 
 @menu
-* Getting and unpacking the sources::
-* Getting patched and development versions::
+* Getting and unpacking the sources::  
+* Getting patched and development versions::  
 @end menu
 
 @node Getting and unpacking the sources, Getting patched and development versions, Obtaining R, Obtaining R
@@ -154,7 +154,7 @@ versions) and unpack as described in the previous section.  They are
 built in exactly the same way as distributions of @R{} releases.
 
 @menu
-* Using Subversion and rsync::
+* Using Subversion and rsync::  
 @end menu
 
 @node Using Subversion and rsync,  , Getting patched and development versions, Getting patched and development versions
@@ -252,14 +252,14 @@ Cross-building is not possible: installing @R{} builds a minimal version
 of @R{} and then runs many @R{} scripts to complete the build.
 
 @menu
-* Simple compilation::
-* Help options::
-* Making the manuals::
-* Installation::
-* Uninstallation::
-* Sub-architectures::
-* Other Options::
-* Testing a Unix-alike Installation::
+* Simple compilation::          
+* Help options::                
+* Making the manuals::          
+* Installation::                
+* Uninstallation::              
+* Sub-architectures::           
+* Other Options::               
+* Testing a Unix-alike Installation::  
 @end menu
 
 @node Simple compilation, Help options, Installing R under Unix-alikes, Installing R under Unix-alikes
@@ -295,8 +295,7 @@ make
 @noindent
 (See @ref{Using make} if your make is not called @samp{make}.)  Users of
 Debian-based 64-bit systems@footnote{which use @file{lib} rather than
-@file{lib64} for their primary 64-bit library directories: attempts are
-made to detect such systems.} may need
+@file{lib64} for their primary 64-bit library directories.} may need
 
 @example
 ./configure LIBnn=lib
@@ -866,7 +865,7 @@ installation default (which is 32-bit for a combined 32/64 bit @R{}
 installation).
 
 @menu
-* Multilib::
+* Multilib::                    
 @end menu
 
 @node Multilib,  , Sub-architectures, Sub-architectures
@@ -942,10 +941,10 @@ environment variable @env{TZ}.
 
 
 @menu
-* Debugging Symbols::
-* OpenMP Support::
-* C++ Support::
-* Link-Time Optimization::
+* Debugging Symbols::           
+* OpenMP Support::              
+* C++ Support::                 
+* Link-Time Optimization::      
 @end menu
 
 @node Debugging Symbols, OpenMP Support, Other Options, Other Options
@@ -1095,9 +1094,9 @@ extensions': what those are is hard to track down.
 
 For the use of C++11 and later in @R{} packages see the `Writing R
 Extensions' manual.  Prior to @R{} 3.6.0 the default C++ standard was
-that of the compiler used: currently it is C++11: this can be overridden
-by setting @samp{CXXSTD} when @R{} is configured, for example to
-@samp{-std=gnu++14}.
+that of the compiler used: currently it is C++11 if supported by the
+compiler: this can be overridden by setting @samp{CXXSTD} when @R{} is
+configured, for example to @samp{-std=gnu++14}.
 
 @node Link-Time Optimization,  , C++ Support, Other Options
 @subsection Link-Time Optimization
@@ -1135,20 +1134,6 @@ When LTO is enabled it is used for compiled code in packages (including
 the recommended packages) unless the flag @option{--enable-lto=R} is
 used.  With sufficient diagnostic flags (e.g.@: @option{-Wall} in GCC)
 this can flag inconsistencies between source files in a package.
-
-Option @option{--enable-lto=check} in addition builds the BLAS and
-LAPACK support as static libraries containing intermediate-level code
-that LTO will compile for all objects linked against these libraries.
-This checks the consistency of calls to BLAS/LAPACK both in @R{} itself
-and in any packages installed using the build.  (This is unlikely to
-work in conjunction with non-default options for BLAS and LAPACK, and
-`linking' against these libraries may be very slow.  Note that the
-static libraries may need to be re-compiled for even a minor update to
-the compiler.)  It also checks consistency of LINPACK calls from
-package to @R{}.  @strong{NB:} as its name suggests, this option is
-intended only for checking installation of @R{} and packages: it
-includes these library routines (those called directly and all they
-depend on) in each package.
 
 Under some circumstances and for a few packages, the PIC flags have
 needed overriding on Linux with GCC 9: e.g@: in @file{config.site}:
@@ -1290,8 +1275,8 @@ See the @uref{https://CRAN.R-project.org/@/bin/@/windows/@/base/@/rw-FAQ.html, R
 Windows @acronym{FAQ}} for more details on the binary installer.
 
 @menu
-* Building from source::
-* Testing a Windows Installation::
+* Building from source::        
+* Testing a Windows Installation::  
 @end menu
 
 @node Building from source, Testing a Windows Installation, Installing R under Windows, Installing R under Windows
@@ -1323,17 +1308,17 @@ also be obtained from
 @uref{https://www.stats.ox.ac.uk/@/pub/@/Rtools/@/libs.html}.
 
 @menu
-* Getting the tools::
-* Getting the source files::
-* Building the core files::
-* Building the cairo devices files::
-* Using ICU for collation::
-* Support for libcurl::
-* Checking the build::
-* Building the manuals::
-* Building the Inno Setup installer::
-* Building the MSI installer::
-* 64-bit Windows builds::
+* Getting the tools::           
+* Getting the source files::    
+* Building the core files::     
+* Building the cairo devices files::  
+* Using ICU for collation::     
+* Support for libcurl::         
+* Checking the build::          
+* Building the manuals::        
+* Building the Inno Setup installer::  
+* Building the MSI installer::  
+* 64-bit Windows builds::       
 @end menu
 
 @node Getting the tools, Getting the source files, Building from source, Building from source
@@ -1889,9 +1874,9 @@ For building @R{} from source, see @ref{macOS}.
 
 
 @menu
-* Running R under macOS::
-* Uninstalling under macOS::
-* Multiple versions::
+* Running R under macOS::       
+* Uninstalling under macOS::    
+* Multiple versions::           
 @end menu
 
 @node Running R under macOS, Uninstalling under macOS, Installing R under macOS, Installing R under macOS
@@ -1919,7 +1904,7 @@ typed as commands like any other Unix-alike: see the next chapter of
 this manual.  There are some small differences which may surprise users
 of @R{} on other platforms, notably the default location of the personal
 library directory (under @file{~/Library/R},
-e.g.@: @file{~/Library/R/4.0/library}), and that warnings, messages and
+e.g.@: @file{~/Library/R/3.6/library}), and that warnings, messages and
 other output to @file{stderr} are highlighted in bold.
 
 @c https://stat.ethz.ch/pipermail/r-sig-mac/2014-October/011131.html
@@ -2018,13 +2003,13 @@ of the Apple package of the same name: this means that installing a package for
 the @R{} framework which it finds installed.  This can be avoided by
 using @command{pkgutil --forget} (see the previous section).  However,
 note that different versions are installed under
-@file{/Library/Frameworks/R.framework/Versions} as @file{4.0},
+@file{/Library/Frameworks/R.framework/Versions} as @file{3.5},
 @file{3.6} and so on, so it is not possible to have different
 @samp{3.x.y} versions installed for the same @samp{x}.
 
 A version of @R{} can be run directly from the command-line as e.g.@:
 @example
-/Library/Frameworks/R.framework/Versions/4.0/Resources/bin/R
+/Library/Frameworks/R.framework/Versions/3.6/Resources/bin/R
 @end example
 
 @noindent
@@ -2096,13 +2081,13 @@ execution is allowed.
 @cindex Libraries
 
 @menu
-* Default packages::
-* Managing libraries::
-* Installing packages::
-* Updating packages::
-* Removing packages::
-* Setting up a package repository::
-* Checking installed source packages::
+* Default packages::            
+* Managing libraries::          
+* Installing packages::         
+* Updating packages::           
+* Removing packages::           
+* Setting up a package repository::  
+* Checking installed source packages::  
 @end menu
 
 It is helpful to use the correct terminology.  A @emph{package} is
@@ -2189,12 +2174,12 @@ library paths, separated by colons (semicolons on Windows).
 @cindex Packages, installing
 
 @menu
-* Windows packages::
-* macOS packages::
-* Customizing package compilation::
-* Multiple sub-architectures::
-* Byte-compilation::
-* External software::
+* Windows packages::            
+* macOS packages::              
+* Customizing package compilation::  
+* Multiple sub-architectures::  
+* Byte-compilation::            
+* External software::           
 @end menu
 
 
@@ -2399,7 +2384,7 @@ source versions of packages without compiled C/C++/Fortran code and offer
 to do so for those with, if @command{make} is available.
 
 Note that most binary packages which include compiled code are tied to a
-particular series (e.g.@: @R{} 4.0.x or 3.6.x) of @R{}.
+particular series (e.g.@: @R{} 3.6.x or 3.5.x) of @R{}.
 
 Installing source packages which do not contain compiled code should
 work with no additional tools. For others you will need the
@@ -2436,8 +2421,8 @@ Entries which may need to be changed include @samp{CC}, @samp{CXX},
 So for example you could select a specific build of @command{clang} for
 both C and C++ with extensive checking by having in @file{~/.R/Makevars}
 @example
-CC = /usr/local/clang8/bin/clang
-CXX = /usr/local/clang8/bin/clang++
+CC = /usr/local/clang7/bin/clang
+CXX = /usr/local/clang7/bin/clang++
 CXX11 = $CXX
 CXX14 = $CXX
 CXX17 = $CXX
@@ -2854,8 +2839,8 @@ The other aspect of the internationalization is support for the
 translation of messages.  This is enabled in almost all builds of @R{}.
 
 @menu
-* Locales::
-* Localization of messages::
+* Locales::                     
+* Localization of messages::    
 @end menu
 
 @node Locales, Localization of messages, Internationalization, Internationalization
@@ -2903,9 +2888,9 @@ third.  Note that the charset may be deducible from the language, as
 some OSes offer only one charset per language.
 
 @menu
-* Locales under Unix-alikes::
-* Locales under Windows::
-* Locales under macOS::
+* Locales under Unix-alikes::   
+* Locales under Windows::       
+* Locales under macOS::         
 @end menu
 
 @node Locales under Unix-alikes, Locales under Windows, Locales, Locales
@@ -3141,7 +3126,7 @@ is the current working directory (in the build directory tree on a
 Unix-alike if that is separate from the sources).
 
 @file{Rmath.h} contains @samp{R_VERSION_STRING}, which is a character
-string containing the current @R{} version, for example @code{"4.0.0"}.
+string containing the current @R{} version, for example @code{"3.6.0"}.
 
 There is full access to @R{}'s handling of @code{NaN}, @code{Inf} and
 @code{-Inf} via special versions of the macros and functions
@@ -3196,8 +3181,8 @@ typedef enum @{
 
 
 @menu
-* Unix-alike standalone::
-* Windows standalone::
+* Unix-alike standalone::       
+* Windows standalone::          
 @end menu
 
 @node Unix-alike standalone, Windows standalone, The standalone Rmath library, The standalone Rmath library
@@ -3352,9 +3337,9 @@ name but with the extension @samp{-devel} or @samp{-dev}: you need both
 versions installed.
 
 @menu
-* Essential programs and libraries::
-* Useful libraries and programs::
-* Linear algebra::
+* Essential programs and libraries::  
+* Useful libraries and programs::  
+* Linear algebra::              
 @end menu
 
 @node Essential programs and libraries, Useful libraries and programs, Essential and useful other programs under a Unix-alike, Essential and useful other programs under a Unix-alike
@@ -3431,45 +3416,40 @@ possible names in Linux distributions include
 @code{xz-devel}/@code{xz-libs} and @code{liblzma-dev}.} version 5.0.3 or
 later are required.
 
-@c PCRE[1] 8.32 is from Nov 2012.
-@c Debian Wheezy had 8.30, Ubuntu 14.04LTS had 8.31 but both are EOL.
-@c PCRE2: Ubuntu 16.04LTS (EOL Apr 2021) and RHEL/Centos 6 have 10.21,
-@c OpenCSW has 10.20.
-@c PCRE2 10.30 is from Aug 2017.  Ubuntu 18.04LTS has 10.31.
-Either PCRE1 (version 8.32 or later, formerly known as just PCRE) or
-PCRE2 is required: PCRE2 is preferred.  Only the 8-bit library and
-headers are needed if these are packaged separately. JIT support
-(optional) is desirable for the best performance.  If building PCRE1 for
-use with @R{} a suitable @command{configure} command might be
+@c PCRE[1] 8.32 is from Nov 2012, but Ubuntu 14.04LTS has 8.31 
+@c and that is supported until Apr 2019.
+@c Debian Wheezy has 8.30, Ubuntu 12.04LTS has 8.12
+PCRE@footnote{sometimes known as PCRE1, and not PCRE2 which started at
+version 10.0.} (version 8.32 or later, although versions 8.20--8.31 will
+be accepted with a deprecation warning) is required (or just its library
+and headers if packaged separately).  Only the `8-bit' interface is used
+(and only that is built by default when installing from sources).  PCRE
+must be built with UTF-8 support (not the default, and checked by
+@command{configure}) and support for Unicode properties is assumed by
+some @R{} packages.  JIT support (optionally available) is desirable for
+the best performance: support for this and Unicode properties can be
+checked at run-time by calling @code{pcre_config()}.  If building PCRE
+for use with @R{} a suitable @command{configure} command might be
 @example
 ./configure --enable-utf --enable-unicode-properties --enable-jit --disable-cpp
 @end example
 @noindent  
 The @option{--enable-jit} flag is supported for most common CPUs.  (See
-also the comments for Solaris.)  For PCRE2 >= 10.30 (which is desirable
-as matching has been re-written not to use recursion and the Unicode
-tables were updated to version 10)
-@example
-./configure --enable-jit
-@end example
-@noindent
-suffices.  Some packages require the `Unicode properties' which are
-optional for PCRE1: support for this and JIT can be checked at run-time
-by calling @code{pcre_config()}.
+also the comments for Solaris.)
 
 @c libcurl 7.22.0 was released in Sep 2011, in Ubuntu 12.04 LTS,
 @c   end-of-life Apr 2017
 @c libcurl 7.26.0 was released in May 2012, still in Debian 7 Wheezy LTS,
 @c   end-of-life May 2018. 
 @c libcurl 7.28.0 was released in Oct 2012
-@c Ubuntu 16.04LTS has 7.47.0
-Library @code{libcurl} (version 7.28.0 or later@footnote{but not a major
+Library @code{libcurl} (version 7.22.0 or later@footnote{but not a major
 version greater than 7 should there ever be one: the major version has
-been 7 since 2000.}) is required.  Information on @code{libcurl} is
-found from the @command{curl-config} script: if that is missing or needs
-to be overridden@footnote{for example to specify static linking with a
-build which has both shared and static libraries.} there are macros to
-do so described in file @file{config.site}.
+been 7 since 2000.}) is required, with at least 7.28.0 being desirable.
+Information on @code{libcurl} is found from the @command{curl-config}
+script: if that is missing or needs to be overridden@footnote{for
+example to specify static linking with a build which has both shared and
+static libraries.} there are macros to do so described in file
+@file{config.site}.
 
 A @command{tar} program is needed to unpack the sources and packages
 (including the recommended packages).  A version@footnote{Such as
@@ -3665,9 +3645,9 @@ pcre readline tcl tk xz zlib
 
 
 @menu
-* Tcl/Tk::
-* Java support::
-* Other compiled languages::
+* Tcl/Tk::                      
+* Java support::                
+* Other compiled languages::    
 @end menu
 
 @node Tcl/Tk, Java support, Useful libraries and programs, Useful libraries and programs
@@ -3807,9 +3787,9 @@ these variables.
 @cindex BLAS library
 
 @menu
-* BLAS::
-* LAPACK::
-* Caveats::
+* BLAS::                        
+* LAPACK::                      
+* Caveats::                     
 @end menu
 
 @node BLAS, LAPACK, Linear algebra, Linear algebra
@@ -3912,10 +3892,10 @@ future versions 8.4, 7.5 and later) require calls from C/C++ to handle
 not and some segfault. (This applies also to external LAPACK libraries.)
 
 @menu
-* ATLAS::
-* OpenBLAS::
-* MKL::
-* Shared BLAS::
+* ATLAS::                       
+* OpenBLAS::                    
+* MKL::                         
+* Shared BLAS::                 
 @end menu
 
 @node ATLAS, OpenBLAS, BLAS, BLAS
@@ -4270,14 +4250,14 @@ build @R{}.
 @appendix Configuration on a Unix-alike
 
 @menu
-* Configuration options::
-* Internationalization support::
-* Configuration variables::
-* Setting the shell::
-* Using make::
-* Using Fortran::
-* Compile and load flags::
-* Maintainer mode::
+* Configuration options::       
+* Internationalization support::  
+* Configuration variables::     
+* Setting the shell::           
+* Using make::                  
+* Using Fortran::               
+* Compile and load flags::      
+* Maintainer mode::             
 @end menu
 
 @node Configuration options, Internationalization support, Configuration on a Unix-alike, Configuration on a Unix-alike
@@ -4420,10 +4400,10 @@ Note that caching is turned @emph{off} by default: use the command line
 option @option{--config-cache} (or @option{-C}) to enable caching.
 
 @menu
-* Setting paper size::
-* Setting the browsers::
-* Compilation flags::
-* Making manuals::
+* Setting paper size::          
+* Setting the browsers::        
+* Compilation flags::           
+* Making manuals::              
 @end menu
 
 @node Setting paper size, Setting the browsers, Configuration variables, Configuration variables
@@ -4748,14 +4728,14 @@ Windows: _WIN32, _WIN64
 @end example
 
 @menu
-* X11 issues::
-* Linux::
-* macOS::
-* Solaris::
-* FreeBSD::
-* OpenBSD::
-* Cygwin::
-* New platforms::
+* X11 issues::                  
+* Linux::                       
+* macOS::                       
+* Solaris::                     
+* FreeBSD::                     
+* OpenBSD::                     
+* Cygwin::                      
+* New platforms::               
 @end menu
 
 @node X11 issues, Linux, Platform notes, Platform notes
@@ -4868,7 +4848,7 @@ see in the @command{configure} summary
 
 @example
   Interfaces supported:      X11, tcltk
-  External libraries:        pcre2, readline, curl
+  External libraries:        readline, curl
   Additional capabilities:   PNG, JPEG, TIFF, NLS, cairo, ICU
 @end example
 
@@ -4988,8 +4968,8 @@ Use of @code{_GLIBCXX_ASSERTIONS} will link @code{abort} and
 --as-cran} will warn.
 
 @menu
-* Clang::
-* Intel compilers::
+* Clang::                       
+* Intel compilers::             
 @end menu
 
 @node Clang, Intel compilers, Linux, Linux
@@ -5107,13 +5087,13 @@ later, although this is little tested and it may be necessary to install
 later versions of software such as @code{libcurl}.
 
 @menu
-* Prerequisites::
-* Recommended C/C++ compilers::
-* Other libraries::
-* Tcl/Tk headers and libraries::
-* Java (macOS)::
-* Frameworks::
-* Building R.app::
+* Prerequisites::               
+* Recommended C/C++ compilers::  
+* Other libraries::             
+* Tcl/Tk headers and libraries::  
+* Java (macOS)::                
+* Frameworks::                  
+* Building R.app::              
 @end menu
 
 @node Prerequisites, Recommended C/C++ compilers, macOS, macOS
@@ -5184,16 +5164,6 @@ Components @code{jpeg}, @code{libpng}, @code{pkgconfig},
 graphics devices.
 
 @item
-An build of PCRE2, currently only available by building from the sources
-at @uref{https://www.pcre.org/}.  Unpack a source tarball and configure
-by something like
-@example
-./configure --enable-jit CC=clang CFLAGS=-O2
-@end example
-@noindent
-(or give the full path to an alternative C compiler).
-
-@item
 An X sub-system unless configuring using @option{--without-x}: see
 @uref{https://xquartz.macosforge.org/}. @R{}'s @command{configure}
 script can be told to look for @code{X11} in @code{XQuartz}'s main
@@ -5254,47 +5224,30 @@ and appropriate compilers, e.g.@: Fortran and the C/C++ compilers from
 those tools.  Some packages have further requirements such as
 @command{pkg-config}.
 
-@menu
-* Note for Catalina users::
-@end menu
-
-@node Note for Catalina users,  , Prerequisites, Prerequisites
-@subsubsection Note for Catalina users
-
-The default security settings for Catalina can make it difficult to
-install Apple packages built after 2019-06-01 which have not been
-`notarized'@footnote{See
-@uref{https://developer.apple.com//@/documentation/@/xcode/@/notarizing_macos_software_before_distribution}.}
-by Apple.  And not just packages, as this has been seen for executables
-contained in tarballs (for example, for @command{pandoc}).
-
-There are workarounds, including in some cases not installing the latest
-version.
-
 @node Recommended C/C++ compilers, Other libraries, Prerequisites, macOS
 @subsection Recommended C/C++ compilers
 
-Current @acronym{CRAN} binary distributions use the build of
-@command{clang} 8.0.0 contained in
-@uref{https://cran.r-project.org/@/bin/@/macosx/@/tools/@/clang-8.0.0.pkg}.
-Other recent distributions of @command{clang} (including 9.0.0) are
-available from @uref{http://releases.llvm.org/} (which the above
-re-packages).  In particular, these include support for OpenMP which
-Apple builds of @command{clang} do not.
+@acronym{CRAN} binary distributions of @R{} 3.6.x use the build of
+@command{clang} 7.0.0 contained in
+@uref{https://cran.r-project.org/@/bin/@/macosx/@/tools/@/clang-7.0.0.pkg}.
+Other recent distributions (including 9.0.0 and 8.0.0) of
+@command{clang} are available from @uref{http://releases.llvm.org/}
+(which the above re-packages).  In particular, these include support for
+OpenMP which Apple builds of @command{clang} do not.
 
 Suppose one of these distributions is installed under
-@file{/usr/local/clang8}. Use a file @file{config.site} containing
+@file{/usr/local/clang7}. Use a file @file{config.site} containing
 @example
-CC=/usr/local/clang8/bin/clang
+CC=/usr/local/clang7/bin/clang
 OBJC=$CC
 FC=/usr/local/gfortran/bin/gfortran
-CXX=/usr/local/clang8/bin/clang++
-LDFLAGS="-L/usr/local/clang8/lib -L/usr/local/lib"
-R_LD_LIBRARY_PATH=/usr/local/clang8/lib:/usr/local/lib
+CXX=/usr/local/clang7/bin/clang++
+LDFLAGS="-L/usr/local/clang7/lib -L/usr/local/lib"
+R_LD_LIBRARY_PATH=/usr/local/clang7/lib:/usr/local/lib
 @end example
 @noindent
 The care to specify library paths is to ensure that the OpenMP runtime
-library, here @file{/usr/local/clang8/lib/libomp.dylib}, is found when
+library, here @file{/usr/local/clang7/lib/libomp.dylib}, is found when
 needed.  If this works, you should see the line
 @example
 checking whether OpenMP SIMD reduction is supported... yes
@@ -5319,8 +5272,8 @@ Line Tools.)
 
 Alternatively, change the system paths @emph{via}
 @example
-CC="/usr/local/clang8/bin/clang -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-CXX="/usr/local/clang8/bin/clang++ -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+CC="/usr/local/clang7/bin/clang -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+CXX="/usr/local/clang7/bin/clang++ -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
 @end example
 @noindent
 (The location of the SDK can be found by running @command{xcrun
@@ -5462,7 +5415,7 @@ long-term support, e.g.@: 8 or 11 (but not 9, 10 or 12 which have/had a
 6-month lifetime).
 
 Binary distributions of @R{} are built against a specific version
-(e.g.@: 11.0.1) of Java so @command{sudo R CMD javareconf} will likely be
+(e.g.@: 9) of Java so @command{sudo R CMD javareconf} will likely be
 needed before using Java-using packages.
 
 To see what compatible versions of Java are currently installed, run
@@ -5574,8 +5527,8 @@ in the @file{/Applications} folder.
 @cindex Solaris
 
 @menu
-* 64-bit builds::
-* Using gcc::
+* 64-bit builds::               
+* Using gcc::                   
 @end menu
 
 @R{} has been built successfully on Solaris 10 using the (zero cost)
@@ -5609,10 +5562,9 @@ A large selection of Open Source software can be installed from
 (Note from 2019: updating of OpenCSW has slowed or stopped.)
 
 At least when compiling with Oracle compilers, Solaris uses far more
-stack space than other platforms.  This makes it desirable to build
-PCRE1 (and PCRE2 < 10.30) with the option
-@option{--disable-stack-for-recursion}: the OpenCSW distribution was at
-the time of writing.
+stack space than other platforms.  This makes it desirable to build PCRE
+with the option @option{--disable-stack-for-recursion}: the OpenCSW
+distribution was at the time of writing.
 
 The Oracle compilers are unusual in not including
 @file{/usr/local/include} in the default include search path: @R{}'s
@@ -5995,11 +5947,11 @@ it may be safest not to have any other version of the Cygwin DLLs in your
 path.
 
 @menu
-* LaTeX::
-* The Inno Setup installer::
-* The command line tools::
-* The MinGW-w64 toolchain::
-* Useful additional programs::
+* LaTeX::                       
+* The Inno Setup installer::    
+* The command line tools::      
+* The MinGW-w64 toolchain::     
+* Useful additional programs::  
 @end menu
 
 @node LaTeX, The Inno Setup installer, The Windows toolset, The Windows toolset

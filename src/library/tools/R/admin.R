@@ -86,16 +86,10 @@ function(dir, outDir, builtStamp=character())
             .expand_package_description_db_R_fields(db),
             Built = Built)
 
-    ## <FIXME>
-    ## This should no longer be necessary?
-    ## <COMMENT>
-    ## ## This cannot be done in a MBCS: write.dcf fails
-    ## ctype <- Sys.getlocale("LC_CTYPE")
-    ## Sys.setlocale("LC_CTYPE", "C")
-    ## on.exit(Sys.setlocale("LC_CTYPE", ctype))
-    ## </COMMENT>    
-    ## </FIXME>
-    
+    ## This cannot be done in a MBCS: write.dcf fails
+    ctype <- Sys.getlocale("LC_CTYPE")
+    Sys.setlocale("LC_CTYPE", "C")
+    on.exit(Sys.setlocale("LC_CTYPE", ctype))
     .write_description(db, file.path(outDir, "DESCRIPTION"))
 
     outMetaDir <- file.path(outDir, "Meta")
@@ -1047,7 +1041,7 @@ compactPDF <-
         ## OTOH, people were using versions as old as 2.2.2.
         ## </NOTE>
         ver <- system2(qpdf, "--version", TRUE)[1L]
-        ver <- as.numeric_version(sub("qpdf version ", "", ver, fixed=TRUE))
+        ver <- as.numeric_version(sub("qpdf version ", "", ver))
         if(!is.na(ver) && ver < "6.0.0")
             qpdf_flags <- c("--stream-data=compress", qpdf_flags)
     }
@@ -1122,14 +1116,13 @@ format.compactPDF <- function(x, ratio = 0.9, diff = 1e4, ...)
 
 ### * add_datalist
 
-add_datalist <- function(pkgpath, force = FALSE, small.size = 1024^2)
+add_datalist <- function(pkgpath, force = FALSE)
 {
     dlist <- file.path(pkgpath, "data", "datalist")
     if (!force && file.exists(dlist)) return()
     size <- sum(file.size(Sys.glob(file.path(pkgpath, "data", "*"))))
-    if(size <= small.size) return()
-    z <- suppressPackageStartupMessages(
-        list_data_in_pkg(dataDir = file.path(pkgpath, "data"))) # for BARD
+    if(size <= 1024^2) return()
+    z <- suppressPackageStartupMessages(list_data_in_pkg(dataDir = file.path(pkgpath, "data"))) # for BARD
     if(!length(z)) return()
     con <- file(dlist, "w")
     for (nm in names(z)) {

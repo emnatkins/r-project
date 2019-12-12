@@ -1503,10 +1503,9 @@ Annotation in Plots'', @url{http://www.amstat.org/publications/jcgs/, ,
 
 For a very long time, there was no such thing.
 
-@c This seems gone as of 2019-10.
-@c @url{http://www.xlsolutions-corp.com/, XLSolutions Corporation} is
-@c currently beta testing a commercially supported version of R named R+
-@c (read R plus).
+@url{http://www.xlsolutions-corp.com/, XLSolutions Corporation} is
+currently beta testing a commercially supported version of R named R+
+(read R plus).
 
 @url{http://www.revolution-computing.com/, Revolution Analytics} has
 released REvolution R, now available as Microsoft R (see
@@ -1988,12 +1987,7 @@ within Emacs by typing @kbd{M-x ess-submit-bug-report} or using the
 @node Should I run R from within Emacs?, Debugging R from within Emacs, Is there Emacs support for R?, R and Emacs
 @section Should I run R from within Emacs?
 
-Yes, instead of just running it in a console, @emph{definitely}.  As an
-alternative to other IDE's such as Rstudio, @emph{possibly}, notably if you
-are interested to use Emacs for other computer interaction.
-You'd be using @acronym{ESS}, Emacs Speaks Statistics, see previous FAQ.
-
-Inferior R mode provides a readline/history
+Yes, @emph{definitely}.  Inferior R mode provides a readline/history
 mechanism, object name completion, and syntax-based highlighting of the
 interaction buffer using Font Lock mode, as well as a very convenient
 interface to the R help system.

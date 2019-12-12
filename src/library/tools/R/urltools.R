@@ -51,11 +51,16 @@ function(x)
         tag <- attr(e, "Rd_tag")
         ## Rd2HTML and Rd2latex remove whitespace and \n from URLs.
         if(identical(tag, "\\url")) {
-            urls <<- c(urls, lines2str(.Rd_deparse(e, tag = FALSE)))
+            urls <<-
+                c(urls, trimws(gsub("\n", "", .Rd_deparse(e, tag = FALSE),
+                                    fixed = TRUE, useBytes = TRUE)))
         } else if(identical(tag, "\\href")) {
-            urls <<- c(urls, lines2str(.Rd_deparse(e[[1L]], tag = FALSE)))
+            urls <<-
+                c(urls, trimws(gsub("\n", "",
+                                    .Rd_deparse(e[[1L]], tag = FALSE),
+                                    fixed = TRUE, useBytes = TRUE)))
         } else if(is.list(e))
-            lapply(e, recurse)
+              lapply(e, recurse)
     }
     lapply(x, recurse)
     unique(trimws(urls))
@@ -175,22 +180,11 @@ function(meta)
     for(v in meta[fields]) {
         if(is.na(v)) next
         pattern <-
-            "<(URL: *)?((https?|ftp)://[^[:space:],]*)[[:space:]]*>"
+            "<(URL: *)?((https?|ftp)://[^[:space:],]*)[[:space:]]>"
         m <- gregexpr(pattern, v)
         urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
         regmatches(v, m) <- ""
         pattern <- "(^|[^>\"])((https?|ftp)://[^[:space:],]*)"
-        m <- gregexpr(pattern, v)
-        urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
-    }
-    if(!is.na(v <- meta["Description"])) {
-        pattern <-
-            "<(URL: *)?((https?|ftp)://[^[:space:]]+)[[:space:]]*>"
-        m <- gregexpr(pattern, v)
-        urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
-        regmatches(v, m) <- ""
-        pattern <-
-            "([^>\"])((https?|ftp)://[[:alnum:]/.:@+\\_~%#?=&;,-]+[[:alnum:]/])"
         m <- gregexpr(pattern, v)
         urls <- c(urls, .gregexec_at_pos(pattern, v, m, 3L))
     }
@@ -601,7 +595,7 @@ function(x, ...)
                   sprintf("\nStatus: %s", s)),
            ifelse((m <- x$Message) == "",
                   "",
-                  sprintf("\nMessage: %s", gsub("\n", "\n  ", m, fixed=TRUE))),
+                  sprintf("\nMessage: %s", gsub("\n", "\n  ", m))),
            ifelse((m <- x$Spaces) == "",
                   "",
                   "\nURL contains spaces"),

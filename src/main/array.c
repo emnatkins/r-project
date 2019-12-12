@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2019   The R Core Team
+ *  Copyright (C) 1998-2018   The R Core Team
  *  Copyright (C) 2002-2015   The R Foundation
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
@@ -26,8 +26,8 @@
 #include <Defn.h>
 #include <Internal.h>
 #include <Rmath.h>
-#include <R_ext/RS.h>     /* for Calloc/Free, F77_CALL */
-#include <R_ext/BLAS.h>
+#include <R_ext/RS.h>     /* for Calloc/Free */
+#include <R_ext/Applic.h> /* for dgemm */
 #include <R_ext/Itermacros.h>
 
 #include "duplicate.h"
@@ -1694,7 +1694,7 @@ SEXP attribute_hidden do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     a = CAR(args);
     if (!isArray(a))
-	error(_("invalid first argument, must be %s"), "an array");
+	error(_("invalid first argument, must be an array"));
 
     PROTECT(dimsa = getAttrib(a, R_DimSymbol));
     n = LENGTH(dimsa);

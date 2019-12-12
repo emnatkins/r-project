@@ -289,7 +289,7 @@ void attribute_hidden InitOptions(void)
     v = CDR(v);
 
     SET_TAG(v, install("echo"));
-    SETCAR(v, ScalarLogical(!R_NoEcho));
+    SETCAR(v, ScalarLogical(!R_Slave));
     v = CDR(v);
 
     SET_TAG(v, install("verbose"));
@@ -649,7 +649,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		/* Should be quicker than checking options(echo)
 		   every time R prompts for input:
 		   */
-		R_NoEcho = !k;
+		R_Slave = !k;
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarLogical(k)));
 	    }
 	    else if (streql(CHAR(namei), "OutDec")) {
@@ -776,10 +776,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 			SET_VECTOR_ELT(value, i,
 				       SetOption(tag, ScalarInteger(R_PCRE_study)));
 		}
-#ifdef HAVE_PCRE2
-		if (R_PCRE_study != -2)
-		    warning(_("'PCRE_study' has no effect with PCRE2"));
-#endif
 	    }
 	    else if (streql(CHAR(namei), "PCRE_use_JIT")) {
 		int use_JIT = asLogical(argi);
@@ -791,8 +787,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		R_PCRE_limit_recursion = asLogical(argi);
 		SET_VECTOR_ELT(value, i,
 			       SetOption(tag, ScalarLogical(R_PCRE_limit_recursion)));
-		/* could warn for PCRE2 >= 10.30, but the value is ignored also when
-		   JIT is used  */
 	    }
 	    else {
 		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));

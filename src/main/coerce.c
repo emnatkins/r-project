@@ -1356,12 +1356,13 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     /* -> as.vector(..) or as.XXX(.) : coerce 'u' to 'type' : */
     /* code assumes u is protected */
 
+    SEXP v;
     if (type == CLOSXP) {
 	return asFunction(u);
     }
     else if (isVector(u) || isList(u) || isLanguage(u)
 	     || (isSymbol(u) && type == EXPRSXP)) {
-	SEXP v;
+	v = u;
 	if (type != ANYSXP && TYPEOF(u) != type) v = coerceVector(u, type);
 	else v = u;
 
@@ -1381,7 +1382,7 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
     else if (isSymbol(u) && type == SYMSXP)
 	return u;
     else if (isSymbol(u) && type == VECSXP) {
-	SEXP v = allocVector(VECSXP, 1);
+	v = allocVector(VECSXP, 1);
 	SET_VECTOR_ELT(v, 0, u);
 	return v;
     }
@@ -2354,7 +2355,7 @@ SEXP attribute_hidden do_anyNA(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (do_anyNA_formals == NULL)
 	    do_anyNA_formals = allocFormalsList2(install("x"),
 						 R_RecursiveSymbol);
-	PROTECT(args = matchArgs_NR(do_anyNA_formals, args, call));
+	PROTECT(args = matchArgs(do_anyNA_formals, args, call));
 	if(CADR(args) ==  R_MissingArg) SETCADR(args, ScalarLogical(FALSE));
 	ans = ScalarLogical(anyNA(call, op, args, rho));
 	UNPROTECT(1);
@@ -2718,7 +2719,6 @@ SEXP attribute_hidden substituteList(SEXP el, SEXP rho)
 		error(_("'...' used in an incorrect context"));
 	} else {
 	    h = substitute(CAR(el), rho);
-	    ENSURE_NAMEDMAX(h);
 	    if (isLanguage(el))
 		h = LCONS(h, R_NilValue);
 	    else
@@ -2752,7 +2752,7 @@ SEXP attribute_hidden do_substitute(SEXP call, SEXP op, SEXP args, SEXP rho)
 						  install("env"));
 
     /* argument matching */
-    PROTECT(argList = matchArgs_NR(do_substitute_formals, args, call));
+    PROTECT(argList = matchArgs(do_substitute_formals, args, call));
 
     /* set up the environment for substitution */
     if (CADR(argList) == R_MissingArg)

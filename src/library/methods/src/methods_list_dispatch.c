@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-2019   The R Core Team.
+ *  Copyright (C) 2001-2018   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -224,10 +224,9 @@ static SEXP R_find_method(SEXP mlist, const char *class, SEXP fname)
 
 SEXP R_quick_method_check(SEXP args, SEXP mlist, SEXP fdef)
 {
-    /* Match the list of args to the methods list. */
+    /* Match the list of (evaluated) args to the methods list. */
     SEXP object, methods, value, retValue = R_NilValue;
-    const char *class;
-
+    const char *class; int nprotect = 0;
     if(!mlist)
 	return R_NilValue;
     methods = R_do_slot(mlist, s_allMethods);
@@ -235,10 +234,16 @@ SEXP R_quick_method_check(SEXP args, SEXP mlist, SEXP fdef)
 	return R_NilValue;
     while(!isNull(args) && !isNull(methods)) {
 	object = CAR(args); args = CDR(args);
-	if(TYPEOF(object) == PROMSXP)
-	    /* not observed during tests, but promises in principle could come
-	       from DispatchOrEval/R_possible_dispatch */
-	    object = eval(object, Methods_Namespace);
+	if(TYPEOF(object) == PROMSXP) {
+	    if(PRVALUE(object) == R_UnboundValue) {
+		SEXP tmp = eval(PRCODE(object), PRENV(object));
+		PROTECT(tmp); nprotect++;
+		SET_PRVALUE(object,  tmp);
+		object = tmp;
+	    }
+	    else
+		object = PRVALUE(object);
+	}
 	class = CHAR(STRING_ELT(R_data_class(object, TRUE), 0));
 	value = R_element_named(methods, class);
 	if(isNull(value) || isFunction(value)){
@@ -248,15 +253,16 @@ SEXP R_quick_method_check(SEXP args, SEXP mlist, SEXP fdef)
 	/* continue matching args down the tree */
 	methods = R_do_slot(value, s_allMethods);
     }
+    UNPROTECT(nprotect);
     return(retValue);
 }
 
 SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
 {
-    /* Match the list of (possibly promised) args to the methods table. */
+    /* Match the list of (evaluated) args to the methods table. */
     static SEXP  R_allmtable = NULL, R_siglength;
     SEXP object, value, mtable;
-    const char *class; int nsig, nargs;
+    const char *class; int nprotect = 0, nsig, nargs;
 #define NBUF 200
     char buf[NBUF]; char *ptr;
     if(!R_allmtable) {
@@ -297,16 +303,25 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
     }
     buf[0] = '\0'; ptr = buf;
     nargs = 0;
+    nprotect = 1; /* mtable */
     while(!isNull(args) && nargs < nsig) {
 	object = CAR(args); args = CDR(args);
-	if(TYPEOF(object) == PROMSXP)
-	    object = eval(object, Methods_Namespace);
+	if(TYPEOF(object) == PROMSXP) {
+	    if(PRVALUE(object) == R_UnboundValue) {
+		SEXP tmp = eval(PRCODE(object), PRENV(object));
+		PROTECT(tmp); nprotect++;
+		SET_PRVALUE(object,  tmp);
+		object = tmp;
+	    }
+	    else
+		object = PRVALUE(object);
+	}
 	if(object == R_MissingArg)
 	    class = "missing";
 	else
 	    class = CHAR(STRING_ELT(R_data_class(object, TRUE), 0));
 	if(ptr - buf + strlen(class) + 2 > NBUF) {
-	    UNPROTECT(1); /* mtable */
+	    UNPROTECT(nprotect);
 	    return R_NilValue;
 	}
 	/* NB:  this code replicates .SigLabel().
@@ -319,7 +334,7 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
     }
     for(; nargs < nsig; nargs++) {
 	if(ptr - buf + strlen("missing") + 2 > NBUF) {
-	    UNPROTECT(1); /* mtable */
+	    UNPROTECT(nprotect);
 	    return R_NilValue;
 	}
 	ptr = strcpy(ptr, "#"); ptr +=1;
@@ -328,7 +343,7 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
     value = findVarInFrame(mtable, install(buf));
     if(value == R_UnboundValue)
 	value = R_NilValue;
-    UNPROTECT(1); /* mtable */
+    UNPROTECT(nprotect);
     return(value);
 }
 

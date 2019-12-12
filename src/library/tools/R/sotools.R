@@ -85,7 +85,7 @@ get_system_ABI <- if(.Platform$OS.type == "windows") {
     function()
     {
         s <- Sys.getenv("R_SYSTEM_ABI")
-        if((s == "") || (substr(s, 1L, 1L) %in% c("@", "?")))
+        if((s == "") || (substring(s, 1L, 1L) %in% c("@", "?")))
             return(character())
         s <- unlist(strsplit(s, ",", fixed = TRUE))
         names(s) <- c("system", "CC", "CXX", "F77", "FC")
@@ -411,7 +411,7 @@ nonAPI <- c("chol_", "chol2inv_", "cg_", "ch_", "rg_",
             "R_RestoreGlobalEnv", "R_RestoreGlobalEnvFromFile",
             "R_RestoreHistory", "R_RunExitFinalizers", "R_SaveGlobalEnv",
             "R_SaveGlobalEnvToFile", "R_SelectEx", "R_SetParams",
-            "R_SetWin32", "R_SignalHandlers", "R_SizeFromEnv", "R_NoEcho",
+            "R_SetWin32", "R_SignalHandlers", "R_SizeFromEnv", "R_Slave",
             "R_Suicide", "R_TempDir", "R_checkActivity",
             "R_checkActivityEx", "R_runHandlers",
             "R_setStartTime", "R_set_command_line_arguments",

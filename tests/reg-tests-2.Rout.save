@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2019-12-11 r77551) -- "Unsuffered Consequences"
+R version 3.6.2 beta (2019-12-03 r77509) -- "Dark and Stormy Night"
 Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -3249,14 +3249,14 @@ Error in `[.data.frame`(x, 1, c("a", "c")) : undefined columns selected
 > meth2gen("data.frame")
  [1] $<-           Math          Ops           Summary       [            
  [6] [<-           [[            [[<-          aggregate     anyDuplicated
-[11] anyNA         as.data.frame as.list       as.matrix     by           
-[16] cbind         dim           dimnames      dimnames<-    droplevels   
-[21] duplicated    edit          format        formula       head         
-[26] is.na         merge         na.exclude    na.omit       plot         
-[31] print         prompt        rbind         row.names     row.names<-  
-[36] rowsum        split         split<-       stack         str          
-[41] subset        summary       t             tail          transform    
-[46] type.convert  unique        unstack       within       
+[11] as.data.frame as.list       as.matrix     by            cbind        
+[16] dim           dimnames      dimnames<-    droplevels    duplicated   
+[21] edit          format        formula       head          is.na        
+[26] merge         na.exclude    na.omit       plot          print        
+[31] prompt        rbind         row.names     row.names<-   rowsum       
+[36] split         split<-       stack         str           subset       
+[41] summary       t             tail          transform     type.convert 
+[46] unique        unstack       within       
 > meth2gen("dendrogram")
  [1] [[            as.dendrogram as.hclust     cophenetic    cut          
  [6] labels        merge         nobs          plot          print        
@@ -5082,7 +5082,7 @@ browser())(mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4,
   ...
 Browse[1]> c
 > 
-> op <- c(op, options(error = expression(NULL)))
+> options(error = expression(NULL))
 > f <- function(...) stop()
 > do.call(f, mtcars)
 Error in (function (...)  : 
@@ -6348,7 +6348,7 @@ function(given = NULL) {
     if (is.null(given)) callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x496dd50>
+<bytecode: 0x17467b8>
 > print(foo, useSource = FALSE)
 function (given = NULL) 
 {
@@ -6359,7 +6359,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x496dd50>
+<bytecode: 0x17467b8>
 > attr(foo, "srcref") <- NULL
 > foo
 function (given = NULL) 
@@ -6371,7 +6371,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x496dd50>
+<bytecode: 0x17467b8>
 > (f <- structure(function(){}, note = "just a note",
 +                 yada = function() "not the same"))
 function(){}
@@ -6943,10 +6943,9 @@ F-statistic:  4412 on 1 and 6 DF,  p-value: 7.834e-10
 > 
 > library("methods")# (not needed here)
 > assertError <- tools::assertError
-> assertErrorV <- function(expr) assertError(expr, verbose=TRUE)
-> assertErrorV( getMethod(ls, "bar", fdef=ls) )
+> assertError( getMethod(ls, "bar", fdef=ls), verbose=TRUE)
 Asserted error: no generic function found for 'ls'
-> assertErrorV( getMethod(show, "bar") )
+> assertError( getMethod(show, "bar"), verbose=TRUE)
 Asserted error: no method found for function 'show' and signature bar
 > ## R < 2.15.1 gave
 > ##   cannot coerce type 'closure' to vector of type 'character'
@@ -7923,16 +7922,21 @@ logical       1
 [1] "NA" "1" 
 > ##
 > ## these should fail
-> assertErrorV( sprintf("%d", 1.1) )
-Asserted error: invalid format '%d'; use format %f, %e, %g or %a for numeric objects
-> assertErrorV( sprintf("%d", c(1.1,1)) )
-Asserted error: invalid format '%d'; use format %f, %e, %g or %a for numeric objects
-> assertErrorV( sprintf("%d", c(1,1.1)) )
-Asserted error: invalid format '%d'; use format %f, %e, %g or %a for numeric objects
-> assertErrorV( sprintf("%d", NaN) )
-Asserted error: invalid format '%d'; use format %f, %e, %g or %a for numeric objects
-> assertErrorV( sprintf("%d", c(1,NaN)) )
-Asserted error: invalid format '%d'; use format %f, %e, %g or %a for numeric objects
+> sprintf("%d", 1.1)
+Error in sprintf("%d", 1.1) : 
+  invalid format '%d'; use format %f, %e, %g or %a for numeric objects
+> sprintf("%d", c(1.1,1))
+Error in sprintf("%d", c(1.1, 1)) : 
+  invalid format '%d'; use format %f, %e, %g or %a for numeric objects
+> sprintf("%d", c(1,1.1))
+Error in sprintf("%d", c(1, 1.1)) : 
+  invalid format '%d'; use format %f, %e, %g or %a for numeric objects
+> sprintf("%d", NaN)
+Error in sprintf("%d", NaN) : 
+  invalid format '%d'; use format %f, %e, %g or %a for numeric objects
+> sprintf("%d", c(1,NaN))
+Error in sprintf("%d", c(1, NaN)) : 
+  invalid format '%d'; use format %f, %e, %g or %a for numeric objects
 > 
 > 
 > ## formatting of named raws:
@@ -7986,8 +7990,8 @@ Kilroy was here! ... and I'm printed as well ...
 > try(stopifnot(exprs = 1 > 2))
 Error : 1 > 2 is not TRUE
 > ## passing an expression object:
-> stopifnot(exprObject = expression(2 == 2, pi < 4))
-> tryCatch(stopifnot(exprObject = expression(
+> stopifnot(exprs = expression(2 == 2, pi < 4))
+> tryCatch(stopifnot(exprs = expression(
 +                        2 == 2,
 +                        { cat("\n Kilroy again .."); TRUE },
 +                        pi < 4,

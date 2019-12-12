@@ -16,10 +16,6 @@
    language is requested. */
 #define ENABLE_NLS 1
 
-/* C type used for Fortran character lengths */
-/* will be size_t for gfortran >= 8, int before */
-/* #undef FC_LEN_T */
-
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
 /* #undef FC_DUMMY_MAIN */

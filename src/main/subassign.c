@@ -80,6 +80,11 @@
  *  2000/08/01  Also promises, expressions, environments when using [[ PD
  */
 
+/* a temporary hack until the SET_REFCNT below is removed */
+#ifdef SWITCH_TO_REFCNT
+# define USE_RINTERNALS
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -99,13 +104,20 @@
 # define SET_STDVEC_LENGTH(x, v) SETLENGTH(x, v)
 #endif
 
+/* This version of SET_VECTOR_ELT does not increment the REFCNT for
+   the new vector->element link. It assumes that the old vector is
+   becoming garbage and so it's references become no longer
+   accessible. */
+static R_INLINE void SET_VECTOR_ELT_NR(SEXP x, R_xlen_t i, SEXP v)
+{
 #ifdef COMPUTE_REFCNT_VALUES
-/* Set element to R_NilValue to decrement REFCNT on old value. */
-/* Might be good to have an ALTREP-friendlier version */
-#define CLEAR_VECTOR_ELT(x, i) SET_VECTOR_ELT(x, i, R_NilValue)
+    int ref = REFCNT(v);
+    SET_VECTOR_ELT(x, i, v);
+    SET_REFCNT(v, ref);
 #else
-#define CLEAR_VECTOR_ELT(x, i) do { } while (0)
+    SET_VECTOR_ELT(x, i, v);
 #endif
+}
 
 static R_INLINE SEXP getNames(SEXP x)
 {
@@ -230,10 +242,8 @@ static SEXP EnlargeVector(SEXP x, R_xlen_t newlen)
 	break;
     case EXPRSXP:
     case VECSXP:
-	for (R_xlen_t i = 0; i < len; i++) {
-	    SET_VECTOR_ELT(newx, i, VECTOR_ELT(x, i));
-	    CLEAR_VECTOR_ELT(x, i);
-	}
+	for (R_xlen_t i = 0; i < len; i++)
+	    SET_VECTOR_ELT_NR(newx, i, VECTOR_ELT(x, i));
 	for (R_xlen_t i = len; i < newtruelen; i++)
 	    SET_VECTOR_ELT(newx, i, R_NilValue);
 	break;
@@ -1387,8 +1397,7 @@ static SEXP GetOneIndex(SEXP sub, int ind)
 }
 
 /* This is only used for [[<-, so only adding one element */
-static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y, int ind,
-			     Rboolean check_cycles)
+static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y, int ind)
 {
     SEXP indx, sub = CAR(s);
     int ii, n, nx;
@@ -1427,8 +1436,6 @@ static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y, int ind,
 	if (ii != NA_INTEGER) {
 	    ii = ii - 1;
 	    SEXP xi = nthcdr(x, ii % nx);
-	    if (MAYBE_SHARED(y) && CAR(xi) != y)
-		y = R_FixupRHS(x, y);
 	    SETCAR(xi, y);
 	}
     }
@@ -1596,8 +1603,7 @@ SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* This will duplicate more often than necessary, but saves */
     /* over always duplicating. */
 
-    if (MAYBE_SHARED(CAR(args)) ||
-	((! IS_ASSIGNMENT_CALL(call)) && MAYBE_REFERENCED(CAR(args))))
+    if (MAYBE_SHARED(CAR(args)))
 	x = SETCAR(args, shallow_duplicate(CAR(args)));
 
     S4 = IS_S4_OBJECT(x);
@@ -1682,11 +1688,9 @@ static SEXP DeleteOneVectorListItem(SEXP x, R_xlen_t which)
     if (0 <= which && which < n) {
 	PROTECT(y = allocVector(TYPEOF(x), n - 1));
 	k = 0;
-	for (i = 0 ; i < n; i++) {
+	for (i = 0 ; i < n; i++)
 	    if(i != which)
-		SET_VECTOR_ELT(y, k++, VECTOR_ELT(x, i));
-	    CLEAR_VECTOR_ELT(x, i);
-	}
+		SET_VECTOR_ELT_NR(y, k++, VECTOR_ELT(x, i));
 	xnames = getAttrib(x, R_NamesSymbol);
 	if (xnames != R_NilValue) {
 	    PROTECT(ynames = allocVector(STRSXP, n - 1));
@@ -1731,7 +1735,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(args);
 
     nsubs = SubAssignArgs(args, &x, &subs, &y);
-    PROTECT(y); /* gets cut loose in SubAssignArgs */
+    PROTECT(y); /* gets cut loose in SubAssignArs */
     S4 = IS_S4_OBJECT(x);
 
     /* Handle NULL left-hand sides.  If the right-hand side */
@@ -1752,8 +1756,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* Ensure that the LHS is a local variable. */
     /* If it is not, then make a local copy. */
 
-    if (MAYBE_SHARED(x) ||
-	((! IS_ASSIGNMENT_CALL(call)) && MAYBE_REFERENCED(x)))
+    if (MAYBE_SHARED(x))
 	SETCAR(args, x = shallow_duplicate(x));
 
     /* code to allow classes to extend ENVSXP */
@@ -1823,8 +1826,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    if(isVectorList(xup)) SET_VECTOR_ELT(xup, off, x);
 		    else {
 			PROTECT(x);
-			xup = SimpleListAssign(call, xup, subs, x, len-2,
-					       FALSE);
+			xup = SimpleListAssign(call, xup, subs, x, len-2);
 			UNPROTECT(1); /* x */
 		    }
 		} else xtop = x;
@@ -1976,9 +1978,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case 1919:      /* vector     <- vector     */
 	case 2020:	/* expression <- expression */
 
-	    if (MAYBE_REFERENCED(y) && VECTOR_ELT(x, offset) != y)
-		y = R_FixupRHS(x, y);
-	    SET_VECTOR_ELT(x, offset, y);
+	    SET_VECTOR_ELT(x, offset, R_FixupRHS(x, y));
 	    break;
 
 	case 2424:      /* raw <- raw */
@@ -2010,13 +2010,14 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(xup);
     }
     else if (isPairList(x)) {
+	y = R_FixupRHS(x, y);
 	PROTECT(y);
 	if (nsubs == 1) {
 	    if (isNull(y)) {
 		x = listRemove(x, CAR(subs), len-1);
 	    }
 	    else {
-		x = SimpleListAssign(call, x, subs, y, len-1, TRUE);
+		x = SimpleListAssign(call, x, subs, y, len-1);
 	    }
 	}
 	else {
@@ -2054,7 +2055,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (isVectorList(xup)) {
 	    SET_VECTOR_ELT(xup, off, x);
 	} else {
-	    xup = SimpleListAssign(call, xup, subs, x, len-2, FALSE);
+	    xup = SimpleListAssign(call, xup, subs, x, len-2);
 	}
 	if (len == 2)
 	    xtop = xup;
@@ -2097,16 +2098,25 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 {
     SEXP t;
     PROTECT_INDEX pvalidx, pxidx;
+    Rboolean maybe_duplicate=FALSE;
     Rboolean S4; SEXP xS4 = R_NilValue;
 
     PROTECT_WITH_INDEX(x, &pxidx);
     PROTECT_WITH_INDEX(val, &pvalidx);
     S4 = IS_S4_OBJECT(x);
 
-    if (MAYBE_SHARED(x) ||
-	((! IS_ASSIGNMENT_CALL(call)) && MAYBE_REFERENCED(x)))
+    if (MAYBE_SHARED(x))
 	REPROTECT(x = shallow_duplicate(x), pxidx);
 
+    /* If we aren't creating a new entry and NAMED>0
+       we need to duplicate to prevent cycles.
+       If we are creating a new entry we could duplicate
+       or increase NAMED. We duplicate if NAMED == 1, but
+       not if NAMED > 1 */
+    if (MAYBE_SHARED(val))
+	maybe_duplicate=TRUE;
+    else if (MAYBE_REFERENCED(val))
+	REPROTECT(val = R_FixupRHS(x, val), pvalidx);
     /* code to allow classes to extend ENVSXP */
     if(TYPEOF(x) == S4SXP) {
 	xS4 = x;
@@ -2116,48 +2126,38 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
     }
 
     if ((isList(x) || isLanguage(x)) && !isNull(x)) {
+	/* Here we do need to duplicate */
+	if (maybe_duplicate)
+	    REPROTECT(val = R_FixupRHS(x, val), pvalidx);
 	if (TAG(x) == nlist) {
 	    if (val == R_NilValue) {
 		SET_ATTRIB(CDR(x), ATTRIB(x));
 		IS_S4_OBJECT(x) ?  SET_S4_OBJECT(CDR(x)) : UNSET_S4_OBJECT(CDR(x));
 		SET_OBJECT(CDR(x), OBJECT(x));
 		RAISE_NAMED(CDR(x), NAMED(x));
-		SETCAR(x, R_NilValue); // decrements REFCNT
 		x = CDR(x);
 	    }
-	    else {
-		/* Here we need to check for cycles*/
-		if (MAYBE_REFERENCED(val) && CAR(x) != val)
-		    REPROTECT(val = R_FixupRHS(x, val), pvalidx);
+	    else
 		SETCAR(x, val);
-	    }
 	}
 	else {
 	    for (t = x; t != R_NilValue; t = CDR(t))
 		if (TAG(CDR(t)) == nlist) {
-		    if (val == R_NilValue) {
-			SETCAR(CDR(t), R_NilValue); // decrements REFCNT
+		    if (val == R_NilValue)
 			SETCDR(t, CDDR(t));
-		    }
-		    else {
-			/* Here we need to check for cycles*/
-			if (MAYBE_REFERENCED(val) && CADR(t) != val)
-			    REPROTECT(val = R_FixupRHS(x, val), pvalidx);
+		    else
 			SETCAR(CDR(t), val);
-		    }
 		    break;
 		}
 		else if (CDR(t) == R_NilValue && val != R_NilValue) {
 		    SETCDR(t, allocSExp(LISTSXP));
 		    SET_TAG(CDR(t), nlist);
-		    if (MAYBE_REFERENCED(val)) ENSURE_NAMEDMAX(val);
 		    SETCADR(t, val);
 		    break;
 		}
 	}
 	if (x == R_NilValue && val != R_NilValue) {
 	    x = allocList(1);
-	    if (MAYBE_REFERENCED(val)) ENSURE_NAMEDMAX(val);
 	    SETCAR(x, val);
 	    SET_TAG(x, nlist);
 	}
@@ -2165,7 +2165,6 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
     /* cannot use isEnvironment since we do not want NULL here */
     else if( TYPEOF(x) == ENVSXP ) {
 	defineVar(nlist, val, x);
-	INCREMENT_NAMED(val);
     }
     else if( TYPEOF(x) == SYMSXP || /* Used to 'work' in R < 2.8.0 */
 	     TYPEOF(x) == CLOSXP ||
@@ -2203,14 +2202,12 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 		    int ii;
 		    PROTECT(ans = allocVector(type, nx - 1));
 		    PROTECT(ansnames = allocVector(STRSXP, nx - 1));
-		    for (i = 0, ii = 0; i < nx; i++) {
+		    for (i = 0, ii = 0; i < nx; i++)
 			if (i != imatch) {
 			    SET_VECTOR_ELT(ans, ii, VECTOR_ELT(x, i));
 			    SET_STRING_ELT(ansnames, ii, STRING_ELT(names, i));
 			    ii++;
 			}
-			CLEAR_VECTOR_ELT(x, i);
-		    }
 		    setAttrib(ans, R_NamesSymbol, ansnames);
 		    copyMostAttrib(x, ans);
 		    UNPROTECT(2);
@@ -2233,8 +2230,7 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 	    }
 	    if (imatch >= 0) {
 		/* We are just replacing an element */
-		/* Here we need to check for cycles*/
-		if (MAYBE_REFERENCED(val) && VECTOR_ELT(x, imatch) != val)
+		if (maybe_duplicate)
 		    REPROTECT(val = R_FixupRHS(x, val), pvalidx);
 		SET_VECTOR_ELT(x, imatch, val);
 	    }
@@ -2245,10 +2241,8 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 		SEXP ans, ansnames;
 		PROTECT(ans = allocVector(VECSXP, nx + 1));
 		PROTECT(ansnames = allocVector(STRSXP, nx + 1));
-		for (i = 0; i < nx; i++) {
-		    SET_VECTOR_ELT(ans, i, VECTOR_ELT(x, i));
-		    CLEAR_VECTOR_ELT(x, i);
-		}
+		for (i = 0; i < nx; i++)
+		    SET_VECTOR_ELT_NR(ans, i, VECTOR_ELT(x, i));
 		if (isNull(names)) {
 		    for (i = 0; i < nx; i++)
 			SET_STRING_ELT(ansnames, i, R_BlankString);
@@ -2257,7 +2251,6 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 		    for (i = 0; i < nx; i++)
 			SET_STRING_ELT(ansnames, i, STRING_ELT(names, i));
 		}
-		if (MAYBE_REFERENCED(val)) ENSURE_NAMEDMAX(val);
 		SET_VECTOR_ELT(ans, nx, val);
 		SET_STRING_ELT(ansnames, nx,  nlist);
 		setAttrib(ans, R_NamesSymbol, ansnames);

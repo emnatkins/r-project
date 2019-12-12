@@ -14,7 +14,6 @@
 \alias{is.na<-}
 \alias{is.na<-.default}
 \alias{anyNA}
-\alias{anyNA.data.frame}
 \alias{anyMissing}% an alternative name (in Biobase and S+ as of ~2006)
 \title{\sQuote{Not Available} / Missing Values}
 \description{

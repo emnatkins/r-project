@@ -1,7 +1,7 @@
 #  File src/library/tools/R/dynamicHelp.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -171,7 +171,7 @@ httpd <- function(path, query, ...)
                        "<a href=\"/doc/html/Search?pattern=",
                        vapply(reQuote(s), utils::URLencode, "", reserved = TRUE),
                        "&fields.concept=1&agrep=0\">",
-                       shtmlify(substr(s, 1L, 80L)),
+                       shtmlify(substring(s, 1, 80)),
                        "</a>",
                        "</td><td style=\"text-align: right\">",
                        concepts$Frequency,
@@ -198,7 +198,7 @@ httpd <- function(path, query, ...)
                        keywords$Keyword,
                        "</a>",
                        "</td><td>",
-                       shtmlify(substr(keywords$Concept, 1L, 80L)),
+                       shtmlify(substring(keywords$Concept, 1, 80)),
                        "</td><td style=\"text-align: right\">",
                        keywords$Frequency,
                        "</td><td style=\"text-align: right\">",
@@ -272,7 +272,7 @@ httpd <- function(path, query, ...)
          return(list(file = file.path(R.home("doc"), "html", "NEWS.html"),
                      "content-type" = "text/html"))
     else if(grepl("^/NEWS[.][[:digit:]]$", path))
-    	return(list(file = file.path(R.home("doc"), sub("/", "", path, fixed=TRUE)),
+    	return(list(file = file.path(R.home("doc"), sub("/", "", path)),
     	            "content-type" = "text/plain; charset=utf-8"))
     else if((path == "/doc/html/NEWS.html") &&
             identical(names(query), c("objects", "port"))) {
@@ -572,7 +572,7 @@ httpd <- function(path, query, ...)
         file <- file.path(R.home("doc"), sub("^/doc", "", path))
         if(file.exists(file))
             list(file = file, "content-type" = mime_type(path))
-        else if(file.exists(file <- sub("/manual/", "/html/", file, fixed=TRUE))) {
+        else if(file.exists(file <- sub("/manual/", "/html/", file))) {
             ## tarball has pre-built version of R-admin.html
             list(file = file, "content-type" = mime_type(path))
         } else {

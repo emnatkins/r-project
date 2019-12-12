@@ -24,13 +24,11 @@ list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
     corresponds to the working directory, \code{\link{getwd}()}.  Tilde
     expansion (see \code{\link{path.expand}}) is performed.  Missing
     values will be ignored.  Elements with a marked encoding will
-    be converted to the native encoding (and if that fails, considered
-    non-existent).}
+    be converted to the native encoding.}
   \item{pattern}{an optional \link{regular expression}.  Only file names
     which match the regular expression will be returned.}
   \item{all.files}{a logical value.  If \code{FALSE}, only the
-    names of visible files are returned (following Unix-style visibility,
-    that is files whose name does not start with a dot).  If \code{TRUE},
+    names of visible files are returned.  If \code{TRUE},
     all file names will be returned.}
   \item{full.names}{a logical value.  If \code{TRUE}, the directory
     path is prepended to the file names to give a relative file path.

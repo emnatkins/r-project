@@ -42,9 +42,9 @@ rpackages:
 
 
 cairodevices:
-ifneq "$(USE_CAIRO)" ""
+ifneq "$(CAIRO_HOME)" ""
 	@$(MK) -C ../library/grDevices/src/cairo -f Makefile.win all \
-	  WIN=$(WIN) CAIRO_LIBS=$(CAIRO_LIBS) CAIRO_CPPFLAGS=$(CAIRO_CPPFLAGS)
+	  WIN=$(WIN) CAIRO_HOME=$(CAIRO_HOME)
 endif
 
 ifeq ($(wildcard MkRules?local),MkRules.local)
@@ -56,8 +56,7 @@ MkRules: MkRules.rules
 endif
 
 CFLAGS = -O3 -Wall -pedantic $(EOPTS)
-FFLAGS = -O3 $(EOPTS) $(GF7OPTS)
-
+FFLAGS = -O3 $(EOPTS)
 ifdef DEBUG
  CFLAGS += $(G_FLAG)
  FFLAGS += $(G_FLAG)
@@ -229,7 +228,7 @@ htmldocs:
 #                          ===== BLAS ======
 
 Rblas:
-	@$(MK) -C ../extra/blas -f Makefile.win FFLAGS='-O2 $(EOPTS)'
+	@$(MK) -C ../extra/blas -f Makefile.win FFLAGS='$(FFLAGS)'
 
 Rblas-clean:
 	@$(MK) -C ../extra/blas -f Makefile.win clean
@@ -330,7 +329,7 @@ pdfdocs manuals:
 	@$(MK) -C ../../doc/manual -f Makefile.win clean
 	@$(MK) -C ../../doc/manual -f Makefile.win
 
-R_EXE = ../../$(BINDIR)/Rterm.exe --vanilla --no-echo
+R_EXE = ../../$(BINDIR)/Rterm.exe --vanilla --slave
 
 ## must come after recommended
 vignettes:

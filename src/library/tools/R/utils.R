@@ -194,6 +194,7 @@ env_path <- function(...) file.path(..., fsep = .Platform$path.sep)
 ### * Text utilities.
 
 ### ** delimMatch
+
 delimMatch <-
 function(x, delim = c("{", "}"), syntax = "Rd")
 {
@@ -207,12 +208,6 @@ function(x, delim = c("{", "}"), syntax = "Rd")
 
     .Call(C_delim_match, x, delim)
 }
-
-### ** lines2str
-lines2str <-
-function(txt, sep = "")
-    trimws(gsub("\n", sep, paste(txt, collapse = sep),
-                fixed = TRUE, useBytes = TRUE))
 
 
 ### * LaTeX utilities
@@ -503,19 +498,9 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.11"))
+    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.10"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
-
-### ** .ORCID_iD_regexp
-
-.ORCID_iD_regexp <-
-    "([[:digit:]]{4}[-]){3}[[:digit:]]{3}[[:alnum:]]"
-
-### ** .ORCID_iD_variants_regexp
-
-.ORCID_iD_variants_regexp <-
-    sprintf("^<?((https?://|)orcid.org/)?(%s)>?$", .ORCID_iD_regexp)
 
 ### ** .vc_dir_names
 
@@ -571,8 +556,11 @@ function(x, y)
 
 ### ** .OStype
 
-.OStype <- function() {
-    Sys.getenv("R_OSTYPE", unset = .Platform$OS.type, names = FALSE)
+.OStype <-
+function()
+{
+    OS <- Sys.getenv("R_OSTYPE")
+    if(nzchar(OS)) OS else .Platform$OS.type
 }
 
 ### ** .R_copyright_msg
@@ -595,7 +583,7 @@ function() {
                                        package = "tools"))
     path <- attr(fetchRdDB(filebase, "QC"), "Rdfile")
     ## We could use 5 dirname() calls, but perhaps more easily:
-    substr(path, 1L, nchar(path) - 28L)
+    substring(path, 1L, nchar(path) - 28L)
 }
 
 ## Unfortunately,
@@ -606,7 +594,16 @@ function() {
 ### ** config_val_to_logical
 
 config_val_to_logical <-
-function(val) utils:::str2logical(val)
+function(val) {
+    v <- tolower(val)
+    if (v %in% c("1", "yes", "true")) TRUE
+    else if (v %in% c("0", "no", "false")) FALSE
+    else {
+        warning(gettextf("cannot coerce %s to logical", sQuote(val)),
+                domain = NA)
+        NA
+    }
+}
 
 ### ** .canonicalize_doi
 
@@ -624,7 +621,6 @@ function(x)
 function(txt)
 {
     txt <- as.character(txt)
-    if(!length(txt)) return(txt)
     enc <- Encoding(txt)
     txt <- gsub(paste0("(", intToUtf8(0x2018), "|", intToUtf8(0x2019), ")"),
                 "'", txt, perl = TRUE, useBytes = TRUE)
@@ -922,29 +918,16 @@ function(package, lib.loc = NULL)
     path <- system.file(package = package, lib.loc = lib.loc)
     if(!nzchar(path)) return(NULL)
     if(package == "base") {
-        len <- nrow(.S3_methods_table)
         return(data.frame(generic = .S3_methods_table[, 1L],
-                          home = rep_len("base", len),
+                          home = rep_len("base",
+                                         nrow(.S3_methods_table)),
                           class = .S3_methods_table[, 2L],
-                          delayed = rep_len(FALSE, len),
                           stringsAsFactors = FALSE))
     }
     lib.loc <- dirname(path)
     nsinfo <- parseNamespaceFile(package, lib.loc)
     S3methods <- nsinfo$S3methods
     if(!length(S3methods)) return(NULL)
-    tab <- NULL
-    ind <- is.na(S3methods[, 4L])
-    if(!all(ind)) {
-        ## Delayed registrations can be handled directly.
-        pos <- which(!ind)
-        tab <- data.frame(generic = S3methods[pos, 1L],
-                          home = S3methods[pos, 4L],
-                          class = S3methods[pos, 2L],
-                          delayed = rep_len(TRUE, length(pos)),
-                          stringsAsFactors = FALSE)
-        S3methods <- S3methods[ind, , drop = FALSE]
-    }
     generic <- S3methods[, 1L]
     nsenv <- loadNamespace(package, lib.loc)
     ## Possibly speed things up by only looking up the unique generics.
@@ -962,10 +945,7 @@ function(package, lib.loc = NULL)
     homes[!ind] <- "base"
     home <- homes[match(generic, generics)]
     class <- S3methods[, 2L]
-    delayed <- rep_len(FALSE, length(class))
-    rbind(data.frame(generic, home, class, delayed,
-                     stringsAsFactors = FALSE),
-          tab)
+    data.frame(generic, home, class, stringsAsFactors = FALSE)
 }
 
 ### ** .get_package_metadata
@@ -1793,9 +1773,10 @@ function(packages = NULL, FUN, ...,
 function(ifile, ofile)
 {
     .system_with_capture("pandoc",
-                         paste(shQuote(normalizePath(ifile)),
-                               "-s", "--mathjax",
+                         paste(shQuote(normalizePath(ifile)), "-s",
                                "--email-obfuscation=references",
+                               ## "--css=https://cran.r-project.org/web/CRAN_web.css",
+                               "--self-contained",
                                "-o", shQuote(ofile)))
 }
 
@@ -1864,7 +1845,7 @@ function(txt)
     ## separated by white space, possibly quoted.  Note that we could
     ## have newlines in DCF entries but do not allow them in file names,
     ## hence we gsub() them out.
-    con <- textConnection(gsub("\n", " ", txt, fixed=TRUE))
+    con <- textConnection(gsub("\n", " ", txt))
     on.exit(close(con))
     scan(con, what = character(), strip.white = TRUE, quiet = TRUE)
 }
@@ -2106,7 +2087,7 @@ function(dir, envir, meta = character())
                       call. = FALSE))
 }
 
-### ** .split_dependencies
+### * .split_dependencies
 
 .split_dependencies <-
 function(x)
@@ -2122,7 +2103,7 @@ function(x)
     lapply(x, .split_op_version)
 }
 
-### ** .split_op_version
+### * .split_op_version
 
 .split_op_version <-
 function(x)
@@ -2268,14 +2249,6 @@ function(args, ...)
         system2(file.path(R.home("bin"), "R"), c("CMD", args), ...)
 }
 
-### ** Sys.setenv1
-
-##' Sys.setenv() *one* variable unless it's set (to non-empty) already - export/move to base?
-Sys.setenv1 <- function(var, value) {
-    if(!nzchar(Sys.getenv(var)))
-        .Internal(Sys.setenv(var, as.character(value)))
-}
-
 ### ** pskill
 
 pskill <-
@@ -2316,14 +2289,14 @@ function(text)
     titleCase1 <- function(x) {
         ## A quote might be prepended.
         do1 <- function(x) {
-            x1 <- substr(x, 1L, 1L)
+            x1 <- substring(x, 1L, 1L)
             if(nchar(x) >= 3L && x1 %in% c("'", '"'))
-                paste0(x1, toupper(substr(x, 2L, 2L)),
+                paste0(x1, toupper(substring(x, 2L, 2L)),
                        tolower(substring(x, 3L)))
             else paste0(toupper(x1), tolower(substring(x, 2L)))
         }
         if(is.na(x)) return(NA_character_)
-        xx <- .Call(C_splitString, x, ' -/"()\n\t')
+        xx <- .Call(C_splitString, x, ' -/"()\n')
         ## for 'alone' we could insist on that exact capitalization
         alone <- xx %in% c(alone, either)
         alone <- alone | grepl("^'.*'$", xx)
@@ -2366,11 +2339,11 @@ function(...)
 str_parse_logic <-
 function(ch, default = TRUE, otherwise = default, n = 1L)
 {
-    if(is.na(ch)) default
-    else switch(tolower(ch),
-                "1" =, "yes" =, "true" = TRUE,
-                "0" =, "no" =, "false" = FALSE,
-                eval.parent(otherwise, n = n))
+    if (is.na(ch)) default
+    else switch(ch,
+                "yes"=, "Yes" =, "true" =, "True" =, "TRUE" = TRUE,
+                "no" =, "No" =, "false" =, "False" =, "FALSE" = FALSE,
+                eval.parent(otherwise, n=n))
 }
 
 ### ** str_parse

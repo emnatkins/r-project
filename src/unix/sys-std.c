@@ -950,7 +950,7 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
     if(!R_Interactive) {
 	size_t ll;
 	int err = 0;
-	if (!R_NoEcho) {
+	if (!R_Slave) {
 	    fputs(prompt, stdout);
 	    fflush(stdout); /* make sure prompt is output */
 	}
@@ -993,7 +993,7 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	    && (ll == 0 || buf[ll - 1] != '\n') && ll < (size_t)len) {
 	    buf[ll++] = '\n'; buf[ll] = '\0';
 	}
-	if (!R_NoEcho) {
+	if (!R_Slave) {
 	    fputs((char *)buf, stdout);
 	    fflush(stdout);
 	}
@@ -1356,7 +1356,7 @@ void attribute_hidden Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
 	errorcall(call, _("invalid '%s' argument"), "file");
-    p = R_ExpandFileName(translateCharFP(STRING_ELT(sfile, 0)));
+    p = R_ExpandFileName(translateChar(STRING_ELT(sfile, 0)));
     if(strlen(p) > PATH_MAX - 1)
 	errorcall(call, _("'file' argument is too long"));
     strcpy(file, p);
@@ -1379,7 +1379,7 @@ void attribute_hidden Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
 	errorcall(call, _("invalid '%s' argument"), "file");
-    p = R_ExpandFileName(translateCharFP(STRING_ELT(sfile, 0)));
+    p = R_ExpandFileName(translateChar(STRING_ELT(sfile, 0)));
     if(strlen(p) > PATH_MAX - 1)
 	errorcall(call, _("'file' argument is too long"));
     strcpy(file, p);

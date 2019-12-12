@@ -104,7 +104,7 @@ stopifnot(exprs = {
 
 ## deparse of formals of a function
 fun <- function(a=1,b){}
-frmls <- tryCid(eval(parse(text=deparse(formals(fun)))))
+frmls <- tryCatch(eval(parse(text=deparse(formals(fun)))), error = identity)
 stopifnot(identical(frmls, formals(fun)))
 
 
@@ -819,14 +819,14 @@ t1 <- function(...) ..1
 t2 <- function(...) ..2
 stopifnot(identical(t1(pi, 2), pi), identical(t1(t1), t1),
 	  identical(t2(pi, 2), 2))
-et1 <- tryCid(t1())
+et1 <- tryCatch(t1(), error=identity)
 if(englishMsgs)
     stopifnot(identical("the ... list contains fewer than 1 element",
 			conditionMessage(et1)))
 ## previously gave   "'nthcdr' needs a list to CDR down"
-et0   <- tryCid(t0()) ; (mt0   <- conditionMessage(et0))
-et2.0 <- tryCid(t2()) ; (mt2.0 <- conditionMessage(et2.0))
-et2.1 <- tryCid(t2(1)); (mt2.1 <- conditionMessage(et2.1))
+et0   <- tryCatch(t0(),  error=identity); (mt0   <- conditionMessage(et0))
+et2.0 <- tryCatch(t2(),  error=identity); (mt2.0 <- conditionMessage(et2.0))
+et2.1 <- tryCatch(t2(1), error=identity); (mt2.1 <- conditionMessage(et2.1))
 if(englishMsgs)
     stopifnot(grepl("indexing '...' with .* index 0", mt0),
 	      identical("the ... list contains fewer than 2 elements", mt2.0),
@@ -841,7 +841,8 @@ one <- 1
 try(stopifnot(3 < 4:5, 5:6 >= 5, 6:8 <= 7, one <<- 2))
 stopifnot(identical(one, 1)) # i.e., 'one <<- 2' was *not* evaluated
 ## all the expressions were evaluated in R <= 3.4.x
-(et <- tryCid(stopifnot(0 < 1:10, is.numeric(..vaporware..), stop("FOO!"))))
+(et <- tryCatch(stopifnot(0 < 1:10, is.numeric(..vaporware..), stop("FOO!")),
+                error=identity))
 stopifnot(exprs = {
     inherits(et, "simpleError")
     ## no condition call, or at least should *not* contain 'stopifnot':
@@ -963,12 +964,16 @@ stopifnot(exprs = {
 
 ## write.csv did not signal an error if the disk was full PR#17243
 if (file.access("/dev/full", mode = 2) == 0) { # Not on all systems...
-    cat("Using  /dev/full  checking write errors... ")
     # Large writes should fail mid-write
-    tools::assertError(write.table(data.frame(x=1:1000000), file = "/dev/full"))
+    stopifnot(inherits(tryCatch(write.table(data.frame(x=1:1000000),
+                                            file = "/dev/full"),
+                                error = identity),
+                       "error"))
     # Small writes should fail on closing
-    tools::assertWarning(write.table(data.frame(x=1), file = "/dev/full"))
-    cat("[Ok]\n")
+    stopifnot(inherits(tryCatch(write.table(data.frame(x=1),
+                                                file = "/dev/full"),
+                                    warning = identity),
+                       "warning"))
 }
 ## Silently failed up to 3.4.1
 
@@ -1031,7 +1036,7 @@ stopifnot(exprs = {
     identical(NC(xE(1e-3)), c(Sturges = 4, Scott = 2, FD =  855))
 })
 ## for these, nclass.FD() had "exploded" in R <= 3.4.1
-## Extremely large diff(range(.)) : NB: this gives a UBSAN warning
+## Extremely large diff(range(.)) :
 XXL <- c(1:9, c(-1,1)*1e300)
 stopifnot(nclass.scott(XXL) == 1)
 ## gave 0 in R <= 3.4.1
@@ -1057,8 +1062,8 @@ y <- c(2,3,5,7); yc <- as.complex(y)
 q.Li <- qr(X);              cfLi <- qr.coef(q.Li, y)
 q.LA <- qr(X, LAPACK=TRUE); cfLA <- qr.coef(q.LA, y)
 q.Cx <- qr(X + 0i);         cfCx <- qr.coef(q.Cx, y)
-e1 <- tryCid(qr.coef(q.Li, y[-4])); e1
-e2 <- tryCid(qr.coef(q.LA, y[-4]))
+e1 <- tryCatch(qr.coef(q.Li, y[-4]), error=identity); e1
+e2 <- tryCatch(qr.coef(q.LA, y[-4]), error=identity)
 stopifnot(exprs = {
     all.equal(cfLi,    cfLA , tol = 1e-14)# 6.376e-16 (64b Lx)
     all.equal(cfLi, Re(cfCx), tol = 1e-14)#  (ditto)
@@ -2210,7 +2215,7 @@ foo <- function() {
     x <- 1 + zero       ## value of 'x' has one reference
     lockBinding("x", environment())
     tryCatch(x[1] <- 2, ## would modify the value, then signal an error
-             error = function(e) NULL)
+             error = identity)
     stopifnot(identical(x, 1))
 }
 foo()
@@ -2507,7 +2512,7 @@ stopifnot(identical(rf, 4))
 
 
 ## format(.) when there's no method gives better message:
-ee <- tryCid(format(.Internal(bodyCode(ls))))
+ee <- tryCatch(format(.Internal(bodyCode(ls))), error=identity)
 stopifnot(exprs = {
     conditionCall(ee)[[1]] == quote(format.default)
     grepl("no format() method", conditionMessage(ee), fixed=TRUE)
@@ -2580,7 +2585,7 @@ stopifnot(exprs = {
 
 ## bxp() did not signal anything about duplicate actual arguments:
 set.seed(3); bx.p <- boxplot(split(rt(100, 4), gl(5, 20)), plot=FALSE)
-tools::assertWarning(bxp(bx.p, ylab = "Y LAB", ylab = "two"), verbose=TRUE)
+tools::assertWarning(bxp(bx.p, ylab = "Y LAB", ylab = "two"))
 w <- tryCatch(bxp(bx.p, ylab = "Y LAB", ylab = "two", xlab = "i", xlab = "INDEX"),
               warning = conditionMessage)
 stopifnot(is.character(w), grepl('ylab = "two"', w), grepl('xlab = "INDEX"', w))
@@ -2600,8 +2605,6 @@ stopifnot( identical(ef$e, environment(ef$form)),
 ## Back compatibility + deprecation warning:
 notC <- "Model[no 4]"
 form <- `Model[no 4]` ~ .
-f1 <- function(p) reformulate(".", notC)
-f2 <- function(e) f1(e)
 stopifnot(exprs = {
     identical(form, suppressWarnings(reformulate(".", notC))) # << will STOP working!
     identical(form, reformulate(".", as.name(notC)))
@@ -2610,40 +2613,24 @@ stopifnot(exprs = {
              "deprecatedWarning")
     inherits(tt, "warning")
     conditionCall(tt)[[1]] == quote(reformulate)
-    inherits(t1 <- tryCatch(f1(pi), warning=identity), "deprecatedWarning")
-    inherits(t2 <- tryCatch(f2(27), warning=identity), "deprecatedWarning")
-    all.equal(t1, tt) # including call 'reformulate(..)'
-    all.equal(t2, tt)
 })
 writeLines(conditionMessage(tt))
 
 
 ## stopifnot() now works *nicely* with expression object (with 'exprs' name):
-ee <- expression(xpr=all.equal(pi, 3.1415927), 2 < 2, stop("foo!"))
-te <- tryCid(stopifnot(exprObject = ee))
+ee <- expression(exprs=all.equal(pi, 3.1415927), 2 < 2, stop("foo!"))
+te <- tryCatch(stopifnot(exprs = ee), error=identity)
 stopifnot(conditionMessage(te) == "2 < 2 is not TRUE")
 ## conditionMessage(te) was  "ee are not all TRUE" in R 3.5.x
-t2 <- tryCid(stopifnot(exprs = { T }, exprObject = ee))
-t3 <- tryCid(stopifnot(TRUE, 2 < 3,   exprObject = ee))
-f <- function(ex) stopifnot(exprObject = ex)
-t4 <- tryCid(f(ee))
-stopifnot(grepl("one of 'exprs', 'exprObject' ", conditionMessage(t2)),
-          conditionMessage(t2) == conditionMessage(t3),
-          conditionMessage(t4) == conditionMessage(te)
-          )
-(function(e) stopifnot(exprObject = e))(expression(1 < 2, 2 <= 2:4))
-## the latter (with 'exprs = e') gave  Error in eval(exprs) : object 'e' not found
-
-
 ##
 ## Empty 'exprs' should work in almost all cases:
 stopifnot()
 stopifnot(exprs = {})
 e0 <- expression()
-stopifnot(exprObject = e0)
-do.call(stopifnot, list(exprObject = expression()))
-do.call(stopifnot, list(exprObject = e0))
-## the last three (w 'exprs = ')  failed in R 3.5.x
+stopifnot(exprs = e0)
+do.call(stopifnot, list(exprs = expression()))
+do.call(stopifnot, list(exprs = e0))
+## the last three failed in R 3.5.x
 
 
 ## as.matrix.data.frame() w/ character result and logical column, PR#17548
@@ -2653,28 +2640,6 @@ stopifnot(exprs = {
     identical(x, as.logical(cx))
 })
 
-
-## Failed to work after r76382--8:
-tools::assertError(formula("3"), verbose=TRUE)
-stopifnot(exprs = {
-    ## New formula(<character>) specs:
-    ## These give deprecation warnings:
-    is.list(op <- options(warn = 1))
-    identical(formula("ran = ~ 1|G"), ~ 1 | G)
-    identical(formula(c("~", "foo")), ~ foo )
-    identical(formula("({y ~ x})"), y ~ x)
-    identical(formula("{ ~ x }"),   ~ x)
-  TRUE || { ## all these "bugs" not yet in R <= 3.6.0
-    identical(formula(c("y", "~", "x +    (1 | G)")), y ~ x + (1 | G))
-    identical(formula(c("y", "~", "x +", "(1 | G)")), y ~ x + (1 | G))
-  }## not yet
-    identical(formula(c("~",    "x","+    (1 | G)")), ~x) ## NOT YET:   ~ x + (1 | G))
-    is.list(options(op))
-})
-tools::assertWarning(formula("ran= ~ 1|G"),"deprecatedWarning", verbose=TRUE)
-tools::assertWarning(formula(c("~", "x")), "deprecatedWarning", verbose=TRUE)
-tools::assertWarning(formula("({y ~ x})"), "deprecatedWarning", verbose=TRUE)
-tools::assertWarning(formula("{ ~ x }"),   "deprecatedWarning", verbose=TRUE)
 
 
 ## str2expression(<empty>) :
@@ -2720,7 +2685,7 @@ dfb <- data.frame(x=fcts()) ; rbind(table(dfa), table(dfb))
 dfy <- data.frame(y=fcts())
 yN <- c(1:3, NA_character_, 5:8)
 dfay  <- cbind(dfa, dfy)
-dfby  <- cbind(dfa, data.frame(y = yN, stringsAsFactors = TRUE))
+dfby  <- cbind(dfa, data.frame(y = yN))
 dfcy  <- dfa; dfcy$y <- yN # y: a <char> column
 ## dNay := drop unused levels from dfay incl NA
 dNay <- dfay; dNay[] <- lapply(dfay, factor)
@@ -2739,12 +2704,13 @@ stopifnot(exprs = { ## "trivial" (non rbind-related) assertions :
     identical(lapply(dNay, levels),
               list(x = c("2","3"), y = levN[1:3])) # no NA levels
 })
-dfaby <- rbind(dfay, dfby)
-dNaby <- rbind(dNay, dfby)
-dfacy <- rbind(dfay, dfcy)
-dfcay <- rbind(dfcy, dfay) # 1st arg col. is char => rbind() keeps char
+## R in 3.6.z, z >= 1 needs 'factor.exclude=NULL'
+dfaby <- rbind(dfay, dfby, factor.exclude=NULL)
+dNaby <- rbind(dNay, dfby, factor.exclude=NULL)
+dfacy <- rbind(dfay, dfcy, factor.exclude=NULL)
+dfcay <- rbind(dfcy, dfay, factor.exclude=NULL) # 1st arg col. is char => rbind() keeps char
 stopifnot(exprs = {
-    identical(levels(rbind(dfa, dfb)$x), full_lev) # <== not in  R <= 3.6.0
+    identical(levels(rbind(dfa, dfb, factor.exclude=NULL)$x), full_lev)
     identical(levels(dfaby$x),           full_lev)
     identical(levels(dfaby$y),                 yN) # failed a while
     identical(levels(dNaby$y),               levN) #  (ditto)
@@ -2752,7 +2718,7 @@ stopifnot(exprs = {
     is.character(dfcay$y)
 	   anyNA(dfcay$y)
     identical(dfacy$x, dfcay$x)
-    identical(lapply(rbind(dfby, dfay), levels),
+    identical(lapply(rbind(dfby, dfay, factor.exclude=NULL), levels),
               list(x = full_lev, y = c(levN, NA)))
     identical(lapply(rbind(dfay, dfby, factor.exclude = NA), levels),
               list(x = as.character(1:3), y = levN))
@@ -2854,119 +2820,13 @@ stopifnot(exprs = {
     (allT14$"-Big_alternate" >= rT14)[-(1:2)] # slightly surprisingly
     identical(allT14$na.omit[-(1:4)], c(rTo14))
     inherits(Tfail <- allT14$fail, "error")
-    !englishMsgs || grepl("^runmed\\(.*: .*NA.*x\\[1\\]", Tfail$message)
+    grepl("^runmed\\(.*: .*NA.*x\\[1\\]", Tfail$message)
 })
 
 
-## conformMethod()  "&& logic" bug, by Henrik Bengtsson on R-devel list, 2019-06-22
-setClass("tilingFSet", slots = c(x = "numeric"))
-if(!is.null(getGeneric("oligoFn"))) removeGeneric("oligoFn")
-setGeneric("oligoFn",
-           function(object, subset, target, value) { standardGeneric("oligoFn") })
-Sys.setenv("_R_CHECK_LENGTH_1_LOGIC2_" = "true")
-if(getRversion() <= "3.6")## to run this with R 3.6.0, 3.5.3, ..
-    Sys.unsetenv("_R_CHECK_LENGTH_1_LOGIC2_")
-setMethod("oligoFn", signature(object = "tilingFSet", value="array"),	## Method _1_
-          function(object, value) { list(object=object, value=value) })
-setMethod("oligoFn", signature(object = "matrix", target="array"),	## Method _2_
-          function(object, target) list(object=object, target=target))
-setMethod("oligoFn", signature(object = "matrix", subset="integer"),	## Method _3_
-          function(object, subset) list(object=object, subset=subset))	#   *no* Note
-setMethod("oligoFn", signature(object = "matrix"),			## Method _4_
-          function(object) list(object=object))				#   *no* Note
-setMethod("oligoFn", signature(subset = "integer"),			## Method _5_
-          function(subset) list(subset=subset))
-setMethod("oligoFn", signature(target = "matrix"),			## Method _6_
-          function(target) list(target=target))
-setMethod("oligoFn", signature(value = "array"),			## Method _7_
-          function(value) list(value=value))
-setMethod("oligoFn", signature(subset = "integer", target = "matrix"),  ## Method _8_
-          function(subset, target) list(subset=subset, target=target))
-setMethod("oligoFn", signature(subset = "integer", value = "array"),	## Method _9_
-          function(subset, value) list(subset=subset, value=value))
-setMethod("oligoFn", signature(target = "matrix", value = "array"),	## Method _10_
-          function(target, value) list(target=target, value=value))
-##
-showMethods("oligoFn", include=TRUE) # F.Y.I.:  in R 3.6.0 and earlier: contains "ANY" everywhere
-##=========            ------------
-stopifnot(exprs = {
-    is.function(mm <- getMethod("oligoFn",
-                                signature(object="tilingFSet",
-                                          subset="missing", target="missing",
-                                          value="array")))
-    inherits(mm, "MethodDefinition")
-    identical(
-        sort(names(getMethodsForDispatch(oligoFn))) # sort(.) the same for "all" locales
-        ## Now,  "ANY" only appear "at the end" .. otherwise have "missing"
-      , c("matrix#ANY#ANY#ANY",
-          "matrix#integer#ANY#ANY",
-          "matrix#missing#array#ANY",
-          "missing#integer#ANY#ANY",
-          "missing#integer#matrix#ANY",
-          "missing#integer#missing#array",
-          "missing#missing#matrix#ANY",
-          "missing#missing#matrix#array",
-          "missing#missing#missing#array",
-          "tilingFSet#missing#missing#array"))
-})
-## Testing all 10 methods:
-r1 <- oligoFn(object=new("tilingFSet"), value=array(2))
-r2 <- oligoFn(object=diag(2),          target=array(42))
-## These 2 work fine in all versions of R: Here the "ANY" remain at the end:
-r3 <- oligoFn(object=diag(2),          subset=1:3)
-r4 <- oligoFn(object=diag(2))
-## All these do *not* specify 'object' --> Error in R <= 3.6.x {argument ... is missing}
-r5 <- oligoFn(subset = 1:5)
-r6 <- oligoFn(target = cbind(7))
-r7 <- oligoFn(value = array(47))
-r8 <- oligoFn(subset = -1:1, target = diag(3))
-r9 <- oligoFn(subset = 2:6,  value = array(7))
-r10<- oligoFn(target = cbind(1,2), value = array(1,1:3))
-## in R <= 3.6.0, e.g., the first  setMethod(..)  gave
-## Error in omittedSig && (signature[omittedSig] != "missing") :
-##   'length(x) = 4 > 1' in coercion to 'logical(1)'
 
 
-## apply(., MARGIN) when MARGIN is outside length(dim(.)):
-a <- tryCid(apply(diag(3), 2:3, mean))
-stopifnot(exprs = {
-    inherits(a, "error")
-    conditionCall(a)[[1]] == quote(`apply`)
-    !englishMsgs || !grepl("missing", (Msg <- conditionMessage(a)), fixed=TRUE)
-    !englishMsgs || grepl("MARGIN", Msg, fixed=TRUE)
-})
 
-
-## cbind() of data frames with no columns lost names -- PR#17584
-stopifnot(identical(names(cbind(data.frame())),
-                    character()))
-stopifnot(identical(names(cbind(data.frame(), data.frame())),
-                    character()))
-## names() came out as NULL instead of character().
-
-
-## NUL inserted incorrectly in adist trafos attribute -- PR#17579
-s <- c("kitten", "sitting", "hi")
-ad <- adist(s, counts = TRUE)
-adc <- attr(ad, "counts")
-adt <- attr(ad, "trafos")
-## Follow analysis in the bug report: in the diagonal, we should have
-## only matches for each character in the given string.
-stopifnot(exprs = {
-    nchar(diag(adt)) == nchar(s)
-    ## The del/ins/sub counts should agree with the numbers of D/I/S
-    ## occurrences in the trafos.
-    nchar(gsub("[^D]", "", adt)) == adc[, , "del"]
-    nchar(gsub("[^I]", "", adt)) == adc[, , "ins"]
-    nchar(gsub("[^S]", "", adt)) == adc[, , "sub"]
-})
-
-## list2env preserves values semantics
-v <- list(x=c(1)) # << subtlety!
-e <- list2env(v)
-with(e, x[[1]] <- 42)
-v
-stopifnot(identical(v$x,1))
 
 
 ## misleading error message when coercing language object to atomic, etc:
@@ -3007,31 +2867,10 @@ stopifnot(exprs = {
 } else cat("PR#17577 bug fix not checked, as it may not work on this platform\n")
 
 
-## format(x, scientific = FALSE)  for large x
-xMAX <- .Machine$double.xmax
-ch <- format(xMAX, scientific = 400) # << scientific as 'scipen'
-op <- options(digits=1, scipen = 303)
-co <- capture.output(cat(xMAX))
-options(op)# back to normal
-stopifnot(exprs = {
-    nchar(ch) == 309
-    identical(ch, co)
-    ch == format(xMAX, scientific=FALSE)
-})## format(*, scientific=FALSE) was "not obeyed" in R < 4.0.0
 
 
-## format(<symbol>) aka format(<name>) :
-for(ch in c("foo", "bar", "1", "a:b", "B space A", "`ABC", "'CBA"))
-    stopifnot(identical(ch, format(as.symbol(ch))))
-## gave  'Found no format() method for class "name"' in R <= 3.6.x
 
 
-if(!(onWindows && arch == "x86")) {
- ## This gave a practically infinite loop (on 64-bit Lnx, Windows; not in 32-bit)
-    tools::assertWarning(p <- pchisq(1.00000012e200, df=1e200, ncp=100),
-                         "simpleWarning", verbose=TRUE)
-    stopifnot(p == 1)
-}
 
 
 ## x %% +- Inf -- PR#17611  //  also  %/%  for "large" args
@@ -3063,10 +2902,7 @@ for(x in list(0:3, c(0, 0.5+0:2))) {
 ## these all returned  NaN  when L == Inf  in R <= 3.6.1
 ##
 ## Further - very basics and some large (working "since ever"):
-L <- 1e111 * c(-1,1)
 stopifnot(exprs = {
-    L %%  L == 0  # failed for a few days in R-devel
-    L %% -L == 0
     -6:17 %%  3L == 0:2
     -5:15 %% -3L == -2:0
     is.finite(x <- 2^(1:1022))
@@ -3076,24 +2912,6 @@ stopifnot(exprs = {
    -x[1:52] %% 3 == 1:2
 }) # larger x suffer from cancellation (well, warning too early now):
 tools::assertWarning(x[60:68] %% 3)
-
-
-## Hilmar Berger's on R-devel list: 'data.frame() == NULL' etc
-d0. <- data.frame(a = numeric(0)) # zero length data.frame [ 0 x 1 ]
-d0  <- unname(d0.) # zero length data.frame __without names__
-d3   <- data.frame(a=1:3) # non-empty data.frame
-d30. <- d3[,FALSE] # <3 x 0>
-d30  <- unname(d30.)
-for(DF in list(d0., d0, d30., d30))
-    for(R in list(1, NULL, logical(0)))
-	stopifnot(exprs = {
-	    is.logical(r <- DF == R)
-	    is.matrix(r) ## ~~~~~~~
-	    length(r) == 0
-	    dim(r) <= dim(DF) # sometimes r is <0 x 0> when DF is not
-	})
-## many of these '==' calls failed in R <= 3.6.x
-
 
 ## grepl(<NA>, ...)
 N <- grepl(NA_character_, "something")
@@ -3119,55 +2937,8 @@ pos <- barplot(1:2, space=c(9, 1),
 stopifnot(all.equal(pos, cbind(c(9.5, 11.5))))
 ## bar spacing was wrong in R <= 3.6.1
 
-## methods(class = <{length > 1}>)  giving many non-helpful warnings
-tools::assertWarning(mc <- methods(class = class(ordered(4:1))), verbose=TRUE)
-                                        # class = ".S3methods",
-stopifnot(is.character(mc), inherits(mc, "MethodsFunction"),
-          is.data.frame(attr(mc,"info")))
-## warns once only, in R >= 3.6.2
 
 
-## PR#17580 -- using max.lines, "truncated"
-op <- options(error = expression(NULL)) # {careful! : errors do *NOT* stop}
-is.t.back <- function(x) is.pairlist(x) && all(vapply(x, is.character, NA))
-f <- function(...) stop(deparse(substitute(...)))
-g <- function(...) f(...)
-do.call(g, mtcars)
-tb. <- .traceback()
-traceback(tb1 <- .traceback(max.lines=1))# prints with '...' as it's truncated
-stopifnot(exprs = {
-    is.t.back(tb.)
-    is.t.back(tb1)
-    length(tb.) == length(tb1)
-    vapply(tb1, length, 0L) == 1
-    length(tb.[[3]]) > 20
-})
-f <- function() options(warn = 1+.Machine$integer.max)
-do.call(g, mtcars)
-tb0 <- .traceback()
-traceback(tb3  <- .traceback(max.lines = 3))
-traceback(tb00 <- .traceback(max.lines = 0))
-options(op)# revert to normal
-stopifnot(exprs = {
-    is.t.back(tb0)
-    is.t.back(tb3)
-    is.t.back(tb00)
-    vapply(tb0, function(.) is.null(attributes(.)), NA)
-    length(tb0) == length(tb3)
-    vapply(tb3 , length, 0L) <= 3
-    vapply(tb00, length, 0L) == 0L
-    identical(lapply(tb3, attributes),
-              list(list(truncated = TRUE), NULL))
-    identical(lapply(tb00, attributes),
-              rep(list(list(truncated = TRUE)), 2))
-})
-f <- function(...) .traceback(2, max.lines=1)
-g(
-  'hello hello hello hello hello hello hello hello hello hello hello',
-  'world world world world world world world world world world world'
-) -> tb2n1
-stopifnot(is.character(t1 <- tb2n1[[1]]), length(t1) == 1L, attr(t1, "truncated"))
-## partly not possible in R < 4.0.0; always deparsed in full
 
 
 ## PR#13624 : get_all_vars(*, <matrix>):
@@ -3177,11 +2948,11 @@ ok_get_all_vars <- function(form,d) { ## get_all_vars() :<=> model_frame() apart
     identical(mf,
               if(missing(d)) get_all_vars(form) else get_all_vars(form,d))
 }
-M <- .Date(matrix(1:15, 5,3)) # has class to be kept
+M <- matrix(1:15, 5,3)
 n <- 26:30
 T <- TRUE
 m <- 2:7
-stopifnot(exprs = { is.matrix(M) ; dim(M) == c(5,3)
+stopifnot(exprs = {
     ok_get_all_vars(~ M)
     ok_get_all_vars(~M+n)
     ok_get_all_vars(~ X ,               list(X=  M))
@@ -3199,19 +2970,6 @@ stopifnot(exprs = { is.matrix(M) ; dim(M) == c(5,3)
 ## all but the first 4 cases worked already in R <= 3.6.1
 
 
-## two-arg Rd macros (PR#17627)
-parse_Rd_txt <- function(ch) tools::parse_Rd(textConnection(ch), fragment = TRUE)
-rd1 <- parse_Rd_txt(t1 <- "\\if{html}{\\out{<hr>}}")
-rd2 <- parse_Rd_txt(t2 <- "\\href{https://www.r-project.org}{some text}")
-(tx1 <- paste(as.character(rd1), collapse = ""))
-(tx2 <- paste(as.character(rd2), collapse = ""))
-stopifnot(exprs = {
-    identical(paste0(t1,"\n"), tx1)
-    identical(paste0(t2,"\n"), tx2)
-})
-## had duplicated braces in R < 4.0.0
-
-
 ## power.t.test() failure for very small (unreasonable) n;  R-devel m.list Oct.4, 2019
 (ptt0 <- power.t.test(delta=10,  sd=1,       power=0.9 , sig.level=0.05, tol = 1e-8))
 (ptt1 <- power.t.test(delta=0.6, sd=0.00001, power=0.9 , sig.level=0.05))
@@ -3222,12 +2980,6 @@ stopifnot(exprs = {
     all.equal(ptt2$n, 1.1215733, tol = 1e-5)
 })
 ## when uniroot() was trying n < 1, the code failed previously (in 2nd and 3rd case)
-
-
-## improved error message from contour():
-tt <- tryCatch(contour(volcano, levels = c(20*c(4:6, -Inf, 8:10))), error=identity)
-stopifnot(inherits(tt, "error"), grepl("non-finite level.*\\[4\\] = -inf", tt$message))
-## had "invalid NA contour values"
 
 
 ## get_all_vars() when some variables are data frames - PR#14905
@@ -3241,154 +2993,6 @@ stopifnot(exprs = {
     identical(get_all_vars(x ~ Y), cbind(x, Y))
 })
 ## the last were wrong in R <= 3.6.1
-
-
-## get all arguments from matched argument list; failed in R <= 4.0.0
-y <- list()
-stopifnot(identical(attr(`attr<-`(y, value = 1, "A"), "A"), 1))
-y <- structure(list(), AA = 1)
-stopifnot(is.null(attr(y, exact = TRUE, "A")))
-
-
-if(Sys.getenv("_R_CLASS_MATRIX_ARRAY_") %in%
-   c("true", "True", "TRUE", "T")) {
-## 1) A matrix is an array, too:
-stopifnot( vapply(1:9, function(N) inherits(array(pi, dim = 1:N), "array"), NA) )
-## was false for N=2 in R < 4.0.0
-##
-## 2) Matrix must dispatch for array methods, too :
-foo <- function(x) UseMethod("foo")
-foo.array <- function(x) "made in foo.array()"
-stopifnot(
-    vapply(1:9, function(N) foo(array(pi, dim = 1:N)), "chr") == foo.array())
-## foo(array(*)) gave error for N=2 in R < 4.0.0
-} else
-    cat("not tested\n")
-
-
-## PR#17659: Some *.colors() producers have appended (alpha=1) info even by default
-fnms <- c(apropos("[.]colors$"), "rainbow") # 8 x "<foo>.colors" + rainbow
-for(fn in fnms) {
-    Fn <- get(fn, mode="function")
-    cat(sprintf("%14s(n), n = 1,2,3 : ", fn))
-    for(n in 1:3)
-        stopifnot(length(cc <- Fn(n)) == n,
-                  nchar(cc) == 1L+6L, # just RGB, no alpha
-                  identical(cc, Fn(n, alpha=NULL)))
-    cat("[Ok]\n")
-}
-## in R <= 3.6.x, four of these functions gave extra alpha=1 info (appended "FF")
-
-
-## Generalized head(x, n) and tail() methods - for length(n) > 1 and arbitrary array x
-## PR#17652
-## -------- pkg glmmTMB uses head(.) on calls quite a bit
-cForm <- quote(some ~ really + quite + longish + but:still:not:very:long *
-                   (formula | reality / extreme:cases:you:never:think:of))
-fL <- eval(cForm)
-length(fRHS <- fL[[3]])
-cLong <- quote(fun_with_many_args(1,2,3, 4,5,6, 7,8,9))
-a1 <- structure(array(1:7,  7  ), class = "foo")
-a3 <- structure(array(1:24, 2:4), class = "foo")
-stopifnot(exprs = {
-    ## these all work as previously
-    head(cForm,1) == `~`()
-    head(cForm,2) == ~some
-    head(cForm) == cForm
-    is.call(cl <- quote((Days|Subject)))
-    is.call(fL)
-    inherits(fL, "formula")
-    head(fL) == fL
-    ## == tail ===
-    identical(tail(cForm,1), cForm[3])
-    tail(cForm,2) == cForm[2:3]
-    tail(cForm) == cForm
-    tail(fL) == fL
-    ##
-    ## -------------failed from here -----------------------
-    identical(head(cl), cl) ## for a few days, gave Error in do.call(..):  object 'Days' not found
-    identical( head(fRHS), fRHS)
-    identical(head(cLong), cLong[1:6])
-    identical(head(cLong, 2), cLong[1:2])
-    identical(head(cLong, 1), quote(fun_with_many_args()))
-    ## == tail ===
-    identical(tail(cl), cl) ## for a few days, gave Error ...:  object 'Days' not found
-    identical( tail(fRHS), fRHS)
-    identical(tail(cLong), cLong[tail(seq_along(cLong))])
-    identical(tail(cLong, 2), cLong[9:10])
-    identical(tail(cLong, 1), cLong[10])
-    ## funny arrays
-    identical(head(a1,1), a1[1,    drop=FALSE])
-    identical(head(a3,1), a3[1, ,, drop=FALSE])
-    identical(tail(a3,1), a3[2, ,, drop=FALSE])
-})
-##
-## Ensure that the code does not access dimensions it does not need (pkg TraMineR):
-`[.noCol` <- function(x, i, j, drop = FALSE) {
-    if(!missing(j)) stop(" [!] Column subscripts not allowed", call. = FALSE)
-    NextMethod("[")
-}
-noC <- structure(datasets::trees, class = c("noCol", "data.frame"))
-tools::assertError( noC[1,2], verbose=TRUE) # fails indeed
-stopifnot(exprs = {
-    identical(head(noC), noC[1:6,])
-    identical(head(noC, 1), noC[1, ])
-    identical(tail(noC, 1), noC[31,])
-})
-##
-## For all arrays 'a',  head(a, 1)  should correspond to  a[1, {,}* , drop = FALSE]
-str(Alis <- lapply(1:4, function(n) {d <- 1+(1:n); array(seq_len(prod(d)), d) }))
-h2 <- lapply(Alis, head, 2)
-h1 <- lapply(Alis, head, 1)
-t1 <- lapply(Alis, tail, 1)
-dh1 <- lapply(h1, dim)
-h1N <- lapply(Alis, head, c(1, NA))
-t1N <- lapply(Alis, tail, c(1, NA))
-Foolis <- lapply(Alis, `class<-`, "foo")
-h1F  <- lapply(Foolis, head, 1)
-h1FN <- lapply(Foolis, head, c(1, NA))
-t1F  <- lapply(Foolis, tail, 1)
-t1FN <- lapply(Foolis, tail, c(1, NA))
-stopifnot(exprs = {
-    identical(h2, Alis)
-    vapply(h1, is.array, NA)
-    vapply(t1, is.array, NA)
-    identical(dh1, lapply(1:4, function(n) seq_len(n+1L)[-2L]))
-    identical(dh1, lapply(t1, dim))
-    identical(h1, h1N)
-    identical(t1, t1N)
-    identical(h1F, h1FN)
-    identical(t1F, t1FN)
-})
-## This was *not the case for  1d arrays in R <= 3.6.x
-##
-## matrix of "language" -- with expression()
-is.arr.expr <- function(x) is.array(x) && is.expression(x)
-e <- matrix(expression(foo(2), bar(x), r(foobar), foo(rbar)), 2)
-str(h1 <- head(e, 1))
-str(t1 <- tail(e, 1))
-stopifnot(exprs = {
-    is.arr.expr(e)  && identical(dim(e),  c(2L, 2L))
-    is.arr.expr(h1) && identical(dim(h1), c(1L, 2L))
-    is.arr.expr(t1) && identical(dim(t1), c(1L, 2L))
-    is.arr.expr(ee <- e[rep(1:2, 3), rep(1:2, 2)]) && identical(dim(ee), c(6L, 4L))
-    is.arr.expr(hee <- head(ee, n=c(2,-1))) && identical(dim(hee), 2:3)
-    is.arr.expr(tee <- tail(ee, n=c(-3,1))) && identical(dim(tee), c(3L, 1L))
-})
-## (for length(n) == 1,  has worked the same "always")
-
-
-## Forgotten 'drop=FALSE' in plot.formula()
-df <- data.frame(x=1:3, grp=c("A","A","B"))
-plot( ~grp, data=df, subset = x > 1)
-## failed in R <= 3.6.1
-
-
-## dnorm() etc border cases, notably sigma = -Inf
-tools::assertWarning(v0Neg  <- dnorm(0:1, sd = -Inf))
-tools::assertWarning(dlInf0 <- dlnorm(Inf,Inf, sd = 0))
-stopifnot(is.nan(v0Neg), is.nan(dlInf0))
-## in R <= 3.6.2, v0Neg was 0 w/o any warning; dlnorm(...) was +Inf
 
 
 

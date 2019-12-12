@@ -131,9 +131,8 @@ is.na.data.frame <- function (x)
     y
 }
 
-## Provide for efficiency reasons (PR#17600):
-anyNA.data.frame <- function(x, recursive = FALSE)
-    any(vapply(x, anyNA, NA, USE.NAMES = FALSE))
+## not needed, as  anyNA() works recursively on list()s :
+## anyNA.data.frame <- function(x) any(vapply(x, anyNA, NA, USE.NAMES=FALSE))
 
 is.data.frame <- function(x) inherits(x, "data.frame")
 
@@ -507,10 +506,10 @@ data.frame <-
 	    vnames[[i]] <- namesi
 	} else if (fix.empty.names && no.vn[[i]]) {
 	    tmpname <- deparse(object[[i]], nlines = 1L)[1L]
-	    if(startsWith(tmpname, "I(") && endsWith(tmpname, ")")) {
-                ## from 'I(*)', only keep '*':
+	    if(substr(tmpname, 1L, 2L) == "I(") { ## from 'I(*)', only keep '*':
 		ntmpn <- nchar(tmpname, "c")
-                tmpname <- substr(tmpname, 3L, ntmpn - 1L)
+		if(substr(tmpname, ntmpn, ntmpn) == ")")
+		    tmpname <- substr(tmpname, 3L, ntmpn - 1L)
 	    }
 	    vnames[[i]] <- tmpname
 	} ## else vnames[[i]] are not changed
@@ -555,7 +554,7 @@ data.frame <-
     }
     value <- unlist(vlist, recursive=FALSE, use.names=FALSE)
     ## unlist() drops i-th component if it has 0 columns
-    vnames <- as.character(unlist(vnames[ncols > 0L]))
+    vnames <- unlist(vnames[ncols > 0L])
     if(fix.empty.names && any(noname <- !nzchar(vnames)))
 	vnames[noname] <- paste0("Var.", seq_along(vnames))[noname]
     if(check.names) {
@@ -1260,7 +1259,7 @@ cbind.data.frame <- function(..., deparse.level = 1)
 
 rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
                              stringsAsFactors = default.stringsAsFactors(),
-                             factor.exclude = TRUE)
+                             factor.exclude = NA)
 {
     match.names <- function(clabs, nmi)
     {
@@ -1290,7 +1289,9 @@ rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
     }
     n <- length(allargs)
     if(n == 0L)
-	return(list2DF())
+	return(structure(list(),
+			 class = "data.frame",
+			 row.names = integer()))
     nms <- names(allargs)
     if(is.null(nms))
 	nms <- character(n)
@@ -1412,7 +1413,8 @@ rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
     if(nvar == 0L)
 	nvar <- max(lengths(allargs)) # only vector args
     if(nvar == 0L)
-	return(list2DF())
+	return(structure(list(), class = "data.frame",
+			 row.names = integer()))
     pseq <- seq_len(nvar)
     if(is.null(value)) { # this happens if there has been no data frame
 	value <- list()
@@ -1616,6 +1618,7 @@ Math.data.frame <- function (x, ...)
 
 Ops.data.frame <- function(e1, e2 = NULL)
 {
+    isList <- function(x) !is.null(x) && is.list(x)
     unary <- nargs() == 1L
     lclass <- nzchar(.Method[1L])
     rclass <- !unary && (nzchar(.Method[2L]))
@@ -1640,7 +1643,7 @@ Ops.data.frame <- function(e1, e2 = NULL)
 	if(.row_names_info(e1) > 0L) rn <- attr(e1, "row.names")
 	cn <- names(e1)
 	rscalar <- length(e2) <= 1L # e2 might be null
-	if(is.list(e2)) {
+	if(isList(e2)) {
 	    if(rscalar) e2 <- e2[[1L]]
 	    else if(length(e2) != ncol(e1))
 		stop(gettextf("list of length %d not meaningful", length(e2)),
@@ -1657,7 +1660,7 @@ Ops.data.frame <- function(e1, e2 = NULL)
 	if(.row_names_info(e2) > 0L) rn <- attr(e2, "row.names")
 	cn <- names(e2)
 	lscalar <- length(e1) <= 1L
-	if(is.list(e1)) {
+	if(isList(e1)) {
 	    if(lscalar) e1 <- e1[[1L]]
 	    else if(length(e1) != ncol(e2))
 		stop(gettextf("list of length %d not meaningful", length(e1)),
@@ -1683,10 +1686,8 @@ Ops.data.frame <- function(e1, e2 = NULL)
     }
     else { ## 'Logic' ("&","|")  and  'Compare' ("==",">","<","!=","<=",">=") :
 	value <- unlist(value, recursive = FALSE, use.names = FALSE)
-	if(!length(value))
-	    matrix(logical(), nrow = nr, ncol = length(cn), dimnames = list(rn,cn))
-	else # nrow + possibly recycled value determine dim:
-	    matrix(value, nrow = nr, dimnames = list(rn,cn))
+	matrix(if(is.null(value)) logical() else value,
+	       nrow = nr, dimnames = list(rn,cn))
     }
 }
 
@@ -1700,23 +1701,4 @@ Summary.data.frame <- function(..., na.rm)
         x
     })
     do.call(.Generic, c(args, na.rm=na.rm))
-}
-
-list2DF <-
-function(x = list(), nrow = NULL)
-{
-    stopifnot(is.list(x), is.null(nrow) || nrow >= 0L)
-    if(n <- length(x)) {
-        if(is.null(nrow))
-            nrow <- max(lengths(x), 0L)
-        x <- lapply(x, rep_len, nrow)
-    } else {
-        if(is.null(nrow))
-            nrow <- 0L
-    }
-    if(is.null(names(x)))
-        names(x) <- character(n)
-    class(x) <- "data.frame"
-    attr(x, "row.names") <- .set_row_names(nrow)
-    x
 }

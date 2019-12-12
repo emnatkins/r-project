@@ -124,7 +124,7 @@ typedef long long int _lli_t;
 # include <Startup.h>
 #endif
 
-#define NCONNECTIONS 128 /* snow needs one per no-echo node */
+#define NCONNECTIONS 128 /* snow needs one per slave node */
 #define NSINKS 21
 
 static Rconnection Connections[NCONNECTIONS];
@@ -496,12 +496,7 @@ int dummy_fgetc(Rconnection con)
     Rboolean checkBOM = FALSE, checkBOM8 = FALSE;
 
     if(con->inconv) {
-	while(con->navail <= 0) {
-	    /* Probably in all cases there will be at most one iteration
-	       of the loop. It could iterate multiple times only if the input
-	       encoding could have \r or \n as a part of a multi-byte coded
-	       character.
-	    */
+	if(con->navail <= 0) {
 	    unsigned int i, inew = 0;
 	    char *p, *ob;
 	    const char *ib;
@@ -526,13 +521,6 @@ int dummy_fgetc(Rconnection con)
 		*p++ = (char) c;
 		con->inavail++;
 		inew++;
-		if(!con->buff && (c == '\n' || c == '\r'))
-		    /* Possibly a line separator: better stop filling in the
-		       encoding conversion buffer if not buffering the input
-		       anyway, as not to confuse interactive applications
-		       (PR17634).
-		    */
-		    break;
 	    }
 	    if(inew == 0) return R_EOF;
 	    if(checkBOM && con->inavail >= 2 &&
@@ -552,8 +540,6 @@ int dummy_fgetc(Rconnection con)
 	    errno = 0;
 	    res = Riconv(con->inconv, &ib, &inb, &ob, &onb);
 	    con->inavail = (short) inb;
-	    con->next = con->oconvbuff;
-	    con->navail = (short)(50 - onb);
 	    if(res == (size_t)-1) { /* an error condition */
 		if(errno == EINVAL || errno == E2BIG) {
 		    /* incomplete input char or no space in output buffer */
@@ -562,10 +548,11 @@ int dummy_fgetc(Rconnection con)
 		    warning(_("invalid input found on input connection '%s'"),
 			    con->description);
 		    con->inavail = 0;
-		    if (con->navail == 0) return R_EOF;
 		    con->EOF_signalled = TRUE;
 		}
 	    }
+	    con->next = con->oconvbuff;
+	    con->navail = (short)(50 - onb);
 	}
 	con->navail--;
 	/* the cast prevents sign extension of 0xFF to -1 (R_EOF) */
@@ -739,8 +726,6 @@ static Rboolean file_open(Rconnection con)
 	mode[4] = '\0';
 	if (!strpbrk(mode, "bt"))
 	    strcat(mode, "t");
-	// See PR#16737, https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fopen-wfopen?view=vs-2019
-	// ccs= is also supported by glibc but not macOS
 	if (strchr(mode, 't')
 	    && (!strcmp(con->encname, "UTF-16LE") || !strcmp(con->encname, "UCS-2LE"))) {
 	    strcat(mode, ",ccs=UTF-16LE");
@@ -1439,7 +1424,7 @@ SEXP attribute_hidden do_fifo(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid '%s' argument"), "description");
     if(length(sfile) > 1)
 	warning(_("only first element of 'description' argument used"));
-    file = translateCharFP(STRING_ELT(sfile, 0)); /* for now, like fopen */
+    file = translateChar(STRING_ELT(sfile, 0)); /* for now, like fopen */
     sopen = CADR(args);
     if(!isString(sopen) || LENGTH(sopen) != 1)
 	error(_("invalid '%s' argument"), "open");
@@ -1605,13 +1590,13 @@ SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifdef Win32
     if( !IS_ASCII(STRING_ELT(scmd, 0)) ) {
 	ienc = CE_UTF8;
-	file = trCharUTF8(STRING_ELT(scmd, 0));
+	file = translateCharUTF8(STRING_ELT(scmd, 0));
     } else {
 	ienc = CE_NATIVE;
-	file = translateCharFP(STRING_ELT(scmd, 0));
+	file = translateChar(STRING_ELT(scmd, 0));
     }
 #else
-    file = translateCharFP(STRING_ELT(scmd, 0));
+    file = translateChar(STRING_ELT(scmd, 0));
 #endif
     sopen = CADR(args);
     if(!isString(sopen) || LENGTH(sopen) != 1)
@@ -2259,7 +2244,7 @@ SEXP attribute_hidden do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid '%s' argument"), "description");
     if(LENGTH(sfile) > 1)
 	warning(_("only first element of 'description' argument used"));
-    file = translateCharFP(STRING_ELT(sfile, 0));
+    file = translateChar(STRING_ELT(sfile, 0));
     sopen = CADR(args);
     if(!isString(sopen) || LENGTH(sopen) != 1)
 	error(_("invalid '%s' argument"), "open");
@@ -2742,14 +2727,17 @@ SEXP attribute_hidden do_stderr(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-
+/* isatty is in unistd.h, or io.h on Windows */
+#ifdef Win32
+# include <io.h>
+#endif
 SEXP attribute_hidden do_isatty(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     int con;
     /* FIXME: is this correct for consoles? */
     checkArity(op, args);
     con = asInteger(CAR(args));
-    return ScalarLogical(con == NA_LOGICAL ? FALSE : R_isatty(con) );
+    return ScalarLogical(con == NA_LOGICAL ? FALSE : isatty(con) );
 }
 
 /* ------------------- raw connections --------------------- */
@@ -2935,7 +2923,7 @@ SEXP attribute_hidden do_rawconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(sfile) || LENGTH(sfile) != 1 ||
        STRING_ELT(sfile, 0) == NA_STRING)
 	error(_("invalid '%s' argument"), "description");
-    desc = translateCharFP(STRING_ELT(sfile, 0));
+    desc = translateChar(STRING_ELT(sfile, 0));
     sraw = CADR(args);
     sopen = CADDR(args);
     if(!isString(sopen) || LENGTH(sopen) != 1)
@@ -3420,7 +3408,7 @@ SEXP attribute_hidden do_sockconn(SEXP call, SEXP op, SEXP args, SEXP env)
     scmd = CAR(args);
     if(!isString(scmd) || LENGTH(scmd) != 1)
 	error(_("invalid '%s' argument"), "host");
-    host = translateCharFP(STRING_ELT(scmd, 0));
+    host = translateChar(STRING_ELT(scmd, 0));
     args = CDR(args);
     port = asInteger(CAR(args));
     if(port == NA_INTEGER || port < 0)
@@ -3491,7 +3479,7 @@ SEXP attribute_hidden do_unz(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid '%s' argument"), "description");
     if(length(sfile) > 1)
 	warning(_("only first element of 'description' argument used"));
-    file = translateCharFP(STRING_ELT(sfile, 0));
+    file = translateChar(STRING_ELT(sfile, 0));
     sopen = CADR(args);
     if(!isString(sopen) || LENGTH(sopen) != 1)
 	error(_("invalid '%s' argument"), "open");
@@ -4398,43 +4386,47 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 /* writeBin(object, con, size, swap, useBytes) */
 SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+    SEXP object, ans = R_NilValue;
+    int i, j, size, swap, len, useBytes;
+    const char *s;
+    char *buf;
+    Rboolean wasopen = TRUE, isRaw = FALSE;
+    Rconnection con = NULL;
+    RCNTXT cntxt;
+
     checkArity(op, args);
-    SEXP object = CAR(args);
+    object = CAR(args);
     if(!isVectorAtomic(object))
 	error(_("'x' is not an atomic vector type"));
-    Rboolean
-	isRaw = TYPEOF(CADR(args)) == RAWSXP,
-	wasopen = isRaw;
-    Rconnection con = NULL;
-    if(!isRaw) {
+
+    if(TYPEOF(CADR(args)) == RAWSXP) {
+	isRaw = TRUE;
+    } else {
 	con = getConnection(asInteger(CADR(args)));
 	if(con->text) error(_("can only write to a binary connection"));
 	wasopen = con->isopen;
 	if(!con->canwrite) error(_("cannot write to this connection"));
     }
 
-    int size = asInteger(CADDR(args)),
-	swap = asLogical(CADDDR(args));
+    size = asInteger(CADDR(args));
+    swap = asLogical(CADDDR(args));
     if(swap == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "swap");
-    int useBytes = asLogical(CAD4R(args));
+    useBytes = asLogical(CAD4R(args));
     if(useBytes == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "useBytes");
-    R_xlen_t i, len = XLENGTH(object);
-    if(len == 0)
-	return (isRaw) ? allocVector(RAWSXP, 0) : R_NilValue;
-
-#ifndef LONG_VECTOR_SUPPORT
-    /* without long vectors RAW vectors are limited to 2^31 - 1 bytes */
-    if(len * (double)size > INT_MAX) {
+    len = LENGTH(object);
+    if(len == 0) {
+	if(isRaw) return allocVector(RAWSXP, 0); else return R_NilValue;
+    }
+    /* RAW vectors are limited to 2^31 - 1 bytes */
+    if((double)len *size > INT_MAX) {
 	if(isRaw)
 	    error(_("only 2^31-1 bytes can be written to a raw vector"));
 	else
 	    error(_("only 2^31-1 bytes can be written in a single writeBin() call"));
     }
-#endif
 
-    RCNTXT cntxt;
     if(!wasopen) {
 	/* Documented behaviour */
 	char mode[5];
@@ -4450,9 +4442,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(!con->canwrite) error(_("cannot write to this connection"));
     }
 
-    SEXP ans = R_NilValue;
     if(TYPEOF(object) == STRSXP) {
-	const char *s;
 	if(isRaw) {
 	    Rbyte *bytes;
 	    size_t np, outlen = 0;
@@ -4532,8 +4522,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	default:
 	    UNIMPLEMENTED_TYPE("writeBin", object);
 	}
-	char *buf = R_chk_calloc(len, size);
-	R_xlen_t j;
+	buf = R_chk_calloc(len, size);
 	switch(TYPEOF(object)) {
 	case LGLSXP:
 	case INTSXP:
@@ -4544,8 +4533,9 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 #if SIZEOF_LONG == 8
 	    case sizeof(long):
 	    {
+		long l1;
 		for (i = 0, j = 0; i < len; i++, j += size) {
-		    long l1 = (long) INTEGER(object)[i];
+		    l1 = (long) INTEGER(object)[i];
 		    memcpy(buf + j, &l1, size);
 		}
 		break;
@@ -4553,8 +4543,9 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 #elif SIZEOF_LONG_LONG == 8
 	    case sizeof(_lli_t):
 	    {
+		_lli_t ll1;
 		for (i = 0, j = 0; i < len; i++, j += size) {
-		    _lli_t ll1 = (_lli_t) INTEGER(object)[i];
+		    ll1 = (_lli_t) INTEGER(object)[i];
 		    memcpy(buf + j, &ll1, size);
 		}
 		break;
@@ -4562,8 +4553,9 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 	    case 2:
 	    {
+		short s1;
 		for (i = 0, j = 0; i < len; i++, j += size) {
-		    short s1 = (short) INTEGER(object)[i];
+		    s1 = (short) INTEGER(object)[i];
 		    memcpy(buf + j, &s1, size);
 		}
 		break;
@@ -4583,8 +4575,9 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 		break;
 	    case sizeof(float):
 	    {
+		float f1;
 		for (i = 0, j = 0; i < len; i++, j += size) {
-		    float f1 = (float) REAL(object)[i];
+		    f1 = (float) REAL(object)[i];
 		    memcpy(buf+j, &f1, size);
 		}
 		break;
@@ -4627,7 +4620,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 
 	/* write it now */
-	if(isRaw) { /* for non-long vectors, we checked size*len < 2^31-1 above */
+	if(isRaw) { /* We checked size*len < 2^31-1 above */
 	    PROTECT(ans = allocVector(RAWSXP, size*len));
 	    memcpy(RAW(ans), buf, size*len);
 	} else {
@@ -5340,17 +5333,17 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     winmeth = 1;
     if(PRIMVAL(op) == 1 && !IS_ASCII(STRING_ELT(scmd, 0)) ) { // file(<non-ASCII>, *)
 	ienc = CE_UTF8;
-	url = trCharUTF8(STRING_ELT(scmd, 0));
+	url = translateCharUTF8(STRING_ELT(scmd, 0));
     } else {
 	ienc = getCharCE(STRING_ELT(scmd, 0));
 	if(ienc == CE_UTF8)
 	    url = CHAR(STRING_ELT(scmd, 0));
 	else
-	    url = translateCharFP(STRING_ELT(scmd, 0));
+	    url = translateChar(STRING_ELT(scmd, 0));
     }
 #else
     winmeth = 0;
-    url = translateCharFP(STRING_ELT(scmd, 0));
+    url = translateChar(STRING_ELT(scmd, 0));
 #endif
 
     UrlScheme type = HTTPsh;	/* -Wall */
@@ -5499,7 +5492,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 			warning(_("'raw = FALSE' but '%s' is not a regular file"),
 			        url);
 		}
-#endif
+#endif		
 		if (!raw &&
 		    (!strlen(open) || streql(open, "r") || streql(open, "rt"))) {
 		    /* check if this is a compressed file */

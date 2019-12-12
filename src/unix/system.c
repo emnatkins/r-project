@@ -43,7 +43,7 @@
 #endif
 
 #ifdef HAVE_UNISTD_H
-# include <unistd.h>
+# include <unistd.h>		/* isatty() */
 #endif
 
 #include <errno.h>
@@ -145,9 +145,6 @@ extern void * __libc_stack_end;
 #endif
 
 int R_running_as_main_program = 0;
-
-/* In ../main/main.c, to avoid inlining */
-extern uintptr_t dummy_ii(void);
 
 /* Protection against embedded misuse, PR#15420 */
 static int num_initialized = 0;
@@ -477,7 +474,7 @@ int Rf_initialize_R(int ac, char **av)
 	R_Interactive = useaqua;
     else
 #endif
-	R_Interactive = R_Interactive && (force_interactive || R_isatty(0));
+	R_Interactive = R_Interactive && (force_interactive || isatty(0));
 
 #ifdef HAVE_AQUA
     /* for Aqua and non-dumb terminal use callbacks instead of connections

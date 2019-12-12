@@ -17,7 +17,7 @@
 #  https://www.R-project.org/Licenses/
 
 vignette_is_tex <- function(file, ...) {
-    endsWith(tolower(file), ".tex")
+    (regexpr("[.]tex$", file, ignore.case = TRUE) != -1L)
 }
 
 # Infers the vignette type (PDF or HTML) from the filename of the
@@ -71,19 +71,16 @@ find_vignette_product <-
 
     if (by == "weave") {
         if (length(output) == 0L)
-            stop(gettextf("Failed to locate %s output file %s or %s for vignette with name %s and engine %s. The following files exist in working directory %s: %s",
+            stop(gettextf("Failed to locate the %s output file (by engine %s) for vignette with name %s. The following files exist in directory %s: %s",
                           sQuote(by),
-                          sQuote(paste0(name, ".pdf")), sQuote(paste0(name, ".html")),
-                          sQuote(name),
                           sQuote(sprintf("%s::%s", engine$package, engine$name)),
-                          sQuote(normalizePath(dir)),
-                          paste(sprintf("%s (%g bytes)", sQuote(output0), file.size(output0)), collapse=", ")),
+                          sQuote(name), sQuote(dir),
+                          paste(sQuote(output0), collapse=", ")),
                  domain = NA)
         if (length(output) > 2L || (final && length(output) > 1L))
             stop(gettextf("Located more than one %s output file (by engine %s) for vignette with name %s: %s", sQuote(by),
                           sQuote(sprintf("%s::%s", engine$package, engine$name)),
-                          sQuote(name),
-                          paste(sprintf("%s (%g bytes)", sQuote(output), file.size(output)), collapse=", ")),
+                          sQuote(name), paste(sQuote(output), collapse=", ")),
                  domain  = NA)
 	# If weave produced a TeX and then a PDF without cleaning out
 	# the TeX, consider the newer one (PDF wins a tie) as the weave product
@@ -98,20 +95,17 @@ find_vignette_product <-
             stopifnot(length(output) <= 1L)
     } else if (by == "texi2pdf") {
         if (length(output) == 0L)
-            stop(gettextf("Failed to locate %s output file %s for vignette with name %s and engine %s. The following files exist in working directory %s: %s",
+            stop(gettextf("Failed to locate the %s output file (by engine %s) for vignette with name %s. The following files exist in directory %s: %s",
                           sQuote(by),
-                          sQuote(paste0(name, ".pdf")),
-                          sQuote(name),
                           sQuote(sprintf("%s::%s", engine$package, engine$name)),
-                          sQuote(normalizePath(dir)),
-                          paste(sprintf("%s (%g bytes)", sQuote(output0), file.size(output0)), collapse=", ")),
+                          sQuote(name), sQuote(dir),
+                          paste(sQuote(output0), collapse=", ")),
                  domain = NA)
         if (length(output) > 1L)
             stop(gettextf("Located more than one %s output file (by engine %s) for vignette with name %s: %s",
                           sQuote(by),
                           sQuote(sprintf("%s::%s", engine$package, engine$name)),
-                          sQuote(name),
-                          paste(sprintf("%s (%g bytes)", sQuote(output), file.size(output)), collapse=", ")),
+                          sQuote(name), paste(sQuote(output), collapse=", ")),
                  domain = NA)
     }
 
@@ -169,8 +163,8 @@ function(package, dir, lib.loc = NULL,
 
     startdir <- getwd()
     for(i in seq_along(vigns$docs)) {
-        path <- vigns$docs[i]
-        file <- basename(path)
+        file <- vigns$docs[i]
+        file <- basename(file)
         name <- vigns$names[i]
     	engine <- vignetteEngine(vigns$engines[i])
 	enc <- vigns$encodings[i]
@@ -181,27 +175,20 @@ function(package, dir, lib.loc = NULL,
             message("  Running ", sQuote(file))
             .eval_with_capture({
                 result$tangle[[file]] <- tryCatch({
-                    engine$tangle(path, quiet = TRUE, encoding = enc)
+                    engine$tangle(file, quiet = TRUE, encoding = enc)
                     setwd(startdir) # in case a vignette changes the working dir
                     find_vignette_product(name, by = "tangle", main = FALSE, engine = engine)
-                }, error = identity)
+                }, error = function(e) e)
             })
         }
         if(weave) {
             setwd(startdir) # in case a vignette changes the working dir then errored out
             .eval_with_capture({
                 result$weave[[file]] <- tryCatch({
-                    if((engine$package == "knitr") &&
-                       (startsWith(engine$name, "rmarkdown")))
-                        engine$weave(path, quiet = TRUE,
-                                     encoding = enc,
-                                     output_dir = startdir)
-                    else
-                        engine$weave(path, quiet = TRUE,
-                                     encoding = enc)
+                    engine$weave(file, quiet = TRUE, encoding = enc)
                     setwd(startdir)
                     find_vignette_product(name, by = "weave", engine = engine)
-                }, error = identity)
+                }, error = function(e) e)
             })
         }
         setwd(startdir) # in case a vignette changes the working dir then errored out
@@ -254,7 +241,7 @@ function(package, dir, lib.loc = NULL,
                 .eval_with_capture({
                     result$source[[file]] <- tryCatch({
                         source(file)
-                    }, error = identity)
+                    }, error = function(e) e)
                 })
                 setwd(startdir)
             }
@@ -288,7 +275,7 @@ function(package, dir, lib.loc = NULL,
                     result$latex[[file]] <- tryCatch({
                        texi2pdf(file = output, clean = FALSE, quiet = TRUE)
                        find_vignette_product(name, by = "texi2pdf", engine = engine)
-                    }, error = identity)
+                    }, error = function(e) e)
                 })
             }
         }
@@ -312,24 +299,25 @@ function(package, dir, lib.loc = NULL,
     result
 }
 
-format.checkVignettes <-
+print.checkVignettes <-
 function(x, ...)
 {
-    myfmt <- function(y, title) {
-        if(length(y)) {
-            paste(c(paste0("\n", title, "\n"),
-                    unlist(Map(c,
-                               paste0("File ", names(y), ":"),
-                               lapply(y, as.character)),
-                           use.names = FALSE)),
-                  collapse = "\n")
+    mycat <- function(y, title) {
+        if(length(y)){
+            cat("\n", title, "\n\n", sep = "")
+            for(k in seq_along(y)) {
+                cat("File", names(y)[k], ":\n")
+                cat(as.character(y[[k]]), "\n")
+            }
         }
     }
-    c(character(),
-      myfmt(x$tangle, "*** Tangle Errors ***"),
-      myfmt(x$source, "*** Source Errors ***"),
-      myfmt(x$weave,  "*** Weave Errors ***"),
-      myfmt(x$latex,  "*** PDFLaTeX Errors ***"))
+
+    mycat(x$tangle, "*** Tangle Errors ***")
+    mycat(x$source, "*** Source Errors ***")
+    mycat(x$weave,  "*** Weave Errors ***")
+    mycat(x$latex,  "*** PDFLaTeX Errors ***")
+
+    invisible(x)
 }
 
 ### get the engine from a file
@@ -459,28 +447,6 @@ function(package, dir, subdirs = NULL, lib.loc = NULL, output = FALSE,
             sourcesI <- find_vignette_product(name, by = "tangle", main = FALSE, dir = docdir, engine = engine)
             sources[[file]] <- sourcesI
         }
-        ## If a package has vignettes 'foo.Rnw' and 'foo-xxx.Rnw' with
-        ## extracted sources 'foo.R' and 'foo-xxx.R', the above will
-        ## give both .R files as sources for 'foo.Rnw', as tangling
-        ## could split into several files and so matching file name
-        ## roots (without extensions) cannot look for exact matches
-        ## only.  However, if there were multiple matches but all
-        ## vignettes sources have an exact match, then we can drop the
-        ## non-exact matches from the multiple matches.
-        ## Ideally, we would teach R CMD build to process one vignette
-        ## source at a time and record the vignette products, and have
-        ## pkgVignettes() use the recorded info if available.
-        if(any(ind <- (lengths(sources) > 1L))) {
-            rootify <- function(s) sub("[.][^.]+$", "", basename(s))
-            dnm <- rootify(names(sources))
-            snm <- lapply(sources, rootify)
-            if(!any(is.na(match(dnm, unlist(snm))))) {
-                for(i in which(ind)) {
-                    sources[[i]] <-
-                        sources[[i]][is.na(match(snm[[i]], dnm[-i]))]
-                }
-            }
-        }
         z$sources <- sources
     }
 
@@ -588,7 +554,7 @@ buildVignettes <-
             tlim <- get_timeout(Sys.getenv("_R_CHECK_ONE_VIGNETTE_ELAPSED_TIMEOUT_",
                                            Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_")))
             tf <- tempfile()
-            status <- R_runR(Rcmd, "--vanilla --no-echo", elibs,
+            status <- R_runR(Rcmd, "--vanilla --slave", elibs,
                              stdout = tf, stderr = tf, timeout = tlim)
             unlink(tf2)
             ##print(status)

@@ -918,6 +918,7 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, dims, dimnames, indx, subs, x;
     int i, ndims, nsubs;
     int drop = 1, pok, exact = -1;
+    int named_x;
     R_xlen_t offset = 0;
 
     PROTECT(args);
@@ -983,10 +984,7 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (!(isVector(x) || isList(x) || isLanguage(x)))
 	errorcall(call, R_MSG_ob_nonsub, type2char(TYPEOF(x)));
 
-#ifndef SWITCH_TO_REFCNT
-    int named_x;
     named_x = NAMED(x);  /* x may change below; save this now.  See PR#13411 */
-#endif
 
     if(nsubs == 1) { /* vector indexing */
 	SEXP thesub = CAR(subs);
@@ -995,24 +993,20 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (len > 1) {
 #ifdef SWITCH_TO_REFCNT
 	    if (IS_GETTER_CALL(call)) {
-		/* This is (most likely) a getter call in a complex
+		/* this is (most likely) a getter call in a complex
 		   assighment so we duplicate as needed. The original
 		   x should have been duplicated if it might be
-		   shared, but might get additional references before
-		   it arrives here. */
-		if (MAYBE_SHARED(x)) {
-		    x = shallow_duplicate(x);
-		    UNPROTECT(1); /* old x */
-		    PROTECT(x);
-		}
+		   shared */
+		if (MAYBE_SHARED(x))
+		    error("getter call used outside of a complex assignment.");
 		x = vectorIndex(x, thesub, 0, len-1, pok, call, TRUE);
 	    }
 	    else
 		x = vectorIndex(x, thesub, 0, len-1, pok, call, FALSE);
 #else
 	    x = vectorIndex(x, thesub, 0, len-1, pok, call, FALSE);
-	    named_x = NAMED(x);
 #endif
+	    named_x = NAMED(x);
 	    UNPROTECT(1); /* x */
 	    PROTECT(x);
 	}
@@ -1067,15 +1061,11 @@ SEXP attribute_hidden do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error("invalid subscript for pairlist");
 #endif
 	ans = CAR(nthcdr(x, (int) offset));
-#ifndef SWITCH_TO_REFCNT
 	RAISE_NAMED(ans, named_x);
-#endif
     } else if(isVectorList(x)) {
 	/* did unconditional duplication before 2.4.0 */
 	ans = VECTOR_ELT(x, offset);
-#ifndef SWITCH_TO_REFCNT
 	RAISE_NAMED(ans, named_x);
-#endif
     } else {
 	ans = allocVector(TYPEOF(x), 1);
 	switch (TYPEOF(x)) {

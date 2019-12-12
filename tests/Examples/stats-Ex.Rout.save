@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2019-12-11 r77551) -- "Unsuffered Consequences"
+R version 3.6.2 beta (2019-12-03 r77509) -- "Dark and Stormy Night"
 Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -2113,6 +2113,16 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 > ## following example(glm)
 > ## Don't show: 
 > example(glm, echo = FALSE)
+  treatment outcome counts
+1         1       1     18
+2         1       2     17
+3         1       3     15
+4         2       1     20
+5         2       2     10
+6         2       3     20
+7         3       1     25
+8         3       2     13
+9         3       3     12
 > ## End(Don't show)
 > drop1(glm.D93, test = "Chisq")
 Single term deletions
@@ -2569,6 +2579,16 @@ Frequency = 1
 > ## Don't show: 
 > require(utils)
 > example("glm", echo = FALSE)
+  treatment outcome counts
+1         1       1     18
+2         1       2     17
+3         1       3     15
+4         2       1     20
+5         2       2     10
+6         2       3     20
+7         3       1     25
+8         3       2     13
+9         3       3     12
 > ## End(Don't show)
 > anova(glm.D93)
 Analysis of Deviance Table
@@ -3111,125 +3131,18 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 > plot(approxfun(x, y, rule = 2:1), 0, 11,
 +      col = "tomato", add = TRUE, lty = 3, lwd = 2)
 > 
-> ### Treatment of 'NA's -- are kept if  na.rm=FALSE :
-> 
-> xn <- 1:4
-> yn <- c(1,NA,3:4)
-> xout <- (1:9)/2
-> ## Default behavior (na.rm = TRUE): NA's omitted; extrapolation gives NA
-> data.frame(approx(xn,yn, xout))
-    x   y
-1 0.5  NA
-2 1.0 1.0
-3 1.5 1.5
-4 2.0 2.0
-5 2.5 2.5
-6 3.0 3.0
-7 3.5 3.5
-8 4.0 4.0
-9 4.5  NA
-> data.frame(approx(xn,yn, xout, rule = 2))# -> *constant* extrapolation
-    x   y
-1 0.5 1.0
-2 1.0 1.0
-3 1.5 1.5
-4 2.0 2.0
-5 2.5 2.5
-6 3.0 3.0
-7 3.5 3.5
-8 4.0 4.0
-9 4.5 4.0
-> ## New (2019-2020)  na.rm = FALSE: NA's are "kept"
-> data.frame(approx(xn,yn, xout, na.rm=FALSE, rule = 2))
-    x   y
-1 0.5 1.0
-2 1.0 1.0
-3 1.5  NA
-4 2.0  NA
-5 2.5  NA
-6 3.0 3.0
-7 3.5 3.5
-8 4.0 4.0
-9 4.5 4.0
-> data.frame(approx(xn,yn, xout, na.rm=FALSE, rule = 2, method="constant"))
-    x  y
-1 0.5  1
-2 1.0  1
-3 1.5  1
-4 2.0 NA
-5 2.5 NA
-6 3.0  3
-7 3.5  3
-8 4.0  4
-9 4.5  4
-> 
-> ## NA's in x[] are not allowed:
-> stopifnot(inherits( try( approx(yn,yn, na.rm=FALSE) ), "try-error"))
-Error in approx(yn, yn, na.rm = FALSE) : 
-  approx(x,y, .., na.rm=FALSE): NA values in x are not allowed
-> 
-> ## Give a nice overview of all possibilities  rule * method * na.rm :
-> ##             -----------------------------  ====   ======   =====
-> ## extrapolations "N":= NA;   "C":= Constant :
-> rules <- list(N=1, C=2, NC=1:2, CN=2:1)
-> methods <- c("constant","linear")
-> ry <- sapply(rules, function(R) {
-+        sapply(methods, function(M)
-+         sapply(setNames(,c(TRUE,FALSE)), function(na.)
-+                  approx(xn, yn, xout=xout, method=M, rule=R, na.rm=na.)$y),
-+         simplify="array")
-+    }, simplify="array")
-> names(dimnames(ry)) <- c("x = ", "na.rm", "method", "rule")
-> dimnames(ry)[[1]] <- format(xout)
-> ftable(aperm(ry, 4:1)) # --> (4 * 2 * 2) x length(xout)  =  16 x 9 matrix
-                    x =  0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5
-rule method   na.rm                                         
-N    constant TRUE        NA 1.0 1.0 1.0 1.0 3.0 3.0 4.0  NA
-              FALSE       NA 1.0 1.0  NA  NA 3.0 3.0 4.0  NA
-     linear   TRUE        NA 1.0 1.5 2.0 2.5 3.0 3.5 4.0  NA
-              FALSE       NA 1.0  NA  NA  NA 3.0 3.5 4.0  NA
-C    constant TRUE       1.0 1.0 1.0 1.0 1.0 3.0 3.0 4.0 4.0
-              FALSE      1.0 1.0 1.0  NA  NA 3.0 3.0 4.0 4.0
-     linear   TRUE       1.0 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.0
-              FALSE      1.0 1.0  NA  NA  NA 3.0 3.5 4.0 4.0
-NC   constant TRUE        NA 1.0 1.0 1.0 1.0 3.0 3.0 4.0 4.0
-              FALSE       NA 1.0 1.0  NA  NA 3.0 3.0 4.0 4.0
-     linear   TRUE        NA 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.0
-              FALSE       NA 1.0  NA  NA  NA 3.0 3.5 4.0 4.0
-CN   constant TRUE       1.0 1.0 1.0 1.0 1.0 3.0 3.0 4.0  NA
-              FALSE      1.0 1.0 1.0  NA  NA 3.0 3.0 4.0  NA
-     linear   TRUE       1.0 1.0 1.5 2.0 2.5 3.0 3.5 4.0  NA
-              FALSE      1.0 1.0  NA  NA  NA 3.0 3.5 4.0  NA
-> ## Don't show: 
-> stopifnot(exprs = {
-+  identical(unname(ry),
-+    array(c(NA, 1, 1,   1, 1, 3, 3, 4, NA,      NA, 1,  1, NA, NA, 3, 3, 4, NA,
-+            NA, 1, 1.5, 2, 2.5, 3, 3.5, 4, NA,  NA, 1, NA, NA, NA, 3, 3.5, 4, NA,
-+             1, 1, 1,   1, 1, 3, 3, 4, 4,        1, 1,  1, NA, NA, 3, 3, 4, 4,
-+             1, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4,    1, 1, NA, NA, NA, 3, 3.5, 4, 4,
-+            NA, 1, 1,   1, 1, 3, 3, 4, 4,       NA, 1,  1, NA, NA, 3, 3, 4, 4,
-+            NA, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4,   NA, 1, NA, NA, NA, 3, 3.5, 4, 4,
-+             1, 1, 1,   1, 1, 3, 3, 4, NA,       1, 1,  1, NA, NA, 3, 3, 4, NA,
-+             1, 1, 1.5, 2, 2.5, 3, 3.5, 4, NA,   1, 1, NA, NA, NA, 3, 3.5, 4, NA),
-+          dim = c(9L, 2L, 2L, 4L)))
-+  identical(approxfun(xn,yn, method="constant", rule=2, na.rm=FALSE)(xout),
-+             as.vector(ry[,"FALSE", "constant","C"]))
-+  identical(approxfun(xn,yn, method="linear", rule=2:1, na.rm=FALSE)(xout),
-+             as.vector(ry[,"FALSE", "linear", "CN"]))
-+ })
-> ## End(Don't show)
-> 
 > ## Show treatment of 'ties' :
 > 
 > x <- c(2,2:4,4,4,5,5,7,7,7)
 > y <- c(1:6, 5:4, 3:1)
 > (amy <- approx(x, y, xout = x)$y) # warning, can be avoided by specifying 'ties=':
-Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
+Warning in regularize.values(x, y, ties, missing(ties)) :
   collapsing to unique 'x' values
  [1] 1.5 1.5 3.0 5.0 5.0 5.0 4.5 4.5 2.0 2.0 2.0
 > op <- options(warn=2) # warnings would be error
 > stopifnot(identical(amy, approx(x, y, xout = x, ties=mean)$y))
-> (ay <- approx(x, y, xout = x, ties = "ordered")$y)
+> options(op) # revert
+> (ay  <- approx(x, y, xout = x, ties = "ordered")$y)
  [1] 2 2 3 6 6 6 4 4 1 1 1
 > stopifnot(amy == c(1.5,1.5, 3, 5,5,5, 4.5,4.5, 2,2,2),
 +           ay  == c(2, 2,    3, 6,6,6, 4, 4,    1,1,1))
@@ -3237,7 +3150,7 @@ Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm) :
  [1] 1 1 3 4 4 4 4 4 1 1 1
 > approx(x, y, xout = x, ties = max)$y
  [1] 2 2 3 6 6 6 5 5 3 3 3
-> options(op) # revert 'warn'ing level
+> 
 > 
 > 
 > 
@@ -3922,7 +3835,7 @@ sigma^2 estimated as 0.4566:  log likelihood = -101.2,  aic = 212.4
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x49532f0>
+<environment: 0x486ff38>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -4959,7 +4872,7 @@ function (V)
     r[cbind(1L:p, 1L:p)] <- 1
     r
 }
-<bytecode: 0x57518e0>
+<bytecode: 0x55a3348>
 <environment: namespace:stats>
 > stopifnot(all.equal(Cl, cov2cor(cov(longley))),
 +           all.equal(cor(longley, method = "kendall"),
@@ -5488,7 +5401,8 @@ surv(ft, case) ~ a + b * f
 > 
 > x <- c("a name", "another name")
 > try( reformulate(x) ) # -> Error ..... unexpected symbol
-Error in str2lang(termtext) : <text>:1:3: unexpected symbol
+Error in parse(text = s, keep.source = FALSE) : 
+  <text>:1:3: unexpected symbol
 1: a name
       ^
 > ## rather backquote the strings in x :
@@ -6696,12 +6610,11 @@ and	9 plateau levels (y) with summary
 > 
 > ## Advanced: What's inside the function closure?
 > ls(environment(Fn12))
-[1] "f"      "method" "na.rm"  "nobs"   "x"      "y"      "yleft"  "yright"
-> ## "f"     "method" "na.rm"  "nobs"   "x"     "y"    "yleft"  "yright"
+[1] "f"      "method" "nobs"   "x"      "y"      "yleft"  "yright"
+> ##[1] "f"  "method"  "n"  "x"  "y"  "yleft"  "yright"
 > utils::ls.str(environment(Fn12))
 f :  num 0
 method :  int 2
-na.rm :  logi TRUE
 nobs :  int 12
 x :  num [1:8] -2.2 -2 -0.6 0 0.1 0.6 0.8 0.9
 y :  num [1:8] 0.0833 0.1667 0.3333 0.5 0.5833 ...
@@ -7106,7 +7019,7 @@ List of 12
  $ dev.resids:function (y, mu, wt)  
  $ aic       :function (y, n, mu, wt, dev)  
  $ mu.eta    :function (eta)  
- $ initialize:  expression({  if (any(y <= 0))  stop("non-positive values not allowed for the 'Gamma' family")  n <- rep.int(1, n| __truncated__
+ $ initialize:  expression({  if (any(y <= 0))  stop("non-positive values not allowed for the 'gamma' family")  n <- rep.int(1, n| __truncated__
  $ validmu   :function (mu)  
  $ valideta  :function (eta)  
  $ simulate  :function (object, nsim)  
@@ -7583,7 +7496,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env = new.env()))
-<environment: 0x51561a0>
+<environment: 0x54b0e40>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -7975,7 +7888,7 @@ Crew  Child        0      0
 > counts <- c(18,17,15,20,10,20,25,13,12)
 > outcome <- gl(3,1,9)
 > treatment <- gl(3,3)
-> data.frame(treatment, outcome, counts) # showing data
+> print(d.AD <- data.frame(treatment, outcome, counts))
   treatment outcome counts
 1         1       1     18
 2         1       2     17
@@ -12277,14 +12190,14 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<bytecode: 0x46a65e0>
-<environment: 0x46af028>
+<bytecode: 0x497c360>
+<environment: 0x49a3d40>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<bytecode: 0x46a6490>
-<environment: 0x46af028>
+<bytecode: 0x497c210>
+<environment: 0x49a3d40>
 
 > 
 > 
@@ -16418,6 +16331,16 @@ Max.     2.00  1.03072752
 > ##-- Continued from '?glm':
 > ## Don't show: 
 > utils::example("glm", echo = FALSE)
+  treatment outcome counts
+1         1       1     18
+2         1       2     17
+3         1       3     15
+4         2       1     20
+5         2       2     10
+6         2       3     20
+7         3       1     25
+8         3       2     13
+9         3       3     12
 > ## End(Don't show)
 > print(ag <- anova(glm.D93))
 Analysis of Deviance Table
@@ -16492,13 +16415,13 @@ Step function with continuity 'f'= 0.2 ,  3 knots at
 > ## look at the internal structure:
 > unclass(sfun0)
 function (v) 
-.approxfun(x, y, v, method, yleft, yright, f, na.rm)
-<bytecode: 0x2ddc998>
-<environment: 0x3b8d9a8>
+.approxfun(x, y, v, method, yleft, yright, f)
+<bytecode: 0x3f22868>
+<environment: 0x490c708>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
-[1] "f"      "method" "na.rm"  "x"      "y"      "yleft"  "yright"
+[1] "f"      "method" "x"      "y"      "yleft"  "yright"
 > 
 > x0 <- seq(0.5, 3.5, by = 0.25)
 > rbind(x = x0, f.f0 = sfun0(x0), f.f02 = sfun.2(x0),
@@ -17204,7 +17127,6 @@ sample estimates:
 mean of x mean of y 
      0.75      2.33 
 
-> 
 > ## Formula interface
 > t.test(extra ~ group, data = sleep)
 
@@ -17218,39 +17140,6 @@ alternative hypothesis: true difference in means is not equal to 0
 sample estimates:
 mean in group 1 mean in group 2 
            0.75            2.33 
-
-> 
-> ## Formula interface to one-sample test
-> t.test(extra ~ 1, data = sleep)
-
-	One Sample t-test
-
-data:  extra
-t = 3.413, df = 19, p-value = 0.002918
-alternative hypothesis: true mean is not equal to 0
-95 percent confidence interval:
- 0.5955845 2.4844155
-sample estimates:
-mean of x 
-     1.54 
-
-> 
-> ## Formula interface to paired test
-> ## The sleep data are actually paired, so could have been in wide format:
-> sleep2 <- reshape(sleep, direction = "wide", 
-+                   idvar = "ID", timevar = "group")
-> t.test(Pair(extra.1, extra.2) ~ 1, data = sleep2)
-
-	Paired t-test
-
-data:  Pair(extra.1, extra.2)
-t = -4.0621, df = 9, p-value = 0.002833
-alternative hypothesis: true difference in means is not equal to 0
-95 percent confidence interval:
- -2.4598858 -0.7001142
-sample estimates:
-mean of the differences 
-                  -1.58 
 
 > 
 > 
@@ -18281,26 +18170,6 @@ alternative hypothesis: true location is less than 0
 
 >                                             # approximation
 > 
-> ## Formula interface to one-sample and paired tests
-> 
-> depression <- data.frame(first = x, second = y, change = y - x)
-> wilcox.test(change ~ 1, data = depression)
-
-	Wilcoxon signed rank test
-
-data:  change
-V = 5, p-value = 0.03906
-alternative hypothesis: true location is not equal to 0
-
-> wilcox.test(Pair(first, second) ~ 1, data = depression)
-
-	Wilcoxon signed rank test
-
-data:  Pair(first, second)
-V = 40, p-value = 0.03906
-alternative hypothesis: true location shift is not equal to 0
-
-> 
 > ## Two-sample test.
 > ## Hollander & Wolfe (1973), 69f.
 > ## Permeability constants of the human chorioamnion (a placental
@@ -18355,7 +18224,6 @@ data:  Ozone by Month
 W = 127.5, p-value = 0.0001208
 alternative hypothesis: true location shift is not equal to 0
 
-> 
 > 
 > 
 > 
@@ -18874,7 +18742,7 @@ Number of Fisher Scoring iterations: 6
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  6.832 0.222 7.091 0 0 
+Time elapsed:  6.318 0.185 6.543 0 0 
 > grDevices::dev.off()
 null device 
           1 

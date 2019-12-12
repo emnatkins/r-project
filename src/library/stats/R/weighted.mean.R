@@ -33,7 +33,7 @@ weighted.mean.default <- function(x, w, ..., na.rm = FALSE)
 
 ## see note for ?mean.Date
 weighted.mean.Date <- function (x, w, ...)
-    .Date(weighted.mean(unclass(x), w, ...))
+    structure(weighted.mean(unclass(x), w, ...), class = "Date")
 
 weighted.mean.POSIXct <- function (x, w, ...)
     .POSIXct(weighted.mean(unclass(x), w, ...), attr(x, "tzone"))
@@ -42,4 +42,5 @@ weighted.mean.POSIXlt <- function (x, w, ...)
     as.POSIXlt(weighted.mean(as.POSIXct(x), w, ...))
 
 weighted.mean.difftime <- function (x, w, ...)
-    .difftime(weighted.mean(unclass(x), w, ...), attr(x, "units"))
+    structure(weighted.mean(unclass(x), w, ...),
+              units = attr(x, "units"), class = "difftime")

@@ -188,17 +188,16 @@ static double myfmod(double x1, double x2)
     if (x2 == 0.0) return R_NaN;
     if(fabs(x2) > q_1_eps && R_FINITE(x1) && fabs(x1) <= fabs(x2)) {
 	return
-	    (fabs(x1) == fabs(x2)) ? 0 :
 	    ((x1 < 0 && x2 > 0) ||
-	     (x2 < 0 && x1 > 0))
-	     ? x1+x2  // differing signs
-	     : x1   ; // "same" signs (incl. 0)
+	     (x1 > 0 && x2 < 0))
+	    ? x1+x2  // differing signs
+	    : x1   ; // "same" signs (incl. 0)
     }
     double q = x1 / x2;
     if(R_FINITE(q) && (fabs(q) > q_1_eps))
 	warning(_("probable complete loss of accuracy in modulus"));
     LDOUBLE tmp = (LDOUBLE)x1 - floor(q) * (LDOUBLE)x2;
-    return (double) (tmp - floorl(tmp/x2) * x2);
+    return (double) tmp - floorl(tmp/x2) * x2;
 }
 
 static double myfloor(double x1, double x2)
@@ -212,7 +211,7 @@ static double myfloor(double x1, double x2)
 	       (x1 > 0 && x2 < 0) // differing signs
 	       ? -1 : 0);
     LDOUBLE tmp = (LDOUBLE)x1 - floor(q) * (LDOUBLE)x2;
-    return (double) (floor(q) + floorl(tmp/x2));
+    return (double) floor(q) + floorl(tmp/x2);
 }
 
 double R_pow(double x, double y) /* = x ^ y */
@@ -1634,7 +1633,6 @@ SEXP attribute_hidden do_Math2(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 
     PROTECT(args = evalListKeepMissing(args, env));
-    R_args_enable_refcnt(args);
     PROTECT(call2 = lang2(CAR(call), R_NilValue));
     SETCDR(call2, args);
 
@@ -1655,7 +1653,7 @@ SEXP attribute_hidden do_Math2(SEXP call, SEXP op, SEXP args, SEXP env)
 		if (do_Math2_formals == NULL)
 		    do_Math2_formals = allocFormalsList2(install("x"),
 							 install("digits"));
-		PROTECT(args = matchArgs_NR(do_Math2_formals, args, call));
+		PROTECT(args = matchArgs(do_Math2_formals, args, call));
 		nprotect++;
 	    }
 	    if (length(CADR(args)) == 0)
@@ -1769,7 +1767,7 @@ SEXP attribute_hidden do_log_builtin(SEXP call, SEXP op, SEXP args, SEXP env)
 	/* match argument names if supplied */
 	/* will signal an error unless there are one or two arguments */
 	/* after the match, length(args) will be 2 */
-	PROTECT(args = matchArgs_NR(do_log_formals, args, call));
+	PROTECT(args = matchArgs(do_log_formals, args, call));
 
 	if(CAR(args) == R_MissingArg)
 	    error(_("argument \"%s\" is missing, with no default"), "x");

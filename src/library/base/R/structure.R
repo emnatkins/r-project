@@ -1,7 +1,7 @@
 #  File src/library/base/R/structure.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,18 +26,16 @@ structure <- function (.Data, ...)
     attrib <- list(...)
     if(length(attrib)) {
         specials <- c(".Dim", ".Dimnames", ".Names", ".Tsp", ".Label")
-        attrnames <- names(attrib)
-        m <- match(attrnames, specials)
-        ok <- !is.na(m)
-        if(any(ok)) {
-            replace <- c("dim", "dimnames", "names", "tsp", "levels")
-            names(attrib)[ok] <- replace[m[ok]]
-        }
+        replace <- c("dim", "dimnames", "names", "tsp", "levels")
+	m <- match(names(attrib), specials)
+	ok <- !is.na(m)
+	names(attrib)[ok] <- replace[m[ok]]
         ## prior to 2.5.0 factors would deparse to double codes
-        if(any(attrib[["class", exact = TRUE]] == "factor")
+	if("factor" %in% attrib[["class", exact = TRUE]]
            && typeof(.Data) == "double")
             storage.mode(.Data) <- "integer"
         attributes(.Data) <- c(attributes(.Data), attrib)
+        .Data
     }
-    .Data
+    else .Data
 }

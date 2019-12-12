@@ -51,7 +51,7 @@ static rgb cursor_cmap [] = {
     0xFFFFFFFFL,
 };
 
-static GAbyte hand_pixels [] = {
+static byte hand_pixels [] = {
     2,2,2,2,2,2,0,0,0,2,2,2,2,2,2,2,
     2,2,2,2,2,0,1,1,0,0,2,2,2,2,2,2,
     2,2,2,2,2,0,1,1,0,0,2,2,2,2,2,2,
@@ -116,12 +116,12 @@ static cursor new_cursor_object(HCURSOR hc)
 /*
  *  Public constructors.
  */
-cursor createcursor(point offset, GAbyte *white, GAbyte *black)
+cursor createcursor(point offset, byte *white, byte *black)
 {
     cursor c;
     HCURSOR hc;
-    GAbyte *andmask;	/* andmask = ~blackmask & ~whitemask */
-    GAbyte *xormask;	/* xormask = ~blackmask &  whitemask */
+    byte *andmask;	/* andmask = ~blackmask & ~whitemask */
+    byte *xormask;	/* xormask = ~blackmask &  whitemask */
     int w, y;
     int max_width, max_height, row_bytes;
 
@@ -134,8 +134,8 @@ cursor createcursor(point offset, GAbyte *white, GAbyte *black)
     row_bytes  = (max_width + 7) / 8;
 
     /* Create the data arrays: */
-    andmask = array(max_height * row_bytes, GAbyte);
-    xormask = array(max_height * row_bytes, GAbyte);
+    andmask = array(max_height * row_bytes, byte);
+    xormask = array(max_height * row_bytes, byte);
 
     /* Assign the data into the arrays: */
     for (y=0; y < max_height; y++) {
@@ -165,11 +165,11 @@ cursor createcursor(point offset, GAbyte *white, GAbyte *black)
     return c;
 }
 
-static GAbyte form_and_byte(image img, int x, int y)
+static byte form_and_byte(image img, int x, int y)
 {
     int i;
     rgb pixel;
-    GAbyte result = 0x00;
+    byte result = 0x00;
 
     for (i=0; i<8; i++) {
 	result <<= 1;
@@ -180,11 +180,11 @@ static GAbyte form_and_byte(image img, int x, int y)
     return result;
 }
 
-static GAbyte form_xor_byte(image img, int x, int y)
+static byte form_xor_byte(image img, int x, int y)
 {
     int i;
     rgb pixel;
-    GAbyte result = 0x00;
+    byte result = 0x00;
 
     for (i=0; i<8; i++) {
 	result <<= 1;
@@ -199,8 +199,8 @@ cursor newcursor(point p, image img)
 {
     cursor c;
     HCURSOR hc;
-    GAbyte *andmask;
-    GAbyte *xormask;
+    byte *andmask;
+    byte *xormask;
     int w, y;
     int max_width, max_height, row_bytes;
 
@@ -212,8 +212,8 @@ cursor newcursor(point p, image img)
     row_bytes  = (max_width + 7) / 8;
 
     /* Create the data arrays: */
-    andmask = array(max_height * row_bytes, GAbyte);
-    xormask = array(max_height * row_bytes, GAbyte);
+    andmask = array(max_height * row_bytes, byte);
+    xormask = array(max_height * row_bytes, byte);
 
     /* Assign the data into the arrays: */
     for (y=0; y < max_height; y++) {
