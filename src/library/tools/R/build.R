@@ -1,7 +1,7 @@
 #  File src/library/tools/R/build.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -697,13 +697,8 @@ inRbuildignore <- function(files, pkgdir) {
             if(dep$version >= package_version(ver)) return()
         }
 
-        ## <FIXME>
-        ## This should no longer be necessary?
-        ## <COMMENT>
-        ## on.exit(Sys.setlocale("LC_CTYPE", Sys.getlocale("LC_CTYPE")))
-        ## Sys.setlocale("LC_CTYPE", "C")
-        ## </COMMENT>
-        ## </FIXME>
+        on.exit(Sys.setlocale("LC_CTYPE", Sys.getlocale("LC_CTYPE")))
+        Sys.setlocale("LC_CTYPE", "C")
 
         flatten <- function(x) {
             if(length(x) == 3L)
@@ -1046,8 +1041,7 @@ inRbuildignore <- function(files, pkgdir) {
         exclude <- exclude | grepl("^.Rbuildindex[.]", allfiles)
         ## or simply?  exclude <- exclude | startsWith(allfiles, ".Rbuildindex.")
         exclude <- exclude | (bases %in% .hidden_file_exclusions)
-        unlink(allfiles[exclude], recursive = TRUE, force = TRUE,
-               expand = FALSE)
+        unlink(allfiles[exclude], recursive = TRUE, force = TRUE)
         setwd(owd)
 
         ## Fix up man, R, demo inst/doc directories
@@ -1091,9 +1085,8 @@ inRbuildignore <- function(files, pkgdir) {
                recursive = TRUE)
 
         ## work on 'data' directory if present
-        if(!str_parse_logic(desc["LazyData"], FALSE) &&
-           (dir.exists(file.path(pkgname, "data")) ||
-            file_test("-f", file.path(pkgname, "R", "sysdata.rda")))) {
+        if(dir.exists(file.path(pkgname, "data")) ||
+           file_test("-f", file.path(pkgname, "R", "sysdata.rda"))) {
             messageLog(Log, "looking to see if a 'data/datalist' file should be added")
             ## in some cases data() needs the package installed as
             ## there are links to the package's namespace

@@ -1,6 +1,6 @@
 % File src/library/base/man/parse.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2019 R Core Team
 % Distributed under GPL 2 or later
 
 \name{parse}
@@ -47,8 +47,7 @@ str2expression(text)
     to re-encode the input.  To do the latter, specify the encoding as
     part of the connection \code{con} or \emph{via}
     \code{\link{options}(encoding=)}: see the example under
-    \code{\link{file}}. Argument \code{encoding = "latin1"} is ignored
-    with a warning when running in a MBCS locale.}
+    \code{\link{file}}.}
   \item{s}{a \code{\link{character}} vector of length \code{1}, i.e., a
     \dQuote{string}.}
 }

@@ -1036,7 +1036,7 @@ for(mat in mat.l) {
     n.set <- if(nrow(mat) < 999) -3:3 else 0:3
     stopifnot(
         vapply(n.set, function(n) identCO (head(mat, n), headI(mat, n)), NA),
-        vapply(n.set, function(n) identCO (tail (mat, n, keepnums=FALSE),
+        vapply(n.set, function(n) identCO (tail (mat, n, addrownums=FALSE),
                                            tailI(mat, n)), NA),
         vapply(n.set, function(n) all.equal(tail(mat, n), tailI(mat, n),
                                             check.attributes=FALSE), NA))
@@ -1276,8 +1276,7 @@ stopifnot( # depends on contrasts:
 ## a 'use.na=TRUE' example
 dd <- data.frame(x1 = rep(letters[1:2], each=3),
                  x2 = rep(LETTERS[1:3], 2),
-                 y = rnorm(6),
-                 stringsAsFactors = TRUE)
+                 y = rnorm(6))
 dd[6,2] <- "B" # => no (b,C) combination => that coef should be NA
 fm3 <- lm(y ~ x1*x2, dd)
 (d3F <- dummy.coef(fm3, use.na=FALSE))

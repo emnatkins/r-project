@@ -913,7 +913,7 @@ aa[["row.names"]] <- A
 aa
 ## wrong printed names in 1.7.1
 
-## assigning to NULL --- now consistently behaves as if assigning to list() !
+## assigning to NULL
 a <- NULL
 a[["a"]] <- 1
 a
@@ -970,9 +970,7 @@ dat[3, 1] <- dat[4, 2] <- NA
 lm.influence(lm(y ~ x1 + x2, data=dat, weights=wt, na.action=na.omit))
 lm.influence(lm(y ~ x1 + x2, data=dat, weights=wt, na.action=na.exclude))
 lm.influence(lm(y ~ 0, data=dat, weights=wt, na.action=na.omit))
-print(width = 99,
 lm.influence(lm(y ~ 0, data=dat, weights=wt, na.action=na.exclude))
-) ; stopifnot(getOption("width") == 80)
 lm.influence(lm(y ~ 0 + x3, data=dat, weights=wt, na.action=na.omit))
 lm.influence(lm(y ~ 0 + x3, data=dat, weights=wt, na.action=na.exclude))
 lm.influence(lm(y ~ 0, data=dat, na.action=na.exclude))
@@ -1607,10 +1605,10 @@ m21[which(m21 == 0, arr.ind = TRUE)]
 ## tests of indexing as quoted in Extract.Rd
 x <- NULL
 x$foo <- 2
-x # now, a list
+x # length-1 vector
 x <- NULL
 x[[2]] <- pi
-x # now, a list, too
+x # numeric vector
 x <- NULL
 x[[1]] <- 1:3
 x # list
@@ -1742,7 +1740,7 @@ f <- function(...) browser()
 do.call(f, mtcars)
 c
 
-op <- c(op, options(error = expression(NULL)))
+options(error = expression(NULL))
 f <- function(...) stop()
 do.call(f, mtcars)
 traceback()
@@ -1882,11 +1880,10 @@ d.AD <- data.frame(treatment = gl(3,3), outcome = gl(3,1,9),
                    counts = c(18,17,15,20,10,20,25,13,12))
 fit <- glm(counts ~ outcome + treatment, family = poisson,
            data = d.AD, weights = c(0, rep(1,8)))
-print(residuals(fit, type="working"),
-      width = 37) # first was NA < 2.4.0 //  using new 'width'
+residuals(fit, type="working") # first was NA < 2.4.0
 ## working residuals were NA for zero-weight cases.
 fit2 <- glm(counts ~ outcome + treatment, family = poisson,
-            data = d.AD, weights = c(0, rep(1,8)), y = FALSE)
+           data = d.AD, weights = c(0, rep(1,8)), y = FALSE)
 for(z in c("response", "working", "deviance", "pearson"))
     stopifnot(all.equal(residuals(fit, type=z), residuals(fit2, type=z),
                         scale = 1, tolerance = 1e-10))
@@ -2617,9 +2614,8 @@ is.unsorted(data.frame(x=3:4, y=1:2))
 
 library("methods")# (not needed here)
 assertError <- tools::assertError
-assertErrorV <- function(expr) assertError(expr, verbose=TRUE)
-assertErrorV( getMethod(ls, "bar", fdef=ls) )
-assertErrorV( getMethod(show, "bar") )
+assertError( getMethod(ls, "bar", fdef=ls), verbose=TRUE)
+assertError( getMethod(show, "bar"), verbose=TRUE)
 ## R < 2.15.1 gave
 ##   cannot coerce type 'closure' to vector of type 'character'
 
@@ -3070,11 +3066,11 @@ sprintf("%d", c(1,NA))
 sprintf("%d", c(NA,1))
 ##
 ## these should fail
-assertErrorV( sprintf("%d", 1.1) )
-assertErrorV( sprintf("%d", c(1.1,1)) )
-assertErrorV( sprintf("%d", c(1,1.1)) )
-assertErrorV( sprintf("%d", NaN) )
-assertErrorV( sprintf("%d", c(1,NaN)) )
+sprintf("%d", 1.1)
+sprintf("%d", c(1.1,1))
+sprintf("%d", c(1,1.1))
+sprintf("%d", NaN)
+sprintf("%d", c(1,NaN))
 
 
 ## formatting of named raws:
@@ -3117,8 +3113,8 @@ stopifnot(exprs = {
 stopifnot(exprs = 2 == 2)
 try(stopifnot(exprs = 1 > 2))
 ## passing an expression object:
-stopifnot(exprObject = expression(2 == 2, pi < 4))
-tryCatch(stopifnot(exprObject = expression(
+stopifnot(exprs = expression(2 == 2, pi < 4))
+tryCatch(stopifnot(exprs = expression(
                        2 == 2,
                        { cat("\n Kilroy again .."); TRUE },
                        pi < 4,

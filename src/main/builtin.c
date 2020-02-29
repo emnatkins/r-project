@@ -143,7 +143,7 @@ SEXP attribute_hidden do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
                                               install("add"),
                                               install("after"));
 
-    PROTECT(argList =  matchArgs_NR(do_onexit_formals, args, call));
+    PROTECT(argList =  matchArgs(do_onexit_formals, args, call));
     if (CAR(argList) == R_MissingArg) code = R_NilValue;
     else code = CAR(argList);
 
@@ -315,8 +315,7 @@ SEXP attribute_hidden do_envirgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    isNull(env))) {
 	if (isNull(env))
 	    error(_("use of NULL environment is defunct"));
-	if(MAYBE_SHARED(s) ||
-	   ((! IS_ASSIGNMENT_CALL(call)) && MAYBE_REFERENCED(s)))
+	if(MAYBE_SHARED(s))
 	    /* this copies but does not duplicate args or code */
 	    s = duplicate(s);
 	if (TYPEOF(BODY(s)) == BCODESXP)

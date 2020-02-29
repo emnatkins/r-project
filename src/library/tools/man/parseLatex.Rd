@@ -16,7 +16,7 @@
   characters.
 }
 \usage{
-parseLatex(text, filename = deparse1(substitute(text)),
+parseLatex(text, filename = deparse(substitute(text)),
            verbose = FALSE,
            verbatim = c("verbatim", "verbatim*",
                         "Sinput", "Soutput"))

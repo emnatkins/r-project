@@ -18,8 +18,9 @@
 
 
 RdTags <- function(Rd) {
-    res <- lapply(Rd, attr, "Rd_tag")
-    if(length(res)) simplify2array(res, FALSE) else character()
+    res <- sapply(Rd, attr, "Rd_tag")
+    if (!length(res)) res <- character()
+    res
 }
 
 isBlankRd <- function(x)
@@ -127,15 +128,12 @@ RweaveRdOptions <- function(options)
     options
 }
 
-tagged <- function(x, tag, srcref = NULL) {
-    attr(x, "Rd_tag") <- tag
-    attr(x, "srcref") <- srcref
-    x
-}
+tagged <- function(x, tag, srcref = NULL)
+    structure(x, Rd_tag = tag, srcref = srcref)
 
 evalWithOpt <- function(expr, options, env)
 {
-    res <- tagged("", "COMMENT")
+    res <- structure("", Rd_tag="COMMENT")
     if(options$eval){
         result <- tryCatch(withVisible(eval(expr, env)), error=function(e) e)
 
@@ -354,9 +352,9 @@ processRdIfdefs <- function(blocks, defines)
                         block <- tagged(block[[2L]], "#expanded")
                         setDynamicFlags(block, flag)
                     } else
-                        tagged(paste(tag, target, "not active"),
-                               "COMMENT",
-                               attr(block, "srcref"))
+                        structure(tagged(paste(tag, target, "not active"),
+                                         "COMMENT"),
+                                  srcref = attr(block, "srcref"))
 	    }
 	}
 	if (is.list(block)) {
@@ -369,8 +367,8 @@ processRdIfdefs <- function(blocks, defines)
 	    	    all <- seq_along(block)
 	    	    before <- all[all < i]
 	    	    after  <- all[all > i]
-	    	    block <- tagged(c(block[before], newval, block[after]),
-                                    tag, attr(block, "srcref"))
+	    	    block <- structure(tagged(c(block[before], newval, block[after]),
+	    	    			      tag), srcref = attr(block, "srcref"))
 	    	} else {
 	    	    flags <- flags | getDynamicFlags(newval)
 		    block[[i]] <- newval
@@ -441,7 +439,7 @@ prepare_Rd <-
 	    if (stage %in% stages)
 		Rd <- processRdSexprs(Rd, stage, options, macros=attr(Rd, "macros"))
 	if (pratt < 2L && stage2)
-	    Rd <- prepare2_Rd(Rd, Rdfile, stages)
+	    Rd <- prepare2_Rd(Rd, Rdfile)
 	meta <- attr(Rd, "meta")
 	if (pratt < 3L && stage3)
 	    Rd <- prepare3_Rd(Rd, Rdfile, msglevel = msglevel)
@@ -453,8 +451,7 @@ prepare_Rd <-
               srcref = srcref)
 }
 
-## auxiliary, currently called only from prepare_Rd(*, stage2 = TRUE)
-prepare2_Rd <- function(Rd, Rdfile, stages)
+prepare2_Rd <- function(Rd, Rdfile)
 {
     sections <- RdTags(Rd)
 
@@ -520,11 +517,6 @@ prepare2_Rd <- function(Rd, Rdfile, stages)
                 "USERMACRO", "\\newcommand", "\\renewcommand")
     drop <- drop | (sections %in% extras)
     bad <- sections %notin% c(names(sectionOrder), extras)
-    ## \Sexpr[stage=render] is OK, if we are not at the render stage yet
-    if ("render" %notin% stages) {
-      render <- vapply(Rd, function(r) getDynamicFlags(r)[["render"]], TRUE)
-      bad <- bad & (sections != "\\Sexpr" | !render)
-    }
     if (any(bad)) {
         for(s in which(bad))
             warnRd(Rd[[s]], Rdfile, "Section ",
@@ -551,7 +543,6 @@ prepare2_Rd <- function(Rd, Rdfile, stages)
     structure(Rd, meta = list(docType = docTypes))
 }
 
-## auxiliary, currently called only from prepare_Rd(*, stage3 = TRUE)
 prepare3_Rd <- function(Rd, Rdfile, msglevel = 0)
 {
     ## Drop 'empty' sections: less rigorous than checkRd test
@@ -564,16 +555,18 @@ prepare3_Rd <- function(Rd, Rdfile, msglevel = 0)
         else {
             tag <- attr(x, "Rd_tag")
             switch(tag,
-		   USERMACRO =, "\\newcommand" =, "\\renewcommand" =, COMMENT =
-                                                                          {},
-                   VERB =, RCODE =, TEXT =
-                                        if(any(grepl("[^[:space:]]", s,
-                                                     perl=TRUE, useBytes=TRUE)))
-                                            return(TRUE),
-                   return(TRUE))
+		   USERMACRO =,
+		   "\\newcommand" =,
+		   "\\renewcommand" =,
+		   COMMENT = {},
+                   VERB =,
+                   RCODE =,
+                   TEXT = if(any(grepl("[^[:space:]]", s, perl = TRUE, useBytes=TRUE))) return(TRUE),
+                   return(TRUE)
+                   )
         }
         this
-    }
+     }
     for (i in seq_along(Rd)) {
         this <- FALSE
         s0 <- section <- Rd[[i]]

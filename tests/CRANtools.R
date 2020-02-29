@@ -15,14 +15,7 @@ foo <- tryCatch(readLines(paste0(mirror, "/web/packages")),
                     ## q("no")
                 })
 
-if(.Platform$OS.type == "unix" &&
-   is.null(nsl("cran.r-project.org"))) {
-} else withVisible({
-    library(tools)
-    example("CRAN_package_db", run.donttest = TRUE)
-})
+library(tools)
+example("CRAN_package_db", run.donttest = TRUE)
 
 cat("Time elapsed: ", proc.time() - .ptime,"\n")
-
-
-

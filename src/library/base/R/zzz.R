@@ -1,7 +1,7 @@
 #  File src/library/base/R/zzz.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ is.name <- is.symbol
     baseGenerics <- c("Math", "Ops", "Summary", "Complex",
         "as.character", "as.data.frame", "as.environment", "as.matrix", "as.vector",
         "cbind", "labels", "print", "rbind", "rep", "seq", "seq.int",
-        "sequence", "solve", "summary", "t")
+        "solve", "summary", "t")
 
     utilsGenerics <- c("edit", "str")
 
@@ -72,7 +72,6 @@ assign(".External.graphics", function(.NAME, ..., PACKAGE) NULL,
        envir = .ArgsEnv)
 assign(".Internal", function(call) NULL, envir = .ArgsEnv)
 assign(".Primitive", function(name) NULL, envir = .ArgsEnv)
-assign(".class2", function(x) NULL, envir = .ArgsEnv)
 assign(".isMethodsDispatchOn", function(onOff = NULL) NULL, envir = .ArgsEnv)
 assign(".primTrace", function(obj) NULL, envir = .ArgsEnv)
 assign(".primUntrace", function(obj) NULL, envir = .ArgsEnv)
@@ -343,7 +342,6 @@ matrix(c("!", "hexmode",
          "anyDuplicated", "default",
          "anyDuplicated", "matrix",
          "anyNA", "POSIXlt",
-         "anyNA", "data.frame",
          "anyNA", "numeric_version",
          "aperm", "default",
          "aperm", "table",
@@ -573,7 +571,6 @@ matrix(c("!", "hexmode",
          "seq", "Date",
          "seq", "POSIXt",
          "seq", "default",
-         "sequence", "default",
          "solve", "default",
          "solve", "qr",
          "sort", "POSIXlt",

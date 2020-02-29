@@ -1,6 +1,6 @@
 % File src/library/base/man/options.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2019 R Core Team
 % Distributed under GPL 2 or later
 
 \name{options}
@@ -125,13 +125,8 @@ getOption(x, default = NULL)
     }
 
     \item{\code{deparse.max.lines}:}{controls the number of lines used
-      when deparsing in \code{\link{browser}}, upon entry to a function
-      whose debugging flag is set, and if option \code{traceback.max.lines}
-      is unset, of \code{\link{traceback}()}.  Initially unset, and only
-      used if set to a positive integer.}
-
-    \item{\code{traceback.max.lines}:}{controls the number of lines used
-      when deparsing in \code{\link{traceback}}, if set.
+      when deparsing in \code{\link{traceback}}, \code{\link{browser}},
+      and upon entry to a function whose debugging flag is set.
       Initially unset, and only used if set to a positive integer.}
 
     \item{\code{digits}:}{controls the number of \emph{significant} (see \code{\link{signif}}) digits to
@@ -155,7 +150,7 @@ getOption(x, default = NULL)
 
     \item{\code{echo}:}{logical.  Only used in non-interactive mode,
       when it controls whether input is echoed.  Command-line option
-      \option{--no-echo} sets this to \code{FALSE}, but otherwise
+      \option{--slave} sets this to \code{FALSE}, but otherwise
       it starts the session as \code{TRUE}.}
 
     \item{\code{encoding}:}{The name of an encoding, default
@@ -231,9 +226,9 @@ getOption(x, default = NULL)
 	  contain \code{NaN} or \code{Inf} values.  When deemed
 	  beneficial for performance, \code{"default"} may call the
 	  3-loop algorithm unconditionally, i.e., without checking the
-	  input for \code{NaN}/\code{Inf} values.  The 3-loop algorithm uses
-          (only) a \code{double} accumulator for summation, which is
-          consistent with the reference BLAS implementation.}
+	  input for NaN/Inf values.  The 3-loop algorithm uses (only) a
+	  \code{double} accumulator for summation, which is consistent
+	  with the reference BLAS implementation.}
 	\item{\code{"blas"}}{uses BLAS unconditionally without any
 	  checks and should be used with extreme caution.  BLAS
 	  libraries do not propagate \code{\link{NaN}} or
@@ -242,8 +237,8 @@ getOption(x, default = NULL)
 	\item{\code{"default.simd"}}{is experimental and will likely be
 	  removed in future versions of \R.  It provides the same behavior
 	  as \code{"default"}, but the check whether the input contains
-	  \code{NaN}/\code{Inf} values is faster on some SIMD hardware.
-          On older systems it will run correctly, but may be much slower than
+	  NaN/Inf values is faster on some SIMD hardware.  On older
+	  systems it will run correctly, but may be much slower than
 	  \code{"default"}.}
       }
     }
@@ -293,25 +288,20 @@ getOption(x, default = NULL)
     \item{\code{PCRE_limit_recursion}:}{Logical: should
       \code{\link{grep}(perl = TRUE)} and similar limit the maximal
       recursion allowed when matching?  PCRE can be built not to use a
-      recursion stack (see \code{\link{pcre_config}}), but it is by
+      recursion stack (see \code{\link{pcre_config}}, but it is by
       default with a recursion limit of 10000000 which potentially needs
       a very large C stack: see the discussion at
       \url{http://www.pcre.org/original/doc/html/pcrestack.html}.  If
       true, the limit is reduced using \R's estimate of the C stack size
       available (if known), otherwise 10000.  If \code{NA}, the limit is
-      imposed only if any input string has 1000 or more bytes. The limit
-      has no impact when PCRE's Just-in-Time compiler is used and it is
-      ignored with PCRE2 version >= 10.30, which no longer uses function
-      recursion for remembering backtracking positions.}
+      imposed only if any input string has 1000 or more bytes.}
 
      \item{\code{PCRE_study}:}{Logical or integer: should
       \code{\link{grep}(perl = TRUE)} and similar \sQuote{study} the
       patterns?  Either logical or a numerical threshold for the minimum
       number of strings to be matched for the pattern to be studied (the
       default is \code{10})).  Missing values and negative numbers are
-      treated as false. This option is ignore with PCRE2 (PCRE version >=
-      10.00) which does not have a separate study phase and patterns are
-      automatically optimized when possible.}
+      treated as false.}
 
     \item{\code{PCRE_use_JIT}:}{Logical: should \code{\link{grep}(perl =
 	TRUE)}, \code{\link{strsplit}(perl = TRUE)} and similar make use
@@ -421,7 +411,7 @@ getOption(x, default = NULL)
       on progress?  Set to \code{TRUE} by the command-line option
       \option{--verbose}.}
 
-    \item{\code{warn}:}{integer value to set the handling of warning messages.  If
+    \item{\code{warn}:}{sets the handling of warning messages.  If
       \code{warn} is negative all warnings are ignored.  If \code{warn}
       is zero (the default) warnings are stored until the top--level
       function returns.  If 10 or fewer warnings were signalled they

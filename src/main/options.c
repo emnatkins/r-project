@@ -137,40 +137,26 @@ SEXP GetOption1(SEXP tag)
     return CAR(opt);
 }
 
-int FixupWidth(SEXP width, warn_type warn)
+int GetOptionWidth(void)
 {
-    int w = asInteger(width);
-    if (w == NA_INTEGER || w < R_MIN_WIDTH_OPT || w > R_MAX_WIDTH_OPT) {
-	switch(warn) {
-	case iWARN: warning(_("invalid printing width %d, used 80"), w);
-	case iSILENT:
-	    return 80; // for SILENT and WARN
-	case iERROR: error(_("invalid printing width"));
-	}
+    int w;
+    w = asInteger(GetOption1(install("width")));
+    if (w < R_MIN_WIDTH_OPT || w > R_MAX_WIDTH_OPT) {
+	warning(_("invalid printing width, used 80"));
+	return 80;
     }
     return w;
 }
-int GetOptionWidth(void)
-{
-    return FixupWidth(GetOption1(install("width")), iWARN);
-}
 
-int FixupDigits(SEXP digits, warn_type warn)
-{
-    int d = asInteger(digits);
-    if (d == NA_INTEGER || d < R_MIN_DIGITS_OPT || d > R_MAX_DIGITS_OPT) {
-	switch(warn) {
-	case iWARN: warning(_("invalid printing digits %d, used 7"), d);
-	case iSILENT:
-	    return 7; // for SILENT and WARN
-	case iERROR: error(_("invalid printing digits %d"), d);
-	}
-    }
-    return d;
-}
 int GetOptionDigits(void)
 {
-    return FixupDigits(GetOption1(install("digits")), iWARN);
+    int d;
+    d = asInteger(GetOption1(install("digits")));
+    if (d < R_MIN_DIGITS_OPT || d > R_MAX_DIGITS_OPT) {
+	warning(_("invalid printing digits, used 7"));
+	return 7;
+    }
+    return d;
 }
 
 attribute_hidden
@@ -303,7 +289,7 @@ void attribute_hidden InitOptions(void)
     v = CDR(v);
 
     SET_TAG(v, install("echo"));
-    SETCAR(v, ScalarLogical(!R_NoEcho));
+    SETCAR(v, ScalarLogical(!R_Slave));
     v = CDR(v);
 
     SET_TAG(v, install("verbose"));
@@ -663,7 +649,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		/* Should be quicker than checking options(echo)
 		   every time R prompts for input:
 		   */
-		R_NoEcho = !k;
+		R_Slave = !k;
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarLogical(k)));
 	    }
 	    else if (streql(CHAR(namei), "OutDec")) {
@@ -790,10 +776,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 			SET_VECTOR_ELT(value, i,
 				       SetOption(tag, ScalarInteger(R_PCRE_study)));
 		}
-#ifdef HAVE_PCRE2
-		if (R_PCRE_study != -2)
-		    warning(_("'PCRE_study' has no effect with PCRE2"));
-#endif
 	    }
 	    else if (streql(CHAR(namei), "PCRE_use_JIT")) {
 		int use_JIT = asLogical(argi);
@@ -805,8 +787,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		R_PCRE_limit_recursion = asLogical(argi);
 		SET_VECTOR_ELT(value, i,
 			       SetOption(tag, ScalarLogical(R_PCRE_limit_recursion)));
-		/* could warn for PCRE2 >= 10.30, but the value is ignored also when
-		   JIT is used  */
 	    }
 	    else {
 		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));

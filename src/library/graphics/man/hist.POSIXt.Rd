@@ -12,12 +12,12 @@
 }
 \usage{
 \method{hist}{POSIXt}(x, breaks, \dots,
-     xlab = deparse1(substitute(x)),
+     xlab = deparse(substitute(x)),
      plot = TRUE, freq = FALSE,
      start.on.monday = TRUE, format, right = TRUE)
 
 \method{hist}{Date}(x, breaks, \dots,
-     xlab = deparse1(substitute(x)),
+     xlab = deparse(substitute(x)),
      plot = TRUE, freq = FALSE,
      start.on.monday = TRUE, format, right = TRUE)
 }

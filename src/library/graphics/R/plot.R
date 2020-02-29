@@ -1,7 +1,7 @@
 #  File src/library/graphics/R/plot.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -60,8 +60,8 @@ plot.default <-
     localBox    <- function(..., col, bg, pch, cex, lty, lwd) box(...)
     localWindow <- function(..., col, bg, pch, cex, lty, lwd) plot.window(...)
     localTitle  <- function(..., col, bg, pch, cex, lty, lwd) title(...)
-    xlabel <- if (!missing(x)) deparse1(substitute(x))
-    ylabel <- if (!missing(y)) deparse1(substitute(y))
+    xlabel <- if (!missing(x)) deparse(substitute(x))
+    ylabel <- if (!missing(y)) deparse(substitute(y))
     xy <- xy.coords(x, y, xlabel, ylabel, log)
     xlab <- if (is.null(xlab)) xy$xlab else xlab
     ylab <- if (is.null(ylab)) xy$ylab else ylab
@@ -115,7 +115,7 @@ plot.table <-
     function(x, type = "h", ylim = c(0, max(x)), lwd = 2,
              xlab = NULL, ylab = NULL, frame.plot = is.num, ...)
 {
-    xnam <- deparse1(substitute(x))
+    xnam <- deparse(substitute(x))
     rnk <- length(dim(x))
     if(rnk == 0L) stop("invalid table 'x'")
     if(rnk == 1L) {
@@ -154,7 +154,7 @@ function(formula, data = parent.frame(), ..., subset,
     ## see PR#10525
     nmdots <- names(dots)
     if ("main" %in% nmdots) dots[["main"]] <- enquote(dots[["main"]])
-    if ("sub"  %in% nmdots) dots[["sub" ]] <- enquote(dots[["sub"]])
+    if ("sub" %in% nmdots) dots[["sub"]] <- enquote(dots[["sub"]])
     if ("xlab" %in% nmdots) dots[["xlab"]] <- enquote(dots[["xlab"]])
 
     m$ylab <- m$... <- m$ask <- NULL
@@ -206,8 +206,8 @@ function(formula, data = parent.frame(), ..., subset,
                 if(horizontal && is.factor(mf[[i]])) {yl <- xl; xl <- ylab}
                 do.call(funname,
                         c(list(mf[[i]], y, ylab = yl, xlab = xl), dots))
-	    }
-	} else { # no non-response variable names: only (y, ylab)
+               }
+	} else {
 	    if(length(varnames) == 1L && length(formula) == 3L &&
 	       identical(formula[[2L]], formula[[3L]]))
 		warning(gettextf("the formula '%s' is treated as '%s'",
@@ -342,7 +342,6 @@ text.formula <- function(formula, data = parent.frame(), ..., subset)
 	stop("must have a response variable")
 }
 
-## in base "graphics", this is called exactly from   {plot, points, lines}.default():
 plot.xy <- function(xy, type, pch = par("pch"), lty = par("lty"),
                     col = par("col"), bg = NA, cex = 1, lwd = par("lwd"),
                     ...)

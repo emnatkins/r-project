@@ -1,7 +1,7 @@
 #  File src/library/tools/R/news.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2019 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -525,14 +525,14 @@ function(file, out = stdout(), codify = FALSE)
                           "    \\itemize{",
                           paste("      \\item",
                                 gsub("\n", "\n        ",
-                                     cchunks[[j]]$Text, fixed=TRUE)),
+                                     cchunks[[j]]$Text)),
                           "    }",
                           "  }"))
                 }
             } else {
                 wto(c("  \\itemize{",
                       paste("    \\item",
-                            gsub("\n", "\n      ", vchunk$Text, fixed=TRUE)),
+                            gsub("\n", "\n      ", vchunk$Text)),
                       "  }"))
             }
             wto("}")
@@ -615,15 +615,15 @@ function(x)
         pos <- which(RdTags(x) == "\\itemize")
         if(!length(pos)) {
             stop(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains no \\itemize.",
-                          substr(sub("^[[:space:]]*", "",
-                                     .Rd_deparse(x)),
-                                 1L, 60L)),
+                          substring(sub("^[[:space:]]*", "",
+                                        .Rd_deparse(x)),
+                                    1L, 60L)),
                  domain = NA)
         } else if(length(pos) > 1L) {
             warning(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains more than one \\itemize.\nUsing the first one.",
-                             substr(sub("^[[:space:]]*", "",
-                                        .Rd_deparse(x)),
-                                    1L, 60L)),
+                             substring(sub("^[[:space:]]*", "",
+                                           .Rd_deparse(x)),
+                                       1L, 60L)),
                     domain = NA)
             pos <- pos[1L]
         }
@@ -641,9 +641,9 @@ function(x)
         y <- y[names(y) != "0"]
         if(!length(y)) {
             warning(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains no \\item.",
-                             substr(sub("^[[:space:]]*", "",
-                                        .Rd_deparse(x)),
-                                    1L, 60L)),
+                             substring(sub("^[[:space:]]*", "",
+                                           .Rd_deparse(x)),
+                                       1L, 60L)),
                     domain = NA)
             return(matrix(character(), 0L, 2L,
                           dimnames = list(NULL, c("Text", "HTML"))))

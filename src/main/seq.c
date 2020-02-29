@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2020  The R Core Team.
+ *  Copyright (C) 1998-2018  The R Core Team.
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -636,7 +636,7 @@ SEXP attribute_hidden do_rep(SEXP call, SEXP op, SEXP args, SEXP rho)
 	do_rep_formals = allocFormalsList5(install("x"), install("times"),
 					   install("length.out"),
 					   install("each"), R_DotsSymbol);
-    PROTECT(args = matchArgs_NR(do_rep_formals, args, call));
+    PROTECT(args = matchArgs(do_rep_formals, args, call));
 
     x = CAR(args);
     /* supported in R 2.15.x */
@@ -798,7 +798,7 @@ SEXP attribute_hidden do_seq(SEXP call, SEXP op, SEXP args, SEXP rho)
 	do_seq_formals = allocFormalsList6(install("from"), install("to"),
 					   install("by"), install("length.out"),
 					   install("along.with"), R_DotsSymbol);
-    PROTECT(args = matchArgs_NR(do_seq_formals, args, call));
+    PROTECT(args = matchArgs(do_seq_formals, args, call));
 
     from = CAR(args); args = CDR(args);
     to   = CAR(args); args = CDR(args);
@@ -1064,67 +1064,4 @@ SEXP attribute_hidden do_seq_len(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return allocVector(INTSXP, 0);
     else
 	return R_compact_intrange(1, len);
-}
-
-SEXP attribute_hidden do_sequence(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    R_xlen_t lengths_len, from_len, by_len, ans_len, i, i2, i3;
-    int from_elt, by_elt, length, j, k, *ans_elt;
-    const int *lengths_elt;
-    SEXP ans, lengths, from, by;
-
-    checkArity(op, args);
-
-    lengths = CAR(args);
-    if (!isInteger(lengths))
-	error(_("'lengths' is not of mode integer"));
-    from = CADR(args);
-    if (!isInteger(from))
-	error(_("'from' is not of mode integer"));
-    by = CADDR(args);
-    if (!isInteger(by))
-	error(_("'by' is not of mode integer"));
-
-    lengths_len = length(lengths);
-    from_len = length(from);
-    by_len = length(by);
-    if (lengths_len != 0) {
-	if (from_len == 0)
-	    error(_("'from' has length 0, but not 'lengths'"));
-	if (by_len == 0)
-	    error(_("'by' has length 0, but not 'lengths'"));
-    }
-    ans_len = 0;
-    lengths_elt = INTEGER(lengths);
-    for (i = 0; i < lengths_len; i++, lengths_elt++) {
-	length = *lengths_elt;
-	if (length == NA_INTEGER || length < 0)
-	    error(_("'lengths' must be a vector of non-negative integers"));
-	ans_len += length;
-    }
-    PROTECT(ans = allocVector(INTSXP, ans_len));
-    ans_elt = INTEGER(ans);
-    lengths_elt = INTEGER(lengths);
-    for (i = i2 = i3 = 0; i < lengths_len; i++, i2++, i3++, lengths_elt++) {
-	if (i2 >= from_len)
-	    i2 = 0; /* recycle */
-	if (i3 >= by_len)
-	    i3 = 0; /* recycle */
-	length = *lengths_elt;
-	from_elt = INTEGER(from)[i2];
-	if (length != 0 && from_elt == NA_INTEGER) {
-	    UNPROTECT(1);
-	    error(_("'from' contains NAs"));
-	}
-	by_elt = INTEGER(by)[i3];
-	if (length >= 2 && by_elt == NA_INTEGER) {
-	    UNPROTECT(1);
-	    error(_("'by' contains NAs"));
-	}
-	// int to = from_elt + (length - 1) * by_elt;
-	for (k = 0, j = from_elt; k < length; j += by_elt, k++)
-	    *(ans_elt++) = j;
-    }
-    UNPROTECT(1);
-    return ans;
 }

@@ -49,7 +49,7 @@
   Graphical methods for categorical data.
   \emph{SAS User Group International Conference Proceedings}, \bold{17},
   190--200.
-  \url{http://datavis.ca/papers/sugi/sugi17.pdf}
+  \url{http://www.math.yorku.ca/SCS/sugi/sugi17-paper.html}
 
   Friendly, M. (1992b).
   Mosaic displays for loglinear models.

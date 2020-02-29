@@ -118,11 +118,6 @@ sessionInfo <- function(package = NULL)
     es <- extSoftVersion()
     z$BLAS <- as.character(es["BLAS"]) #drop name
     z$LAPACK <- La_library()
-    l10n <- l10n_info()
-    if (!is.null(l10n["system.codepage"]))
-        z$system.codepage <- as.character(l10n["system.codepage"])
-    if (!is.null(l10n["codepage"]))
-        z$codepage <- as.character(l10n["codepage"])
     class(z) <- "sessionInfo"
     z
 }
@@ -162,10 +157,7 @@ print.sessionInfo <- function(x, locale = TRUE,
     }
     if(locale) {
         cat("locale:\n")
-        print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE, ...)
-        if (!is.null(x$system.codepage) && !is.null(x$codepage) &&
-            x$system.codepage != x$codepage)
-            cat("system code page: ", x$system.codepage, "\n", sep = "")
+	print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE, ...)
         cat("\n")
     }
     cat("attached base packages:\n")
@@ -200,9 +192,9 @@ toLatex.sessionInfo <-
 		  ", \\verb|", object$R.version$platform, "|"),
 	   if(locale)
 	       paste0("  \\item Locale: \\verb|",
-		  gsub(";", "|, \\verb|", object$locale,  fixed=TRUE), "|"),
+		      gsub(";","|, \\\\verb|", object$locale) , "|"),
 	   paste0("  \\item Running under: \\verb|",
-		  gsub(";", "|, \\verb|", object$running, fixed=TRUE), "|"),
+		  gsub(";","|, \\\\verb|", object$running) , "|"),
 	   if(RNG)
 	       paste0("  \\item Random number generation:"
 		    , "  \\item RNG:    \\verb|", object$RNGkind[1], "|"

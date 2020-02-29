@@ -1,11 +1,10 @@
 % File src/library/base/man/deparse.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2019 R Core Team
+% Copyright 1995-2018 R Core Team
 % Distributed under GPL 2 or later
 
 \name{deparse}
 \alias{deparse}
-\alias{deparse1}
 \title{Expression Deparsing}
 \description{
   Turn unevaluated expressions into character strings.
@@ -15,8 +14,6 @@ deparse(expr, width.cutoff = 60L,
         backtick = mode(expr) \%in\% c("call", "expression", "(", "function"),
         control = c("keepNA", "keepInteger", "niceNames", "showAttributes"),
         nlines = -1L)
-
-deparse1(expr, collapse = " ", width.cutoff = 500L, ...)
 }
 \arguments{
   \item{expr}{any \R expression.}
@@ -28,13 +25,10 @@ deparse1(expr, collapse = " ", width.cutoff = 500L, ...)
     See \code{\link{.deparseOpts}}.}
   \item{nlines}{integer: the maximum number of lines to produce.
     Negative values indicate no limit.}
-  \item{collapse}{a string, passed to \code{\link{parse}()}.}
-  \item{\dots}{further arguments passed to \code{deparse()}.}
 }
 \details{
-  These functions turn unevaluated expressions (where \sQuote{expression}
-  is taken in a wider sense than the strict concept of a vector of
-  \code{\link{mode}} and type (\code{\link{typeof}})
+  This function turns unevaluated expressions (where \sQuote{expression}
+  is taken in a wider sense than the strict concept of a vector of mode
   \code{"expression"} used in \code{\link{expression}}) into character
   strings (a kind of inverse to \code{\link{parse}}).
 
@@ -60,10 +54,6 @@ deparse1(expr, collapse = " ", width.cutoff = 500L, ...)
   line proceeds until at least \code{width.cutoff} \emph{bytes} have
   been output and e.g.\sspace{}\code{arg = value} expressions will not be split
   across lines.
-
-  \code{deparse1()} is a simple utility to ensure a string result
-  (\code{\link{character}} vector of length one), typically used in
-  name construction, as \code{deparse1(\link{substitute}(.))}.
 }
 \note{
   To avoid the risk of a source attribute out of sync with the actual
@@ -92,12 +82,11 @@ require(stats); require(graphics)
 
 deparse(args(lm))
 deparse(args(lm), width = 500)
-
-myplot <- function(x, y) {
-    plot(x, y, xlab = deparse1(substitute(x)),
-               ylab = deparse1(substitute(y)))
+myplot <-
+function(x, y) {
+    plot(x, y, xlab = deparse(substitute(x)),
+        ylab = deparse(substitute(y)))
 }
-
 e <- quote(`foo bar`)
 deparse(e)
 deparse(e, backtick = TRUE)

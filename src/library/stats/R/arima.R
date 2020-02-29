@@ -102,7 +102,7 @@ arima <- function(x, order = c(0L, 0L, 0L),
         c(Re(x[-1L]), rep.int(0, q - q0))
     }
 
-    series <- deparse1(substitute(x))
+    series <- deparse(substitute(x))
     if(NCOL(x) > 1L)
         stop("only implemented for univariate time series")
     method <- match.arg(method)
@@ -147,7 +147,7 @@ arima <- function(x, order = c(0L, 0L, 0L),
     if (is.null(xreg)) {
         ncxreg <- 0L
     } else {
-        nmxreg <- deparse1(substitute(xreg))
+        nmxreg <- deparse(substitute(xreg))
         if (NROW(xreg) != n) stop("lengths of 'x' and 'xreg' do not match")
         ncxreg <- NCOL(xreg)
         xreg <- as.matrix(xreg)

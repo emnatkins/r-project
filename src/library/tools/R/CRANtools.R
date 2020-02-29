@@ -1,7 +1,7 @@
 #  File src/library/tools/R/CRANtools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2014-2019 The R Core Team
+#  Copyright (C) 2014-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -190,17 +190,19 @@ function(x, ...)
 ## Summarize complete CRAN check status according to maintainer.
 
 summarize_CRAN_check_status_according_to_maintainer <-
-function(db = CRAN_package_db(),
-         results = CRAN_check_results(),
-         details = CRAN_check_details(),
-         issues  = CRAN_check_issues())
+function()
 {
-    ind <- !duplicated(db[, "Package"])
+    pdb <- CRAN_package_db()
+    ind <- !duplicated(pdb[, "Package"])
 
-    maintainer <- db[, "Maintainer"]
+    maintainer <- pdb[, "Maintainer"]
     maintainer <- tolower(sub(".*<(.*)>.*", "\\1", maintainer))
 
-    split(format(summarize_CRAN_check_status(db[ind, "Package"],
+    results <- CRAN_check_results()
+    details <- CRAN_check_details()
+    issues <- CRAN_check_issues()
+
+    split(format(summarize_CRAN_check_status(pdb[ind, "Package"],
                                              results,
                                              details,
                                              issues),
@@ -210,7 +212,7 @@ function(db = CRAN_package_db(),
 
 CRAN_baseurl_for_src_area <-
 function()
-    Sys.getenv("R_CRAN_SRC", .get_standard_repository_URLs()[1L])
+    .get_standard_repository_URLs()[1L]
 
 ## This allows for partial local mirrors, or to look at a
 ## more-freqently-updated mirror.
@@ -561,11 +563,12 @@ function(package, nora)
 }
 
 CRAN_package_maintainers_db <-
-function(db = CRAN_package_db())
+function()
 {
+    db <- CRAN_package_db()
     maintainer <- db[, "Maintainer"]
     address <- tolower(sub(".*<(.*)>.*", "\\1", maintainer))
-    maintainer <- gsub("\n", " ", maintainer, fixed=TRUE)
+    maintainer <- gsub("\n", " ", maintainer)
     data.frame(Package = db[, "Package"],
                Address = address,
                Maintainer = maintainer,
@@ -699,8 +702,10 @@ function(x, ...)
 
 CRAN_package_reverse_dependencies_with_maintainers <-
 function(packages, which = c("Depends", "Imports", "LinkingTo"),
-         recursive = FALSE, db = CRAN_package_db())
+         recursive = FALSE)
 {
+    db <- CRAN_package_db()
+
     rdepends <- package_dependencies(packages, db, which,
                                      recursive = recursive,
                                      reverse = TRUE)
@@ -711,12 +716,14 @@ function(packages, which = c("Depends", "Imports", "LinkingTo"),
 }
 
 CRAN_package_dependencies_with_dates <-
-function(packages, db = CRAN_package_db())
+function(packages)
 {
     repos <- .get_standard_repository_URLs() # CRAN and BioC
     a <- utils::available.packages(filters = list(), repos = repos)
 
+    pc <- CRAN_package_db()
     pb <- NULL                          # Compute if necessary ...
+    
     d <- package_dependencies(packages, a, which = "most")
     ## We currently keep the base packages dependencies, which have no
     ## date.  Hence, filter these out ...
@@ -724,8 +731,8 @@ function(packages, db = CRAN_package_db())
     lapply(d,
            function(e) {
                e <- setdiff(as.character(e), base_packages)
-               i <- match(e, db[, "Package"])
-               d <- db[i, "Published"]
+               i <- match(e, pc[, "Package"])
+               d <- pc[i, "Published"]
                if(any(j <- is.na(i))) {
                    eb <- e[j]
                    if(is.null(pb))
@@ -742,10 +749,11 @@ function(packages, db = CRAN_package_db())
 }
 
 CRAN_packages_with_maintainer_matching <-
-function(pattern, db = CRAN_package_db(), ...)
+function(pattern, ...)
 {
-    ind <- grep(pattern, db[, "Maintainer"], ...)
-    db[ind, "Package"]
+    pdb <- CRAN_package_db()
+    ind <- grep(pattern, pdb[, "Maintainer"], ...)
+    pdb[ind, "Package"]
 }
 
 write_texts_to_dir <-

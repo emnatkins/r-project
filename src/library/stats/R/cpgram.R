@@ -21,7 +21,7 @@
 
 cpgram <-
     function(ts, taper = 0.1,
-             main = paste("Series: ", deparse1(substitute(ts))),
+             main = paste("Series: ", deparse(substitute(ts))),
              ci.col = "blue")
 {
     main

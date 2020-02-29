@@ -51,10 +51,7 @@ setClassUnion <- function(name, members = character(), where = topenv(parent.fra
     if(hasNull)
         members <- c("NULL", members[-hasNull])
     for(what in members) {
-        ext <- def@subclasses[[what]]
-        if(is(try(setIs(what, name, where = where, extensionObject = ext)),
-              "try-error"))
-        {
+        if(is(try(setIs(what, name, where = where)), "try-error")) {
             if(!is.character(what))
                 what <- getClass(what, TRUE, where)@className
             failed <- c(failed, what)

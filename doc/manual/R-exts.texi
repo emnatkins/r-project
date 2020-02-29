@@ -1333,7 +1333,7 @@ are written to a @file{.Rout} file.  If there is a
 corresponding@footnote{The best way to generate such a file is to copy
 the @file{.Rout} from a successful run of @command{R CMD check}.  If you
 want to generate it separately, do run @R{} with options
-@option{--vanilla --no-echo} and with environment variable
+@option{--vanilla --slave} and with environment variable
 @env{LANGUAGE=en} set to get messages in English.  Be careful not to use
 output with the option @option{--timings} (and note that
 @option{--as-cran} sets it).} @file{.Rout.save} file, these two are
@@ -1710,9 +1710,8 @@ linked into a shared library) @samp{CPICFLAGS}.  For Fortran, be careful
 to use @samp{FC FFLAGS FPICFLAGS} for fixed-form Fortran and 
 @samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.  (Packages intended to
 be used with @R{} versions before 3.6.0 should use the legacy forms
-@samp{F77 FFLAGS FPICFLAGS} and @samp{FC FCFLAGS FCPICFLAGS}, but
-@samp{F77} and @samp{FCPICFLAGS} are no longer defined, so such packages
-should depend on @samp{R (< 4.0)}.)
+@samp{F77 FFLAGS FPICFLAGS} and @samp{FC FCFLAGS FCPICFLAGS}, which are
+still accepted.)
 
 To check for an external BLAS library using the @code{AX_BLAS} macro
 from the official Autoconf Macro Archive, one can simply do
@@ -2186,7 +2185,7 @@ PKG_LIBS = $(SHLIB_OPENMP_CFLAGS)
 @end example
 
 Note that the macro @code{SHLIB_OPENMP_CXXFLAGS} applies to the default
-C++11 compiler and not necessarily to the C++14/17 compiler: users of
+C++11 compiler and not necessarily to the C++98/14/17 compiler: users of
 the latter should do their own @command{configure} checks.  If you do
 use your own checks, make sure that OpenMP support is complete by
 compiling and linking an OpenMP-using program: on some platforms the
@@ -2627,9 +2626,17 @@ define a module of the same name in multiple source files.
 @subsection Using C++11 code
 
 @R{} can be built without a C++ compiler although one is available (but
-not necessarily installed) on all known @R{} platforms.  As from @R{}
-4.0.0 a C++ compiler will be selected only if it conforms to the 2011
-standard (`C++11').  A minor update@footnote{The changes are linked from
+not necessarily installed) on all known @R{} platforms.  For full
+portability across platforms, all that can be assumed is approximate
+support for the C++98 standard (the widely used @command{g++} deviates
+considerably from the standard).  Some compilers have a concept of
+`C++03' (`essentially a bug fix') or `C++ Technical Report 1' (TR1), an
+optional addition to the `C++03' revision which was published in 2007.
+A revised standard was published in 2011 and compilers with pretty much
+complete implementations are available.  C++11 added all of the C99
+features which are not otherwise implemented in C++, and C++ compilers
+commonly accept C99 extensions to C++98.  A minor update@footnote{The
+changes are linked from
 @uref{https://isocpp.org/@/std/@/standing-documents/@/sd-6-sg10-feature-test-recommendations}.}
 (`C++14') was published in December 2014.  A revision (`C++17') was
 published in December 2017, and a further revision (`C++20', with many
@@ -2654,7 +2661,7 @@ As from version 3.6.2@footnote{version 3.6.0 except on Windows.}, @R{}
 selects a default C++ compiler with options that conform as far as
 possible@footnote{allowing `GNU extensions', but if possible excluding
 C++14 features.} to C++11. Packages which do not specify @samp{R (>=
-4.0)} in their @file{DESCRIPTION} files need to explicitly require
+3.6.2)} in their @file{DESCRIPTION} files need to explicitly require
 C++11, hence the rest of this section.
 
 In order to specify C++11 code in a package to be used with @R{}
@@ -2679,6 +2686,56 @@ SystemRequirements: C++11
 If a package does have a @file{src/Makevars[.win]} file then setting the
 make variable @samp{CXX_STD} is preferred, as it allows @command{R CMD
 SHLIB} to work correctly in the package's @file{src} directory.
+
+Conversely, to ensure that the C++98 standard is assumed even when this
+is not the compiler default, use
+
+@example
+SystemRequirements: C++98
+@end example
+@noindent
+or
+@example
+CXX_STD = CXX98
+@end example
+@noindent
+But note that this is deprecated and will be ignorwd in future versions
+of @R{}.
+
+The C++11 compiler will be used systematically by R for all C++ code
+if the environment variable @env{USE_CXX11} is defined (with any
+value). Hence this environment variable should be defined when invoking
+@command{R CMD SHLIB} in the absence of a @file{Makevars} file (or
+@file{Makevars.win} on Windows) if a C++11 compiler is required.
+
+Further control over compilation of C++11 code can be obtained by
+specifying the macros @samp{CXX11} and @samp{CXX11STD} when @R{} is
+configured@footnote{For
+details of these and related macros, see file @file{config.site} in
+the @R{} sources.}, or in a personal or site @file{Makevars} file.
+@ifset UseExternalXrefs
+@xref{Customizing package compilation, , Customizing package compilation,
+R-admin, R Installation and Administration}.
+@end ifset
+If C++11 support is not available then these macros are both empty; if
+it is available by default, @samp{CXX11} defaults to @samp{CXX} and
+@samp{CXX11STD} is empty . Otherwise, @samp{CXX11} defaults to the same
+value as the C++ compiler @samp{CXX} and the flag @samp{CXX11STD}
+defaults to @option{-std=c++11} or similar.  It is possible to specify
+@samp{CXX11} to be a distinct compiler just for C++11--using packages,
+e.g.@: @command{g++} on Solaris.  Note however that different C++
+compilers (and even different versions of the same compiler) often
+differ in their ABI so their outputs can rarely be mixed. By setting
+@samp{CXX11STD} it is also possible to choose a different dialect of the
+standard such as @option{-std=c++11}.
+
+As noted above, support for C++11 varies across platforms: on some
+platforms, it may be possible or necessary to select a different
+compiler for C++11, @emph{via} personal or site @file{Makevars} files.
+
+There is no guarantee that C++11 can be used in a package in combination
+with any other compiled language (even C), as the C++11 compiler may be
+incompatible with the native compilers for the platform.
 
 If a package using C++11 has a @command{configure} script it is
 essential that it selects the correct compiler, @emph{via} something like
@@ -4441,10 +4498,11 @@ personal @file{Makevars} files.
 R-admin, R Installation and Administration},
 @end ifset
 
-Portable C++ code needs to follow the 2011 standard or to specify a C+14
-or C++17 (see @ref{Using C++14 code}) where available (which is
-not the case on all @R{} platforms).  Currently C++14 code is less
-portable than C++11 and C++17 support is patchy across @R{} platforms.
+Portable C++ code needs to follow the 1998 standard (and not use
+features from C99), or to specify a C++11 compiler (see @ref{Using C++11
+code}) where available (which is not the case on all @R{} platforms).
+Currently C++14 code is less portable and C++17 support is patchy across
+@R{} platforms.
 
 If using Fortran with the GNU compiler, use the flags
 @option{-std=f95 -Wall -pedantic} which reject most GNU extensions and
@@ -5082,17 +5140,17 @@ so it is strongly recommended to check in a UTF-8 locale.
 @end menu
 
 Writing portable C and C++ code is mainly a matter of observing the
-standards (C99, C++11 or where declared C++14/17) and testing that
+standards (C99, C++11 or where declared C++98/14/17) and testing that
 extensions (such as POSIX functions) are supported.
 
 @strong{C++ standards}: As from version 3.6.0 (3.6.2 on Windows), @R{}
 defaults to C++11 where available@footnote{which it is on all known
-platforms, and is required as from @R{} 4.0.0}. However, in earlier
-versions the default standard was that of the compiler used, often C++98
-or C++14.  Packages which are for use only with @R{} 3.6.2 or later can
-assume C++11 or specify a later standard.  However, those which may be
-used in earlier versions need to specify C++11 explicitly (@pxref{Using
-C++11 code}) or be tested under all of C++11, C++98 and C++14.
+platforms}.  However, in earlier versions the default standard was that
+of the compiler used, often C++98 or C++14.  Thus for portability it is
+desirable to specify the C++ standard@footnote{For C++98 this is only
+possible since @R{} 3.5.0, for C++11 since @R{} 3.1.0.} assumed for a
+package.  Because most packages will be made available for earlier
+versions on @R{}, comments below about C++98 have been retained.
 
 Note that the `TR1' C++ extensions are not part of any of these
 standards and the @code{<tr1/@var{name}>} headers are not supplied by some of
@@ -5354,6 +5412,22 @@ which are part of the X/Open standard: to use these define
 header @file{Rmath.h}.
 
 @item
+Similarly, package authors commonly assume things are part of C++ when
+they were introduced in C++11 if at all.  Recent examples from
+@acronym{CRAN} packages include the C99/C++11 functions
+@example
+erf expm1 fmin fmax lgamma lround loglp round snprintf strcasecmp trunc
+@end example
+@noindent
+(all of which are in the @code{std} namespace in C++11) and the POSIX
+functions @code{strdup} and @code{strncasecmp} and constants @code{M_PI}
+and @code{M_LN2} (see the previous item).  @R{} has long provided
+@code{fmax2}, @code{fmin2}, @code{fround}, @code{ftrunc},
+@code{lgammafn} and many of the X/Open constants, declared in header
+@file{Rmath.h}.  Uses of @code{erf} can be replaced by @code{pnorm} (see
+the @R{} help page for the latter).
+
+@item
 Using @code{alloca} portably is tricky: it is neither an ISO C/C++ nor a
 POSIX function.  An adequately portable preamble is
 @example
@@ -5480,10 +5554,6 @@ compiler flag @option{-fno-common} as part of @samp{CFLAGS} in earlier
 versions of @command{gcc} and also in @command{clang}.  It is
 recommended that packages are if possible checked with that flag to
 ensure portability.
-
-@option{-fno-common} is said particularly beneficial for ARM cpus and
-has been proposed to be the default for future versions of
-@command{clang}.
 
 This is not pertinent to C++ which does not permit tentative definitions.
 
@@ -9342,9 +9412,7 @@ where the package author forgot to declare
       external ddot
 @end example
 @noindent
-in @file{boot.f}.  This package had its own copy of @code{ddot}: to
-detect misuse of the one in @R{}'s BLAS library would have needed @R{}
-configured with @option{--enable-lto=check}.
+in @file{boot.f}.
 
 Further examples:
 
@@ -9517,10 +9585,7 @@ Logical values are sent as @code{0} (@code{FALSE}), @code{1}
 (@code{TRUE}) or @code{INT_MIN = -2147483648} (@code{NA}, but only if
 @code{NAOK} is true), and the compiled code should return one of these
 three values.  (Non-zero values other than @code{INT_MIN} are mapped to
-@code{TRUE}.)  Note that the use of @code{int *} for Fortran logical is
-not guaranteed to be portable (although people have gotten away with it
-for many years): it is better to pass integers and convert to/from
-Fortran logical in a Fortran wrapper.
+@code{TRUE}.)
 
 Unless formal argument @code{NAOK} is true, all the other arguments are
 checked for missing values @code{NA} and for the @acronym{IEEE} special
@@ -10772,7 +10837,7 @@ display here)
 @example
 PKGB_PATH=`echo 'library(packB);
   cat(system.file("lib",  package="packB", mustWork=TRUE))' \
- | "$@{R_HOME@}/bin/R" --vanilla --no-echo`
+ | "$@{R_HOME@}/bin/R" --vanilla --slave`
 PKG_LIBS="$(PKGB_PATH)$(R_ARCH)/libpackB.a"
 @end example
 
@@ -10783,7 +10848,7 @@ a shared object, @file{.so}, on that platform) we could use
 @example
 PKGB_PATH=`echo 'library(packB);
   cat(system.file("lib", package="packB", mustWork=TRUE))' \
- | "$@{R_HOME@}/bin/R" --vanilla --no-echo`
+ | "$@{R_HOME@}/bin/R" --vanilla --slave`
 PKG_LIBS=-L"$(PKGB_PATH)$(R_ARCH)" -lpackB
 @end example
 
@@ -10805,7 +10870,7 @@ e.g.@:
 @example
 PKGB_PATH=`echo 'library(packB);
   cat(system.file("lib", package="packB", mustWork=TRUE)))' \
- | "$@{R_HOME@}/bin/R" --vanilla --no-echo`
+ | "$@{R_HOME@}/bin/R" --vanilla --slave`
 PKG_LIBS=-L"$(PKGB_PATH)$(R_ARCH)" -Wl,-rpath,"$(PKGB_PATH)$(R_ARCH)" -lpackB
 @end example
 
@@ -10856,7 +10921,7 @@ where it is by something like
 @example
 PKGB_PATH=`echo 'library(packB);
   cat(system.file("libs", package="packB", mustWork=TRUE))' \
- | rterm --vanilla --no-echo`
+ | rterm --vanilla --slave`
 PKG_LIBS= -L"$(PKGB_PATH)$(R_ARCH)" -lexB
 @end example
 
@@ -11659,8 +11724,6 @@ Function @code{R_compute_identical} corresponds to @R{}'s @code{identical} funct
 @findex duplicate
 @cindex Copying objects
 
-[The @code{NAMED} mechanism has been replaced by reference counting.]
-
 When assignments are done in @R{} such as
 
 @example
@@ -11700,8 +11763,8 @@ The maximal value is @code{NAMEDMAX}.
 @end table
 
 @noindent
-Note the past tenses: @R{} does not do currently do full reference
-counting and there may currently be fewer bindings.
+Note the past tenses: @R{} does not do full reference counting and there
+may currently be fewer bindings.
 
 It is safe to modify the value of any @code{SEXP} for which
 @code{NAMED(foo)} is zero, and if @code{NAMED(foo)} is two or more, the
@@ -13248,7 +13311,7 @@ Functions @code{Rvprintf} and @code{REvprintf} are analogues using the
 @code{vprintf} interface.  Because that is a C99@footnote{also part of
 C++11.} interface, they are only defined by @file{R_ext/Print.h} in C++
 code if the macro @code{R_USE_C99_IN_CXX} is defined when it is
-included or, as from @R{} 4.0.0, a C++11 compiler is used.
+included.
 
 Another circumstance when it may be important to use these functions is
 when using parallel computation on a cluster of computational nodes, as
@@ -13263,11 +13326,11 @@ their output will be re-directed/logged appropriately.
 @cindex Printing from Fortran
 
 On many systems Fortran @code{write} and @code{print} statements can be
-used, but the output may not interleave well with that of C, and may be
+used, but the output may not interleave well with that of C, and will be
 invisible on @acronym{GUI} interfaces.  They are not portable and best
 avoided.
 
-Some subroutines are provided to ease the output of information from
+Three subroutines are provided to ease the output of information from
 Fortran code.
 
 @example
@@ -13279,32 +13342,16 @@ subroutine intpr (@var{label}, @var{nchar}, @var{data}, @var{ndata})
 @end example
 
 @noindent
-and from @R{}@tie{}4.0.0,
-@example
-@group
-subroutine labelpr(@var{label}, @var{nchar})
-subroutine dblepr1(@var{label}, @var{nchar}, @var{var})
-subroutine realpr1(@var{label}, @var{nchar}, @var{var})
-subroutine intpr1 (@var{label}, @var{nchar}, @var{var})
-@end group
-@end example
-
-@noindent
 Here @var{label} is a character label of up to 255 characters,
 @var{nchar} is its length (which can be @code{-1} if the whole label is
-to be used), @var{data} is an array of length at least @var{ndata} of
-the appropriate type (@code{double precision}, @code{real} and
-@code{integer} respectively) and @var{var} is a (scalar) variable.
-These routines print the label on one line and then print @var{data} or
-@var{var} as if it were an @R{} vector on subsequent line(s).  Note that
-some compilers will give an error or warning unless @var{data} is an
-array: others will accept a scalar when @var{ndata} has value one or
-zero.  @strong{NB:} There is no check on the type of @var{data} or
-@var{var}, so using @code{real} (including a real constant) instead of
-@code{double precision} will give incorrect answers.
-
-@code{intpr} works with zero @var{ndata} so can be used to print a
-label in earlier versions of @R{}.
+to be used), and @var{data} is an array of length at least @var{ndata}
+of the appropriate type (@code{double precision}, @code{real} and
+@code{integer} respectively).  These routines print the label on one
+line and then print @var{data} as if it were an @R{} vector on
+subsequent line(s).  They work with zero @var{ndata}, and so can be used
+to print a label alone.  Note though that some compilers will give an
+error or warning unless @var{data} is an array: others will accept a
+scalar when @var{ndata} has value one or zero.
 
 @node Calling C from Fortran and vice versa, Numerical analysis subroutines, Printing, The R API
 @section Calling C from Fortran and vice versa
@@ -13418,9 +13465,9 @@ later, @command{gfortran} 9.2 introduced an option
 and made it the current default but said it might be withdrawn in future.
 
 Suppose we want a function to report a message from Fortran to @R{}'s
-console (one could use @code{labelpr}, or @code{intpr} with dummy data,
-but this might be the basis of a custom reporting function).  Suppose the
-equivalent in Fortran would be
+console (one could use @code{intpr} with dummy data, but it might be the
+basis of a custom reporting function).  Suppose the equivalent in Fortran
+would be
 @example
       subroutine rmsg(msg)
       character*(*) msg
@@ -13509,11 +13556,9 @@ void cmsg(const char *msg)
 @}
 @end example
 
-Passing a variable-length string from C to Fortran is trickier, but
-@uref{https://software.intel.com/en-us/fortran-compiler-developer-guide-and-reference-bind}
-provides a recipe.  However, all the uses in BLAS and LAPACK are of a
-single character, and for these we can write a wrapper in Fortran
-along the lines of
+Passing a variable-length string from C to Fortran is trickier, but all
+the uses in BLAS and LAPACK are of a single character, and for these we
+can write a wrapper in Fortran along the lines of
 @example
       subroutine c_dgemm(transa, transb, m, n, k, alpha,
      +     a, lda, b, ldb, beta, c, ldc)
@@ -13565,9 +13610,7 @@ type so it is pretty portable to use @code{int *} on the C/C++ side.
 However, recent versions of @command{gfortran} @emph{via} the option
 @option{-fc-prototypes-external} say the C equivalent is
 @code{int_least32_t *}: `Link-Time Optimization' will report @code{int
-*} as a mismatch. It is possible to use @code{iso_c_binding} in Fortran
-to map LOGICAL variables to the C99 type @code{_Bool}, but it is usually
-simpler to pass integers to and fro.
+*} as a mismatch.
 
 @node Numerical analysis subroutines, Optimization, Calling C from Fortran and vice versa, The R API
 @section Numerical analysis subroutines
@@ -14270,7 +14313,6 @@ file is provided as
 
 @deftypefun {char *} R_tmpnam (const char *@var{prefix}, const char *@var{tmpdir})
 @deftypefunx {char *} R_tmpnam2 (const char *@var{prefix}, const char *@var{tmpdir}, const char *@var{fileext})
-@deftypefunx {void} R_free_tmpnam (char *@var{name})
 Return a pathname for a temporary file with name beginning with
 @var{prefix} and ending with @var{fileext} in directory @var{tmpdir}.
 A @code{NULL} prefix or extension is replaced by @code{""}.  Note that
@@ -14546,13 +14588,14 @@ visibility will allow control of visibility for all symbols @emph{via} a
 flag, and where known the flag is encapsulated in the macros
 @samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{As from @R{} 3.5.2:
 This applies to the compiler for the default C++ dialect (currently
-C++11) and not necessarily to other dialects.} and @samp{F_VISIBILITY}
-for C, C++ and Fortran compilers.@footnote{@samp{F77_VISIBILITY} was
-used prior to @R 3.6.0 and was still available in 3.6.x.  In some cases
-the Fortran compilers accept the flag but do not actually hide their
-symbols.}  These are defined in @file{etc/Makeconf} and so available for
-normal compilation of package code.  For example, @file{src/Makevars}
-could include some of
+normally C++11) and not necessarily to other dialects.} and
+@samp{F_VISIBILITY} for C, C++ and Fortran
+compilers.@footnote{@samp{F77_VISIBILITY} was used prior to @R 3.6.0 and
+is still available (but deprecated).  In some cases the Fortran
+compilers accept the flag but do not actually hide their symbols.}
+These are defined in @file{etc/Makeconf} and so available for normal
+compilation of package code.  For example, @file{src/Makevars} could
+include some of
 
 @example
 PKG_CFLAGS=$(C_VISIBILITY)

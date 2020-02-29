@@ -76,7 +76,7 @@ convertColor(color, from, to, from.ref.white, to.ref.white,
   For all the conversion equations \url{http://www.brucelindbloom.com/}.
 
   For the white points
-  \url{https://web.archive.org/web/20190613001950/http://efg2.com/Lab/Graphics/Colors/Chromaticity.htm}.
+  \url{http://www.efg2.com/Lab/Graphics/Colors/Chromaticity.htm}.
 }
 
 \seealso{

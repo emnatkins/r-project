@@ -256,7 +256,7 @@ SEXP R_LookupMethod(SEXP method, SEXP rho, SEXP callrho, SEXP defrho)
     if(lookup_baseenv_after_globalenv == -1) {
 	lookup = getenv("_R_S3_METHOD_LOOKUP_BASEENV_AFTER_GLOBALENV_");
 	lookup_baseenv_after_globalenv = 
-	    ((lookup != NULL) && StringFalse(lookup)) ? 0 : 1;
+	    ((lookup != NULL) && StringTrue(lookup)) ? 1 : 0;
     }
 
     if(lookup_report_search_path_uses == -1) {
@@ -514,7 +514,7 @@ SEXP attribute_hidden NORET do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env
 	do_usemethod_formals = allocFormalsList2(install("generic"),
 						 install("object"));
 
-    PROTECT(argList = matchArgs_NR(do_usemethod_formals, args, call));
+    PROTECT(argList = matchArgs(do_usemethod_formals, args, call));
     if (CAR(argList) == R_MissingArg)
 	errorcall(call, _("there must be a 'generic' argument"));
     else
@@ -1594,12 +1594,7 @@ R_possible_dispatch(SEXP call, SEXP op, SEXP args, SEXP rho,
 		UNPROTECT(2);
 		return value;
 	    } else {
-		/* INC/DEC of REFCNT needed for non-tracking args */
-		for (SEXP a = args; a != R_NilValue; a = CDR(a))
-		    INCREMENT_REFCNT(CAR(a));
 		value = applyClosure(call, value, args, rho, suppliedvars);
-		for (SEXP a = args; a != R_NilValue; a = CDR(a))
-		    DECREMENT_REFCNT(CAR(a));
                 UNPROTECT(1);
                 return value;
             }
@@ -1619,14 +1614,8 @@ R_possible_dispatch(SEXP call, SEXP op, SEXP args, SEXP rho,
 	    SET_PRVALUE(CAR(b), CAR(a));
 	value = applyClosure(call, fundef, s, rho, R_NilValue);
 	UNPROTECT(1);
-    } else {
-	/* INC/DEC of REFCNT needed for non-tracking args */
-	for (SEXP a = args; a != R_NilValue; a = CDR(a))
-	    INCREMENT_REFCNT(CAR(a));
+    } else
 	value = applyClosure(call, fundef, args, rho, R_NilValue);
-	for (SEXP a = args; a != R_NilValue; a = CDR(a))
-	    DECREMENT_REFCNT(CAR(a));
-    }
     prim_methods[offset] = current;
     if(value == deferred_default_object)
 	return NULL;
@@ -1725,43 +1714,10 @@ SEXP R_do_new_object(SEXP class_def)
 	TYPEOF(value) == EXTPTRSXP;
     if((TYPEOF(value) == S4SXP || getAttrib(e, R_PackageSymbol) != R_NilValue) &&
        !xDataType)
-    {
+    { /* Anything but an object from a base "class" (numeric, matrix,..) */
 	setAttrib(value, R_ClassSymbol, e);
 	SET_S4_OBJECT(value);
     }
-    UNPROTECT(2); /* value, e */
-    vmaxset(vmax);
-    return value;
-}
-
-SEXP R_do_new_object2(SEXP class_def)
-{
-    static SEXP s_virtual = NULL, s_prototype, s_className;
-    SEXP e, value = R_NilValue;
-    const void *vmax = vmaxget();
-    if(!s_virtual) {
-	s_virtual = install("virtual");
-	s_prototype = install("prototype");
-	s_className = install("className");
-    }
-    if(!class_def)
-	error(_("C level NEW macro called with null class definition pointer"));
-    e = R_do_slot(class_def, s_virtual);
-    if(asLogical(e) != 0)  { /* includes NA, TRUE, or anything other than FALSE */
-    	e = R_do_slot(class_def, s_className);
-    	error(_("trying to generate an object from a virtual class (\"%s\")"),
-    	      translateChar(asChar(e)));
-    }
-    PROTECT(e = R_do_slot(class_def, s_className));
-    PROTECT(value = duplicate(R_do_slot(class_def, s_prototype)));
-    Rboolean xDataType = TYPEOF(value) == ENVSXP || TYPEOF(value) == SYMSXP ||
-    	TYPEOF(value) == EXTPTRSXP;
-    if((TYPEOF(value) == S4SXP || getAttrib(e, R_PackageSymbol) != R_NilValue) &&
-       !xDataType)
-    	{
-    	    setAttrib(value, R_ClassSymbol, e);
-    	    SET_S4_OBJECT(value);
-    	}
     UNPROTECT(2); /* value, e */
     vmaxset(vmax);
     return value;

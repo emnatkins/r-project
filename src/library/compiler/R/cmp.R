@@ -653,9 +653,7 @@ SEQLEN.OP = 1,
 BASEGUARD.OP = 2,
 INCLNK.OP = 0,
 DECLNK.OP = 0,
-DECLNK_N.OP = 1,
-INCLNKSTK.OP = 0,
-DECLNKSTK.OP = 0
+DECLNK_N.OP = 1
 )
 
 Opcodes.names <- names(Opcodes.argc)
@@ -787,8 +785,6 @@ BASEGUARD.OP <- 123
 INCLNK.OP <- 124
 DECLNK.OP <- 125
 DECLNK_N.OP <- 126
-INCLNKSTK.OP <- 127
-DECLNKSTK.OP <- 128
 
 
 ##
@@ -1727,7 +1723,6 @@ cmpComplexAssign <- function(symbol, lhs, value, superAssign, cb, cntxt) {
         startOP <- STARTASSIGN.OP
         endOP <- ENDASSIGN.OP
     }
-    if (! cntxt$toplevel) cb$putcode(INCLNKSTK.OP)
     ncntxt <- make.nonTailCallContext(cntxt)
     cmp(value, cb, ncntxt)
     csi <- cb$putconst(symbol)
@@ -1745,7 +1740,6 @@ cmpComplexAssign <- function(symbol, lhs, value, superAssign, cb, cntxt) {
         cmpSetterCall(flatPlace[[i]], flatOrigPlace[[i]], as.name("*vtmp*"), cb, ncntxt)
 
     cb$putcode(endOP, csi)
-    if (! cntxt$toplevel) cb$putcode(DECLNKSTK.OP)
     if (cntxt$tailcall) {
         cb$putcode(INVISIBLE.OP)
         cb$putcode(RETURN.OP)
@@ -2102,8 +2096,12 @@ cmpPrim1 <- function(e, cb, op, cntxt) {
     }
 }
 
-checkNeedsInc <- function(e, cntxt)
-    return(FALSE)
+checkNeedsInc <- function(e, cntxt) {
+    type <- typeof(e)
+    if (type %in% c("language", "bytecode", "promise"))
+        TRUE
+    else FALSE ## symbols and constants
+}
 
 cmpPrim2 <- function(e, cb, op, cntxt) {
     if (dots.or.missing(e[-1]))

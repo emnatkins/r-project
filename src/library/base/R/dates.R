@@ -82,7 +82,7 @@ as.Date.default <- function(x, ...)
 	.Date(as.numeric(x))
     else
 	stop(gettextf("do not know how to convert '%s' to class %s",
-		      deparse1(substitute(x)),
+		      deparse(substitute(x)),
 		      dQuote("Date")),
 	     domain = NA)
 }
@@ -94,7 +94,7 @@ as.Date.default <- function(x, ...)
 ##         x <- (x - 3653) # origin 1960-01-01
 ##         return(structure(x, class = "Date"))
 ##     } else stop(gettextf("'%s' is not a \"date\" object",
-##                          deparse1(substitute(x)) ))
+##                          deparse(substitute(x)) ))
 ## }
 
 ## ## Moved to package chron
@@ -107,7 +107,7 @@ as.Date.default <- function(x, ...)
 ##             x  <- x + as.numeric(as.Date(paste(z[3L], z[1L], z[2L], sep="/")))
 ##         return(structure(x, class = "Date"))
 ##     } else stop(gettextf("'%s' is not a \"dates\" object",
-##                          deparse1(substitute(x)) ))
+##                          deparse(substitute(x)) ))
 ## }
 
 format.Date <- function(x, ...)
@@ -474,5 +474,7 @@ xtfrm.Date <- function(x) as.numeric(x)
 
 ## Added in 3.5.0.
 
-.Date <- function(xx, cl = "Date") `class<-`(xx, cl)
-
+.Date <- function(xx, cl = "Date") {
+    class(xx) <- cl
+    xx
+}

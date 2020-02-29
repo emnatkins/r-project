@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-02-12 r77795) -- "Unsuffered Consequences"
+R version 3.6.2 Patched (2020-02-12 r77795) -- "Dark and Stormy Night"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -340,4 +340,4 @@ List of 6
 > 
 > proc.time()
    user  system elapsed 
-  0.305   0.040   0.323 
+  0.270   0.050   0.297 

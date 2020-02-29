@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2020  The R Core Team
+ *  Copyright (C) 1997--2018  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -792,6 +792,33 @@ static void attr2(SEXP s, LocalParseData *d, Rboolean not_names)
     print2buff(")", d);
 }
 
+
+static void printcomment(SEXP s, LocalParseData *d)
+{
+    SEXP cmt;
+    int i, ncmt;
+    const void *vmax = vmaxget();
+
+    /* look for old-style comments first */
+
+    if(isList(TAG(s)) && !isNull(TAG(s))) {
+	for (s = TAG(s); s != R_NilValue; s = CDR(s)) {
+	    print2buff(translateChar(STRING_ELT(CAR(s), 0)), d);
+	    writeline(d);
+	}
+    }
+    else {
+	cmt = getAttrib(s, R_CommentSymbol);
+	ncmt = length(cmt);
+	for(i = 0 ; i < ncmt ; i++) {
+	    print2buff(translateChar(STRING_ELT(cmt, i)), d);
+	    writeline(d);
+	}
+    }
+    vmaxset(vmax);
+}
+
+
 static const char *quotify(SEXP name, int quote)
 {
     const char *s = CHAR(name);
@@ -1065,6 +1092,7 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 	break;
     }
     case LANGSXP:
+	printcomment(s, d);
 	if (!isNull(ATTRIB(s)))
 	    d->sourceable = FALSE;
 	SEXP op = CAR(s);
@@ -1228,6 +1256,7 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 		    print2buff(")", d);
 		    break;
 		case PP_FUNCTION:
+		    printcomment(s, d);
 		    if (!(d->opts & USESOURCE) || !isString(CADDR(s))) {
 			print2buff(CHAR(PRINTNAME(op)), d); /* ASCII */
 			print2buff("(", d);
@@ -1760,9 +1789,7 @@ static void src2buff1(SEXP srcref, LocalParseData *d)
     PROTECT(srcref = eval(srcref, R_BaseEnv));
     n = length(srcref);
     for(i = 0 ; i < n ; i++) {
-	/* use EncodeChar also to produce embedded UTF-8 for character
-	   literals (with Rgui) */
-	print2buff(EncodeChar(STRING_ELT(srcref, i)), d);
+	print2buff(translateChar(STRING_ELT(srcref, i)), d);
 	if(i < n-1) writeline(d);
     }
     UNPROTECT(3);

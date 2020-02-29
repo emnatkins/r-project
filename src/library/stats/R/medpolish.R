@@ -55,7 +55,7 @@ medpolish <-
     names(r) <- rownames(z)
     names(c) <- colnames(z)
     ans <- list(overall = t, row = r, col = c, residuals = z,
-		name = deparse1(substitute(x)))
+		name = deparse(substitute(x)))
     class(ans) <- "medpolish"
     ans
 }
