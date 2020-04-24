@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2020-04-21 r78276) -- "Unsuffered Consequences"
+R version 4.0.0 RC (2020-04-16 r78240) -- "Arbor Day"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -3926,7 +3926,7 @@ sigma^2 estimated as 0.4566:  log likelihood = -101.2,  aic = 212.4
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x42c6f40>
+<environment: 0x6222ce8>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -4963,7 +4963,7 @@ function (V)
     r[cbind(1L:p, 1L:p)] <- 1
     r
 }
-<bytecode: 0x52450f0>
+<bytecode: 0x6f7add8>
 <environment: namespace:stats>
 > stopifnot(all.equal(Cl, cov2cor(cov(longley))),
 +           all.equal(cor(longley, method = "kendall"),
@@ -7587,7 +7587,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env = new.env()))
-<environment: 0x5062078>
+<environment: 0x6ba8128>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -12281,14 +12281,14 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<bytecode: 0x2c4b438>
-<environment: 0x2c3aad0>
+<bytecode: 0x5cc1a18>
+<environment: 0x5ccc000>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<bytecode: 0x2c4b588>
-<environment: 0x2c3aad0>
+<bytecode: 0x5cc56f8>
+<environment: 0x5ccc000>
 
 > 
 > 
@@ -12821,8 +12821,7 @@ Cumulative Proportion  0.4173 0.6498 0.7569
 > ### ** Examples
 > 
 > ## Don't show: 
-> old <- Sys.getlocale("LC_COLLATE")
->        invisible(Sys.setlocale("LC_COLLATE", "C"))
+> old <- Sys.setlocale("LC_COLLATE", "C")
 > ## End(Don't show)
 > require(utils)
 > 
@@ -12913,7 +12912,7 @@ predict.smooth.spline.fit :
 	 function (object, x, deriv = 0, ...)  NULL 
 > ## IGNORE_RDIFF_END
 > ## Don't show: 
-> invisible(Sys.setlocale("LC_COLLATE", old))
+> old <- Sys.setlocale("LC_COLLATE", old)
 > ## End(Don't show)
 > 
 > 
@@ -16498,8 +16497,8 @@ Step function with continuity 'f'= 0.2 ,  3 knots at
 > unclass(sfun0)
 function (v) 
 .approxfun(x, y, v, method, yleft, yright, f, na.rm)
-<bytecode: 0x5e0d808>
-<environment: 0x3cc0470>
+<bytecode: 0x558c3c8>
+<environment: 0x69fccf0>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
@@ -18908,7 +18907,7 @@ Number of Fisher Scoring iterations: 6
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  4.784 0.246 5.141 0 0 
+Time elapsed:  7.156 0.231 7.433 0 0 
 > grDevices::dev.off()
 null device 
           1 

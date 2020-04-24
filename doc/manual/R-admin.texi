@@ -1061,6 +1061,9 @@ inferred values can be overridden in file @file{config.site} or on the
 @command{configure} command line: user-supplied values will be tested by
 compiling some C++11/14/17/20 code.
 
+@c @R{} versions 3.1.0 to 3.3.3 used @code{CXX1X} rather than @code{CXX11}:
+@c these forms were deprecated in 3.4.4 and removed in 3.6.0.
+
 It may be that there is no suitable flag for C++14/17/20 support with
 the default compiler, in which case a different compiler could be
 selected for @code{CXX14} or @code{CXX17} or @code{CXX20} with its
@@ -1353,6 +1356,9 @@ install the extra files into your intended @R{} source directory, e.g.@:
 @file{C:/R}. The directory name @emph{should not contain spaces}. We
 will call this directory @file{@var{R_HOME}} below.
 
+The binary distribution is built using @file{rtools40-x86_64.exe}, but
+@file{Rtools35.exe} could also be used.
+
 @node Getting the source files, Building the core files, Getting the tools, Building from source
 @subsection Getting the source files
 
@@ -1403,6 +1409,7 @@ The binary distributions of external software by
 @example
 make rsync-extsoft
 @end example
+@noindent
 or see above.
 
 @item
@@ -1836,7 +1843,6 @@ Windows' CRLF line endings.
 
 (`macOS' was known as `OS X' from 2012--2016 and as `Mac OS X' before that.)
 
-[The rest of this paragraph is only relevant after release.]
 The front page of a @acronym{CRAN} site has a link `Download R for (Mac)
 OS X'. Click on that, then download the file
 @file{R-@value{VERSIONno}.pkg} and install it. This runs on macOS 10.13
@@ -2011,9 +2017,9 @@ of the Apple package of the same name: this means that installing a package for
 the @R{} framework which it finds installed.  This can be avoided by
 using @command{pkgutil --forget} (see the previous section).  However,
 note that different versions are installed under
-@file{/Library/Frameworks/R.framework/Versions} as @file{4.1},
-@file{4.0} and so on, so it is not possible to have different
-@samp{4.x.y} versions installed for the same @samp{x}.
+@file{/Library/Frameworks/R.framework/Versions} as @file{4.0},
+@file{3.6} and so on, so it is not possible to have different
+@samp{3.x.y} or @samp{4.x.y} versions installed for the same @samp{x}.
 
 A version of @R{} can be run directly from the command-line as e.g.@:
 @example
@@ -2390,7 +2396,7 @@ source versions of packages without compiled C/C++/Fortran code and offer
 to do so for those with, if @command{make} is available.
 
 Note that most binary packages which include compiled code are tied to a
-particular series (e.g.@: @R{} 4.0.x or 4.1.x) of @R{}.
+particular series (e.g.@: @R{} 4.0.x or 3.6.x) of @R{}.
 
 Installing source packages which do not contain compiled code should
 work with no additional tools. For others you will need the
@@ -2723,14 +2729,14 @@ wise to have a @file{src/contrib} area with a possibly empty
 
 @item 
 @code{"mac.binary"}: located at
-@file{bin/macosx/contrib/@var{4.y}} for the @acronym{CRAN} builds for
+@file{bin/macosx/contrib/@var{4.y}} for the CRAN builds for
 macOS for @R{} versions @var{4.y.z}, containing
 @file{.tgz} files.
 
 @item 
 @code{"mac.binary.el-capitan"}: located at
-@file{bin/macosx/el-capitan/contrib/@var{3.y}} for the @acronym{CRAN}
-builds for @R{} versions @var{3.y.z}, containing @file{.tgz} files.
+@file{bin/macosx/el-capitan/contrib/@var{3.y}} for the CRAN builds for
+@R{} versions @var{3.y.z}, containing @file{.tgz} files.
 @end itemize
 
 Each terminal directory must also contain a @file{PACKAGES} file.  This
@@ -5296,8 +5302,8 @@ version.  Usually one can use @samp{Open With}
 (Control/right/two-finger-click in Finder), then select @samp{Installer}
 and @samp{Open} if you get a further warning message.
 
-This applies also to some `nightly builds' from
-@uref{https://mac.r-project.org/}.
+This applies also to some @R{} distributions, including @R{} 3.6.2 and
+`nightly builds' from @uref{https://mac.r-project.org/}.
 
 @node Other C/C++ compilers, Other libraries, Prerequisites, macOS
 @subsection Other C/C++ compilers
@@ -5434,9 +5440,9 @@ versions.
 If you plan to use the @code{tcltk} package for @R{}, you need to
 install a distribution of Tcl/Tk.  There are two alternatives.  If you
 use @Rapp{} you will want to use X11-based Tcl/Tk (as used on other
-Unix-alikes), which is installed as part of the @acronym{CRAN} binary
-for @R{} and available as separate @code{tcl} and @code{tk} components
-from @uref{https://mac.R-project.org/libs-4/}.  This may need
+Unix-alikes), which is installed as part of the CRAN binary for @R{} and
+available as separate @code{tcl} and @code{tk} components from
+@uref{https://mac.R-project.org/libs-4/}.  This may need
 @command{configure} options
 @example
 -with-tcltk=/usr/local/lib
@@ -5603,8 +5609,8 @@ in the @file{/Applications} folder.
 @node Building binary packages,  , Building R.app, macOS
 @subsection Building binary packages
 
-@acronym{CRAN} macOS binary packages are distributed as tarballs with
-suffix @file{.tgz} to distinguish them from source tarballs.  One can
+CRAN macOS binary packages are distributed as tarballs with suffix
+@file{.tgz} to distinguish them from source tarballs.  One can
 @command{tar} an existing installed package, or use @command{R CMD
 INSTALL --build}.
 
@@ -5612,7 +5618,7 @@ However, there are some important details.
 @itemize
 
 @item
-Current @acronym{CRAN} macOS distributions are targeted at High Sierra so it is
+Current CRAN macOS distributions are targeted at High Sierra so it is
 wise to ensure that the compilers used generate code that will run on
 High Sierra or later.  With the recommended compilers we can use
 @example
@@ -5643,8 +5649,7 @@ install_name_tool -change /usr/local/gfortran/lib/libgfortran.5.dylib \
 @end example
 
 @noindent
-(where the details depend on the compilers and @acronym{CRAN} macOS @R{}
-release).
+(where the details depend on the compilers and CRAN macOS @R{} release).
 
 @item
 For C++ code there is the possibility that calls will be generated to
@@ -5665,7 +5670,7 @@ compiler have later versions (but @command{gfortran} 8, 9 and 10 all
 have version @code{5.0.0}).
 @end itemize
 @noindent
-The @acronym{CRAN} binary packages are built with the Apple compiler on High
+The CRAN binary packages are built with the Apple compiler on High
 Sierra, which avoids the first two and any issues with C++ libraries.
 
 @node Solaris, FreeBSD, macOS, Platform notes

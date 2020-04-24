@@ -3830,8 +3830,7 @@ stopifnot(is.na( norm(diag(c(1, NA)), "2") ))
 ## norm(<matrix-w-NA>, "F")
 (m <- cbind(0, c(NA, 0), 0:-1))
 nTypes <- eval(formals(base::norm)$type) # "O" "I" "F" "M" "2"
-print( # stopifnot( -- for now, as Lapack is still broken in some OpenBLAS -- FIXME
-    is.na( print(vapply(nTypes, norm, 0., x = m)) )) # print(): show NA *or* NaN
+stopifnot(is.na( print(vapply(nTypes, norm, 0., x = m)) )) # print(): show NA *or* NaN
 ## "F" gave non-NA with LAPACK 3.9.0, before our patch in R-devel and R-patched
 
 
@@ -3917,56 +3916,6 @@ if(englishMsgs) { cat("checking (default = ) English error messages\n")
 }
 ##
 
-
-## paste(...,  recycle0=TRUE)  uses the "normal" 0-length recycling rule:
-##                                "if one argument has length zero, the result has too."
-ch0 <- character(0)
-stopifnot(exprs = {
-    ## a) when paste() has 0 '...' arguments :
-    identical(paste (), ch0)               ## collapse = NULL -----------
-    identical(paste0(), ch0)
-    identical(paste (collapse= "A"  ), "")
-    identical(paste0(collapse="foof"), "")
-    identical(paste (collapse= "A"  , recycle0 = TRUE), ch0)
-    identical(paste0(collapse="foof", recycle0 = TRUE), ch0)
-    ##
-    ## b) when all '...'  arguments have length 0 :
-    ## ---- collapse = NULL -------------
-    identical(paste({}),                     ch0)
-    identical(paste({}, recycle0 = TRUE), ch0)
-    identical(paste({}, NULL, ch0),                     ch0)
-    identical(paste({}, NULL, ch0, recycle0 = TRUE), ch0)
-    ## ---- collapse not NULL ---------
-    identical(paste({}, collapse=""),                      "")
-    identical(paste({}, collapse="", recycle0 = TRUE), ch0)
-    identical(paste({}, NULL, ch0, collapse=""),                      "")
-    identical(paste({}, NULL, ch0, collapse="", recycle0 = TRUE), ch0)
-    ##
-    ## c) when *one* of the ...-args has length 0 :
-    identical(paste ("foo", character(0), "bar", recycle0 = FALSE), "foo  bar")
-    identical(paste0("foo", character(0), "bar", recycle0 = FALSE), "foobar")
-    identical(paste ("foo", character(0), "bar", recycle0 = TRUE), ch0)
-    identical(paste0("foo", character(0), "bar", recycle0 = TRUE), ch0)
-})
-## 0-length recycling with default recycle0 = FALSE has always been "unusual"
-## -----------------  with     recycle0 = TRUE      returns 0-length i.e. character(0)
-
-
-## aov() formula deparsing  {Jan Hauffa, Apr 11, 2020, on R-devel}
-mkAov <- function(nms, n = 50) {
-    dflong <- as.data.frame(matrix(pi, n, length(nms),
-                                   dimnames = list(NULL, nms)))
-    forml <- as.formula(paste0("cbind(", paste(nms, collapse = ","), ") ~ 1 + Error(1)"))
-    aov(forml, data=dflong)
-}
-nLng <- paste0("someReallyLongVariableName", 1:20)
-cf1 <- coef(fm1 <- mkAov(vnms <- paste0("v", 1:20)))
-cfL <- coef(fmL <- mkAov(nLng)); colnames(cfL[[1]]) <- vnms
-stopifnot(all.equal(cf1, cfL))
-## mkAov(nLng)  failed in R <= 4.0.0
-
-## UTF8 validity checking internal in R (from PCRE, PR#17755)
-stopifnot(identical(validUTF8('\ud800'), FALSE))
 
 
 ## keep at end

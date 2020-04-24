@@ -23,8 +23,6 @@ function(contriburl = contrib.url(repos, type), method,
          ignore_repo_cache = FALSE, max_repo_cache_age,
          quiet = TRUE, ...)
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     requiredFields <-
         c(tools:::.get_standard_repository_db_fields(), "File")
     if (is.null(fields))
@@ -360,8 +358,6 @@ update.packages <- function(lib.loc = NULL, repos = getOption("repos"),
                             available = NULL, oldPkgs = NULL, ...,
                             checkBuilt = FALSE, type = getOption("pkgType"))
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     force(ask)  # just a check that it is valid before we start work
     text.select <- function(old)
     {
@@ -469,8 +465,6 @@ old.packages <- function(lib.loc = NULL, repos = getOption("repos"),
                          method, available = NULL, checkBuilt = FALSE,
                          ..., type = getOption("pkgType"))
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     if(is.null(lib.loc))
         lib.loc <- .libPaths()
     if(!missing(instPkgs)) {
@@ -521,8 +515,6 @@ new.packages <- function(lib.loc = NULL, repos = getOption("repos"),
                          method, available = NULL, ask = FALSE,
                          ..., type = getOption("pkgType"))
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     ask  # just a check that it is valid before we start work
     if(type == "both" && (!missing(contriburl) || !is.null(available))) {
         stop("specifying 'contriburl' or 'available' requires a single type, not type = \"both\"")
@@ -732,8 +724,6 @@ download.packages <- function(pkgs, destdir, available = NULL,
                               contriburl = contrib.url(repos, type),
                               method, type = getOption("pkgType"), ...)
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     nonlocalcran <- !all(startsWith(contriburl, "file:"))
     if(nonlocalcran && !dir.exists(destdir))
         stop("'destdir' is not a directory")
@@ -766,8 +756,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
                          switch(type,
                                 "source" = ".tar.gz",
                                 "mac.binary" = ".tgz",
-                                "win.binary" = ".zip",
-                                stop("invalid 'type'")))
+                                "win.binary" = ".zip"))
             have_fn <- !is.na(File)
             fn[have_fn] <- File[have_fn]
             repos <- available[ok, "Repository"]
@@ -818,8 +807,6 @@ resolvePkgType <- function(type) {
 
 contrib.url <- function(repos, type = getOption("pkgType"))
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     type <- resolvePkgType(type)
     if(is.null(repos)) return(NULL)
     if("@CRAN@" %in% repos && interactive()) {
@@ -846,8 +833,7 @@ contrib.url <- function(repos, type = getOption("pkgType"))
     res <- switch(type,
 		"source" = paste(gsub("/$", "", repos), "src", "contrib", sep = "/"),
                 "mac.binary" = paste(gsub("/$", "", repos), "bin", mac.path, "contrib", ver, sep = "/"),
-                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep = "/"),
-                stop("invalid 'type'")
+                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep = "/")
                )
     res
 }
@@ -946,8 +932,6 @@ setRepositories <-
         stop("cannot set repositories non-interactively")
     a <- tools:::.get_repositories()
     pkgType <- getOption("pkgType")
-    if (!is.character(pkgType))
-        stop("invalid options(\"pkgType\"); must be a character string")
     if (pkgType == "both") pkgType <- "source" #.Platform$pkgType
     if (pkgType == "binary") pkgType <- .Platform$pkgType
     if(startsWith(pkgType, "mac.binary")) pkgType <- "mac.binary"

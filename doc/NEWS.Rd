@@ -5,39 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{paste()} and \code{paste0()} get new optional argument
-      \code{recycle0 = FALSE}.  When set to true, zero length arguments
-      (and all zero-length or no arguments when \code{collapse} is not
-      \code{NULL}) lead to the zero-length \code{character(0)}.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item Function \code{plclust()} from the package \pkg{stats}, and
-      \code{package.dependencies()}, \code{pkgDepends()},
-      \code{getDepList()}, \code{installFoundDepends()}, and
-      \code{vignetteDepends()} from \pkg{tools} are defunct.
-
-      \item Defunct functions \code{checkNEWS()} and \code{readNEWS()} from
-      package \pkg{tools} and \code{CRAN.packages()} from \pkg{utils} have
-      been removed.
-    }
-  }
-
-    \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{aov(frml, ...)} now also works in case the \code{formula}
-      deparses to more than 500 characters, thanks to a report and patch
-      proposal by Jan Hauffa.
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN 4.0.0}{
 
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 10:54-0700\n"
+"POT-Creation-Date: 2018-03-30 07:34-0700\n"
 "PO-Revision-Date: 2018-04-07 01:58-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -22,43 +22,25 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 1.8.7.1\n"
 
-#: Srunmed.c:63
+#: Srunmed.c:54
 msgid "bandwidth/span of running medians is larger than n"
 msgstr "диапазон/пересечение скользящих медиан больше чем n"
-
-#: Srunmed.c:262
-#, c-format
-msgid "runmed(x, .., na.action=\"na.fail\"): have NAs starting at x[%ld]"
-msgstr ""
-
-#: Srunmed.c:265
-msgid "runmed(): invalid 'na.action'"
-msgstr ""
-
-#: Srunmed.c:315
-#, c-format
-msgid "na_action logic error (%d), please report!"
-msgstr ""
 
 #: ansari.c:118
 msgid "probabilities outside [0,1] in qansari()"
 msgstr "вероятности вне [0,1] в qansari()"
 
-#: approx.c:114
+#: approx.c:113
 msgid "approx(): invalid f value"
 msgstr "approx(): неправильное значение f"
 
-#: approx.c:117
+#: approx.c:116
 msgid "approx(): invalid interpolation method"
 msgstr "approx(): неправильный метод интерполяции"
 
-#: approx.c:124
+#: approx.c:122
 msgid "approx(): attempted to interpolate NA values"
 msgstr "approx(): попытка интерполировать пропущенные значения"
-
-#: approx.c:128
-msgid "approx(x,y, .., na.rm=FALSE): NA values in x are not allowed"
-msgstr ""
 
 #: arima.c:81 arima.c:192 arima.c:377 arima.c:608 optim.c:39
 msgid "invalid argument type"
@@ -94,27 +76,35 @@ msgstr "не все аргументы имеют одинаковую длину"
 msgid "missing observations in cov/cor"
 msgstr "пропущенные наблюдения в cov/cor"
 
-#: cov.c:650
+#: cov.c:643
 msgid "'x' is NULL"
 msgstr "'x' -- это NULL"
 
-#: cov.c:682 cov.c:688
+#: cov.c:645
+msgid "'x' is a factor"
+msgstr "'x' -- это фактор"
+
+#: cov.c:665
+msgid "'y' is a factor"
+msgstr "'y' -- это фактор"
+
+#: cov.c:673 cov.c:679
 msgid "incompatible dimensions"
 msgstr "несовместимые размерности"
 
-#: cov.c:707 cov.c:748 cov.c:781
+#: cov.c:698 cov.c:739 cov.c:772
 msgid "no complete element pairs"
 msgstr "нет полных пар элементов"
 
-#: cov.c:720
+#: cov.c:711
 msgid "invalid 'use' (computational method)"
 msgstr "неправильный 'use' (метод вычисления)"
 
-#: cov.c:723
+#: cov.c:714
 msgid "'x' is empty"
 msgstr "'x' пусто"
 
-#: cov.c:817
+#: cov.c:808
 msgid "the standard deviation is zero"
 msgstr "стандартное отклонение нулевое"
 
@@ -224,10 +214,12 @@ msgstr ""
 #: fexact.c:1399
 #, c-format
 msgid ""
-"FEXACT error 6 (f5xact).  LDKEY=%d is too small for this problem: kval=%d.\n"
+"FEXACT error 6 (f5xact).  LDKEY=%d is too small for this problem: kval="
+"%d.\n"
 "Try increasing the size of the workspace."
 msgstr ""
-"FEXACT ошибка 6 (f5xact).  LDKEY=%d слишком мал для этой проблемы: kval=%d.\n"
+"FEXACT ошибка 6 (f5xact).  LDKEY=%d слишком мал для этой проблемы: kval="
+"%d.\n"
 "Попробуйте увеличить размер рабочего пространства."
 
 #: fexact.c:1412
@@ -254,53 +246,25 @@ msgstr ""
 "Увеличьте рабочее пространство или попробуйте использовать 'simulate.p."
 "value=TRUE'"
 
-#: fourier.c:70 fourier.c:165
+#: fourier.c:66 fourier.c:161
 msgid "non-numeric argument"
 msgstr "нечисловой аргумент"
 
-#: fourier.c:88 fourier.c:106 fourier.c:179
+#: fourier.c:84 fourier.c:102 fourier.c:175
 msgid "fft factorization error"
 msgstr "ошибка факторизации в fft"
 
-#: fourier.c:151
+#: fourier.c:147
 msgid "vector-valued (multivariate) series required"
 msgstr "требуются векторнозначные серии (многомерные)"
 
-#: fourier.c:221
-#, c-format
-msgid ""
-"nextn() found no solution < %d = INT_MAX (the maximal integer); pass '0+ n' "
-"instead of 'n'"
-msgstr ""
-
-#: fourier.c:233
-#, c-format
-msgid "nextn<64>() found no solution < %ld = UINT64_MAX (the maximal integer)"
-msgstr ""
-
-#: fourier.c:249
+#: fourier.c:223
 msgid "no factors"
 msgstr "нет факторов"
 
-#: fourier.c:250
-#, fuzzy
-msgid "too many factors"
-msgstr "нет факторов"
-
-#: fourier.c:253
+#: fourier.c:226
 msgid "invalid factors"
 msgstr "неправильные факторы"
-
-#: fourier.c:257
-msgid "'n' must have typeof(.) \"integer\" or \"double\""
-msgstr ""
-
-#: fourier.c:295
-#, c-format
-msgid ""
-"nextn() = %<PRIu64> > 2^53 may not be exactly representable in R (as \"double"
-"\")"
-msgstr ""
 
 #: integrate.c:84 integrate.c:86 integrate.c:128
 #, c-format
@@ -325,18 +289,9 @@ msgstr "измерения 'x' (%d,%d) и 'y' (%d) не соответствуют друг другу"
 msgid "NA/NaN/Inf in '%s'"
 msgstr "NA/NaN/Inf в '%s'"
 
-#: loessc.c:242
+#: loessc.c:240
 msgid "span is too small"
 msgstr "перекрытие слишком мало"
-
-#: loessc.c:257
-#, c-format
-msgid "workspace required (%.0f) is too large%s."
-msgstr ""
-
-#: loessc.c:258
-msgid " probably because of setting 'se = TRUE'"
-msgstr ""
 
 #: loglin.c:371
 msgid "this should not happen"
@@ -413,7 +368,7 @@ msgstr "длины переменных различаются (найдено в '%s')"
 msgid "invalid result from na.action"
 msgstr "неправильный результат 'na.action'"
 
-#: model.c:372 model.c:380 optim.c:227
+#: model.c:372 model.c:380 optim.c:199
 #, c-format
 msgid "invalid '%s' argument"
 msgstr "неправильный аргумент '%s'"
@@ -468,59 +423,52 @@ msgstr "комплексные переменные в модельных матрицах сейчас не разрешены"
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "переменные типа '%s' в модельных матрицах не разрешены"
 
-#: model.c:887
+#: model.c:884
 msgid "invalid formula in 'update'"
 msgstr "неправильная формула в 'update'"
 
-#: model.c:921
+#: model.c:918
 msgid "formula expected"
 msgstr "ожидается формула"
 
-#: model.c:1089
+#: model.c:1050
 msgid "invalid term in model formula"
 msgstr "неправильный терм в модельной формуле"
 
-#: model.c:1180
+#: model.c:1125
 msgid "invalid model formula"
 msgstr "неправильная модельная формула"
 
-#: model.c:1212 model.c:1518
+#: model.c:1151 model.c:1411
 msgid "invalid power in formula"
 msgstr "неправильная степень в формуле"
 
-#: model.c:1261
+#: model.c:1187
 msgid "invalid model formula in ExtractVars"
 msgstr "неправильная модельная формула в ExtractVars"
 
-#: model.c:1629
+#: model.c:1534
 #, c-format
 msgid "duplicated name '%s' in data frame using '.'"
 msgstr "повторяющееся имя '%s' в таблице данных, использую '.'"
 
-#: model.c:1696
+#: model.c:1595
 msgid "invalid model formula in EncodeVars"
 msgstr "неправильная модельная формула в EncodeVars"
 
-#: model.c:1773
+#: model.c:1681
 msgid "argument is not a valid model"
 msgstr "аргумент не является правильной моделью"
 
-#: model.c:1783
+#: model.c:1691
 msgid "'specials' must be NULL or a character vector"
 msgstr "'specials' должен быть NULL или текстовым вектором"
 
-#: model.c:1794
+#: model.c:1703
 msgid "'data' argument is of the wrong type"
 msgstr "аргумент 'data' неправильного типа"
 
-#: model.c:1866
-#, c-format
-msgid ""
-"'varlist' has changed (from nvar=%d) to new %d after EncodeVars() -- should "
-"no longer happen!"
-msgstr ""
-
-#: model.c:2150
+#: model.c:1974
 msgid "'.' in formula and no 'data' argument"
 msgstr "'.' в формуле и нет аргумента 'data'"
 
@@ -576,7 +524,7 @@ msgstr "сошлось"
 msgid "'theta' should be of type character"
 msgstr "'theta' должна быть текстового типа"
 
-#: nls.c:292 port.c:382
+#: nls.c:292 port.c:376
 msgid "use of NULL environment is defunct"
 msgstr "использование окружения NULL больше не работает"
 
@@ -617,31 +565,31 @@ msgstr "целевая функция в 'optim' возвращает объект длины %d, а не 1"
 msgid "gradient in optim evaluated to length %d not %d"
 msgstr "полученная длина градиента в 'optim' -- %d, а не %d"
 
-#: optim.c:223 optim.c:429
+#: optim.c:195 optim.c:401
 msgid "'fn' is not a function"
 msgstr "'fn' не является функцией"
 
-#: optim.c:241 optim.c:435
+#: optim.c:213 optim.c:407
 msgid "'parscale' is of the wrong length"
 msgstr "'parscale' неправильной длины"
 
-#: optim.c:270
+#: optim.c:242
 msgid "'maxit' is not an integer"
 msgstr "'maxit' не является целым числом"
 
-#: optim.c:290
+#: optim.c:262
 msgid "'tmax' is not a positive integer"
 msgstr "'tmax' не является положительным целым числом"
 
-#: optim.c:292 optim.c:309 optim.c:334 optim.c:364 optim.c:443
+#: optim.c:264 optim.c:281 optim.c:306 optim.c:336 optim.c:415
 msgid "'gr' is not a function"
 msgstr "'gr' не является функцией"
 
-#: optim.c:315 optim.c:340 optim.c:370 optim.c:449
+#: optim.c:287 optim.c:312 optim.c:342 optim.c:421
 msgid "'ndeps' is of the wrong length"
 msgstr "'ndeps' неправильной длины"
 
-#: optim.c:400
+#: optim.c:372
 msgid "unknown 'method'"
 msgstr "неизвестный 'method'"
 
@@ -850,69 +798,69 @@ msgstr "Rf_divset: alg = %d должен быть 1, 2, 3 или 4"
 msgid "port algorithms 3 or higher are not supported"
 msgstr "алгоритмы портов 3 или выше не поддерживаются"
 
-#: port.c:317
+#: port.c:313
 #, c-format
 msgid "gradient function must return a numeric vector of length %d"
 msgstr "градиентная функция должна возвращать числовой вектор длины %d"
 
-#: port.c:329
+#: port.c:325
 #, c-format
 msgid "Hessian function must return a square numeric matrix of order %d"
 msgstr ""
 "функция гессиана должна возвращать квадратную числовую матрицу порядка %d"
 
-#: port.c:386
+#: port.c:380
 msgid "'rho' must be an environment"
 msgstr "'rho' должно быть окружением"
 
-#: port.c:388 port.c:554
+#: port.c:382 port.c:548
 msgid "'d' must be a nonempty numeric vector"
 msgstr "'d' должен быть непустым числовым вектором"
 
-#: port.c:390
+#: port.c:384
 msgid "When Hessian defined must also have gradient defined"
 msgstr ""
 "Когда определяется функция, вычисляющая гессиан, должен быть определен и "
 "градиент"
 
-#: port.c:393
+#: port.c:387
 #, c-format
 msgid "environment 'rho' must contain a numeric vector '.par' of length %d"
 msgstr "окружение 'rho' должно содержать числовой вектор '.par' длины %d"
 
-#: port.c:407
+#: port.c:401
 msgid "'lower' and 'upper' must be numeric vectors"
 msgstr "'lower' и 'upper' должны быть числовыми векторами"
 
-#: port.c:466
+#: port.c:460
 msgid "'getElement' applies only to named lists"
 msgstr "'getElement' применяется лишь к именованным спискам"
 
-#: port.c:487
+#: port.c:481
 #, c-format
 msgid "%s$%s() not found"
 msgstr "%s$%s() не найден"
 
-#: port.c:500
+#: port.c:494
 #, c-format
 msgid "'gradient' must be a numeric matrix of dimension (%d,%d)"
 msgstr ""
 "'gradient' должен быть числовой матрицей матрицей с измерениями (%d,%d)"
 
-#: port.c:521
+#: port.c:515
 #, c-format
 msgid "fcn produced mode %d, length %d - wanted mode %d, length %d"
 msgstr "fcn выдала тип %d, длину %d - нужен тип %d, длина %d"
 
-#: port.c:534
+#: port.c:528
 msgid "invalid type for eval_check_store"
 msgstr "неправильный тип 'eval_check_store'"
 
-#: port.c:555
+#: port.c:549
 msgid "m must be a list"
 msgstr "m должен быть списком"
 
-#: port.c:575
+#: port.c:569
 msgid "'lowerb' and 'upperb' must be numeric vectors"
 msgstr "'lowerb' и 'upperb' должны быть числовыми векторами"
 
@@ -928,32 +876,32 @@ msgstr "'scal' должен быть настоящей квадратной матрицей"
 msgid "'scal' matrix is not positive-definite"
 msgstr "матрица 'scal' не положительно-определенная"
 
-#: random.c:53 random.c:137 random.c:217 random.c:307
+#: random.c:53 random.c:128 random.c:200 random.c:284
 msgid "NAs produced"
 msgstr "получились NA"
 
-#: random.c:60 random.c:66 random.c:72 random.c:87 random.c:167 random.c:256
-#: random.c:399
+#: random.c:60 random.c:66 random.c:72 random.c:90 random.c:161 random.c:242
+#: random.c:376
 msgid "invalid arguments"
 msgstr "неправильные аргументы"
 
-#: random.c:333
+#: random.c:310
 msgid "NA in probability vector"
 msgstr "NA в векторе вероятности"
 
-#: random.c:335
+#: random.c:312
 msgid "negative probability"
 msgstr "отрицательная вероятность"
 
-#: random.c:341
+#: random.c:318
 msgid "no positive probabilities"
 msgstr "нет возможных вероятностей"
 
-#: random.c:353
+#: random.c:330
 msgid "invalid first argument 'n'"
 msgstr "неправильный первый аргумент 'n'"
 
-#: random.c:355
+#: random.c:332
 msgid "invalid second argument 'size'"
 msgstr "неправильный второй аргумент 'size'"
 
@@ -971,12 +919,6 @@ msgstr "неправильное конечное правило для бегущей медианы 3: %d"
 #, c-format
 msgid "missing value in last %d observations"
 msgstr "пропущенное значение в последних %d наблюдениях"
-
-#~ msgid "'x' is a factor"
-#~ msgstr "'x' -- это фактор"
-
-#~ msgid "'y' is a factor"
-#~ msgstr "'y' -- это фактор"
 
 #~ msgid "'expr' must be an expression or call"
 #~ msgstr "'expr' должно быть выражением или вызовом"
