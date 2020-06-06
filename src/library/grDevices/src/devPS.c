@@ -494,7 +494,7 @@ LoadEncoding(const char *encpath, char *encname,
 	     char *encconvname, CNAME *encnames,
 	     char *enccode, Rboolean isPDF)
 {
-    char buf[BUFSIZE]; // BUFSIZE is 512
+    char buf[BUFSIZE];
     int i;
     FILE *fp;
     EncodingInputState state;
@@ -513,14 +513,14 @@ LoadEncoding(const char *encpath, char *encname,
 	if (!(fp = R_fopen(R_ExpandFileName(buf), "r"))) return 0;
     }
     if (GetNextItem(fp, buf, -1, &state)) { fclose(fp); return 0;} /* encoding name */
-    memcpy(encname, buf+1, 99); // was strncpy, deliberate truncation
+    strncpy(encname, buf+1, 99); 
     encname[99] = '\0';
     if (!isPDF) snprintf(enccode, 5000, "/%s [\n", encname);
     else enccode[0] = '\0';
     if (GetNextItem(fp, buf, 0, &state)) { fclose(fp); return 0;} /* [ */
     for(i = 0; i < 256; i++) {
 	if (GetNextItem(fp, buf, i, &state)) { fclose(fp); return 0; }
-	memcpy(encnames[i].cname, buf+1, 39); // was strncpy, gcc10 warned
+	strncpy(encnames[i].cname, buf+1, 39);
 	encnames[i].cname[39] = '\0';
 	strcat(enccode, " /"); strcat(enccode, encnames[i].cname);
 	if(i%8 == 7) strcat(enccode, "\n");
@@ -5239,7 +5239,7 @@ static void XFig_Polygon(int n, double *x, double *y,
     dofill = (R_OPAQUE(gc->fill))? 20: -1;
 
     fprintf(fp, "2 3 "); /* Polyline */
-    fprintf(fp, "%d %d ", lty, cfg<0?0:(lwd>0?lwd:1)); /* style, thickness */
+    fprintf(fp, "%d %d ", lty, lwd>0?lwd:1); /* style, thickness */
     fprintf(fp, "%d %d ", cpen, cbg); /* pen colour fill colour */
     fprintf(fp, "100 0 %d ", dofill); /* depth, pen style, area fill */
     fprintf(fp, "%.2f 0 0 -1 0 0 ", 4.0*lwd); /* style value, join .... */

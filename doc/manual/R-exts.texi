@@ -981,10 +981,9 @@ nowadays it is better to access such functionality @emph{via} @code{::}
 calls.
 
 @c DESCRIPTION field LinkingTo
-A package that wishes to make use of header files in other packages to
-compile its C/C++ code needs to declare them as a comma-separated list
-in the field @samp{LinkingTo} in the @file{DESCRIPTION} file.  For
-example
+A package that wishes to make use of header files in other packages needs
+to declare them as a comma-separated list in the field @samp{LinkingTo}
+in the @file{DESCRIPTION} file.  For example
 
 @example
 LinkingTo: link1, link2
@@ -994,15 +993,12 @@ LinkingTo: link1, link2
 The @samp{LinkingTo} field can have a version requirement which is
 checked at installation.
 
-Specifying a package in @samp{LinkingTo} suffices if these are C/C++
+Specifying a package in @samp{LinkingTo} suffices if these are C++
 headers containing source code or static linking is done at
 installation: the packages do not need to be (and usually should not be)
 listed in the @samp{Depends} or @samp{Imports} fields.  This includes
 @acronym{CRAN} package @CRANpkg{BH} and almost all users of
-@CRANpkg{RcppArmadillo} and @CRANpkg{RcppEigen}.  Note that
-@samp{LinkingTo} applies only to installation: if a packages wishes to
-use headers to compile code in tests or vignettes the package providing
-them needs to be listed in @samp{Suggests} or perhaps @samp{Depends}.
+@CRANpkg{RcppArmadillo} and @CRANpkg{RcppEigen}.
 
 For another use of @samp{LinkingTo} see @ref{Linking to native routines
 in other packages}.
@@ -1514,13 +1510,8 @@ the Windows@footnote{@samp{BWidget} still is on Windows but
 @emph{are} extensions and do need to be declared (and that
 @samp{Tktable} is less widely available than it used to be, including
 not in the main repositories for major Linux distributions).
-@c Not in Fedora since 17
-@c 2008 sources at https://sourceforge.net/projects/tktable/files/tktable/2.10/
-@c In May 2020 declared by DALY PhViD RSiena RSurvey dgmb fit4NM
-@c forensim rriskDistributions tcltk2
+@c Not in Fedora since 17, only in launchpad for Ubuntu.
 
-@c In May 2020 declared by FFD GGEBiplotGUI OligoSpecificitySystem
-@c PBSmodelling asbio biplotbootGUI cncaGUI dgmb dpa multibiplotGUI rpanel
 @samp{BWidget} needs to be installed by the user on other OSes.  This is
 fairly easy to do: first find the Tcl search path:
 
@@ -1720,7 +1711,11 @@ both the command and the appropriate flags, so that for example
 @samp{CC} must always be used with @samp{CFLAGS} and (for code to be
 linked into a shared library) @samp{CPICFLAGS}.  For Fortran, be careful
 to use @samp{FC FFLAGS FPICFLAGS} for fixed-form Fortran and 
-@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.
+@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.  (Packages intended to
+be used with @R{} versions before 3.6.0 should use the legacy forms
+@samp{F77 FFLAGS FPICFLAGS} and @samp{FC FCFLAGS FCPICFLAGS}, but
+@samp{F77} and @samp{FCPICFLAGS} are no longer defined, so such packages
+should depend on @samp{R (< 4.0)}.)
 
 To check for an external BLAS library using the @code{AX_BLAS} macro
 from the official Autoconf Macro Archive, one can simply do
@@ -4966,7 +4961,7 @@ and suitable options might be
 @end example
 
 @noindent
-See @uref{https://www.ghostscript.com/@/doc/@/current/@/VectorDevices.htm} for
+See @uref{http://www.ghostscript.com/@/doc/@/current/@/Ps2pdf.htm} for
 more such and consider all the options for image downsampling).  There
 have been examples in @acronym{CRAN} packages for which current versions
 of Ghostscript produced much bigger reductions than earlier ones (e.g.@:
@@ -9010,7 +9005,7 @@ files during compilation: see @uref{https://clang-analyzer.llvm.org/}.
 
 GCC 10 introduced a new flag @option{-fanalyzer} which does static
 analysis during compilation, currently for C code.  It is regarded as
-@emph{experimental} and it may slow down computation considerably when
+@emph{expericmental} and it may slow down computation considerably when
 problems are found (and use many GB of resident memory).  There is some
 overlap with problems detected by the Undefined Behaviour sanitizer, but
 some issues are only reported by this tool and as it is a static
@@ -9018,7 +9013,7 @@ analysis, it does not rely on code paths being exercised.
 
 See
 @uref{https://gcc.gnu.org/@/onlinedocs/@/gcc-10.1.0/@/gcc/@/Static-Analyzer-Options.html}
-(or the documentation for your version of @command{gcc} if later) and
+(or the doumentation for your version of @command{gcc} if later) and
 @uref{https://developers.redhat.com/@/blog/2020/03/26/@/static-analysis-in-gcc-10/}
 
 @node Using `Dr. Memory', Fortran array bounds checking, Other analyses with `gcc', Checking memory access
@@ -13863,13 +13858,7 @@ Computes @code{log(1 + exp(@var{x}))} (@emph{log 1 @b{p}lus @b{exp}}),
 accurately, notably for large @var{x}, e.g., @eqn{x > 720, x > 720}.
 @end deftypefun
 
-@deftypefun double log1mexp (double @var{x})
-Computes @code{log(1 - exp(@var{-x}))} (@emph{log 1 @b{m}inus @b{exp}}),
-accurately, carefully for two regions of @var{x}, optimally cutting
-off at @eqn{\log 2, log 2} (= 0.693147..), using
-@code{((-x) > -M_LN2 ? log(-expm1(-x)) : log1p(-exp(-x)))}.
-@end deftypefun
-
+@c  log1mexp(.) to come
 
 @deftypefun double expm1 (double @var{x})
 Computes @code{exp(@var{x}) - 1} (@emph{exp x @b{m}inus 1}), accurately
@@ -14606,13 +14595,15 @@ Fortran entry points, but there is a more comprehensive scheme used by,
 for example package @pkg{stats}.  Most compilers which allow control of
 visibility will allow control of visibility for all symbols @emph{via} a
 flag, and where known the flag is encapsulated in the macros
-@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{This applies to the
-compiler for the default C++ dialect (currently C++11) and not
-necessarily to other dialects.} and @samp{F_VISIBILITY} for C, C++ and
-Fortran compilers.@footnote{In some cases Fortran compilers accept the
-flag but do not actually hide their symbols.}  These are defined in
-@file{etc/Makeconf} and so available for normal compilation of package
-code.  For example, @file{src/Makevars} could include some of
+@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{As from @R{} 3.5.2:
+This applies to the compiler for the default C++ dialect (currently
+C++11) and not necessarily to other dialects.} and @samp{F_VISIBILITY}
+for C, C++ and Fortran compilers.@footnote{@samp{F77_VISIBILITY} was
+used prior to @R 3.6.0 and was still available in 3.6.x.  In some cases
+the Fortran compilers accept the flag but do not actually hide their
+symbols.}  These are defined in @file{etc/Makeconf} and so available for
+normal compilation of package code.  For example, @file{src/Makevars}
+could include some of
 
 @example
 PKG_CFLAGS=$(C_VISIBILITY)

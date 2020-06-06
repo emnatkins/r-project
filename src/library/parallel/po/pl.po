@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 3.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 10:53-0700\n"
+"POT-Creation-Date: 2018-03-29 07:06-0700\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -16,26 +16,26 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Generator: Poedit 2.0.4\n"
 
-#: fork.c:215
+#: fork.c:181
 #, c-format
 msgid "unable to terminate child process: %s"
 msgstr "nie można zakończyć potomnego procesu: %s"
 
-#: fork.c:242
+#: fork.c:208
 #, c-format
 msgid "unable to terminate child: %s"
 msgstr "nie można zakończyć potomnego procesu: %s"
 
-#: fork.c:321 fork.c:602
+#: fork.c:287 fork.c:556
 msgid "memory allocation error"
 msgstr "błąd przydziału pamięci"
 
-#: fork.c:373 fork.c:377 fork.c:381
+#: fork.c:337 fork.c:341 fork.c:345
 #, c-format
 msgid "invalid '%s' argument"
 msgstr "niepoprawny argument '%s'"
 
-#: fork.c:437
+#: fork.c:401
 msgid ""
 "Error while shutting down parallel: unable to terminate some child "
 "processes\n"
@@ -43,76 +43,76 @@ msgstr ""
 "Błąd podczas wyłączania równoległych procesów: nie można zakończyć "
 "niektórych procesów potomnych\n"
 
-#: fork.c:526 fork.c:529
+#: fork.c:490 fork.c:493
 msgid "unable to create a pipe"
 msgstr "nie można utworzyć potoku"
 
-#: fork.c:551
+#: fork.c:515
 #, c-format
 msgid "unable to fork, possible reason: %s"
 msgstr "nie można rozdzielić, prawdopodobny powód: %s"
 
-#: fork.c:743
+#: fork.c:683
 msgid "only children can send data to the master process"
 msgstr "tylko potomne procesy mogą przesłać dane do procesu głównego"
 
-#: fork.c:745
+#: fork.c:685
 msgid "there is no pipe to the master process"
 msgstr "nie ma potoku do procesu głównego"
 
-#: fork.c:747
+#: fork.c:687
 msgid "content to send must be RAW, use serialize() if needed"
 msgstr ""
 "zawartość do wysłania musi być PUSTA, użyj 'serialize()' jeśli konieczne"
 
-#: fork.c:756 fork.c:764 fork.c:1174
+#: fork.c:696 fork.c:704 fork.c:1080
 msgid "write error, closing pipe to the master"
 msgstr "błąd zapisu, zamykanie potoku do procesu głównego"
 
-#: fork.c:774
+#: fork.c:714
 msgid "only the master process can send data to a child process"
 msgstr "tylko główny proces może przesłać dane do potomnego procesu"
 
-#: fork.c:782
+#: fork.c:722
 #, c-format
 msgid "child %d does not exist"
 msgstr "potomny proces %d nie istnieje"
 
-#: fork.c:788
+#: fork.c:728
 msgid "write error"
 msgstr "błąd zapisu"
 
-#: fork.c:874
+#: fork.c:781
 #, c-format
 msgid "cannot wait for child %d as it does not exist"
 msgstr "nie można czekać na potomny proces %d ponieważ on nie istnieje"
 
-#: fork.c:933 fork.c:1053
+#: fork.c:848 fork.c:971
 #, c-format
 msgid "error '%s' in select"
 msgstr "błąd '%s' przy wyborze"
 
-#: fork.c:1143
+#: fork.c:1062
 msgid "'mckill' failed"
 msgstr "'mckill' nie powiodło się"
 
-#: fork.c:1156
+#: fork.c:1072
 msgid "'mcexit' can only be used in a child process"
 msgstr "'mcexit' może być użyty jedynie w potomnym procesie"
 
-#: fork.c:1188
+#: fork.c:1094
 msgid "'mcexit' failed"
 msgstr "'mcexit' nie powiodło się"
 
-#: fork.c:1217 fork.c:1226
+#: fork.c:1123 fork.c:1132
 msgid "invalid CPU affinity specification"
 msgstr "niepoprawne określenie koligacji CPU"
 
-#: fork.c:1237
+#: fork.c:1143
 msgid "requested CPU set is too large for this system"
 msgstr "zażądane ustawienie CPU jest zbyt duże dla tego systemu"
 
-#: fork.c:1260
+#: fork.c:1166
 msgid "retrieving CPU affinity set failed"
 msgstr "pozyskiwanie ustawienia koligacji CPU nie powiodło się"
 
