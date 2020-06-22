@@ -49,22 +49,6 @@ Sys.timezone <- function(location = TRUE)
     if(nzchar(tz)) return(tz)
     if(.Platform$OS.type == "windows") return(.Internal(tzone_name()))
 
-    if(!nzchar(Sys.getenv("TZDIR")) && grepl("darwin", R.Version()$os) &&
-       dir.exists(zp <-file.path(R.home("share"), "zoneinfo")))  {
-        ## On macOS, have choice of system or internal zoneinfo
-        ## so chose system if newer.
-        veri <- try(readLines(file.path(zp, "VERSION")), silent = TRUE)
-        vers <- try(readLines("/var/db/timezone/zoneinfo/+VERSION"),
-                    silent = TRUE)
-        if(!inherits(veri, "try-error") && !inherits(vers, "try-error") &&
-           vers != veri) {
-            yri <- substr(veri, 1L, 4L); sufi <- substr(veri, 5, 5)
-            yrs <- substr(vers, 1L, 4L); sufs <- substr(vers, 5, 5)
-            if (yrs > yri || (yrs == yri && sufs > sufi))
-                Sys.setenv(TZDIR = "macOS")
-        }
-    }
-
     ## At least tzcode and glibc respect TZDIR.
     ## glibc uses $(datadir)/zoneinfo
     ## musl does not mention it, just reads /etc/localtime (as from 1.1.13)
@@ -271,7 +255,7 @@ as.POSIXlt.numeric <- function(x, tz = "", origin, ...)
 {
     if(missing(origin)) {
         if(!length(x))
-            return(as.POSIXlt.character(character(), tz))
+            return(as.POSIXlt.character(character(), tz))        
         if(!any(is.finite(x)))
             return(as.POSIXlt.character(rep_len(NA_character_,
                                                 length(x)),
@@ -848,7 +832,6 @@ function(..., recursive = FALSE)
                days = 60*60*24*x, weeks = 60*60*24*7*x)
     }
     args <- list(...)
-    args <- args[!vapply(args, is.null, NA)]
     if(!length(args)) return(.difftime(double(), "secs"))
     ind <- sapply(args, inherits, "difftime")
     pos <- which(!ind)

@@ -1,6 +1,6 @@
 % File src/library/base/man/dots.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2017 R Core Team
 % Distributed under GPL 2 or later
 
 \name{dots}
@@ -11,7 +11,6 @@
 \alias{..2}
 \alias{...elt}
 \alias{...length}
-\alias{...names}
 \description{
   \code{\dots} and \code{..1}, \code{..2} etc are used to refer to
   arguments passed down from a calling function.  These (and the
@@ -25,15 +24,12 @@
   \code{NULL} invisibly instead of an error when \code{n} is zero or
   too large.
 
-  \code{...length()} returns the number of expressions in \code{\dots}, and
-  \code{...names()} the \code{\link{names}}.
-  These are the same as \code{length(list(...))} or \code{names(list(...))}
-  but without evaluating the expressions in \code{...} (which happens with
-  \code{list(...)}).
+  \code{...length()} returns the number of expressions in \code{\dots}.
+  This is the same as \code{length(list(...))} but without evaluating
+  the expressions in \code{...} (which happens with \code{list(...)}).
 }
 \usage{
 ...length()
-...names()
 ...elt(n)
 }
 \arguments{
@@ -57,13 +53,11 @@ tst(1, pi=pi*0:1, 2:4) ## [1] 0.000000 3.141593
 tst(2, pi=pi*0:1, 2:4) ## [1] 2 3 4
 try(tst(1)) # -> Error about '...' not containing an element.
 
-tst.dl  <- function(x, ...) ...length()
-tst.dns <- function(x, ...) ...names()
+tst.dl <- function(x, ...) ...length()
 tst.dl(1:10)    # 0  (because the first argument is 'x')
 tst.dl(4, 5)    # 1
 tst.dl(4, 5, 6) # 2  namely '5, 6'
-tst.dl(4, 5, 6, 7, sin(1:10), "foo"/"bar") # 5.    Note: no evaluation!
-tst.dns(4, 5, 6, 7, sin(1:10), "foo"/"bar")# NULL   "    "     " %"
+tst.dl(4, 5, 6, 7, sin(1:10), "foo"/"bar") # 5.  Note: no evaluation!
 }
 \keyword{programming}
 \keyword{documentation}

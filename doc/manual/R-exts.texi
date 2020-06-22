@@ -1514,13 +1514,8 @@ the Windows@footnote{@samp{BWidget} still is on Windows but
 @emph{are} extensions and do need to be declared (and that
 @samp{Tktable} is less widely available than it used to be, including
 not in the main repositories for major Linux distributions).
-@c Not in Fedora since 17
-@c 2008 sources at https://sourceforge.net/projects/tktable/files/tktable/2.10/
-@c In May 2020 declared by DALY PhViD RSiena RSurvey dgmb fit4NM
-@c forensim rriskDistributions tcltk2
+@c Not in Fedora since 17, only in launchpad for Ubuntu.
 
-@c In May 2020 declared by FFD GGEBiplotGUI OligoSpecificitySystem
-@c PBSmodelling asbio biplotbootGUI cncaGUI dgmb dpa multibiplotGUI rpanel
 @samp{BWidget} needs to be installed by the user on other OSes.  This is
 fairly easy to do: first find the Tcl search path:
 
@@ -1720,7 +1715,11 @@ both the command and the appropriate flags, so that for example
 @samp{CC} must always be used with @samp{CFLAGS} and (for code to be
 linked into a shared library) @samp{CPICFLAGS}.  For Fortran, be careful
 to use @samp{FC FFLAGS FPICFLAGS} for fixed-form Fortran and 
-@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.
+@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.  (Packages intended to
+be used with @R{} versions before 3.6.0 should use the legacy forms
+@samp{F77 FFLAGS FPICFLAGS} and @samp{FC FCFLAGS FCPICFLAGS}, but
+@samp{F77} and @samp{FCPICFLAGS} are no longer defined, so such packages
+should depend on @samp{R (< 4.0)}.)
 
 To check for an external BLAS library using the @code{AX_BLAS} macro
 from the official Autoconf Macro Archive, one can simply do
@@ -2432,7 +2431,7 @@ Note the quotes: the macros can contain spaces, e.g.@: @code{CC = "gcc
 -m64 -std=gnu99"}.  Several authors have forgotten about parallel makes:
 the static library in the subdirectory must be made before the shared
 object (@code{$(SHLIB)}) and so the latter must depend on the former.
-Others forget the need@footnote{A few OSes (AIX, Windows) do not
+Others forget the need@footnote{A few OSes (AIX, IRIX, Windows) do not
 need special flags for such code, but most do---although compilers will
 often generate PIC code when not asked to do so.} for
 position-independent code.
@@ -4354,37 +4353,8 @@ needed (for example to create bibliography files under
 @file{vignettes}), use a file called @file{GNUmakefile} rather than
 @file{Makefile} as GNU make (only) will use the former.
 
-macOS has used GNU make for many years (it previously used BSD make),
-but the version has been frozen at 3.81 (from 2006).
-
 Since the only viable make for Windows is GNU make, it is permissible to
 use GNU extensions in files @file{Makevars.win} or @file{Makefile.win}.
-
-@item
-If you use @file{src/Makevars} to compile code in a subdirectory,
-ensure that you have followed all the advice above.  In particular
-@itemize
-@item
-Anticipate a parallel @command{make}.  @xref{Using Makevars}.
-
-@item
-Pass macros down to the makefile in the subdirectory, including
-@strong{all} the needed compiler flags (including PIC and visibility
-flags).  If they are used in the subdirectory's Makefile, this includes
-macros @samp{AR} and @samp{RANLIB}.  @xref{Compiling in
-sub-directories}, which has a C example.  A C++ example:
-
-@example
-pkg/libpkg.a:
-        (cd pkg && $(MAKE) -f make_pkg libpkg.a \
-         CXX="$(CXX)" CXXFLAGS="$(CXXFLAGS) $(CXXPICFLAGS) $(C_VISIBILITY)" \
-         AR="$(AR)" RANLIB="$(RANLIB)")
-@end example
-
-@item
-Ensure that cleanup will be performed by @command{R CMD build}, for
-example in a @code{cleanup} script or a @samp{clean} target.
-@end itemize
 
 @item
 If your package uses a @file{src/Makefile} file to compile code to be
@@ -4442,11 +4412,6 @@ is not portable.
 
 The @option{-o} flag for @command{set} in shell scripts is optional in
 POSIX and not supported on all the platforms @R{} is used on.
-
-The variable @samp{OSTYPE} is shell-specific and its values are
-rather unpredictable and may include a version such as
-@samp{darwin19.0}: @command{`uname`} is often what is intended (with
-common values @samp{Darwin}, @samp{Linux} and @samp{SunOS}).
 
 On macOS Catalina which shell @file{/bin/sh} invokes is user- and
 platform-dependent: it might be @command{bash} version 3.2,
@@ -5000,7 +4965,7 @@ and suitable options might be
 @end example
 
 @noindent
-See @uref{https://www.ghostscript.com/@/doc/@/current/@/VectorDevices.htm} for
+See @uref{http://www.ghostscript.com/@/doc/@/current/@/Ps2pdf.htm} for
 more such and consider all the options for image downsampling).  There
 have been examples in @acronym{CRAN} packages for which current versions
 of Ghostscript produced much bigger reductions than earlier ones (e.g.@:
@@ -6939,10 +6904,6 @@ packages is to force a reference to a package that might be further down
 the search path.  Because they have been frequently misused, the @HTML{}
 help system looks for topic @code{@var{foo}} in package @pkg{@var{pkg}}
 if it does not find file @file{@var{foo}.html}.
-
-Packages referred to by these `other forms' should be declared in the
-@file{DESCRIPTION} file, in the @samp{Depends}, @samp{Imports},
-@samp{Suggests} or @samp{Enhances} fields.
 
 @node Mathematics, Figures, Cross-references, Writing R documentation files
 @section Mathematics
@@ -9048,7 +9009,7 @@ files during compilation: see @uref{https://clang-analyzer.llvm.org/}.
 
 GCC 10 introduced a new flag @option{-fanalyzer} which does static
 analysis during compilation, currently for C code.  It is regarded as
-@emph{experimental} and it may slow down computation considerably when
+@emph{expericmental} and it may slow down computation considerably when
 problems are found (and use many GB of resident memory).  There is some
 overlap with problems detected by the Undefined Behaviour sanitizer, but
 some issues are only reported by this tool and as it is a static
@@ -9056,7 +9017,7 @@ analysis, it does not rely on code paths being exercised.
 
 See
 @uref{https://gcc.gnu.org/@/onlinedocs/@/gcc-10.1.0/@/gcc/@/Static-Analyzer-Options.html}
-(or the documentation for your version of @command{gcc} if later) and
+(or the doumentation for your version of @command{gcc} if later) and
 @uref{https://developers.redhat.com/@/blog/2020/03/26/@/static-analysis-in-gcc-10/}
 
 @node Using `Dr. Memory', Fortran array bounds checking, Other analyses with `gcc', Checking memory access
@@ -13901,13 +13862,7 @@ Computes @code{log(1 + exp(@var{x}))} (@emph{log 1 @b{p}lus @b{exp}}),
 accurately, notably for large @var{x}, e.g., @eqn{x > 720, x > 720}.
 @end deftypefun
 
-@deftypefun double log1mexp (double @var{x})
-Computes @code{log(1 - exp(@var{-x}))} (@emph{log 1 @b{m}inus @b{exp}}),
-accurately, carefully for two regions of @var{x}, optimally cutting
-off at @eqn{\log 2, log 2} (= 0.693147..), using
-@code{((-x) > -M_LN2 ? log(-expm1(-x)) : log1p(-exp(-x)))}.
-@end deftypefun
-
+@c  log1mexp(.) to come
 
 @deftypefun double expm1 (double @var{x})
 Computes @code{exp(@var{x}) - 1} (@emph{exp x @b{m}inus 1}), accurately
@@ -14644,13 +14599,15 @@ Fortran entry points, but there is a more comprehensive scheme used by,
 for example package @pkg{stats}.  Most compilers which allow control of
 visibility will allow control of visibility for all symbols @emph{via} a
 flag, and where known the flag is encapsulated in the macros
-@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{This applies to the
-compiler for the default C++ dialect (currently C++11) and not
-necessarily to other dialects.} and @samp{F_VISIBILITY} for C, C++ and
-Fortran compilers.@footnote{In some cases Fortran compilers accept the
-flag but do not actually hide their symbols.}  These are defined in
-@file{etc/Makeconf} and so available for normal compilation of package
-code.  For example, @file{src/Makevars} could include some of
+@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{As from @R{} 3.5.2:
+This applies to the compiler for the default C++ dialect (currently
+C++11) and not necessarily to other dialects.} and @samp{F_VISIBILITY}
+for C, C++ and Fortran compilers.@footnote{@samp{F77_VISIBILITY} was
+used prior to @R 3.6.0 and was still available in 3.6.x.  In some cases
+the Fortran compilers accept the flag but do not actually hide their
+symbols.}  These are defined in @file{etc/Makeconf} and so available for
+normal compilation of package code.  For example, @file{src/Makevars}
+could include some of
 
 @example
 PKG_CFLAGS=$(C_VISIBILITY)

@@ -479,7 +479,8 @@ model.frame.aovlist <- function(formula, data = NULL, ...)
     args  <- oargs[match(c("data", "na.action", "subset"), names(oargs), 0)]
     args[names(nargs)] <- nargs
     args$formula <- form
-    env <- environment(Terms) %||% parent.frame()
+    env <- environment(Terms)
+    if (is.null(env)) env <- parent.frame()
     ## need stats:: for non-standard evaluation
     fcall <- c(list(quote(stats::model.frame)), args)
     eval(as.call(fcall), env)

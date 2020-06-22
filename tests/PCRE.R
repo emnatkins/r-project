@@ -9,24 +9,20 @@ unname(extSoftVersion()["PCRE"])
 ## depending on the system and stack size.
 ## Typical stack 8-10M, some people use 40M.
 
-## PCRE2 >= 10.30 never uses recursion: earlier versions (including
-## PCRE1) can be compiled not to use a stack.
+pcre_config()["stack"]
 
-unname(pcre_config()["stack"])
-
-if(pcre_config()["stack"]) {
-    op <- options(warn = 1)
-    for (n in c(seq(5000L, 10000L, 1000L), 20000L, 50000L, 100000L)) {
-        print(n)
-        x <- paste0(rep("a", n), collapse="")
-        print(grepl("(a|b)+", x, perl = TRUE))
-    }
-    options(op)
+op <- options(warn = 1)
+for (n in c(seq(5000L, 10000L, 1000L), 20000L, 50000L, 100000L)) {
+    print(n)
+    x <- paste0(rep("a", n), collapse="")
+    print(grepl("(a|b)+", x, perl = TRUE))
 }
+options(op)
+
 
 ### tests of PCRE's JIT.
 if(!pcre_config()["JIT"]) {
-    message("The rest of these tests are pointless without JIT support")
+    message("These tests are pointless without JIT support")
     q("no")
 }
 
@@ -74,10 +70,7 @@ st(for(i in 1:1e4) gsub("(\\w)(\\w*)", "\\U\\1\\L\\2", txt, perl = TRUE))
 options(PCRE_use_JIT = TRUE)
 st(for(i in 1:1e4) gsub("(\\w)(\\w*)", "\\U\\1\\L\\2", txt, perl = TRUE))
 
-if(grepl("^10", extSoftVersion()["PCRE"])) {
-    cat("Time elapsed: ", proc.time() - .ptime,"\n")
-    q()
-}
+if(grepl("^10", extSoftVersion()["PCRE"])) q()
 
 ### previous test suite for PCRE1
 ## here JIT is slightly slower

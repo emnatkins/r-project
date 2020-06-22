@@ -668,7 +668,7 @@ add_dummies <- function(dir, Log)
         ## see e.g.
         ## http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/naming_a_file.asp
         ## http://msdn.microsoft.com/en-us/library/aa365247%28VS.85%29.aspx#naming_conventions
-        ## and https://en.wikipedia.org/wiki/Filename (which as of
+        ## and http://en.wikipedia.org/wiki/Filename (which as of
         ## 2007-04-22 is wrong about claiming that COM0 and LPT0 are
         ## disallowed):
         ##
@@ -2154,7 +2154,7 @@ add_dummies <- function(dir, Log)
             checkingLog(Log, "Rd line widths")
             Rcmd <- paste(opWarn_string, "\n",
                           if(do_install)
-                          sprintf("suppressPackageStartupMessages(tools:::.check_Rd_line_widths(\"%s\", installed = TRUE))\n",
+                          sprintf("tools:::.check_Rd_line_widths(\"%s\", installed = TRUE)\n",
                                   file.path(if(is_base_pkg) .Library else libdir,
                                             pkgname))
                           else
@@ -2193,7 +2193,7 @@ add_dummies <- function(dir, Log)
                           sprintf("tools:::.check_Rd_xrefs(dir = \"%s\")\n", pkgdir))
             out <- R_runR0(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
-                if (!all(grepl("(Package[s]? unavailable to check|Unknown package.*in Rd xrefs|Undeclared package.*in Rd xrefs)", out)))
+                if (!all(grepl("(Package[s]? unavailable to check|Unknown package.*in Rd xrefs)", out)))
                     warningLog(Log)
                 else noteLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -2361,7 +2361,7 @@ add_dummies <- function(dir, Log)
         if (dir.exists("man") && do_install && !extra_arch && !is_base_pkg) {
             checkingLog(Log, "for unstated dependencies in examples")
             Rcmd <- paste(opW_shE_F_str,
-                          sprintf("suppressPackageStartupMessages(tools:::.check_packages_used_in_examples(package = \"%s\"))\n", pkgname))
+                          sprintf("tools:::.check_packages_used_in_examples(package = \"%s\")\n", pkgname))
 
             out <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
@@ -3543,10 +3543,7 @@ add_dummies <- function(dir, Log)
             Rcmd <-
                 sprintf("%s\ntools:::.load_namespace_rather_quietly(\"%s\")",
                         opWarn_string, pkgname)
-            env2 <- Sys.getenv("_R_LOAD_CHECK_S4_EXPORTS_", "NA")
-            env2 <- paste0("_R_LOAD_CHECK_S4_EXPORTS_=",
-                           if(env2 == "all") env else pkgname)
-            out <- R_runR0(Rcmd, opts, c(env, env1, env2), arch = arch)
+            out <- R_runR0(Rcmd, opts, c(env, env1), arch = arch)
             any <- FALSE
             if (any(startsWith(out, "Error")) || length(attr(out, "status"))) {
                 warningLog(Log)
@@ -3563,17 +3560,12 @@ add_dummies <- function(dir, Log)
                 if(config_val_to_logical(check_imports_flag))
                     out <- filtergrep("Warning: replacing previous import", out,
                                       fixed = TRUE)
-                if(any(startsWith(out, "Warning: S4 exports"))) {
-                    warningLog(Log)
-                    any <- if(length(out) == 1L) NA else TRUE
-                } else if(any(startsWith(out, "Warning"))) {
+                if(any(startsWith(out, "Warning"))) {
                     noteLog(Log)
                     any <- TRUE
                 }
             }
-            if (is.na(any)) {
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
-            } else if(any) {
+            if(any) {
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
                 wrapLog("\nA namespace must be able to be loaded",
                         "with just the base namespace loaded:",
@@ -5045,8 +5037,6 @@ add_dummies <- function(dir, Log)
                              ": warning: .* \\[-Wunused-command-line-argument\\]",
                              ": warning: .* \\[-Wxor-used-as-pow\\]", # clang 10
                              ": warning: .* \\[-Winconsistent-missing-override\\]",
-                             ## also on gcc, but fewer warnings
-                             ": warning: .* \\[-Wlogical-not-parentheses\\]",
                              ## For non-portable flags (seen in sub-Makefiles)
                              "warning: .* \\[-Wunknown-warning-option\\]"
                              )
@@ -5062,10 +5052,6 @@ add_dummies <- function(dir, Log)
 
                 ## Filter out boost/armadillo header warnings
                 ex_re <- "(BH/include/boost|RcppArmadillo/include/armadillo_bits)/.*\\[-Wtautological-overlap-compare\\]"
-                lines <- filtergrep(ex_re, lines, useBytes = TRUE)
-
-                ## Filter out Eigen header warnings
-                ex_re <- "(RcppEigen/include/Eigen)/.*\\[-Wtautological-compare\\]"
                 lines <- filtergrep(ex_re, lines, useBytes = TRUE)
 
                 ## and GNU extensions in system headers
@@ -5380,12 +5366,12 @@ add_dummies <- function(dir, Log)
         desc
     }
 
-    check_CRAN_incoming <- function(localOnly, pkgSize)
+    check_CRAN_incoming <- function(localOnly)
     {
         checkingLog(Log, "CRAN incoming feasibility")
-        res <- .check_package_CRAN_incoming(pkgdir, localOnly, pkgSize)
+        res <- .check_package_CRAN_incoming(pkgdir, localOnly)
+        bad <- FALSE
         if(length(res)) {
-            bad <- FALSE
             out <- format(res)
             if(length(out) == 1L && startsWith(out, "Maintainer: ")) {
                 ## Special-case when there is only the maintainer
@@ -5522,7 +5508,7 @@ add_dummies <- function(dir, Log)
                          "many_depends", "many_imports",
                          "skipped",
                          "hdOnly",
-                         "orphaned2", "orphaned", "orphaned1",
+                         "orphaned2", "orphaned",
                          "required_for_checking_but_not_installed",
                          if(!check_incoming) "bad_engine")
             if(!all(names(res) %in% allowed)) {
@@ -5543,9 +5529,7 @@ add_dummies <- function(dir, Log)
                 do_build_vignettes  <<- FALSE
                 printLog0(Log, paste(out, collapse = "\n"))
             } else {
-                if( length(res[["orphaned"]]) || length(res[["orphaned1"]]) )
-                    warningLog(Log)
-                else noteLog(Log)
+                if(length(res[["orphaned"]])) warningLog(Log) else noteLog(Log)
                 printLog0(Log, paste(out, collapse = "\n"))
                 ## if(length(res$orphaned2))
                 ##     wrapLog("\nSuggested packages need to be used conditionally:",
@@ -6118,8 +6102,6 @@ add_dummies <- function(dir, Log)
         Sys.setenv("_R_CHECK_EXCESSIVE_IMPORTS_" = "20")
         Sys.setenv("_R_CHECK_DEPENDS_ONLY_DATA_" = "TRUE")
         Sys.setenv("_R_OPTIONS_STRINGS_AS_FACTORS_" = "FALSE")
-##        Sys.setenv("_R_CHECK_XREFS_PKGS_ARE_DECLARED_" = "TRUE")
-        Sys.setenv("_R_CHECK_XREFS_MIND_SUSPECT_ANCHORS_" = "TRUE")
         R_check_vc_dirs <- TRUE
         R_check_executables_exclusions <- FALSE
         R_check_doc_sizes2 <- TRUE
@@ -6280,12 +6262,12 @@ add_dummies <- function(dir, Log)
                 summaryLog(Log)
                 do_exit(1L)
             }
-            pkg_size <- file.info(pkg)$size
+            size <- file.info(pkg)$size
+            Sys.setenv("_R_CHECK_SIZE_OF_TARBALL_" = size)
             ## this assumes foo_x.y.tar.gz unpacks to foo, but we are about
             ## to test that.
             pkg <- file.path(dir, pkgname0)
-        } else
-            pkg_size <- NA
+        }
         if (!dir.exists(pkg)) {
             checkingLog(Log, "package directory")
             errorLog(Log,
@@ -6333,9 +6315,11 @@ add_dummies <- function(dir, Log)
         else if (length(opts) == 1L)
             messageLog(Log, "using option ", sQuote(opts))
 
-        if(isTRUE(config_val_to_logical(Sys.getenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_",
-                                                   "FALSE"))))
+        if(identical(config_val_to_logical(Sys.getenv("_R_CHECK_NO_STOP_ON_TEST_ERROR_",
+                                                      "FALSE")),
+                     TRUE)) {
             stop_on_test_error <- FALSE
+        }
 
         if (!nzchar(libdir)) { # otherwise have set R_LIBS above
             libdir <- pkgoutdir
@@ -6397,7 +6381,7 @@ add_dummies <- function(dir, Log)
             check_incoming_remote <- if(check_incoming_remote == "NA") as_cran else {
                 config_val_to_logical(check_incoming_remote)
             }
-            if (check_incoming) check_CRAN_incoming(!check_incoming_remote, pkg_size)
+            if (check_incoming) check_CRAN_incoming(!check_incoming_remote)
 
             ## <NOTE>
             ## We want to check for dependencies early, since missing

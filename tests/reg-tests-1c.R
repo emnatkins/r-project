@@ -360,19 +360,19 @@ save(one, file = tempfile(), envir = my_env)
 
 ## Conversion to numeric in boundary case
 ch <- "0x1.ffa0000000001p-1"
-rr <- type.convert(ch, numerals = "allow.loss", as.is=FALSE)
-rX <- type.convert(ch, numerals = "no.loss",    as.is=FALSE)
+rr <- type.convert(ch, numerals = "allow.loss")
+rX <- type.convert(ch, numerals = "no.loss")
 stopifnot(is.numeric(rr), identical(rr, rX),
           all.equal(rr, 0.999267578125),
-	  all.equal(type.convert(ch,	      numerals = "warn", as.is=FALSE),
-		    type.convert("0x1.ffap-1",numerals = "warn", as.is=FALSE), tol = 5e-15))
+	  all.equal(type.convert(ch,	      numerals = "warn"),
+		    type.convert("0x1.ffap-1",numerals = "warn"), tol = 5e-15))
 ## type.convert(ch) was not numeric in R 3.1.0
 ##
 ch <- "1234567890123456789"
-rr <- type.convert(ch, numerals = "allow.loss", as.is=FALSE)
-rX <- type.convert(ch, numerals = "no.loss",    as.is=FALSE)
-rx <- type.convert(ch, numerals = "no.loss",    as.is= TRUE)
-tools::assertWarning(r. <- type.convert(ch, numerals = "warn.loss", as.is=FALSE))
+rr <- type.convert(ch, numerals = "allow.loss")
+rX <- type.convert(ch, numerals = "no.loss")
+rx <- type.convert(ch, numerals = "no.loss", as.is = TRUE)
+tools::assertWarning(r. <- type.convert(ch, numerals = "warn.loss"))
 stopifnot(is.numeric(rr), identical(rr, r.), all.equal(rr, 1.234567890e18),
 	  is.factor(rX),  identical(rx, ch))
 
@@ -639,18 +639,19 @@ stopifnot(identical(check2(one, , three), c(FALSE, TRUE, FALSE)))
 ### envRefClass check moved to methods package
 
 
-## takes too long with JIT enabled:
-.jit.lev <- compiler::enableJIT(0)
-Sys.getenv("_R_CHECK_LENGTH_1_CONDITION_") -> oldV
-Sys.setenv("_R_CHECK_LENGTH_1_CONDITION_" = "false") # only *warn*
-## while did not protect its argument, which caused an error
-## under gctorture, PR#15990
-gctorture()
-suppressWarnings(while(c(FALSE, TRUE)) 1)
-gctorture(FALSE)
-## gave an error because the test got released when the warning was generated.
-compiler::enableJIT(.jit.lev)# revert
-Sys.setenv("_R_CHECK_LENGTH_1_CONDITION_" = oldV)
+## commented out for 4.0.0, as not very important.
+## ## takes too long with JIT enabled:
+## .jit.lev <- compiler::enableJIT(0)
+## Sys.getenv("_R_CHECK_LENGTH_1_CONDITION_") -> oldV
+## Sys.setenv("_R_CHECK_LENGTH_1_CONDITION_" = "false") # only *warn*
+## ## while did not protect its argument, which caused an error
+## ## under gctorture, PR#15990
+## gctorture()
+## suppressWarnings(while(c(FALSE, TRUE)) 1)
+## gctorture(FALSE)
+## ## gave an error because the test got released when the warning was generated.
+## compiler::enableJIT(.jit.lev)# revert
+## Sys.setenv("_R_CHECK_LENGTH_1_CONDITION_" = oldV)
 
 
 ## hist(x, breaks =) with too large bins, PR#15988

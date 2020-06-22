@@ -186,8 +186,6 @@ static void R_pcre_exec_error(int rc, R_xlen_t i)
     // too much effort to handle long-vector indices, including on Windows
     char buf[256];
     pcre2_get_error_message(rc, (PCRE2_UCHAR *)buf, sizeof(buf));
-    if(streql(buf, "recursion limit exceeded"))
-	strcat(buf, ": consider increasing the C stack size for the R process");
     warning(_("PCRE error\n\t'%s'\n\tfor element %d"), buf, (int) i + 1);
 }
 #else
@@ -352,7 +350,7 @@ R_pcre2_prepare(const char *pattern, SEXP subject, Rboolean use_UTF8,
 	    setup_jit(*mcontext);
     }
 # ifdef R_PCRE_LIMIT_RECURSION
-    if (use_recursion_limit(subject))
+    else if (use_recursion_limit(subject))
 	pcre2_set_recursion_limit(*mcontext, (uint32_t) R_pcre_max_recursions());
 
     /* we could use set_depth_limit() in newer versions, but the memory limit
@@ -473,7 +471,6 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* treat split = NULL as split = "" */
     if (!tlen) { tlen = 1; SETCADR(args0, tok = mkString("")); }
-    PROTECT(tok);
 
     if (!useBytes) {
 	for (i = 0; i < tlen; i++)
@@ -977,7 +974,6 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 #else
     if (tables) pcre_free((void *)tables);
 #endif
-    UNPROTECT(1); /* tok */
     return ans;
 }
 
@@ -1507,15 +1503,13 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 		    R_size_t pos = 0;
 		    SEXP elt, mvec = NULL;
 		    int *fmatches = (int*) matches; /* either the minbuffer or an allocated maxibuffer */
-		    int nprotect = 0;
 
 		    if (!nmatches) return text;
 
 		    /* if there are more matches than in the buffer,
 		       we actually need to get them first */
 		    if (nmatches > MAX_MATCHES_MINIBUF) {
-			PROTECT(mvec = allocVector(INTSXP, nmatches));
-			nprotect++;
+			mvec = PROTECT(allocVector(INTSXP, nmatches));
 			fmatches = INTEGER(mvec);
 			memcpy(fmatches, matches, sizeof(matches));
 			nmatches = MAX_MATCHES_MINIBUF;
@@ -1531,7 +1525,6 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 
 		    /* there are always nmatches + 1 pieces (unlike strsplit) */
 		    ans = PROTECT(allocVector(VECSXP, nmatches + 1));
-		    nprotect++;
 		    /* add all pieces before matches */
 		    for (i = 0; i < nmatches; i++) {
 			R_size_t elt_size = fmatches[i] - 1 - pos;
@@ -1546,7 +1539,9 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 		    SET_VECTOR_ELT(ans, nmatches, elt);
 		    if (LENGTH(elt))
 			memcpy(RAW(elt), RAW(text) + LENGTH(text) - LENGTH(elt), LENGTH(elt));
-		    UNPROTECT(nprotect);
+		    UNPROTECT(1); /* ans */
+		    if (mvec)
+			UNPROTECT(1);
 		    return ans;
 		}
 
@@ -2051,11 +2046,11 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	else if (use_WC) ;
 	else if (use_UTF8) {
 	    s = translateCharUTF8(STRING_ELT(text, i));
-	    if (!utf8Valid(s)) error(_("input string %d is invalid UTF-8"), i+1);
+	    if (!utf8Valid(s)) error(("input string %d is invalid UTF-8"), i+1);
 	} else {
 	    s = translateChar(STRING_ELT(text, i));
 	    if (mbcslocale && !mbcsValid(s))
-		error(_("input string %d is invalid in this locale"), i+1);
+		error(("input string %d is invalid in this locale"), i+1);
 	}
 
 	if (fixed_opt) {

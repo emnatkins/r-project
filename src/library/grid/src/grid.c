@@ -338,12 +338,6 @@ SEXP L_setviewport(SEXP invp, SEXP hasParent)
      * Need to do this in here so that redrawing via R BASE display
      * list works 
      */
-#ifdef R_GE_DEBUG
-    if (getenv("R_GE_DEBUG_viewports")) {
-        printf("L_setviewport: ");
-        Rf_PrintValue(pushedvp);
-    }
-#endif
     setGridStateElement(dd, GSS_VP, pushedvp);
     UNPROTECT(3);
     return R_NilValue;
@@ -513,12 +507,6 @@ SEXP L_downviewport(SEXP name, SEXP strict)
 	 * Need to do this in here so that redrawing via R BASE display
 	 * list works 
 	 */
-#ifdef R_GE_DEBUG
-        if (getenv("R_GE_DEBUG_viewports")) {
-            printf("L_downviewport: ");
-            Rf_PrintValue(vp);
-        }
-#endif
 	setGridStateElement(dd, GSS_VP, vp);
         UNPROTECT(1);    
     } else {
@@ -663,12 +651,6 @@ SEXP L_downvppath(SEXP path, SEXP name, SEXP strict)
 	 * Need to do this in here so that redrawing via R BASE display
 	 * list works 
 	 */
-#ifdef R_GE_DEBUG
-        if (getenv("R_GE_DEBUG_viewports")) {
-            printf("L_downvppath: ");
-            Rf_PrintValue(vp);
-        }
-#endif
 	setGridStateElement(dd, GSS_VP, vp);
         UNPROTECT(1);    
     } else {
@@ -771,12 +753,6 @@ SEXP L_unsetviewport(SEXP n)
      * Need to do this in here so that redrawing via R BASE display
      * list works 
      */
-#ifdef R_GE_DEBUG
-    if (getenv("R_GE_DEBUG_viewports")) {
-        printf("L_unsetviewport: ");
-        Rf_PrintValue(newvp);
-    }
-#endif
     setGridStateElement(dd, GSS_VP, newvp);
     /* 
      * Remove the parent from the child
@@ -853,12 +829,6 @@ SEXP L_upviewport(SEXP n)
      * Need to do this in here so that redrawing via R BASE display
      * list works 
      */
-#ifdef R_GE_DEBUG
-    if (getenv("R_GE_DEBUG_viewports")) {
-        printf("L_upviewport: ");
-        Rf_PrintValue(newvp);
-    }
-#endif
     setGridStateElement(dd, GSS_VP, newvp);
     return R_NilValue;
 }
@@ -1044,15 +1014,6 @@ SEXP L_newpage()
     if (deviceGridDirty || deviceDirty) {
 	SEXP currentgp = gridStateElement(dd, GSS_GPAR);
 	gcontextFromgpar(currentgp, 0, &gc, dd);
-        /* Turn on recording;  allows grid.newpage() to "reset" device
-         * after error.
-         */
-#ifdef R_GE_DEBUG
-        if (getenv("R_GE_DEBUG_record")) {
-            printf("L_newpagerecording: record = TRUE\n");
-        } 
-#endif
-        dd->recordGraphics = TRUE;
 	GENewPage(&gc, dd);
     }
     return R_NilValue;

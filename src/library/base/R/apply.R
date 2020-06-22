@@ -16,11 +16,9 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-apply <- function(X, MARGIN, FUN, ..., simplify = TRUE)
+apply <- function(X, MARGIN, FUN, ...)
 {
     FUN <- match.fun(FUN)
-
-    simplify <- isTRUE(simplify)
 
     ## Ensure that X is an array object
     dl <- length(dim(X))
@@ -83,7 +81,7 @@ apply <- function(X, MARGIN, FUN, ..., simplify = TRUE)
 
     ## answer dims and dimnames
 
-    ans.list <- !simplify || is.recursive(ans[[1L]])
+    ans.list <- is.recursive(ans[[1L]])
     l.ans <- length(ans[[1L]])
 
     ans.names <- names(ans[[1L]])

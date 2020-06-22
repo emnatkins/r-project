@@ -66,11 +66,7 @@ Rboolean UsingReadline = TRUE;  /* used in sys-std.c & ../main/platform.c
 
 /* call pointers to allow interface switching */
 
-void NORET R_Suicide(const char *s) {
-    ptr_R_Suicide(s);
-    // This should not have returned, but belt-and-braces
-    exit(2); // same status as Rstd_Suicide
-}
+void R_Suicide(const char *s) { ptr_R_Suicide(s); }
 void R_ShowMessage(const char *s) { ptr_R_ShowMessage(s); }
 int R_ReadConsole(const char *prompt, unsigned char *buf, int len, int addtohistory)
 { return ptr_R_ReadConsole(prompt, buf, len, addtohistory); }
@@ -82,12 +78,8 @@ void R_FlushConsole(void) { ptr_R_FlushConsole(); }
 #endif
 void R_ClearerrConsole(void) { ptr_R_ClearerrConsole(); }
 void R_Busy(int which) { ptr_R_Busy(which); }
-void NORET R_CleanUp(SA_TYPE saveact, int status, int runLast)
-{
-    ptr_R_CleanUp(saveact, status, runLast);
-    // This should not have returned, but belt-and-braces
-    exit(status);
-}
+void R_CleanUp(SA_TYPE saveact, int status, int runLast)
+{ ptr_R_CleanUp(saveact, status, runLast); }
 
 attribute_hidden
 int R_ShowFiles(int nfile, const char **file, const char **headers,
