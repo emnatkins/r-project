@@ -1109,10 +1109,9 @@ standards.
 
 There is support for using link-time optimization (LTO) if the toolchain
 supports it: configure with flag @option{--enable-lto}.  When LTO is
-enabled it is used for compiled code in add-on packages unless the flag
-@option{--enable-lto=R} is used@footnote{Then recommended packages
-installed as part of the @R{} installation do use LTO, but not packages
-installed later.}.
+enabled it is used for compiled code in add-on packages. To use LTO for
+@R{} itself but not add-on packages (including recommended packages) use
+the flag @option{--enable-lto=R}.
 
 The main benefit seen to date from LTO has been detecting long-standing
 bugs in the ways packages pass arguments to compiled code and between
@@ -1525,7 +1524,6 @@ Windows' CRLF line endings.
 
 (`macOS' was known as `OS X' from 2012--2016 and as `Mac OS X' before that.)
 
-[The rest of this paragraph is only relevant after release.]
 The front page of a @acronym{CRAN} site has a link `Download R for (Mac)
 OS X'. Click on that, then download the file
 @file{R-@value{VERSIONno}.pkg} and install it. This runs on macOS 10.13
@@ -1708,9 +1706,9 @@ of the Apple package of the same name: this means that installing a package for
 the @R{} framework which it finds installed.  This can be avoided by
 using @command{pkgutil --forget} (see the previous section).  However,
 note that different versions are installed under
-@file{/Library/Frameworks/R.framework/Versions} as @file{4.1},
-@file{4.0} and so on, so it is not possible to have different
-@samp{4.x.y} versions installed for the same @samp{x}.
+@file{/Library/Frameworks/R.framework/Versions} as @file{4.0},
+@file{3.6} and so on, so it is not possible to have different
+@samp{3.x.y} or @samp{4.x.y} versions installed for the same @samp{x}.
 
 A version of @R{} can be run directly from the command-line as e.g.@:
 @example
@@ -2104,7 +2102,7 @@ source versions of packages without compiled C/C++/Fortran code and offer
 to do so for those with, if @command{make} is available.
 
 Note that most binary packages which include compiled code are tied to a
-particular series (e.g.@: @R{} 4.0.x or 4.1.x) of @R{}.
+particular series (e.g.@: @R{} 4.0.x or 3.6.x) of @R{}.
 
 Installing source packages which do not contain compiled code should
 work with no additional tools. For others you will need the
@@ -3529,7 +3527,7 @@ these variables.
 
 The linear algebra routines in @R{} can make use of enhanced
 @acronym{BLAS} (Basic Linear Algebra Subprograms,
-@uref{https://www.netlib.org/@/blas/@/faq.html}) routines.  However,
+@uref{http://www.netlib.org/@/blas/@/faq.html}) routines.  However,
 these have to be explicitly requested at configure time: @R{} provides
 an internal @acronym{BLAS} which is well-tested and will be adequate for
 most uses of @R{}.
@@ -3700,7 +3698,7 @@ compile-time flag specifies 4 threads.)
 
 Dr Kazushige Goto wrote a tuned @acronym{BLAS} for several processors
 and OSes, which was frozen in mid-2010.  OpenBLAS
-(@uref{https://www.openblas.net/}) is a descendant project with support
+(@uref{http://www.openblas.net/}) is a descendant project with support
 for some later CPUs.
 
 This can be used by configuring @R{} with something like
@@ -4463,7 +4461,7 @@ recent reports.
 
 C macros to select particular platforms can be tricky to track down
 (there is a fair amount of misinformation on the Web).  The Wiki
-(currently) at @uref{https://sourceforge.net/@/p/@/predef/@/wiki/@/Home/}
+(currently) at @uref{http://sourceforge.net/@/p/@/predef/@/wiki/@/Home/}
 can be helpful.  The @R{} sources have used (often in included software
 under @file{src/extra})
 @example
@@ -4743,7 +4741,7 @@ Use of @code{_GLIBCXX_ASSERTIONS} will link @code{abort} and
 @subsection Clang
 
 @R{} has been built with Linux @cputype{ix86} and @cputype{x86_64} C and
-C++ compilers (@uref{https://clang.llvm.org}) based on the Clang
+C++ compilers (@uref{http://clang.llvm.org}) based on the Clang
 front-ends, invoked by @code{CC=clang CXX=clang++}, together with
 @command{gfortran}.  These take very similar options to the
 corresponding GCC compilers.
@@ -4754,7 +4752,7 @@ which is needed for some versions of @command{gfortran}.
 
 The current out-of-the-box default for @command{clang++} is to use the
 C++ runtime from the installed @command{g++}.  Using the runtime from
-the @code{libc++} project (@url{https://libcxx.llvm.org/}, Fedora RPM
+the @code{libc++} project (@url{http://libcxx.llvm.org/}, Fedora RPM
 @code{libcxx-devel}) @emph{via} @option{-stdlib=libc++} has also been
 tested.
 
@@ -5124,7 +5122,7 @@ can be used @emph{via} the configuration options
 to provide potentially higher-performance versions of the @acronym{BLAS}
 and LAPACK routines.@footnote{It was reported that for some non-Apple
 toolchains @code{CPPFLAGS} needed to contain @code{-D__ACCELERATE__}:
-not needed for @command{clang} from @uref{https://releases.llvm.org} though.}
+not needed for @command{clang} from @url{releases.llvm.org} though.}
 This also includes a full LAPACK which can be used @emph{via}
 @option{--with-lapack}: however, the version of LAPACK it contains is
 often seriously old.
@@ -5242,7 +5240,7 @@ Java.} this should prompt you to install it.  You can also install
 directly a recent Java from Oracle (currently from
 @uref{https://www.oracle.com/@/java/technologies/@/javase-downloads.html}).
 Builds of OpenJDK may also be available, e.g.@: from
-@uref{https://adoptopenjdk.net} or @uref{https://jdk.java.net/}.  We
+@uref{https://adoptopenjdk.net} or @uref{http://jdk.java.net/}.  We
 recommend you install a version with long-term support, e.g.@: 8 or 11
 (but not 9, 10, 12--16 which have/had a 6-month lifetime).
 
@@ -5304,8 +5302,7 @@ selected by the option
 @end example
 
 (This is intended to be used with an Apple toolchain: others may not
-support frameworks correctly but those from
-@uref{https://releases.llvm.org} do.)
+support frameworks correctly but those from @code{releases.llvm.org} do.)
 
 It is only needed if you want to build @R{} for use with the @Rapp{}
 console, and implies @option{--enable-R-shlib} to build @R{} as a
@@ -5686,7 +5683,7 @@ Use of ICU for collation and the @command{configure} option
 Ingo Feinerer installed @R{} version 3.2.2 on OpenBSD 5.8 arch
 @cputype{amd64} (their name for @cputype{x86_64}).  Details of the build
 (and patches applied) are at
-@uref{https://cvsweb.openbsd.org/@/cgi-bin/@/cvsweb/@/ports/@/math/@/R/}. (Downgrading
+@uref{http://cvsweb.openbsd.org/@/cgi-bin/@/cvsweb/@/ports/@/math/@/R/}. (Downgrading
 the @code{zlib} requirement to 1.2.3 is against the advice of the @R{}
 developers.)
 

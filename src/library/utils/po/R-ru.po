@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
-"PO-Revision-Date: 2020-08-28 17:07+0900\n"
+"POT-Creation-Date: 2018-03-30 07:34\n"
+"PO-Revision-Date: 2018-04-07 01:35-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -217,6 +217,9 @@ msgstr ""
 "Выбрасываю неправильную запись %d:\n"
 "%s"
 
+msgid "package %s not found"
+msgstr "пакет %s не найден"
+
 msgid "no date field in DESCRIPTION file of package %s"
 msgstr "в файле DESCRIPTION пакета %s нет поля date"
 
@@ -256,9 +259,6 @@ msgstr "файл 'filelist' в папке %s не найден"
 
 msgid "data set %s not found"
 msgstr "данные %s не найдены"
-
-msgid "an object named %s already exists and will not be overwritten"
-msgstr "объект с именем %s уже есть и не может быть перезаписан"
 
 msgid "only 'html = TRUE' is supported on this platform"
 msgstr "только 'html = TRUE' поддерживается на этой платформе"
@@ -397,46 +397,6 @@ msgid "'form' must be a two-sided formula with one term on each side"
 msgstr ""
 "'form' должен быть двусторонней формулой с одним термином на каждой стороне"
 
-msgid "invalid 'n' -  must contain at least one non-missing element, got none."
-msgstr ""
-"неправильный 'n' - должен иметь хотя бы один не-пропущенный элемент, но "
-"таких нет."
-
-msgid "invalid 'n' - must have length one when dim(x) is NULL, got %d"
-msgstr ""
-"неправильный 'n' - должен быть длиной 1 в случае если dim(x) является NULL, "
-"но он %d"
-
-msgid "invalid 'n' - length(n) must be <= length(dim(x)), got %d > %d"
-msgstr ""
-"неправильный 'n' - length(n) должна быть <= length(dim(x)), но она %d > %d"
-
-msgid "no method found for %s(., n=%s) and class %s"
-msgstr "для %s(., n=%s) и класса %s не найдено метода"
-
-msgid ""
-"tail(., addrownums = V) is deprecated.\n"
-"Use"
-msgstr ""
-"tail(., addrownums = V) не разрешается.\n"
-"Используйте"
-
-msgid "tail(., keepnums = V) instead."
-msgstr "вместо этого tail(., keepnums = V)."
-
-msgid "tail(., addrownums=.) is"
-msgstr "tail(., addrownums=.)"
-
-msgid ""
-"deprecated.\n"
-"Use"
-msgstr ""
-"не разрешается.\n"
-"Используйте"
-
-msgid "tail(., keepnums=.) instead."
-msgstr "вместо этого tail(., keepnums=.)."
-
 msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr ""
 "'topic' должен быть именем, текстовой строкой единичной длины или "
@@ -518,6 +478,9 @@ msgstr "в базе данных нет информации о пакете %s: надо 'rebuild = TRUE'?"
 
 msgid "incorrect 'agrep' specification"
 msgstr "неправильное указание 'agrep'"
+
+msgid "could not find package %s"
+msgstr "не могу найти пакет %s"
 
 msgid "package %s has empty hsearch data - strangely"
 msgstr "пакет %s странным образом имеет пустые данные hsearch"
@@ -613,9 +576,6 @@ msgid ""
 msgstr ""
 "функция '%s', видимо, не S3-общая; найдены функции, похожие на методы S3"
 
-msgid "'class' is of length > 1; only the first element will be used"
-msgstr "размер 'class' > 1; будет использован только первый элемент"
-
 msgid "must supply 'generic.function' or 'class'"
 msgstr "надо указать 'generic.function' или 'class'"
 
@@ -640,9 +600,6 @@ msgstr "'fixInNamespace' требует имя"
 msgid "only numeric indices can be used"
 msgstr "можно использовать только числовые индексы"
 
-msgid "Malformed package name."
-msgstr "Неправильное название пакета."
-
 msgid "cannot create directory '%s'"
 msgstr "не могу создать папку '%s'"
 
@@ -664,9 +621,6 @@ msgid ""
 msgstr ""
 "Общие функции и другие объекты S4 (например, '%s') не могут быть сброшены; "
 "используйте аргумент 'code_files'"
-
-msgid "invalid 'type'; must be a character string"
-msgstr "неправильный 'type'; должен быть текстовой строкой"
 
 msgid "unable to access index for repository %s"
 msgstr "недоступен индекс для хранилища %s"
@@ -714,9 +668,6 @@ msgstr "'destdir' не является папкой"
 msgid "no package %s at the repositories"
 msgstr "в хранилищах нет пакета %s"
 
-msgid "invalid 'type'"
-msgstr "неправильный 'type'"
-
 msgid "package %s does not exist on the local repository"
 msgstr "в локальном хранилище нет пакета %s"
 
@@ -744,9 +695,6 @@ msgstr "использую зеркало неинтерактивно"
 
 msgid "cannot set repositories non-interactively"
 msgstr "не могу установить хранилища неинтерактивно"
-
-msgid "invalid options(\"pkgType\"); must be a character string"
-msgstr "неправильныая options(\"pkgType\"); должна быть текстовой строкой"
 
 msgid "--- Please select repositories for use in this session ---"
 msgstr "--- Пожалуйста, выберите хранилища для использования в этой сессии ---"
@@ -988,9 +936,6 @@ msgstr "%s должна быть единичным текстовым вектором или NULL"
 msgid "'file' must be a character string or connection"
 msgstr "'file' должен быть текстовой строкой строка или соединением"
 
-msgid "'as.is' should be specified by the caller; using TRUE"
-msgstr "'as.is' должен быть определен во время вызова; использую TRUE"
-
 msgid "empty beginning of file"
 msgstr "пустое начало файла"
 
@@ -1034,9 +979,6 @@ msgstr "могу принимать вызовы только на локальной машине"
 msgid "socket not established"
 msgstr "сокет не создан"
 
-msgid "argument is not a function or language object:"
-msgstr "аргумент -- не функция или логический объект:"
-
 msgid "str.data.frame() called with non-data.frame -- coercing to one."
 msgstr "str.data.frame() вызвана с не-data.frame -- соединяю в одно."
 
@@ -1052,9 +994,6 @@ msgstr "'str.default': 'le' -- это NA, так что беру как 0"
 msgid "'nchar.max = %d' is too small"
 msgstr "'nchar.max = %d' слишком маленький"
 
-msgid "Not a validObject():"
-msgstr "Не validObject():"
-
 msgid "'object' does not have valid levels()"
 msgstr "'object' не имеет правильных levels()"
 
@@ -1063,15 +1002,6 @@ msgstr "определены и 'digits', и 'digits.d', последняя не используется"
 
 msgid "The number of captures in 'pattern' != 'length(proto)'"
 msgstr "Число находок в 'pattern' != 'length(proto)'"
-
-msgid "The number of tokens != 'length(proto)'"
-msgstr "Количество токенов в 'pattern' != 'length(proto)'"
-
-msgid "The number of tokens is not consistent across 'x'"
-msgstr "Количество токенов в пределах 'x' не согласовано"
-
-msgid "cannot coerce %s to logical"
-msgstr "не могу перевести %s в логическую"
 
 msgid "no lines found in %s"
 msgstr "в '%s' нет строк"
@@ -1085,26 +1015,11 @@ msgstr "профиль не содержит информации о строке"
 msgid "no events were recorded"
 msgstr "события не записаны"
 
-msgid "argument 'compressed' is ignored for the internal method"
-msgstr "аргумент 'compressed' пропущен в пользу внутреннего метода"
-
 msgid "invalid 'tarfile' argument"
 msgstr "неправильный аргумент 'tarfile'"
 
 msgid "'compressed' must be logical or character"
 msgstr "'compressed' должен быть логическим или текстовым вектором"
-
-msgid "No %s command found"
-msgstr "Команда '%s' не найдена"
-
-msgid "gzip"
-msgstr "gzip"
-
-msgid "bzip2"
-msgstr "bzip2"
-
-msgid "xz"
-msgstr "xz"
 
 msgid "failed to create directory %s"
 msgstr "не могу создать каталог %s"
@@ -1112,31 +1027,11 @@ msgstr "не могу создать каталог %s"
 msgid "invalid octal digit"
 msgstr "неправильное восьмеричное число"
 
-msgid "removing drive '%s'"
-msgstr "удаляю диск '%s'"
-
-msgid "removing leading '/'"
-msgstr "удаляю стартовую '/'"
-
-msgid "path starts with '~'"
-msgstr "путь начинается с '~'"
-
-msgid "path contains '..'"
-msgstr "путь содержит '..'"
-
-msgid "path is empty"
-msgstr "путь пуст"
-
 msgid "'tarfile' must be a character string or a connection"
 msgstr "'tarfile' должен быть текстовой строкой или соединением"
 
 msgid "incomplete block on file"
 msgstr "незавершенный блок в файле"
-
-msgid "incomplete block: rather use gzfile(.) created connection?"
-msgstr ""
-"неполный блок: может быть, использовать соединение, созданное с помощью "
-"gzfile(.)?"
 
 msgid "invalid name field in tarball"
 msgstr "в tar-архиве найдено неправильное имя"
@@ -1190,9 +1085,9 @@ msgid "'title' must be NULL or a length-1 character vector"
 msgstr "'title' должны быть NULL или текстовым вектором единичной длины"
 
 msgid ""
-"Enter one or more numbers separated by spaces and then ENTER, or 0 to cancel"
+"Enter one or more numbers separated by spaces, or an empty line to cancel"
 msgstr ""
-"Введите одну или более цифр, разделенных пробелами, и затем ENTER или 0 для "
+"Введите одну или более цифр, разделенных пробелами, или пустую строку для "
 "отмены"
 
 msgid "Invalid input, please try again"
@@ -1247,9 +1142,6 @@ msgstr "'ccaddress' должен быть длиной 1"
 
 msgid "'url' must be a length-one character vector"
 msgstr "'url' должен быть текстовым вектором единичной длины"
-
-msgid "'headers' must have names and must not be NA"
-msgstr "'headers' должны именть имена и не должны быть NA"
 
 msgid "'destfile' must be a length-one character vector"
 msgstr "'destfile' должен быть текстовым вектором единичной длины"
@@ -1315,13 +1207,6 @@ msgstr "не удалось создать %s"
 
 msgid "there is no 'libs' directory in package %s"
 msgstr "нет директории 'libs' в пакете %s"
-
-msgid "unable to move temporary installation %s to %s, copying instead"
-msgstr ""
-"не могу перенести временную установку из %s в %s, вмсесто этого копирую"
-
-msgid "unable to copy temporary installation %s to %s"
-msgstr "не могу скопировать временную установку из %s в %s"
 
 msgid "Only '*.zip' and '*.tar.gz' files can be installed."
 msgstr "Можно устанавливать только файлы '*.zip' и '*.tar.gz'."
@@ -1420,12 +1305,6 @@ msgstr[0] "устанавливаю также зависимость %s"
 msgstr[1] "устанавливаю также зависимости %s"
 msgstr[2] "устанавливаю также зависимости %s"
 
-msgid "package %s is in use and will not be installed"
-msgid_plural "packages %s are in use and will not be installed"
-msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
-msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
-msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
-
 msgid ""
 "Installing package into %s\n"
 "(as %s is unspecified)"
@@ -1519,11 +1398,11 @@ msgstr[0] "Неправильные римский номер: %s"
 msgstr[1] "Неправильные римские номера: %s"
 msgstr[2] "Неправильные римские номера: %s"
 
-#~ msgid "package %s not found"
-#~ msgstr "пакет %s не найден"
-
-#~ msgid "could not find package %s"
-#~ msgstr "не могу найти пакет %s"
+msgid "package %s is in use and will not be installed"
+msgid_plural "packages %s are in use and will not be installed"
+msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
+msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
+msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
 
 #~ msgid "cannot choose a BioC mirror non-interactively"
 #~ msgstr "не могу выбрать зеркало BioC неинтерактивно"

@@ -31,9 +31,7 @@ extern Rboolean EmitEmbeddedUTF8;
 
 /* originally from Defn.h : */
 
-#include <R_ext/Error.h>  // includes NORET macro
-
-void NORET R_CleanUp(SA_TYPE, int, int);
+void R_CleanUp(SA_TYPE, int, int);
 void R_StartUp(void);
 
 FILE *R_OpenInitFile(void);

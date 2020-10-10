@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: 2005-08-15 11:43+0000\n"
 "Last-Translator: Prof Brian Ripley <ripley@stats.ox.ac.uk>\n"
 "Language-Team: English\n"
@@ -51,15 +51,6 @@ msgid "rgb values must be in [0, maxColorValue]"
 msgstr ""
 
 msgid "'start' and 'end' must be distinct and in [0, 1]."
-msgstr ""
-
-msgid "'palette' does not match any given palette"
-msgstr ""
-
-msgid "'palette' is ambiguous"
-msgstr ""
-
-msgid "'n' set to %s, the maximum available for %s palette"
 msgstr ""
 
 msgid "'gamma' must be a scalar or 'sRGB'"
@@ -147,15 +138,6 @@ msgstr ""
 msgid "dev.new(): using postscript(file=\"%s\")"
 msgstr ""
 
-msgid "wrong 'type'; should never happen, please report!"
-msgstr ""
-
-msgid "Invalid pattern type"
-msgstr ""
-
-msgid "Invalid 'extend' value"
-msgstr ""
-
 msgid "invalid arguments in '%s' (need named args)"
 msgstr ""
 
@@ -178,9 +160,6 @@ msgid "unknown family '%s'"
 msgstr ""
 
 msgid "invalid 'family' argument"
-msgstr ""
-
-msgid "'title' argument \"%s\" contains invalid characters"
 msgstr ""
 
 msgid "invalid 'file' argument '%s'"
@@ -273,9 +252,6 @@ msgstr ""
 msgid "argument is not of class %s"
 msgstr ""
 
-msgid "invalid \"recordedplot\":"
-msgstr ""
-
 msgid "snapshot recorded in different R version (pre 3.3.0)"
 msgstr ""
 
@@ -292,9 +268,6 @@ msgid "'bandwidth' must be numeric"
 msgstr ""
 
 msgid "'bandwidth' must be positive"
-msgstr ""
-
-msgid "Must have the ('Recommended') package \"KernSmooth\" installed"
 msgstr ""
 
 msgid "'r' must be a \"range\", hence of length 2"
@@ -375,9 +348,6 @@ msgid "can only copy from 'X11(type=\"*cairo\")' devices"
 msgstr ""
 
 msgid "invalid value for 'rescale'"
-msgstr ""
-
-msgid "Calls like '%s' are unsafe and should be replaced by '%s'"
 msgstr ""
 
 msgid "can only bring windows devices to the front"

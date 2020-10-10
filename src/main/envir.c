@@ -1211,7 +1211,7 @@ static R_INLINE SEXP findGlobalVar(SEXP symbol)
     case NILSXP: return R_UnboundValue;
     case SYMSXP: return SYMBOL_BINDING_VALUE(symbol);
     default: return BINDING_VALUE(loc);
-    }
+    }	
 }
 #endif
 
@@ -1461,24 +1461,6 @@ SEXP attribute_hidden do_dotsLength(SEXP call, SEXP op, SEXP args, SEXP env)
     return ScalarInteger(length_DOTS(vl));
 }
 
-SEXP attribute_hidden do_dotsNames(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    checkArity(op, args);
-    SEXP vl = findVar(R_DotsSymbol, env);
-    if (vl == R_UnboundValue)
-	error(_("incorrect context: the current call has no '...' to look in"));
-    // else
-    SEXP out = PROTECT(allocVector(STRSXP, length_DOTS(vl)));
-    for(int i = 0; i < LENGTH(out); i++) {
-        SEXP tag = TAG(vl);
-        SET_STRING_ELT(out, i, tag == R_NilValue ? NA_STRING : PRINTNAME(tag));
-        vl = CDR(vl);
-    }
-
-    UNPROTECT(1);
-    return out;
-}
-
 #undef length_DOTS
 
 /*----------------------------------------------------------------------
@@ -1705,7 +1687,7 @@ void addMissingVarsToNewEnv(SEXP env, SEXP addVars)
 	SEXP s;
 	for(s = addVars; s != end; s = CDR(s)) {
 	    if (TAG(s) == endTag) {
-		/* remove variable s from the list, because it is overridden by "end" */
+		/* remove variable s from the list, because it is overriden by "end" */
 		if (sprev == R_NilValue) {
 		    addVars = CDR(s);
 		    SET_FRAME(env, addVars);
@@ -1890,7 +1872,6 @@ SEXP attribute_hidden do_list2env(SEXP call, SEXP op, SEXP args, SEXP rho)
     x = CAR(args);
     n = LENGTH(x);
     xnms = getAttrib(x, R_NamesSymbol);
-    PROTECT(xnms);
     if (n && (TYPEOF(xnms) != STRSXP || LENGTH(xnms) != n))
 	error(_("names(x) must be a character vector of the same length as x"));
     envir = CADR(args);
@@ -1901,7 +1882,6 @@ SEXP attribute_hidden do_list2env(SEXP call, SEXP op, SEXP args, SEXP rho)
 	SEXP name = installTrChar(STRING_ELT(xnms, i));
 	defineVar(name, lazy_duplicate(VECTOR_ELT(x, i)), envir);
     }
-    UNPROTECT(1); /* xnms */
 
     return envir;
 }
@@ -2704,12 +2684,31 @@ static void FrameNames(SEXP frame, int all, SEXP names, int *indx)
     }
 }
 
+/* returning the active binding function instead of the
+   value is not right, but packages are depending on it so
+   keep for now. */
+static R_INLINE SEXP BINDING_VALUE_TMP(SEXP cell)
+{
+    if (IS_ACTIVE_BINDING(cell)) {
+	static int inited = FALSE;
+	static int bugfix = FALSE;
+	if (! inited) {
+	    inited = TRUE;
+	    const char *p = getenv("_R_ENV2LIST_BUGFIX_");
+	    if (p != NULL && StringTrue(p))
+		bugfix = TRUE;
+	}
+	return bugfix ? BINDING_VALUE(cell) : CAR(cell);
+    }
+    else return BINDING_VALUE(cell);
+}
+
 static void FrameValues(SEXP frame, int all, SEXP values, int *indx)
 {
     if (all) {
 	while (frame != R_NilValue) {
 #         define DO_FrameValues						\
-	    SEXP value = BINDING_VALUE(frame);				\
+	    SEXP value = BINDING_VALUE_TMP(frame);			\
 	    if (TYPEOF(value) == PROMSXP) {				\
 		PROTECT(value);						\
 		value = eval(value, R_GlobalEnv);			\

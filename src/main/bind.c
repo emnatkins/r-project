@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2020  The R Core Team
- *  Copyright (C) 2002--2020  The R Foundation
+ *  Copyright (C) 1997--2017  The R Core Team
+ *  Copyright (C) 2002--2017  The R Foundation
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -69,12 +69,11 @@ static int HasNames(SEXP x)
     return 0;
 }
 
-// Determine result type of unlist() or c();  called from  do_c()  and  do_unlist()
 static void
 AnswerType(SEXP x, Rboolean recurse, Rboolean usenames, struct BindData *data, SEXP call)
 {
     switch (TYPEOF(x)) {
-    case NILSXP: // NULL entries are dropped
+    case NILSXP:
 	break;
     case RAWSXP:
 	data->ans_flags |= 1;
@@ -176,7 +175,7 @@ ListAnswer(SEXP x, int recurse, struct BindData *data, SEXP call)
     R_xlen_t i;
 
     switch(TYPEOF(x)) {
-    case NILSXP: // NULL entries are dropped
+    case NILSXP:
 	break;
     case LGLSXP:
 	for (i = 0; i < XLENGTH(x); i++)
@@ -770,10 +769,6 @@ SEXP attribute_hidden do_c(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans;
 
     checkArity(op, args);
-
-    /* Remove any NULL elements before dispatch so
-       they never influence the method implementation. */
-    args = R_listCompact(args, /* keep_first */ TRUE);
 
     /* Attempt method dispatch. */
 

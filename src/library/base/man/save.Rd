@@ -123,7 +123,7 @@ save.image(file = ".RData", version = NULL, ascii = FALSE,
 \section{Parallel compression}{
   That \code{file} can be a connection can be exploited to make use of
   an external parallel compression utility such as \command{pigz}
-  (\url{https://zlib.net/pigz/}) or \command{pbzip2}
+  (\url{http://zlib.net/pigz/}) or \command{pbzip2}
   (\url{https://launchpad.net/pbzip2}) \emph{via} a \code{\link{pipe}}
   connection.  For example, using 8 threads,
 \preformatted{    con <- pipe("pigz -p8 > fname.gz", "wb")
@@ -179,7 +179,7 @@ save.image(file = ".RData", version = NULL, ascii = FALSE,
   use is made of later additions (for example for version 2, raw
   vectors, external pointers and some S4 objects).
 
-  One such \sQuote{later addition} was \link{long vectors}, introduced in \R
+  One such \sQuote{later addition} was long vectors, introduced in \R
   3.0.0 and loadable only on 64-bit platforms.
 
   Loading files saved with \code{ASCII = NA} requires a C99-compliant C

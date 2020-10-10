@@ -233,14 +233,7 @@ capabilities <- function(what = NULL,
 }
 
 inherits <- function(x, what, which = FALSE)
-    .Internal(inherits(x, what, which))
-
-isa <- function(x, what) {
-    if(isS4(x))
-        methods::is(x, what)
-    else
-        all(class(x) %in% what)
-}
+	.Internal(inherits(x, what, which))
 
 NextMethod <- function(generic=NULL, object=NULL, ...)
     .Internal(NextMethod(generic, object,...))
@@ -317,8 +310,8 @@ extSoftVersion <- function() .Internal(eSoftVersion())
 
 libcurlVersion <- function() .Internal(curlVersion())
 
-curlGetHeaders <- function(url, redirect = TRUE, verify = TRUE, timeout = 0L)
-    .Internal(curlGetHeaders(url, redirect, verify, timeout))
+curlGetHeaders <- function(url, redirect = TRUE, verify = TRUE)
+    .Internal(curlGetHeaders(url, redirect, verify))
 
 
 lengths <- function(x, use.names=TRUE) .Internal(lengths(x, use.names))

@@ -412,7 +412,7 @@ static int NORET null_vfprintf(Rconnection con, const char *format, va_list ap)
 }
 
 /* va_copy is C99, but a draft standard had __va_copy.  Glibc has
-   __va_copy declared unconditionally */
+   __va_copy declared uncondiitonally */
 
 
 #if defined(HAVE_VASPRINTF) && !HAVE_DECL_VASPRINTF
@@ -420,7 +420,6 @@ int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif
 
 # define BUFSIZE 10000
-// similar to Rcons_vprintf in printutils.c
 int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 {
     R_CheckStack2(BUFSIZE); // prudence
@@ -431,15 +430,15 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
     va_list aq;
 
     va_copy(aq, ap);
-    res = Rvsnprintf_mbcs(buf, BUFSIZE, format, aq);
+    res = vsnprintf(buf, BUFSIZE, format, aq);
     va_end(aq);
 #ifdef HAVE_VASPRINTF
     if(res >= BUFSIZE || res < 0) {
 	res = vasprintf(&b, format, ap);
 	if (res < 0) {
 	    b = buf;
+	    buf[BUFSIZE-1] = '\0';
 	    warning(_("printing of extremely long output is truncated"));
-	    res = (int)strlen(buf);
 	} else usedVasprintf = TRUE;
     }
 #else
@@ -450,15 +449,14 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	   so add some margin here */
 	b = R_alloc(res + 101, sizeof(char));
 	vsnprintf(b, res + 100, format, ap);
-    } else if(res < 0) {
-	/* Some non-C99 conforming vsnprintf implementations return -1 on
-	   truncation instead of only on error. */
+    } else if(res < 0) { /* just a failure indication */
 	vmax = vmaxget();
 	b = R_alloc(10*BUFSIZE, sizeof(char));
-	res = Rvsnprintf_mbcs(b, 10*BUFSIZE, format, ap);
-	if (res < 0 || res >= 10*BUFSIZE) {
+	res = vsnprintf(b, 10*BUFSIZE, format, ap);
+	if (res < 0) {
+	    b[10*BUFSIZE - 1] = '\0';
 	    warning(_("printing of extremely long output is truncated"));
-	    res = (int)strlen(b);
+	    res = 10*BUFSIZE;
 	}
     }
 #endif /* HAVE_VASPRINTF */
@@ -1165,7 +1163,7 @@ static size_t fifo_write(const void *ptr, size_t size, size_t nitems,
 
 // PR#15600, based on https://github.com/0xbaadf00d/r-project_win_fifo
 # define WIN32_LEAN_AND_MEAN 1
-#include <windows.h>
+#include <Windows.h>
 #include <wchar.h>
 
 /* Microsoft addition, not supported in Win XP
@@ -3200,11 +3198,12 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 #define NBUFSIZE (already + 100*BUFSIZE)
 	vmax = vmaxget();
 	b = R_alloc(NBUFSIZE, sizeof(char));
-	strncpy(b, this->lastline, NBUFSIZE); /* `already` < NBUFSIZE */
+	strncpy(b, this->lastline, NBUFSIZE);
 	*(b + NBUFSIZE - 1) = '\0';
 	p = b + already;
-	res = Rvsnprintf_mbcs(p, NBUFSIZE - already, format, ap);
-	if (res < 0 || res >= NBUFSIZE - already) {
+	res = vsnprintf(p, NBUFSIZE - already, format, ap);
+	if (res < 0) {
+	    *(b + NBUFSIZE - 1) = '\0';
 	    warning(_("printing of extremely long output is truncated"));
 	}
     }
@@ -3844,7 +3843,7 @@ size_t Rconn_getline(Rconnection con, char *buf, size_t bufsize)
 	if(nbuf+1 >= bufsize)
 	    error(_("line longer than buffer size %lu"), (unsigned long) bufsize);
 	if(c != '\n'){
-	    buf[++nbuf] = (char) c; /* compiler-defined conversion behavior */
+	    buf[++nbuf] = (char) c;
 	} else {
 	    buf[++nbuf] = '\0';
 	    break;
@@ -3974,11 +3973,7 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 		} else buf = tmp;
 	    }
 	    if(skipNul && c == '\0') continue;
-	    if(c != '\n')
-		/* compiler-defined conversion behavior */
-		buf[nbuf++] = (char) c;
-	    else
-		break;
+	    if(c != '\n') buf[nbuf++] = (char) c; else break;
 	}
 	buf[nbuf] = '\0';
 	/* Remove UTF-8 BOM */
@@ -4587,7 +4582,6 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    case 1:
 		for (i = 0; i < len; i++)
-		    /* compiler-defined conversion behavior */
 		    buf[i] = (signed char) INTEGER(object)[i];
 		break;
 	    default:
@@ -5229,7 +5223,7 @@ void WinCheckUTF8(void)
 {
     if(EmitEmbeddedUTF8) /* RGui */
 	WinUTF8out = (SinkCons[R_SinkNumber] == 1 ||
-	              SinkCons[R_SinkNumber] == 2) && localeCP != 65001;
+	              SinkCons[R_SinkNumber] == 2);
     else
 	WinUTF8out = FALSE;
 }
@@ -5935,7 +5929,7 @@ SEXP attribute_hidden do_gzcon(SEXP call, SEXP op, SEXP args, SEXP rho)
  	/* for Solaris 12.5 */ new = NULL;
    }
     strcpy(new->class, "gzcon");
-    Rsnprintf_mbcs(description, 1000, "gzcon(%s)", incon->description);
+    snprintf(description, 1000, "gzcon(%s)", incon->description);
     new->description = (char *) malloc(strlen(description) + 1);
     if(!new->description) {
 	free(new->class); free(new);

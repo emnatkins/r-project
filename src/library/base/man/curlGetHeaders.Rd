@@ -1,6 +1,6 @@
 % File src/library/base/man/curlGetHeaders.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 2015-2020 R Core Team
+% Copyright 2015 R Core Team
 % Distributed under GPL 2 or later
 
 \name{curlGetHeaders}
@@ -14,7 +14,7 @@
   An optional function not supported on all platforms.
 }
 \usage{
-curlGetHeaders(url, redirect = TRUE, verify = TRUE, timeout = 0L)
+curlGetHeaders(url, redirect = TRUE, verify = TRUE)
 }
 
 \arguments{
@@ -22,10 +22,6 @@ curlGetHeaders(url, redirect = TRUE, verify = TRUE, timeout = 0L)
   \item{redirect}{logical: should redirections be followed?}
   \item{verify}{logical: should certificates be verified as valid
     and applying to that host?}
-  \item{timeout}{integer: the maximum time in seconds the request is
-    allowed to take.  Non-positive and invalid values are ignored
-    (including the default).  (Added in \R 4.1.0.)
-  } 
 }
 
 \details{
@@ -37,10 +33,9 @@ curlGetHeaders(url, redirect = TRUE, verify = TRUE, timeout = 0L)
   redirections so this should suffice (and even 20 would indicate
   problems).
 
-  If argument \code{timeout} is not set to a positive integer this uses
-  \code{\link{getOption}("timeout")} which defaults to 60 seconds.  As
-  the request cannot be interrupted you may want to consider a shorter
-  value.
+  It uses \code{\link{getOption}("timeout")} for the connection
+  timeout: that defaults to 60 seconds.  As this cannot be interrupted
+  you may want to consider a shorter value.
 
   To see all the details of the interaction with the server(s) set
   \code{\link{options}(internet.info = 1)}.
@@ -73,8 +68,12 @@ curlGetHeaders(url, redirect = TRUE, verify = TRUE, timeout = 0L)
   \code{\link{options}} \code{HTTPUserAgent} and \code{timeout} are used.
 }
 
+% http://forum.rebex.net/questions/1343/open-ftps-and-sftp-servers-for-testing-our-code-and-connectivity
 \examples{\donttest{## needs Internet access, results vary
 curlGetHeaders("http://bugs.r-project.org")   ## this redirects to https://
 curlGetHeaders("https://httpbin.org/status/404")  ## returns status
 curlGetHeaders("ftp://cran.r-project.org")
+}
+\dontrun{ ## a not-always-available site:
+curlGetHeaders("ftps://test.rebex.net/readme.txt")
 }}

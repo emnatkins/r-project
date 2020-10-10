@@ -477,10 +477,8 @@ getSelectedHandler(InputHandler *handlers, fd_set *readMask)
 
 # include <readline/readline.h>
 
-/* For compatibility with pre-readline-4.2 systems, also missing in
-   Apple's emulation via the NetBSD editline library, aka libedit.
-   _RL_FUNCTION_TYPEDEF is not currently defined anywhere.
-*/
+/* For compatibility with pre-readline-4.2 systems, 
+   also missing in Apple's emulation via the NetBSD editline library.*/
 # if !defined (_RL_FUNCTION_TYPEDEF)
 typedef void rl_vcpfunc_t (char *);
 # endif /* _RL_FUNCTION_TYPEDEF */
@@ -498,7 +496,11 @@ typedef void rl_vcpfunc_t (char *);
 attribute_hidden
 char *R_ExpandFileName_readline(const char *s, char *buff)
 {
+#if defined(__APPLE__)
+    char *s2 = tilde_expand_word((char *)s);
+#else
     char *s2 = tilde_expand_word(s);
+#endif
 
     strncpy(buff, s2, PATH_MAX);
     if(strlen(s2) >= PATH_MAX) buff[PATH_MAX-1] = '\0';
@@ -794,7 +796,7 @@ static void initialize_rlcompletion(void)
     /* Tell the completer that we want a crack first. */
     rl_attempted_completion_function = R_custom_completion;
 
-// This was added in readline 6.0: default is 1 (and was in earlier versions)
+// This was added in readline 6.0
 #ifdef HAVE_RL_SORT_COMPLETION_MATCHES
     rl_sort_completion_matches = 0;
 #endif
@@ -889,7 +891,8 @@ static char *R_completion_generator(const char *text, int state)
        completeToken(), and retrieving the completions. */
 
     if (!state) {
-	SEXP
+	int i;
+	SEXP completions,
 	    assignCall = PROTECT(lang2(RComp_assignTokenSym, mkString(text))),
 	    completionCall = PROTECT(lang1(RComp_completeTokenSym)),
 	    retrieveCall = PROTECT(lang1(RComp_retrieveCompsSym));
@@ -897,7 +900,7 @@ static char *R_completion_generator(const char *text, int state)
 
 	eval(assignCall, rcompgen_rho);
 	eval(completionCall, rcompgen_rho);
-	SEXP completions = PROTECT(eval(retrieveCall, rcompgen_rho));
+	PROTECT(completions = eval(retrieveCall, rcompgen_rho));
 	list_index = 0;
 	ncomp = length(completions);
 	if (ncomp > 0) {
@@ -906,16 +909,8 @@ static char *R_completion_generator(const char *text, int state)
 		UNPROTECT(4);
 		return (char *)NULL;
 	    }
-	    for (int i = 0; i < ncomp; i++) {
-		compstrings[i] =
-		    strdup(translateChar(STRING_ELT(completions, i)));
-		if (!compstrings[i]) {
-		    UNPROTECT(4);
-		    for (int j = 0; j < i; j++) free(compstrings[j]);
-		    free(compstrings);
-		    return (char *)NULL;
-		}
-	    }
+	    for (i = 0; i < ncomp; i++)
+		compstrings[i] = strdup(translateChar(STRING_ELT(completions, i)));
 	}
 	UNPROTECT(4);
 	vmaxset(vmax);

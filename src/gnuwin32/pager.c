@@ -3,7 +3,7 @@
  *  file pager.c
  *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
  *  Copyright (C) 2004--8     The R Foundation
- *  Copyright (C) 2004--2020  The R Core Team
+ *  Copyright (C) 2004--2014  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,8 +59,7 @@ static void pagerupdateview(void);
 void menueditoropen(control m);
 void menueditornew(control m);
 
-/* from console.c */
-extern int pagerMultiple, haveusedapager;
+int pagerMultiple, haveusedapager;
 
 
 /*

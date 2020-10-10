@@ -481,7 +481,8 @@ nls <-
 	} else
 	    names(start)
 
-    env <- environment(formula) %||% parent.frame()
+    env <- environment(formula)
+    if (is.null(env)) env <- parent.frame()
 
     ## Heuristics for determining which names in formula represent actual
     ## variables :
@@ -823,7 +824,7 @@ logLik.nls <- function(object, REML = FALSE, ...)
         stop("cannot calculate REML log-likelihood for \"nls\" objects")
     res <- object$m$resid() # These are weighted residuals.
     N <- length(res)
-    w <- object$weights %||% rep_len(1, N)
+    if(is.null(w <- object$weights)) w <- rep_len(1, N)
     ## Note the trick for zero weights
     zw <- w == 0
     N <- sum(!zw)

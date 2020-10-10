@@ -1,7 +1,7 @@
 #  File src/library/tools/R/utils.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -247,14 +247,10 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
     if(identical(texi2dvi, "emulation")) texi2dvi <- ""
     else {
-        if(is.null(texi2dvi) || !nzchar(texi2dvi) || texi2dvi == "texi2dvi") {
+        if(is.null(texi2dvi) || !nzchar(texi2dvi) || texi2dvi == "texi2dvi")
             texi2dvi <- Sys.which("texi2dvi")
-            if(.Platform$OS.type == "windows" && !nzchar(texi2dvi))
-                texi2dvi <- Sys.which("texify")
-        } else if (!nzchar(Sys.which(texi2dvi))) { # check provided path
-            warning("texi2dvi script/program not available, using emulation")
-            texi2dvi <- ""
-        }
+        if(.Platform$OS.type == "windows" && !nzchar(texi2dvi))
+            texi2dvi <- Sys.which("texify")
     }
 
     envSep <- .Platform$path.sep
@@ -514,7 +510,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.12"))
+    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.11"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 
@@ -2130,7 +2126,7 @@ function(file, envir, enc = NA)
     exprs <- exprs[lengths(exprs) > 0L]
     for(e in exprs) {
 	if(is.call(e) && as.character(e[[1L]]) %in% assignmentSymbols)
-            tryCatch(eval(e, envir), error = identity)
+            eval(e, envir)
     }
     invisible()
 }
@@ -2157,8 +2153,6 @@ function(dir, envir, meta = character())
         list_files_with_type(dir, "code")
     if(!all(.file_append_ensuring_LFs(con, files)))
         stop("unable to write code files")
-    if(!is.na(package <- meta["Package"]))
-        envir$.packageName <- package
     tryCatch(.source_assignments(con, envir, enc = meta["Encoding"]),
              error = function(e)
                  stop("cannot source package code:\n", conditionMessage(e),

@@ -2,7 +2,7 @@
 ###
 ### Process this file with autoconf to produce a configure script.
 ###
-### Copyright (C) 1998-2020 R Core Team
+### Copyright (C) 1998-2019 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -79,7 +79,7 @@ AC_DEFINE_UNQUOTED(R_OS, "${host_os}",
 ## exclude some unsupported OSes
 case "${host_os}" in
    ## Darwin 1.3.1 was macOS 10.0, 1.4.1 was 10.1, 5 is 10.2 etc
-   ## with 19 being 10.15 (Catalina) and 20 11.0 (Big Sur)
+   ## with 18 being 10.14.
    ## We no longer support < 10.6 (Snow Leopard, Darwin 10)
    ## https://en.wikipedia.org/wiki/Darwin_OS
    darwin1.*)
@@ -678,8 +678,9 @@ AC_PATH_PROG(REALPATH, realpath, false)
 
 ## Search for cairographics needs pkg-config, 
 ## helps find jpeg, libpng and libtiff.
-AC_PATH_PROGS(PKG_CONFIG, [ pkg-config pkgconf ], [])
-AC_ARG_VAR([PKG_CONFIG], [path to pkg-config (or pkgconf) utility])
+AC_PATH_TOOL(PKG_CONFIG, pkg-config , [], 
+	     [$PATH:/usr/local/bin:/ext/bin:/ext:/sw/bin:/opt/bin])
+AC_ARG_VAR([PKG_CONFIG], [path to pkg-config utility])
 AC_ARG_VAR([PKG_CONFIG_PATH], [directories to add to pkg-config's search path])
 AC_ARG_VAR([PKG_CONFIG_LIBDIR], [path overriding pkg-config's default search path])
 
@@ -818,7 +819,6 @@ AC_CHECK_LIB(dl, dlopen)
 
 ## Readline.
 if test "${use_readline}" = yes; then
-  dnl in libedit both headers exist as links to editline/readline.h
   AC_CHECK_HEADERS(readline/history.h readline/readline.h)
   r_save_LIBS="${LIBS}"
   LIBS=
@@ -841,15 +841,12 @@ if test "${use_readline}" = yes; then
   if test "${use_readline}" = no; then
     AC_MSG_ERROR([--with-readline=yes (default) and headers/libs are not available])
   else
-    ## the NetBSD emulation (libedit) supplied by macOS did not have these,
-    ## but it does now (10.13) have history_truncate_file
-    ## it has tilde_expand, which is documented to be like tilde_expand_word
-    ## 'does tilde expansion of strings of type ``~user/foo''
+    ## the NetBSD emulation supplied by macOS does not have these
     AC_CHECK_FUNCS(history_truncate_file tilde_expand_word)
-    ## rl_completion_matches is >= 4.2 (emulation has it)
-    ## rl_resize_terminal is >= 4.0 but we use it only for >= 6.3.
-    ## rl_sort_completion_matches is >= 6.0 (not in emulation)
-    R_CHECK_FUNCS([rl_completion_matches rl_resize_terminal rl_sort_completion_matches], 
+    ## rl_completion_matches is >= 4.2.
+    ## rl_resize_terminal is >= 4.0 ane we use it only for >= 6.3.
+    ## rl_callback_sigcleanup is in pre-releases for 7.0, not yet used.
+    R_CHECK_FUNCS([rl_callback_sigcleanup rl_completion_matches rl_resize_terminal rl_sort_completion_matches], 
 [#include <stdio.h>
 #include <readline/readline.h>]
                  )
@@ -1068,7 +1065,7 @@ case "${host_os}" in
     AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
     ;;
    hpux*)
-dnl leave this in as not easily overridden by users
+dnl leave this in as not easily overridden by userx
      AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
 dnl     case "${CC}" in
 dnl       cc|c89)
@@ -1900,7 +1897,7 @@ AC_CHECK_FUNCS(fseeko ftello matherr)
 ## POSIX functions
 R_CHECK_FUNCS([fcntl], [#include <fcntl.h>])
 R_CHECK_FUNCS([getgrgid], [#include <grp.h>])
-R_CHECK_FUNCS([getpwnam getpwuid], [#include <pwd.h>])
+R_CHECK_FUNCS([getpwuid], [#include <pwd.h>])
 R_CHECK_FUNCS([kill sigaction sigaltstack sigemptyset], [#include <signal.h>])
 R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
 if test "${ac_cv_have_decl_popen}" = "no"; then

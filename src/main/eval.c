@@ -1683,12 +1683,9 @@ static R_INLINE void cleanupEnvVector(SEXP v)
        to wake things up, so hold off for now. */
     return;
 
-    // avoid ODS compiler warning.
- #ifdef FALSE
     R_xlen_t len = XLENGTH(v);
     for (R_xlen_t i = 0; i < len; i++)
 	SET_VECTOR_ELT(v, i, R_NilValue);
-#endif
 }
 
 static R_INLINE void R_CleanupEnvir(SEXP rho, SEXP val)
@@ -2165,15 +2162,16 @@ static R_INLINE Rboolean asLogicalNoNA(SEXP s, SEXP call, SEXP rho)
 
     int len = length(s);
     if (len > 1) {
-	/* PROTECT(s) needed as per PR#15990.  call gets protected by
-	   warningcall(). Now "s" is protected by caller and also
-	   R_BadValueInRCode disables GC. */
+	/* needed as per PR#15990.  call gets protected by warningcall() */
+	/* FIXME: should be protected by caller, not here */
+	PROTECT(s);
 	R_BadValueInRCode(s, call, rho,
 	    "the condition has length > 1",
 	    _("the condition has length > 1"),
 	    _("the condition has length > 1 and only the first element will be used"),
 	    "_R_CHECK_LENGTH_1_CONDITION_",
 	    TRUE /* by default issue warning */);
+	UNPROTECT(1);
     }
     if (len > 0) {
 	/* inline common cases for efficiency */
@@ -2194,7 +2192,9 @@ static R_INLINE Rboolean asLogicalNoNA(SEXP s, SEXP call, SEXP rho)
 			   _("missing value where TRUE/FALSE needed") :
 			   _("argument is not interpretable as logical")) :
 	    _("argument is of length zero");
+	PROTECT(s);	/* Maybe needed in some weird circumstance. */
 	errorcall(call, msg);
+	UNPROTECT(1);
     }
     return cond;
 }
@@ -2430,11 +2430,7 @@ SEXP attribute_hidden do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
     begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_BaseEnv, R_NilValue,
 		 R_NilValue);
     if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
-	for(;;) {
-	    SEXP cond = PROTECT(eval(CAR(args), rho));
-	    int condl = asLogicalNoNA(cond, call, rho);
-	    UNPROTECT(1);
-	    if (!condl) break;
+	while (asLogicalNoNA(eval(CAR(args), rho), call, rho)) {
 	    if (RDEBUG(rho) && !bgn && !R_GlobalContext->browserfinish) {
 		SrcrefPrompt("debug", R_Srcref);
 		PrintValue(body);
@@ -2917,11 +2913,8 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (PRIMVAL(op) == 2)                       /* <<- */
 	setVar(lhsSym, value, ENCLOS(rho));
     else {                                      /* <-, = */
-	if (ALTREP(value)) {
-	    PROTECT(value);
+	if (ALTREP(value))
 	    value = try_assign_unwrap(value, lhsSym, rho, NULL);
-	    UNPROTECT(1);
-	}
 	defineVar(lhsSym, value, rho);
     }
     INCREMENT_NAMED(value);
@@ -3803,15 +3796,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	    else if (streql(lname, "Ops.difftime") &&
 		     (streql(rname, "+.POSIXt") || streql(rname, "+.Date")) )
 		lsxp = R_NilValue;
-
-	    /* Strict comparison, the docs requires methods to be "the same":
-	      16 to take environments into account
-	     1+2 for bitwise comparison of numbers
-	       4 for the same order of attributes
-	         bytecode ignored (can change at runtime)
-	         srcref ignored (as per default)
-	    */
-	    else if (!R_compute_identical(lsxp, rsxp, 16 + 1 + 2 + 4)) {
+	    else {
 		warning(_("Incompatible methods (\"%s\", \"%s\") for \"%s\""),
 			lname, rname, generic);
 		UNPROTECT(4);
@@ -6236,10 +6221,7 @@ static R_INLINE Rboolean GETSTACK_LOGICAL_NO_NA_PTR(R_bcstack_t *s, int callidx,
 	    return lval;
     }
     SEXP call = VECTOR_ELT(constants, callidx);
-    PROTECT(value);
-    Rboolean ans = asLogicalNoNA(value, call, rho);
-    UNPROTECT(1);
-    return ans;
+    return asLogicalNoNA(value, call, rho);
 }
 
 #define GETSTACK_LOGICAL(n) GETSTACK_LOGICAL_PTR(R_BCNodeStackTop + (n))
@@ -6957,7 +6939,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
 //#define REPORT_OVERRIDEN_BUILTINS
 #ifdef REPORT_OVERRIDEN_BUILTINS
 	if (value != findFun(symbol, rho)) {
-	    Rprintf("Possibly overridden builtin: %s\n", PRIMNAME(value));
+	    Rprintf("Possibly overriden builtin: %s\n", PRIMNAME(value));
 	}
 #endif
 	if (RTRACE(value)) {

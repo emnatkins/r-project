@@ -37,13 +37,9 @@
     con <- file("R.iss", "w")
     cat("[Setup]\n", file = con)
 
-    if (have64bit && have32bit) {
+    if (have64bit) {
         regfile <- "reg3264.iss"
         types <- "types3264.iss"
-        cat("ArchitecturesInstallIn64BitMode=x64\n", file = con)
-    } else if (have64bit) { # 64-bit only
-        regfile <- "reg64.iss"
-        types <- "types64.iss"
         cat("ArchitecturesInstallIn64BitMode=x64\n", file = con)
     } else { # 32-bit only
         regfile <- "reg.iss"
@@ -80,6 +76,11 @@
     writeLines(lines, con)
 
     lines <- readLines(types)
+    if(have64bit && !have32bit) {
+        lines <- lines[-c(3,4,10)]
+        lines <- gsub("user(32)* ", "", lines)
+        lines <- gsub("compact ", "", lines)
+    }
     writeLines(lines, con)
 
     lines <- readLines("code.iss")
@@ -98,7 +99,7 @@
 	dir <- sub("\\\\$", "", dir)
 
 	component <- if (grepl("^Tcl/(bin|lib)64", f)) "x64"
-	else if (have64bit && have32bit &&
+	else if (have64bit &&
                  (grepl("^Tcl/bin", f) ||
                   grepl("^Tcl/lib/(dde1.3|reg1.2|Tktable)", f))) "i386"
 	else if (grepl("/i386/", f)) "i386"
@@ -108,7 +109,6 @@
 	else "main"
 
         if (component == "x64" && !have64bit) next
-        if (component == "i386" && !have32bit) next
         
         # Skip the /bin front ends, they are installed below
         if (grepl("bin/R.exe$", f)) next
@@ -120,11 +120,9 @@
         #  - If x64 is installed, use that version of Rfe
         #  - Otherwise, use the i386 version
         if (grepl("Rfe\\.exe$", f)) {
-            if (component == "i386" && have64bit) 
+            if (component == "i386") 
                 comp <- "i386 and not x64"
-            else if (component == "i386")
-                comp <- "i386"
-            else
+            else 
             	comp <- component
             bindir <- gsub("/", "\\", dirname(dir), fixed = TRUE)
             cat('Source: "', srcdir, '\\', f, '"; ',

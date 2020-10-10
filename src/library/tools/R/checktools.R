@@ -1,7 +1,7 @@
 #  File src/library/tools/R/checktools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2013-2020 The R Core Team
+#  Copyright (C) 2013-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -313,11 +313,6 @@ function(dir,
 
     pfiles <- c(pfiles, rfiles)
 
-    ## sub-R processes need to use libdir + current library trees
-    oldrlibs <- Sys.getenv("R_LIBS")
-    Sys.setenv(R_LIBS = paste(libs, collapse = .Platform$path.sep))
-    on.exit(Sys.setenv(R_LIBS = oldrlibs), add = TRUE)
-
     check_package <- function(pfile, args_db = NULL, env_db = NULL) {
         message(sprintf("checking %s ...", pfile))
         pname <- sub("_.*", "", basename(pfile))
@@ -325,6 +320,8 @@ function(dir,
                          sprintf("check_%s_stdout.txt", pname))
         err <- file.path(outdir,
                          sprintf("check_%s_stderr.txt", pname))
+        env <- c(check_env_db[[pname]],
+                 sprintf("R_LIBS=%s", shQuote(libdir)))
         lim <- get_timeout(Sys.getenv("_R_CHECK_ELAPSED_TIMEOUT_"))
         system.time(system2(file.path(R.home("bin"), "R"),
                             c("CMD",
@@ -334,7 +331,7 @@ function(dir,
                               pfile),
                             stdout = out,
                             stderr = err,
-                            env = env_db[[pname]],
+                            env = env,
                             timeout = lim))
     }
 
@@ -950,7 +947,8 @@ function(dir, logs = NULL, drop_ok = TRUE, ...)
 {
     ## Build a data frame with columns
     ##   Package Version Check Status Output Flags
-    ## and some optimizations.
+    ## and some optimizations (in particular, Check Status Flags can be
+    ## factors).
 
     db_from_logs <- function(logs, drop_ok, ...) {
         out <- lapply(logs, analyze_check_log, drop_ok, ...)
@@ -1010,8 +1008,10 @@ function(dir, logs = NULL, drop_ok = TRUE, ...)
         sub("[[:space:]]+$", "", db[, "Output"], perl = TRUE)
 
     db <- as.data.frame(db, stringsAsFactors = FALSE)
+    db$Check <- as.factor(db$Check)
+    db$Status <- as.factor(db$Status)
+
     class(db) <- c("check_details", "data.frame")
-    
     db
 }
 

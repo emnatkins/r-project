@@ -63,7 +63,6 @@ static int current_timeout = 0;
 
 #define curl_multi_wait R_curl_multi_wait
 
-
 static CURLMcode
 R_curl_multi_wait(CURLM *multi_handle,
 		  /* IGNORED */ void *unused,
@@ -331,9 +330,6 @@ in_do_curlGetHeaders(SEXP call, SEXP op, SEXP args, SEXP rho)
     int verify = asLogical(CADDR(args));
     if (verify == NA_LOGICAL)
 	error(_("invalid %s argument"), "verify");
-    int timeout = asInteger(CADDDR(args));
-    if (timeout == NA_INTEGER)
-	error(_("invalid %s argument"), "timeout");
 
     CURL *hnd = curl_easy_init();
     curl_easy_setopt(hnd, CURLOPT_URL, url);
@@ -345,10 +341,6 @@ in_do_curlGetHeaders(SEXP call, SEXP op, SEXP args, SEXP rho)
        for some ftp header info (Content-Length and Accept-ranges). */
     curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, &rcvBody);
     curlCommon(hnd, redirect, verify);
-    if (timeout > 0) {
-	curl_easy_setopt(hnd, CURLOPT_TIMEOUT, timeout);
-	current_timeout = timeout;
-    }
 
     char errbuf[CURL_ERROR_SIZE];
     curl_easy_setopt(hnd, CURLOPT_ERRORBUFFER, errbuf);

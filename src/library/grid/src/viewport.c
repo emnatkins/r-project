@@ -38,23 +38,8 @@ SEXP viewportHeight(SEXP vp) {
     return VECTOR_ELT(vp, VP_HEIGHT);
 }
 
-SEXP viewportClipSXP(SEXP vp) {
-    return VECTOR_ELT(vp, VP_CLIP);
-}
-
 Rboolean viewportClip(SEXP vp) {
     return LOGICAL(VECTOR_ELT(vp, VP_CLIP))[0];
-}
-
-SEXP viewportMaskSXP(SEXP vp) {
-    return(VECTOR_ELT(vp, VP_MASK));
-}
-
-Rboolean viewportMask(SEXP vp) {
-    SEXP mask = viewportMaskSXP(vp);
-    if (!isLogical(mask))
-        error(_("Mask is not logical value ('none' or 'inherit')"));
-    return LOGICAL(VECTOR_ELT(vp, VP_MASK))[0];
 }
 
 double viewportXScaleMin(SEXP vp) {
@@ -404,12 +389,6 @@ void initVP(pGEDevDesc dd)
     SET_VECTOR_ELT(vp, VP_YSCALE, yscale);
     SET_VECTOR_ELT(vp, PVP_GPAR, currentgp);
     vp = doSetViewport(vp, TRUE, TRUE, dd);
-#ifdef R_GE_DEBUG
-    if (getenv("R_GE_DEBUG_viewports")) {
-        printf("initVP: ");
-        Rf_PrintValue(vp);
-    }
-#endif
     SET_VECTOR_ELT(gsd, GSS_VP, vp);
     UNPROTECT(5);
 }

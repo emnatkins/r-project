@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: 2015-03-27 14:42+0900 \n"
 "Last-Translator: Masafumi  \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -26,9 +26,6 @@ msgstr " help(\"Defunct\") と help(\"%s-defunct\") を見て下さい "
 msgid "See help(\"Defunct\")"
 msgstr " help(\"Defunct\") を見て下さい "
 
-msgid "defunctError"
-msgstr ""
-
 msgid "'%s' is deprecated."
 msgstr " '%s' は廃止予定です "
 
@@ -38,9 +35,6 @@ msgstr " help(\"Deprecated\") と help(\"%s-deprecated\") を見て下さい "
 msgid "See help(\"Deprecated\")"
 msgstr " help(\"Deprecated\") を見て下さい "
 
-msgid "deprecatedWarning"
-msgstr ""
-
 msgid "argument to 'La.svd' must be numeric or complex"
 msgstr " 'La.svd' への引数は数値か複素数でなければなりません "
 
@@ -49,10 +43,6 @@ msgstr " 'x' に無限値か欠測値があります "
 
 msgid "a dimension is zero"
 msgstr " 次元が 0 です "
-
-#, fuzzy
-msgid "\"all\" and \"exact\" are mutually exclusive"
-msgstr " \"hexNumeric\" と \"digits17\" は矛盾します "
 
 msgid "\"hexNumeric\" and \"digits17\" are mutually exclusive"
 msgstr " \"hexNumeric\" と \"digits17\" は矛盾します "
@@ -74,10 +64,6 @@ msgstr " 'normal.kind' は長さ 1 の文字列でなければなりません "
 
 msgid "'%s' is not a valid choice"
 msgstr " '%s' は有効な選択 (choice) ではありません "
-
-#, fuzzy
-msgid "'sample.kind' must be a character string of length 1"
-msgstr " 'normal.kind' は長さ 1 の文字列でなければなりません "
 
 msgid "malformed version string"
 msgstr " 正しい形式のバージョン文字列ではありません "
@@ -103,26 +89,14 @@ msgstr " 'x' は名前付きの次元名を持たなければなりません "
 msgid "not all elements of 'MARGIN' are names of dimensions"
 msgstr " 'MARGIN' に次元名でない要素が含まれています "
 
-msgid "'MARGIN' does not match dim(X)"
-msgstr ""
-
-#, fuzzy
-msgid "'dim' cannot be of length 0"
+msgid "'dims' cannot be of length 0"
 msgstr " 'dims' は長さ 0 ではありえません "
 
 msgid "'dim' specifies too large an array"
 msgstr " 'dim' の指定する配列が大きすぎます "
 
-#, fuzzy
-msgid "'x' must have named dimnames"
-msgstr " 'x' は名前付きの次元名を持たなければなりません "
-
 msgid "incorrect value for 'MARGIN'"
 msgstr " 'MARGIN' の値が不正です "
-
-#, fuzzy
-msgid "dim(x) must have a positive length"
-msgstr " dim(X) は正の長さを持たねばなりません "
 
 #, fuzzy
 msgid "'pos=1' is not possible and has been warned about for years"
@@ -172,16 +146,6 @@ msgstr " その名前のオブジェクトは既に存在します "
 msgid "autoloader did not find '%s' in '%s'"
 msgstr " 自動ローダーは '%s' を '%s' 中に見つけられませんでした "
 
-msgid "can only splice inside a call"
-msgstr ""
-
-#, fuzzy
-msgid "can only splice vectors"
-msgstr " ベクトルオブジェクトしか書き込めません "
-
-msgid "the LINPACK argument has been defunct since R 3.1.0"
-msgstr ""
-
 msgid "complex matrices not permitted at present"
 msgstr " 複素行列は現在許可されていません "
 
@@ -191,8 +155,8 @@ msgstr " 'x' は少なくとも二次元の配列でなければなりません 
 msgid "invalid 'dims'"
 msgstr " 無効な 'dims' です "
 
-msgid "condition handlers must be specified with a condition class"
-msgstr ""
+msgid "bad handler specification"
+msgstr " 誤ったハンドラーの指定です "
 
 msgid "no 'restart' '%s' found"
 msgstr " 'restart' '%s' が見付かりません "
@@ -203,22 +167,8 @@ msgstr " 対話的なセッションではありません "
 msgid "not a valid restart specification"
 msgstr " 有効な再スタート指定ではありません "
 
-#, fuzzy
-msgid "condition handlers must be functions"
-msgstr " ハンドラーは関数でなければなりません "
-
-msgid "pushing duplicate `%s` handler on top of the stack"
-msgstr ""
-
 msgid "argument 'where' of length 0"
 msgstr " 長さ 0 の引数 'where' です "
-
-msgid "can only write character objects"
-msgstr " 文字オブジェクトしか書き込めません "
-
-#, fuzzy
-msgid "'headers' must have names and must not be NA"
-msgstr " 'x' は名前付きの次元名を持たなければなりません "
 
 msgid "argument 'object' must deparse to a single character string"
 msgstr " 引数 'object' は空でない単一の文字列でなければなりません "
@@ -230,12 +180,11 @@ msgstr ""
 msgid "can only truncate an open connection"
 msgstr " 開かれたコネクションしか切り詰められません "
 
-#, fuzzy
-msgid "invalid 'endian' argument"
-msgstr " 無効な 'name' 引数です "
-
 msgid "can only write vector objects"
 msgstr " ベクトルオブジェクトしか書き込めません "
+
+msgid "can only write character objects"
+msgstr " 文字オブジェクトしか書き込めません "
 
 msgid "'timeout' must be NULL or a non-negative number"
 msgstr " 'timeout' は NULL か非負の数値でなければなりません "
@@ -361,6 +310,9 @@ msgstr " 存在しない列中の要素の置き換えです: %s "
 msgid "only a single element should be replaced"
 msgstr " ただ一つの要素しか置き換えられるべきではありません "
 
+msgid "Partial match of '%s' to '%s' in data frame"
+msgstr " データフレーム中の名前 '%s' は '%s'と部分的にマッチしました "
+
 msgid "names do not match previous names"
 msgstr " 名前が以前の名前と一致しません "
 
@@ -372,9 +324,6 @@ msgstr " 無効なリストの引数です。全ての変数は同じ長さを�
 
 msgid "<0 rows> (or 0-length row.names)"
 msgstr " <0 行> (または長さ 0 の row.names) "
-
-msgid "invalid 'max' / getOption(\"max.print\"):"
-msgstr ""
 
 #, fuzzy
 msgid "non-numeric variable(s) in data frame:"
@@ -527,10 +476,6 @@ msgstr " 'from' は \"POSIXt\" オブジェクトでなければなりません 
 msgid "'to' must be a \"POSIXt\" object"
 msgstr " 'to' は \"POSIXt\" のオブジェクトでなければなりません "
 
-#, fuzzy
-msgid "component subscript must be a character string"
-msgstr " 引数 'object' は空でない単一の文字列でなければなりません "
-
 msgid "no Olson database found"
 msgstr "Olson データベースが見つかりません "
 
@@ -586,8 +531,7 @@ msgstr " 行列の対角成分だけが置き換えられます "
 msgid "replacement diagonal has wrong length"
 msgstr " 置き換え対角成分の長さが間違っています "
 
-#, fuzzy
-msgid "MARGIN = %s is invalid for dim = %s"
+msgid "MARGIN = %d is invalid for dim = %d"
 msgstr " MARGIN = %d は dim = %d には無効です "
 
 msgid "must pass a package name, %s or %s object"
@@ -664,9 +608,6 @@ msgid "'recursive' will be ignored as 'to' is not a single existing directory"
 msgstr ""
 " 'to' が単一のディレクトリになっていないため 'recursive' は無視されます "
 
-msgid "cannot overwrite a non-directory with a directory"
-msgstr ""
-
 msgid "file can not be copied both 'from' and 'to'"
 msgstr " 同じファイルにコピーすることはできません "
 
@@ -701,9 +642,6 @@ msgstr " ハンドラーは関数でなければなりません "
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr " タイプ \"expression\" の 'value' の最初の要素だけを使います "
-
-msgid "Found no format() method for class \"%s\""
-msgstr ""
 
 msgid "class of 'x' was discarded"
 msgstr " クラス 'x' は捨てられました "
@@ -741,11 +679,6 @@ msgstr " 'zero.print' は長さ > 1 を持ちます "
 
 msgid "'zero.print' must be character, logical or NULL"
 msgstr " 'zero.print' は文字、論理値、または NULL でなければなりません "
-
-msgid ""
-"'zero.print' is truncated to fit into formatted zeros; consider "
-"'replace=TRUE'"
-msgstr ""
 
 msgid "'big.mark' and 'decimal.mark' are both '%s', which could be confusing"
 msgstr ""
@@ -806,11 +739,8 @@ msgstr " norm '%s' は現在は常に exact = FALSE を使用します "
 msgid "triangular matrix should be square"
 msgstr " 三角行列は正方行列であるべきです "
 
-msgid "unknown conflict policy: %s"
-msgstr ""
-
-msgid "only one of 'include.only' and 'exclude' can be used"
-msgstr ""
+msgid "'object' must be a list"
+msgstr " 'object' はリストでなければなりません "
 
 msgid "package %s has not been installed properly"
 msgstr " パッケージ %s は正しくインストールされていません "
@@ -830,15 +760,6 @@ msgstr " パッケージ %s は %s に対して造られました "
 
 msgid "package %s is not installed for 'arch = %s'"
 msgstr " パッケージ %s は 'arch = %s' に対してインストールされていません "
-
-#, fuzzy
-msgid ""
-"Conflicts attaching package %s:\n"
-"%s"
-msgstr " 次のパッケージを付け加えます: %s "
-
-msgid "packageConflictError"
-msgstr ""
 
 msgid "Attaching package: %s"
 msgstr " 次のパッケージを付け加えます: %s "
@@ -1118,13 +1039,6 @@ msgstr ""
 msgid "namespace is already attached"
 msgstr " 名前空間は既に付加されています "
 
-#, fuzzy
-msgid ""
-"not found in namespace %s: \n"
-"\n"
-"%s"
-msgstr " 名前空間をロードしません "
-
 msgid "%s not found"
 msgstr " %s を見付けることができません "
 
@@ -1158,17 +1072,8 @@ msgstr ""
 msgid "package %s does not have a namespace"
 msgstr " パッケージ %s は名前空間を持っていません "
 
-#, fuzzy
-msgid "package %s was installed before R 4.0.0: please re-install it"
-msgstr ""
-" パッケージ %s は R 3.0.0 以前にビルドされました: 再インストールして下さい "
-
 msgid "namespace %s %s is being loaded, but %s %s is required"
 msgstr " 名前空間 %s %s はロードされていますが、%s %s が要求されています "
-
-#, fuzzy
-msgid "package %s has no 'package.rds' in Meta/"
-msgstr " パッケージ %s には 'NAMESPACE' ファイルがありません "
 
 msgid ""
 "package %s has a license that you need to accept in an interactive session"
@@ -1202,12 +1107,6 @@ msgstr ""
 
 msgid "unable to load R code in package %s"
 msgstr " パッケージ %s 中の R コードをロードできません "
-
-#, fuzzy
-msgid "S4 exports specified in 'NAMESPACE' but not defined in package %s"
-msgstr ""
-" 'NAMESPACE' の中で 'exportClassPattern' が指定されましたが、%s パッケージに"
-"は該当するクラスがありません "
 
 msgid ""
 "'exportClassPattern' specified in 'NAMESPACE' but no matching classes in "
@@ -1291,10 +1190,6 @@ msgstr " 封印された名前空間のエクスポートへ加えることが�
 msgid "undefined exports: %s"
 msgstr " 未定義のエクスポートです: %s "
 
-#, fuzzy
-msgid "unable to re-encode some lines in NAMESPACE file"
-msgstr " 'NAMESPACE' ファイル中のディレクティブ '%s' 中には名前がありません "
-
 msgid "package %s has no 'NAMESPACE' file"
 msgstr " パッケージ %s には 'NAMESPACE' ファイルがありません "
 
@@ -1320,13 +1215,6 @@ msgid "object '%s' not found whilst loading namespace '%s'"
 msgstr ""
 " オブジェクト '%s' を見つけることができませんでした (名前空間 '%s' のロード中"
 "に) "
-
-msgid ""
-"While loading namespace \"%s\": \"%s\" differ in ncol(.), env=%d, newNS=%d."
-msgstr ""
-
-msgid "Maybe package installed with version of R newer than %s ?"
-msgstr ""
 
 msgid "'%s' is not implemented yet"
 msgstr " '%s' はまだ実装されていません "
@@ -1519,16 +1407,15 @@ msgstr " 有限でない 'partial' です "
 msgid "argument lengths differ"
 msgstr " 引数の長さが異なります "
 
-msgid "method = \"quick\" is only for numeric 'x'"
-msgstr " method = \"quick\" は実数の 'x' にしか利用できません "
-
-#, fuzzy
 msgid ""
-"'x' must be atomic for 'sort.list', method \"shell\" and \"quick\"\n"
+"'x' must be atomic for 'sort.list'\n"
 "Have you called 'sort' on a list?"
 msgstr ""
 " 'x' は 'sort.list' に対してはアトミックでなければなりません。 \n"
 " 'sort' をリストに対して呼び出しましたか？ "
+
+msgid "method = \"quick\" is only for numeric 'x'"
+msgstr " method = \"quick\" は実数の 'x' にしか利用できません "
 
 msgid "'local' must be TRUE, FALSE or an environment"
 msgstr " 'local' は TRUE か FALSE 、または環境でなければなりません "
@@ -1572,7 +1459,7 @@ msgstr " 'x' と 'y' は同じ長さを持たなければなりません "
 msgid "additional arguments ignored in stop()"
 msgstr " stop() により追加の引数は無視されました "
 
-msgid "Only one of 'exprs', 'exprObject' or expressions, not more"
+msgid "Must use 'exprs' or unnamed expressions, but not both"
 msgstr ""
 
 msgid ""
@@ -1650,20 +1537,8 @@ msgstr " 水準の数が異なります "
 msgid "handler must be a function"
 msgstr " ハンドラーは関数でなければなりません "
 
-#, fuzzy
-msgid "'which' must be of length 1"
-msgstr " 'to' は長さ 1 でなければなりません "
-
 msgid "no such element '%s'"
 msgstr " そのような要素 '%s' はありません "
-
-#, fuzzy
-msgid "invalid 'which' argument"
-msgstr " 無効な 'path' 引数です "
-
-#, fuzzy
-msgid "'which' must be character or numeric"
-msgstr " 'tim' は文字、または数値ではありません "
 
 msgid "Removing %s"
 msgstr " %s を取除きます "
@@ -1772,9 +1647,6 @@ msgstr " 'minimiized' は TRUE か FALSE でなければなりません "
 
 msgid "'invisible' must be TRUE or FALSE"
 msgstr " 'invisible' は TRUE か FALSE でなければなりません "
-
-msgid "running command '%s' had status %d"
-msgstr ""
 
 msgid "'%s' could not be run"
 msgstr " '%s' を実行できませんでした "
@@ -1952,15 +1824,6 @@ msgid_plural ""
 "In %s :\n"
 " extra arguments %s will be disregarded"
 msgstr[0] " 余分な引数 %s は無視されます "
-
-#~ msgid "bad handler specification"
-#~ msgstr " 誤ったハンドラーの指定です "
-
-#~ msgid "Partial match of '%s' to '%s' in data frame"
-#~ msgstr " データフレーム中の名前 '%s' は '%s'と部分的にマッチしました "
-
-#~ msgid "'object' must be a list"
-#~ msgstr " 'object' はリストでなければなりません "
 
 #~ msgid "*** Note that 'pos=1' will give an error in the future"
 #~ msgstr " *** 'pos=1' はいずれエラーを与えることを注意して下さい "

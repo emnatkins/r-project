@@ -1,6 +1,6 @@
 % File src/library/base/man/Comparison.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
 \name{Comparison}
@@ -92,10 +92,10 @@ x != y
 
   For numerical and complex values, remember \code{==} and \code{!=} do
   not allow for the finite representation of fractions, nor for rounding
-  error.  Using \code{\link{all.equal}} with \code{identical} or
-  \code{\link{isTRUE}} is almost always preferable; see the examples.
-  (This also applies to the other comparison operators.)
-
+  error.  Using \code{\link{all.equal}} with \code{identical} is almost
+  always preferable.  See the examples.  (This also applies to the other
+  comparison operators.)
+  
   These operators are sometimes called as functions as
   e.g.\sspace{}\code{`<`(x, y)}: see the description of how
   argument-matching is done in \code{\link[base:groupGeneric]{Ops}}.
@@ -115,15 +115,12 @@ x != y
   introduction see
   \url{https://en.wikipedia.org/wiki/Collating_sequence}.  The
   \emph{Unicode Collation Algorithm}
-  (\url{https://unicode.org/reports/tr10/}) is likely to be increasingly
+  (\url{http://unicode.org/reports/tr10/}) is likely to be increasingly
   influential.  Where available \R by default makes use of ICU
   (\url{http://site.icu-project.org/}) for collation (except in a C
   locale).
 }
 \seealso{
-  \code{\link{Logic}} on how to \emph{combine} results of comparisons,
-  i.e., logical vectors.
-
   \code{\link{factor}} for the behaviour with factor arguments.
 
   \code{\link{Syntax}} for operator precedence.
@@ -139,8 +136,8 @@ x[x > 0]
 
 x1 <- 0.5 - 0.3
 x2 <- 0.3 - 0.1
-x1 == x2                   # FALSE on most machines
-isTRUE(all.equal(x1, x2))  # TRUE everywhere
+x1 == x2                           # FALSE on most machines
+identical(all.equal(x1, x2), TRUE) # TRUE everywhere
 
 \donttest{
 # range of most 8-bit charsets, as well as of Latin-1 in Unicode

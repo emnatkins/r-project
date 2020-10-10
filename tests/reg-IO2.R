@@ -62,7 +62,7 @@ sapply(res2, class)
 unlink("foo7")
 
 # should be logical
-type.convert(character(0), as.is=FALSE)
+type.convert(character(0))
 
 # test of comments in data files
 cat("# a test file",

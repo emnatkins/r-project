@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
-"PO-Revision-Date: 2020-08-27 19:13+0900\n"
+"POT-Creation-Date: 2018-03-30 07:33\n"
+"PO-Revision-Date: 2018-04-07 02:21-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -132,11 +132,10 @@ msgid "invalid display list element"
 msgstr "неправильный элемент списка изображений"
 
 msgid ""
-"one or more grobs overwritten (grab WILL not be faithful; try 'wrap.grobs = "
-"TRUE')"
+"one of more grobs overwritten (grab WILL not be faithful; try 'wrap = TRUE')"
 msgstr ""
-"один или больше grobs переписан (grab НЕ будет точным; попробуйте 'wrap."
-"grobs = TRUE')"
+"один или больше grobs переписан (grab НЕ будет точным; попробуйте 'wrap = "
+"TRUE')"
 
 msgid "viewport overwritten (grab MAY not be faithful)"
 msgstr "оконница переписана (grab, ВОЗМОЖНО, не будет точным)"
@@ -330,12 +329,6 @@ msgstr "неправильный список"
 msgid "invalid 'origin'"
 msgstr "неправильный 'origin'"
 
-msgid "Missing pattern fill has been set to transparent"
-msgstr "Пропущенный паттерн заливки определен как прозрачный"
-
-msgid "Gradient fill applied to object with no inside"
-msgstr "Градиентная заливка применена к объекту без внутренностей"
-
 msgid "'length' must be a 'unit' object"
 msgstr "'length' должен быть объектом-единицей"
 
@@ -371,9 +364,6 @@ msgstr "'x' и 'y' должны быть единицами или NULL"
 
 msgid "corrupt 'arrows' object"
 msgstr "поврежденный объект 'arrows'"
-
-msgid "'x' and 'y' and 'pathId.lengths' must specify same overall length"
-msgstr "'x', 'y' и 'pathId.lengths' должны определять одну и ту же общую длину"
 
 msgid "x and y must be units"
 msgstr "x и y должны быть единицами"
@@ -417,20 +407,26 @@ msgstr "'x', 'y', 'width', и 'height' должны иметь длину 1"
 msgid "'x' and 'units' must have length > 0"
 msgstr "'x' и 'units' должен иметь длину > 0"
 
+msgid "'x' argument must be a unit object"
+msgstr "аргумент 'x' должен быть объектом-единицей"
+
 msgid "invalid 'axis' or 'type'"
 msgstr "неправильный 'axis' или 'type'"
 
-msgid "Not a unit object"
-msgstr "Неправильный единичный объект"
+msgid "no string supplied for 'strwidth/height' unit"
+msgstr "не предложено строки для единицы 'strwidth/height'"
 
-msgid "'Summary' function '%s' not meaningful for units"
-msgstr "Функция 'Summary' '%s' не имеет значения для единиц"
+msgid "no 'grob' supplied for 'grobwidth/height' unit"
+msgstr "не предложено 'grob' для единицы 'grobwidth/height'"
+
+msgid "'gPath' must have depth 1 in 'grobwidth/height' units"
+msgstr "'gPath' должен иметь глубину 1 в единицах 'grobwidth/height'"
+
+msgid "non-NULL value supplied for plain unit"
+msgstr "для простой единицы указано не-NULL значение"
 
 msgid "operator '%s' not meaningful for units"
 msgstr "оператор '%s' не имеет значения для единиц"
-
-msgid "'*' or '/' cannot be used as a unary operator"
-msgstr "'*' и '/' нельзя использовать как односторонний оператор"
 
 msgid "only one operand may be a unit"
 msgstr "только один операнд может быть единицей"
@@ -438,23 +434,38 @@ msgstr "только один операнд может быть единицей"
 msgid "non-unit operand must be numeric"
 msgstr "операнды-не-единицы должны быть числовыми"
 
-msgid "can't divide with a unit"
-msgstr "не могу разделить с единицей"
-
 msgid "both operands must be units"
 msgstr "оба операнда должны быть единицами"
 
-msgid "index out of bounds (\"unit\" subsetting)"
+msgid "'Summary' function '%s' not meaningful for units"
+msgstr "Функция 'Summary' '%s' не имеет значения для единиц"
+
+msgid "no arguments where at least one expected"
+msgstr "нет аргументов, ожидается хоть один"
+
+msgid "Zero arguments where at least one expected"
+msgstr "Нет аргументов, ожидается хоть один"
+
+msgid "cannot mix signs of indices"
+msgstr "не могу смешивать знаки индексов"
+
+msgid "index out of bounds ('unit' subsetting)"
 msgstr "индекс за пределами (подмножество единиц)"
 
-msgid "Cannot create zero-length unit vector (\"unit\" subsetting)"
-msgstr "Не могу создать единичный вектор нулевой длины (подмножество единиц)"
+msgid "index out of bounds (unit arithmetic subsetting)"
+msgstr "индекс за пределами (арифметическое подмножество единиц)"
 
-msgid "index must be of length 1"
-msgstr "индекс должен быть единичной длины"
+msgid "index out of bounds (unit list subsetting)"
+msgstr "индекс за пределами (списковое подмножество единиц)"
 
-msgid "replacement must be of length 1"
-msgstr "замена должна быть нулевой длины"
+msgid "Value being assigned must be a unit"
+msgstr "Присваемое значение должно быть юнитом"
+
+msgid "it is invalid to combine 'unit' objects with other types"
+msgstr "нельзя комбинировать объекты-единицы с другими типами"
+
+msgid "invalid 'unit' object"
+msgstr "неправильный единичный объект"
 
 msgid "invalid 'theta'"
 msgstr "неправильная theta"
@@ -467,9 +478,6 @@ msgstr "неправильное значение 'gp'"
 
 msgid "invalid 'clip' value"
 msgstr "неправильное значение 'clip'"
-
-msgid "invalid 'mask' value"
-msgstr "Неправильное значение 'mask'"
 
 msgid "invalid 'xscale' in viewport"
 msgstr "неправильное 'xscale' в оконнице"
@@ -525,42 +533,6 @@ msgstr[0] "Неправильное имя оконницы"
 msgstr[1] "Неправильные имена оконниц"
 msgstr[2] "Неправильные имена оконниц"
 
-#~ msgid "'x' argument must be a unit object"
-#~ msgstr "аргумент 'x' должен быть объектом-единицей"
-
-#~ msgid "no string supplied for 'strwidth/height' unit"
-#~ msgstr "не предложено строки для единицы 'strwidth/height'"
-
-#~ msgid "no 'grob' supplied for 'grobwidth/height' unit"
-#~ msgstr "не предложено 'grob' для единицы 'grobwidth/height'"
-
-#~ msgid "'gPath' must have depth 1 in 'grobwidth/height' units"
-#~ msgstr "'gPath' должен иметь глубину 1 в единицах 'grobwidth/height'"
-
-#~ msgid "non-NULL value supplied for plain unit"
-#~ msgstr "для простой единицы указано не-NULL значение"
-
-#~ msgid "no arguments where at least one expected"
-#~ msgstr "нет аргументов, ожидается хоть один"
-
-#~ msgid "Zero arguments where at least one expected"
-#~ msgstr "Нет аргументов, ожидается хоть один"
-
-#~ msgid "cannot mix signs of indices"
-#~ msgstr "не могу смешивать знаки индексов"
-
-#~ msgid "index out of bounds (unit arithmetic subsetting)"
-#~ msgstr "индекс за пределами (арифметическое подмножество единиц)"
-
-#~ msgid "index out of bounds (unit list subsetting)"
-#~ msgstr "индекс за пределами (списковое подмножество единиц)"
-
-#~ msgid "Value being assigned must be a unit"
-#~ msgstr "Присваемое значение должно быть юнитом"
-
-#~ msgid "it is invalid to combine 'unit' objects with other types"
-#~ msgstr "нельзя комбинировать объекты-единицы с другими типами"
-
 #~ msgid "invalid element in the display list"
 #~ msgstr "неправильный элемент в списке изображений"
 
@@ -575,6 +547,10 @@ msgstr[2] "Неправильные имена оконниц"
 
 #~ msgid "the 'grob' argument must be a 'line.to', 'lines', or 'segments' grob"
 #~ msgstr "аргумент 'grob' должен быть 'line.to', 'lines', или 'segments' grob"
+
+#, fuzzy
+#~ msgid "invalid 'ask' value"
+#~ msgstr "Неправильное значение 'ask'"
 
 #~ msgid "Cannot mix signs of indices"
 #~ msgstr "Не могу смешивать знаки индексов"

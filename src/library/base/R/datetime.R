@@ -1,7 +1,7 @@
 #  File src/library/base/R/datetime.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -354,7 +354,7 @@ as.POSIXct.default <- function(x, tz = "", ...)
     if(is.character(x) || is.factor(x))
 	return(as.POSIXct(as.POSIXlt(x, tz, ...), tz, ...))
     if(is.logical(x) && all(is.na(x)))
-        return(.POSIXct(as.numeric(x), tz))
+        return(.POSIXct(as.numeric(x)))
     stop(gettextf("do not know how to convert '%s' to class %s",
                   deparse1(substitute(x)),
                   dQuote("POSIXct")),
@@ -592,20 +592,14 @@ anyNA.POSIXlt <- function(x, recursive = FALSE)
     anyNA(as.POSIXct(x))
 
 ## <FIXME> check the argument validity
-## This is documented to remove the timezone (unless all are marked with
-## the same).
-c.POSIXct <- function(..., recursive = FALSE) {
-    x <- lapply(list(...), function(e) unclass(as.POSIXct(e)))
-    tzones <- lapply(x, attr, "tzone")
-    tz <- if(length(unique(tzones)) == 1L) tzones[[1L]] else NULL
-    .POSIXct(c(unlist(x)), tz)
-}
+## This is documented to remove the timezone
+c.POSIXct <- function(..., recursive = FALSE)
+    .POSIXct(c(unlist(lapply(list(...),
+                             function(e) unclass(as.POSIXct(e))))))
 
 ## we need conversion to POSIXct as POSIXlt objects can be in different tz.
-c.POSIXlt <- function(..., recursive = FALSE) {
-    as.POSIXlt(do.call("c",
-                       lapply(list(...), as.POSIXct)))
-}
+c.POSIXlt <- function(..., recursive = FALSE)
+    as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 
 ISOdatetime <- function(year, month, day, hour, min, sec, tz = "")
@@ -1330,7 +1324,7 @@ is.numeric.difftime <- function(x) FALSE
 ## Class generators added in 2.11.0, class order changed in 2.12.0.
 
 ## FIXME:
-## At least temporarily avoid structure() for performance reasons.
+## At least temporarily avoide structure() for performance reasons.
 ## .POSIXct <- function(xx, tz = NULL)
 ##     structure(xx, class = c("POSIXct", "POSIXt"), tzone = tz)
 .POSIXct <- function(xx, tz = NULL, cl = c("POSIXct", "POSIXt")) {

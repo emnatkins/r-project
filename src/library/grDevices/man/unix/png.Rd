@@ -202,7 +202,7 @@ tiff(filename = "Rplot\%03d.tiff",
 \author{Guido Masarotto and Brian Ripley}
 
 \references{
-  The PNG specification, \url{https://www.w3.org/TR/PNG/}.
+  The PNG specification, \url{http://www.w3.org/TR/PNG/}.
   
   The TIFF specification,
   \url{https://www.iso.org/standard/34342.html}.
@@ -223,7 +223,7 @@ tiff(filename = "Rplot\%03d.tiff",
 
 \section{Conventions}{
   This section describes the implementation of the conventions for
-  graphics devices set out in the \sQuote{R Internals} manual.
+  graphics devices set out in the \dQuote{R Internals Manual}.
 
   \itemize{
     \item The default device size is in pixels.

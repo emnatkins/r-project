@@ -373,20 +373,10 @@ void attribute_hidden R_check_locale(void)
     {
 	char *ctype = setlocale(LC_CTYPE, NULL), *p;
 	p = strrchr(ctype, '.');
-	if (p) {
-	    if (isdigit(p[1]))
-		localeCP = atoi(p+1);
-	    else if (!strcasecmp(p+1, "UTF-8") || !strcasecmp(p+1, "UTF8"))
-		localeCP = 65001;
-	    else
-		localeCP = 0;
-	}
+	if (p && isdigit(p[1])) localeCP = atoi(p+1); else localeCP = 0;
 	/* Not 100% correct, but CP1252 is a superset */
 	known_to_be_latin1 = latin1locale = (localeCP == 1252);
-	known_to_be_utf8 = utf8locale = (localeCP == 65001);
-	if (localeCP == 65001)
-	    strcpy(native_enc, "UTF-8");
-	else if (localeCP) {
+	if (localeCP) {
 	    /* CP1252 when latin1locale is true */
 	    snprintf(native_enc, R_CODESET_MAX, "CP%d", localeCP);
 	    native_enc[R_CODESET_MAX] = 0;
@@ -2054,26 +2044,18 @@ SEXP attribute_hidden do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++) {
 	SEXP tmp = STRING_ELT(fn, i);
-	if (tmp != NA_STRING) {
-#ifdef Win32
-	    /* Windows can have files and home directories that aren't
-	       representable in the native encoding (e.g. latin1). Translate
-	       to UTF-8 when the input is in UTF-8 already or is in latin1,
-	       but the native encoding is not latin1.
-
-	       R (including R_ExpandFileNameUTF8) for now only supports R home
-	       directories representable in native encoding.
-	    */
-	    if (IS_UTF8(tmp) || (IS_LATIN1(tmp) && !latin1locale))
-		tmp = mkCharCE(R_ExpandFileNameUTF8(trCharUTF8(tmp)), CE_UTF8);
-	    else
+#ifndef Win32
+	const char *p = translateCharFP2(tmp);
+	if (p && tmp != NA_STRING)
+	    tmp = markKnown(R_ExpandFileName(p), tmp);
+#else
+/* Windows can have files and home directories that aren't representable
+   in the native encoding (e.g. latin1), so we need to translate
+   everything to UTF8.
+*/
+	if (tmp != NA_STRING)
+	    tmp = mkCharCE(R_ExpandFileNameUTF8(trCharUTF8(tmp)), CE_UTF8);
 #endif
-	    {
-		const char *p = translateCharFP2(tmp);
-		if (p)
-		    tmp = markKnown(R_ExpandFileName(p), tmp);
-	    }
-	}
 	SET_STRING_ELT(ans, i, tmp);
     }
     UNPROTECT(1);
@@ -2129,8 +2111,8 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     checkArity(op, args);
 
-    PROTECT(ans      = allocVector(LGLSXP, 19));
-    PROTECT(ansnames = allocVector(STRSXP, 19));
+    PROTECT(ans = allocVector(LGLSXP, 18));
+    PROTECT(ansnames = allocVector(STRSXP, 18));
 
     SET_STRING_ELT(ansnames, i, mkChar("jpeg"));
 #ifdef HAVE_JPEG
@@ -2218,7 +2200,7 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (strcmp(R_GUIType, "GNOME") == 0) {  /* always interactive */
 	LOGICAL(ans)[i] = TRUE;  /* also AQUA ? */
     } else {
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
 	extern Rboolean UsingReadline;
 	if (R_Interactive && UsingReadline) LOGICAL(ans)[i] = TRUE;
 #endif
@@ -2232,13 +2214,6 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     SET_STRING_ELT(ansnames, i, mkChar("NLS"));
 #ifdef ENABLE_NLS
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("Rprof"));
-#ifdef R_PROFILING
     LOGICAL(ans)[i++] = TRUE;
 #else
     LOGICAL(ans)[i++] = FALSE;
@@ -2849,8 +2824,7 @@ SEXP attribute_hidden do_filecopy(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(strlen(q) > PATH_MAX - 2) // allow for '/' and terminator
 	    error(_("invalid '%s' argument"), "to");
 	char dir[PATH_MAX];
-	// gcc 10 with sanitizers objects to PATH_MAX here.
-	strncpy(dir, q, PATH_MAX - 1);
+	strncpy(dir, q, PATH_MAX);
 	dir[PATH_MAX - 1] = '\0';
 	if (*(dir + (strlen(dir) - 1)) !=  '/')
 	    strcat(dir, "/");
@@ -3342,7 +3316,7 @@ do_eSoftVersion(SEXP call, SEXP op, SEXP args, SEXP rho)
     && defined(HAVE_DECL_RTLD_NEXT) && HAVE_DECL_RTLD_NEXT
 
     /* Look for blas function dgemm and try to figure out in which
-       binary/shared library it is defined.  That is based on experimentation
+       binary/shared library is it defined. That is based on experimentation
        and heuristics, and depends on implementation details
        of dynamic linkers.
     */

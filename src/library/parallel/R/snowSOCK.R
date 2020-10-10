@@ -266,6 +266,7 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
     invisible(x)
 }
 
+.slaveRSOCK <- ## temporarily as packages use it, although they should not
 .workRSOCK <- function()
 {
     makeSOCKmaster <- function(master, port, setup_timeout, timeout, useXDR,

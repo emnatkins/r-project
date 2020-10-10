@@ -103,7 +103,7 @@ nlminb(start, objective, gradient = NULL, hessian = NULL, \dots,
   }
 }
 \source{
-  \url{https://www.netlib.org/port/}
+  \url{http://www.netlib.org/port/}
 }
 \references{
   David M. Gay (1990),

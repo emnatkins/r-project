@@ -879,7 +879,6 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
 #endif
 
 # define R_BUFSIZE BUFSIZE
-// similar to dummy_vfprintf in connections.c
 attribute_hidden
 void Rcons_vprintf(const char *format, va_list arg)
 {
@@ -890,31 +889,30 @@ void Rcons_vprintf(const char *format, va_list arg)
     va_list aq;
 
     va_copy(aq, arg);
-    res = Rvsnprintf_mbcs(buf, R_BUFSIZE, format, aq);
+    res = vsnprintf(buf, R_BUFSIZE, format, aq);
     va_end(aq);
 #ifdef HAVE_VASPRINTF
     if(res >= R_BUFSIZE || res < 0) {
 	res = vasprintf(&p, format, arg);
 	if (res < 0) {
 	    p = buf;
-	    warning(_("printing of extremely long output is truncated"));
+	    buf[R_BUFSIZE - 1] = '\0';
+	    warning("printing of extremely long output is truncated");
 	} else usedVasprintf = TRUE;
     }
 #else
     if(res >= R_BUFSIZE) { /* res is the desired output length */
 	usedRalloc = TRUE;
-	/* dummy_vfprintf protects against `res` being counted short; we do not
-	   do that here */
 	p = R_alloc(res+1, sizeof(char));
 	vsprintf(p, format, arg);
-    } else if(res < 0) {
-	/* Some non-C99 conforming vsnprintf implementations return -1 on
-	   truncation instead of only on error. */
+    } else if(res < 0) { /* just a failure indication */
 	usedRalloc = TRUE;
 	p = R_alloc(10*R_BUFSIZE, sizeof(char));
-	res = Rvsnprintf_mbcs(p, 10*R_BUFSIZE, format, arg);
-	if (res < 0 || res >= 10*R_BUFSIZE)
-	    warning(_("printing of extremely long output is truncated"));
+	res = vsnprintf(p, 10*R_BUFSIZE, format, arg);
+	if (res < 0) {
+	    *(p + 10*R_BUFSIZE - 1) = '\0';
+	    warning("printing of extremely long output is truncated");
+	}
     }
 #endif /* HAVE_VASPRINTF */
     R_WriteConsole(p, (int) strlen(p));
@@ -992,8 +990,9 @@ void REvprintf(const char *format, va_list arg)
 	va_list aq;
 
 	va_copy(aq, arg);
-	int res = Rvsnprintf_mbcs(buf, BUFSIZE, format, aq);
+	int res = vsnprintf(buf, BUFSIZE, format, aq);
 	va_end(aq);
+	buf[BUFSIZE-1] = '\0';
 	if (res >= BUFSIZE) {
 	    /* A very long string has been truncated. Try to allocate a large
 	       buffer for it to print it in full. Do not use R_alloc() as this

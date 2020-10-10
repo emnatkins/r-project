@@ -1,7 +1,7 @@
 #  File src/library/stats/R/spectrum.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1999-2020 The R Core Team
+#  Copyright (C) 1999-2019 The R Core Team
 #  Copyright (C) 1994-9 W. N. Venables and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -179,7 +179,8 @@ spec.pgram <-
              kernel = kernel, df = df,
              bandwidth = bandwidth, n.used = N, orig.n = N0,# "n.orig" = "n..."
              series = series, snames = colnames(x),
-             method = if(is.null(kernel)) "Raw Periodogram" else "Smoothed Periodogram",
+             method = ifelse(!is.null(kernel), "Smoothed Periodogram",
+                             "Raw Periodogram"),
              taper = taper, pad = pad, detrend = detrend, demean = demean)
     class(spg.out) <- "spec"
     if(plot) {

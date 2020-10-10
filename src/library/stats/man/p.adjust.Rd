@@ -73,8 +73,7 @@ p.adjust.methods
   approach to multiple testing.
   \emph{Journal of the Royal Statistical Society Series B}, \bold{57},
   289--300.
-  \doi{10.1111/j.2517-6161.1995.tb02031.x}.
-  \url{https://www.jstor.org/stable/2346101}.
+  \url{http://www.jstor.org/stable/2346101}.
 
   Benjamini, Y., and Yekutieli, D. (2001).
   The control of the false discovery rate in multiple testing under
@@ -85,7 +84,7 @@ p.adjust.methods
   Holm, S. (1979).
   A simple sequentially rejective multiple test procedure.
   \emph{Scandinavian Journal of Statistics}, \bold{6}, 65--70.
-  \url{https://www.jstor.org/stable/4615733}.
+  \url{http://www.jstor.org/stable/4615733}.
 
   Hommel, G. (1988).
   A stagewise rejective multiple test procedure based on a modified

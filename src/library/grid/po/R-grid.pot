@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: grid 4.1.0\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
+"Project-Id-Version: grid 3.6.0\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr ""
 msgid "invalid display list element"
 msgstr ""
 
-msgid "one or more grobs overwritten (grab WILL not be faithful; try 'wrap.grobs = TRUE')"
+msgid "one of more grobs overwritten (grab WILL not be faithful; try 'wrap = TRUE')"
 msgstr ""
 
 msgid "viewport overwritten (grab MAY not be faithful)"
@@ -304,12 +304,6 @@ msgstr ""
 msgid "invalid 'origin'"
 msgstr ""
 
-msgid "Missing pattern fill has been set to transparent"
-msgstr ""
-
-msgid "Gradient fill applied to object with no inside"
-msgstr ""
-
 msgid "'length' must be a 'unit' object"
 msgstr ""
 
@@ -344,9 +338,6 @@ msgid "'x' and 'y' must be units or NULL"
 msgstr ""
 
 msgid "corrupt 'arrows' object"
-msgstr ""
-
-msgid "'x' and 'y' and 'pathId.lengths' must specify same overall length"
 msgstr ""
 
 msgid "x and y must be units"
@@ -391,19 +382,25 @@ msgstr ""
 msgid "'x' and 'units' must have length > 0"
 msgstr ""
 
+msgid "'x' argument must be a unit object"
+msgstr ""
+
 msgid "invalid 'axis' or 'type'"
 msgstr ""
 
-msgid "Not a unit object"
+msgid "no string supplied for 'strwidth/height' unit"
 msgstr ""
 
-msgid "'Summary' function '%s' not meaningful for units"
+msgid "no 'grob' supplied for 'grobwidth/height' unit"
+msgstr ""
+
+msgid "'gPath' must have depth 1 in 'grobwidth/height' units"
+msgstr ""
+
+msgid "non-NULL value supplied for plain unit"
 msgstr ""
 
 msgid "operator '%s' not meaningful for units"
-msgstr ""
-
-msgid "'*' or '/' cannot be used as a unary operator"
 msgstr ""
 
 msgid "only one operand may be a unit"
@@ -412,22 +409,37 @@ msgstr ""
 msgid "non-unit operand must be numeric"
 msgstr ""
 
-msgid "can't divide with a unit"
-msgstr ""
-
 msgid "both operands must be units"
 msgstr ""
 
-msgid "index out of bounds (\"unit\" subsetting)"
+msgid "'Summary' function '%s' not meaningful for units"
 msgstr ""
 
-msgid "Cannot create zero-length unit vector (\"unit\" subsetting)"
+msgid "no arguments where at least one expected"
 msgstr ""
 
-msgid "index must be of length 1"
+msgid "Zero arguments where at least one expected"
 msgstr ""
 
-msgid "replacement must be of length 1"
+msgid "cannot mix signs of indices"
+msgstr ""
+
+msgid "index out of bounds ('unit' subsetting)"
+msgstr ""
+
+msgid "index out of bounds (unit arithmetic subsetting)"
+msgstr ""
+
+msgid "index out of bounds (unit list subsetting)"
+msgstr ""
+
+msgid "Value being assigned must be a unit"
+msgstr ""
+
+msgid "it is invalid to combine 'unit' objects with other types"
+msgstr ""
+
+msgid "invalid 'unit' object"
 msgstr ""
 
 msgid "invalid 'theta'"
@@ -440,9 +452,6 @@ msgid "invalid 'gp' value"
 msgstr ""
 
 msgid "invalid 'clip' value"
-msgstr ""
-
-msgid "invalid 'mask' value"
 msgstr ""
 
 msgid "invalid 'xscale' in viewport"

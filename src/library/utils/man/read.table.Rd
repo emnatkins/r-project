@@ -23,7 +23,7 @@ read.table(file, header = FALSE, sep = "", quote = "\"'",
            strip.white = FALSE, blank.lines.skip = TRUE,
            comment.char = "#",
            allowEscapes = FALSE, flush = FALSE,
-           stringsAsFactors = FALSE,
+           stringsAsFactors = default.stringsAsFactors(),
            fileEncoding = "", encoding = "unknown", text, skipNul = FALSE)
 
 read.csv(file, header = TRUE, sep = ",", quote = "\"",
@@ -184,7 +184,7 @@ read.delim2(file, header = TRUE, sep = "\t", quote = "\"",
   \item{fileEncoding}{character string: if non-empty declares the
     encoding used on a file (not a connection) so the character data can
     be re-encoded.  See the \sQuote{Encoding} section of the help for
-    \code{\link{file}}, the \sQuote{R Data Import/Export} manual and
+    \code{\link{file}}, the \sQuote{R Data Import/Export Manual} and
     \sQuote{Note}.
   }
 

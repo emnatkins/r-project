@@ -1136,8 +1136,8 @@ functions are defined and also in file @file{size.c} which needs access
 to the sizes of the internal structures.)
 
 For background papers see
-@uref{https://homepage.stat.uiowa.edu/~luke/R/barrier.html} and
-@uref{https://homepage.stat.uiowa.edu/~luke/R/gengcnotes.html}.
+@uref{http://homepage.stat.uiowa.edu/~luke/R/barrier.html} and
+@uref{http://homepage.stat.uiowa.edu/~luke/R/gengcnotes.html}.
 
 @node Serialization Formats, Encodings for CHARSXPs, The write barrier, R Internal Structures
 @section Serialization Formats
@@ -4353,11 +4353,8 @@ and from @uref{https://sourceforge.net/@/projects/@/checkbaskisms/@/files}.)
 Default: false (but true for CRAN submission checks except on Windows).
 
 @item _R_CHECK_ORPHANED_
-Check if dependencies are orphaned packages.  As from @R{} 4.1.0 this
-checks strict dependencies recursively, so will report any orphaned
-packages which are needed to attach the package by @code{library()} as
-well as any orphaned packages which are suggested.
-Default: false (but true for CRAN submission checks).
+Check if dependencies are orphaned packages.
+Default: false (but true for CRAN submission checks)
 
 @item _R_CHECK_EXCESSIVE_IMPORTS_
 A positive integer.  If set, give a NOTE if the number of imports from
@@ -4374,23 +4371,6 @@ to any @file{.Rout.save} file and timings analysed.  Overridden by
 @option{--run-donttest}.
 Default: false unless @option{-as-cran} is specified (which can be
 overridden by setting @samp{_R_CHECK_DONTTEST_EXAMPLES_=false}).
-
-@item _R_CHECK_XREFS_PKGS_ARE_DECLARED_
-Check if packages used in `anchored' cross-references in @file{.Rd}
-files (those of the form @code{\link[@var{pkg}]@{@var{foo}@}} and
-@code{\link[@var{pkg:bar}]@{@var{foo}@}}) are declared in the
-@file{DESCRIPTION} file and so these links can be checked.
-Default: false.
-
-@item _R_CHECK_XREFS_MIND_SUSPECT_ANCHORS_
-Check if package-anchored Rd cross-references are to @emph{files} (and
-not aliases).
-Default: false.
-
-@item _R_CHECK_BOGUS_RETURN_
-If true and @env{_R_CHECK_USE_CODETOOLS_} is also true, functions are
-scanned for use of @code{return} rather than @code{return()}.
-Default: false (but true for CRAN submission checks).
 @end vtable
 
 CRAN's submission checks use something like
@@ -4434,7 +4414,6 @@ _R_CHECK_THINGS_IN_TEMP_DIR_=true
 _R_CHECK_BASHISMS_=true
 _R_CLASS_MATRIX_ARRARY_=true
 _R_CHECK_ORPHANED_=true
-_R_CHECK_BOGUS_RETURN_=true
 @end example
 
 @noindent
@@ -4816,7 +4795,7 @@ introduce `long' versions @code{xlength} and @code{XLENGTH} which return
 @code{R_xlen_t} values.
 
 
-See also @uref{https://homepage.cs.uiowa.edu/~luke/talks/useR10.pdf}.
+See also @uref{http://homepage.cs.uiowa.edu/~luke/talks/useR10.pdf}.
 
 @node Large matrices,  , 64-bit types, Current and future directions
 @section Large matrices

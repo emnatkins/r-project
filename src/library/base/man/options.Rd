@@ -299,7 +299,7 @@ getOption(x, default = NULL)
       \code{\link{pcre_config}}), but it uses recursion by default with
       a recursion limit of 10000000 which potentially needs a very large
       C stack: see the discussion at
-      \url{https://www.pcre.org/original/doc/html/pcrestack.html}.  If
+      \url{http://www.pcre.org/original/doc/html/pcrestack.html}.  If
       true, the limit is reduced using \R's estimate of the C stack size
       available (if known), otherwise 10000.  If \code{NA}, the limit is
       imposed only if any input string has 1000 or more bytes.  The
@@ -386,10 +386,8 @@ getOption(x, default = NULL)
       be printed?  Intended for use with \code{\link{try}} or a
       user-installed error handler.}
 
-    \item{\code{stringsAsFactors}:}{The default setting for
-      \code{\link{default.stringsAsFactors}}, which in \R < 4.1.0 was
-      used to provide the default values of the \code{stringsAsFactors}
-      argument of \code{\link{data.frame}} and \code{\link{read.table}}.}
+    \item{\code{stringsAsFactors}:}{The default setting for arguments of
+      \code{\link{data.frame}} and \code{\link{read.table}}.}
 
     \item{\code{texi2dvi}:}{used by functions
       \code{\link{texi2dvi}} and \code{\link{texi2pdf}} in package \pkg{tools}.
@@ -455,7 +453,7 @@ getOption(x, default = NULL)
       non-null it is called irrespective of the value of option
       \code{warn}.}
 
-    \item{\code{warning.length}:}{sets the truncation limit in bytes for error
+    \item{\code{warning.length}:}{sets the truncation limit for error
       and warning messages.  A non-negative integer, with allowed values
       100\dots8170, default 1000.}
 

@@ -1,7 +1,7 @@
 #  File src/library/base/R/all.equal.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -163,7 +163,7 @@ all.equal.envRefClass <- function (target, current, ...) {
     getCl <- function(x) { cl <- tryCatch(x$getClass(), error=function(e) NULL)
 			   if(is.null(cl)) class(x) else cl }
     if(!identical(cld <- getCl(target), c2 <- getCl(current))) {
-	hasCA <- "check.attributes" %in% ...names()
+	hasCA <- any("check.attributes" == names(list(...)))
 	ae <-
 	    if(hasCA) all.equal(cld, c2, ...)
 	    else all.equal(cld, c2, check.attributes=FALSE, ...)
@@ -230,24 +230,14 @@ all.equal.environment <- function (target, current, all.names=TRUE, ...) {
 
 all.equal.factor <- function(target, current, ..., check.attributes = TRUE)
 {
+    if(!inherits(target, "factor"))
+	return("'target' is not a factor")
     if(!inherits(current, "factor"))
 	return("'current' is not a factor")
     msg <-  if(check.attributes) attr.all.equal(target, current, ...)
-    class(target) <- class(current) <- NULL
-    nax <- is.na(target)
-    nay <- is.na(current)
-    n <- sum(nax != nay)
-    if(n > 1L)
-	msg <- c(msg, paste(n, "NA mismatches"))
-    else if (n == 1L)
-        msg <- c(msg, paste("1, NA mismatch"))
-    else { ## n == 0: nax == nay (w/ recycling!)
-	target  <- levels(target) [target [!nax]]
-	current <- levels(current)[current[!nay]]
-	n <- all.equal(target, current,
-		       check.attributes = check.attributes, ...)
-	if(is.character(n)) msg <- c(msg, n)
-    }
+    n <- all.equal(as.character(target), as.character(current),
+                   check.attributes = check.attributes, ...)
+    if(is.character(n)) msg <- c(msg, n)
     if(is.null(msg)) TRUE else msg
 }
 
@@ -418,30 +408,10 @@ attr.all.equal <- function(target, current, ...,
 
 ## formerly in datetime.R
 ## force absolute comparisons
-all.equal.POSIXt <- function(target, current, ..., tolerance = 1e-3, scale,
-                             check.tzone = TRUE)
+all.equal.POSIXt <- function(target, current, ..., tolerance = 1e-3, scale)
 {
-    if(!inherits(target, "POSIXt"))
-        return("'target' is not a POSIXt")
-    if(!inherits(current, "POSIXt"))
-        return("'current' is not a POSIXt")
-    target <- as.POSIXct(target)
-    current <- as.POSIXct(current)
-    msg <- NULL
-    if(check.tzone) {
-        ## See check_tzones():
-        tz <- function(dt) {
-            if(is.null(tz <- attr(dt, "tzone"))) "" else tz[1L]
-        }
-        tzt <- tz(target)
-        tzc <- tz(current)
-        if(!isTRUE(tzt == tzc))
-            msg <- sprintf("'tzone' attributes are inconsistent ('%s' and '%s')",
-                           tzt, tzc)
-    }
+    target <- as.POSIXct(target); current <- as.POSIXct(current)
+    check_tzones(target, current)
     attr(target, "tzone") <- attr(current, "tzone") <- NULL
-    val <- all.equal.numeric(target, current, ...,
-                             tolerance = tolerance, scale = 1)
-    if(!isTRUE(val)) msg <- c(msg, val)
-    if(is.null(msg)) TRUE else msg
+    all.equal.numeric(target, current, ..., tolerance = tolerance, scale = 1)
 }

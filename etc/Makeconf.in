@@ -17,6 +17,9 @@ CFLAGS = @CFLAGS@ $(LTO)
 CPICFLAGS = @CPICFLAGS@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@ @CXXSTD@
+## Not used by anything in R, in particular not for the .cc.d rule
+## but used via R CMD config by several packages
+CXXCPP = @CXXCPP0@
 CXXFLAGS = @CXXFLAGS@ $(LTO)
 CXXPICFLAGS = @CXXPICFLAGS@
 CXX11 = @CXX11@
@@ -82,9 +85,6 @@ LIBTOOL = $(SHELL) "$(R_HOME)/bin/libtool"
 LTO = @LTOALL@
 LTO_FC = @LTOALL_FC@
 LTO_LD = @LTO_LD@
-## set for --enable-lto=R, used in INSTALL
-LTO_OPT = @LTO@
-LTO_FC_OPT = @LTO_FC@
 ## needed to build applications linking to static libR
 MAIN_LD = @MAIN_LD@
 MAIN_LDFLAGS = @MAIN_LDFLAGS@
@@ -147,6 +147,10 @@ R_XTRA_CXXFLAGS = @R_XTRA_CXXFLAGS@
 ## used for gfortran in R > 3.6.0
 R_XTRA_FFLAGS = @R_XTRA_FFLAGS@
 
+## CXX98 is no longer supported, but packages may use it.
+SHLIB_CXX98LD = @SHLIB_CXX98LD@
+SHLIB_CXX98LDFLAGS = @SHLIB_CXX98LDFLAGS@
+
 ## SHLIB_CFLAGS SHLIB_CXXFLAGS SHLIB_FFLAGS are apparently currently unused
 ## SHLIB_CXXFLAGS is undocumented, there is no SHLIB_FCFLAGS
 ALL_CFLAGS = @R_XTRA_CFLAGS@ $(PKG_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS)
@@ -173,6 +177,7 @@ ALL_LIBS = $(PKG_LIBS) $(SHLIB_LIBADD) $(LIBR)@DYLIB_UNDEFINED_ALLOWED_FALSE@ $(
 	$(OBJCXX) $(ALL_CPPFLAGS) $(ALL_OBJCXXFLAGS) -c $< -o $@
 .f.o:
 	$(FC) $(ALL_FFLAGS) -c $< -o $@
+## @FCFLAGS_f9x@ are flags needed to recognise the extensions
 .f95.o:
 	$(FC) $(ALL_FCFLAGS) -c @FCFLAGS_f95@ $< -o $@
 .f90.o:

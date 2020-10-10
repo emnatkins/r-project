@@ -162,10 +162,10 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
   line endings to \code{\\r\\n} (aka \file{CRLF}).
 
   On Windows, if \code{mode} is not supplied (\code{\link{missing}()})
-  and \code{url} ends in one of \code{.gz}, \code{.bz2}, \code{.xz},
-  \code{.tgz}, \code{.zip}, \code{.jar}, \code{.rda}, \code{.rds} or
-  \code{.RData}, \code{mode = "wb"} is set so that a binary transfer
-  is done to help unwary users.
+  and \code{url} ends in one of
+  \code{.gz}, \code{.bz2}, \code{.xz}, \code{.tgz}, \code{.zip},
+  \code{.rda}, \code{.rds} or \code{.RData}, \code{mode = "wb"} is set
+  such that a binary transfer is done to help unwary users.
 
   Code written to download binary files must use \code{mode = "wb"} (or
   \code{"ab"}), but the problems incurred by a text transfer will only
@@ -183,7 +183,7 @@ download.file(url, destfile, method, quiet = FALSE, mode = "w",
   user/password authentication if proper values are stored in the
   configuration file for \code{wget}.
 
-  \command{wget} (\url{https://www.gnu.org/software/wget/}) is commonly
+  \command{wget} (\url{http://www.gnu.org/software/wget/}) is commonly
   installed on Unix-alikes (but not macOS).  Windows binaries are
   available from Cygwin, gnuwin32 and elsewhere.
 

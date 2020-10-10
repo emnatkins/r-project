@@ -22,8 +22,9 @@ path.expand(path)
   (These details are for a Unix-alike: the details differ on Windows.)
   
   On most builds of \R a leading \code{~user} will expand to the home
-  directory of \code{user} (since \R 4.1.0 also without \code{readline}
-  in use).
+  directory of \code{user}, but not on builds without \code{readline}
+  installed.  (In an interactive session \code{capabilities("cledit")}
+  will report if \code{readline} is available.)
 
   There are possibly different concepts of \sQuote{home directory}: that
   usually used is the setting of the environment variable \env{HOME}.

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2020  The R Core Team
+ *  Copyright (C) 1997--2017  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -107,74 +107,44 @@ FILE *R_OpenInitFile(void)
 char *R_ExpandFileName_readline(const char *s, char *buff);  /* sys-std.c */
 #endif
 
-#if defined(HAVE_PWD_H)
-# include <pwd.h>
-#endif
+static char newFileName[PATH_MAX];
+static int HaveHOME=-1;
+static char UserHOME[PATH_MAX];
 
+/* Only interpret inputs of the form ~ and ~/... */
 static const char *R_ExpandFileName_unix(const char *s, char *buff)
 {
+    char *p;
+
     if(s[0] != '~') return s;
-
-    const char *user, *temp, *s2, *home;
-    char buff2[PATH_MAX];
-    struct passwd *pass;
-
-    temp = strchr(s + 1, '/');
-    if (temp == NULL) { // ~name
-	user = s + 1;
-    } else { // ~name/path
-	/* extract text befoe first slash */
-	size_t len = (size_t)(temp - s + 1);
-	(void) strncpy(buff2, s + 1, len - 2);
-	buff2[len - 2] = '\0';
-	user = buff2;
-	s2 = s + len;
+    if(strlen(s) > 1 && s[1] != '/') return s;
+    if(HaveHOME < 0) {
+	p = getenv("HOME");
+	if(p && *p && (strlen(p) < PATH_MAX)) {
+	    strcpy(UserHOME, p);
+	    HaveHOME = 1;
+	} else
+	    HaveHOME = 0;
     }
-    if (user[0] == 0) {
-	// follow readline (and not libedit) in preferring HOME
-	home = getenv("HOME");
-#if defined(HAVE_GETPWUID) && defined(HAVE_GETUID)
-	if(home == NULL || streql(home, "")) {
-	   pass = getpwuid(getuid());
-           if(pass == NULL) return s;
-	   home = pass->pw_dir;
-	}
-#endif
-	if(home == NULL) return s;
-    } else {
-#ifdef HAVE_GETPWNAM
-	pass = getpwnam(user);
-	if(pass == NULL) return s;
-	home = pass->pw_dir;
-#else
-        return s;
-#endif
-    }
-
-    if (temp == NULL) { // ~name
-	strcpy(buff, home);
-    } else { // ~name/path
-	size_t len = strlen(home) + 1 + strlen(s2) + 1;
-	if (len >= PATH_MAX) return s;
-	(void)snprintf(buff, len, "%s/%s", home, s2);
-    }
-
-    return buff;
+    if(HaveHOME > 0 && (strlen(UserHOME) + strlen(s+1) < PATH_MAX)) {
+	strcpy(buff, UserHOME);
+	strcat(buff, s+1);
+	return buff;
+    } else return s;
 }
 
-/* tilde_expand_word (in libreadline) mallocs storage for its return value.
+/* tilde_expand (in libreadline) mallocs storage for its return value.
    The R entry point does not require that storage to be freed, so we
    copy the value to a static buffer, to void a memory leak in R<=1.6.0.
 
    This is not thread-safe, but as R_ExpandFileName is a public entry
-   point (in R-exts.texi) it would need to deprecated and replaced by a
+   point (in R-exts.texi) it will need to deprecated and replaced by a
    version which takes a buffer as an argument.
 
    BDR 10/2002
 */
 
 extern Rboolean UsingReadline;
-static char newFileName[PATH_MAX];
 
 const char *R_ExpandFileName(const char *s)
 {
@@ -717,8 +687,7 @@ SEXP attribute_hidden do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    *buf = NULL;
 	size_t buf_len = 0;
 #else
-	    buf[INTERN_BUFSIZE + MB_LEN_MAX],
-	    buf2[MB_LEN_MAX + 1]; /* overflow bytes from MBCS truncation */
+	    buf[INTERN_BUFSIZE];
 #endif
 	int i, j, res;
 	SEXP tchar, rval;
@@ -737,35 +706,16 @@ SEXP attribute_hidden do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
         for(i = 0; (read = getline(&buf, &buf_len, fp)) != (size_t)-1; i++) {
 	    if (buf[read - 1] == '\n')
 #else
-	size_t read = 0;
-	size_t truncb = 0; /* number of overflow bytes from MBCS truncation */
-	buf[0] = '\0';
-	for (i = 0; fgets(buf + truncb, INTERN_BUFSIZE, fp) || truncb; i++) {
-	    buf2[0] = '\0';
-	    read = strlen(buf);
-	    if (read >= INTERN_BUFSIZE - 1 + truncb) {
+	for (i = 0; fgets(buf, INTERN_BUFSIZE, fp); i++) {
+	    size_t read = strlen(buf);
+	    if(read >= INTERN_BUFSIZE - 1)
 		warning(_("line %d may be truncated in call to system(, intern = TRUE)"), i + 1);
-		/* save trailing bytes in buf2 in case they are from incomplete
-		   multi-byte character, and hence will be removed from buf by
-		   mbcsTruncateToValid */
-		memcpy(buf2, buf + read - MB_LEN_MAX, MB_LEN_MAX);
-		buf2[MB_LEN_MAX] = '\0';
-		mbcsTruncateToValid(buf);
-		truncb = read - strlen(buf);
-	    }
-	    else truncb = 0;
-
 	    if (read > 0 && buf[read-1] == '\n')
 #endif
 		buf[read - 1] = '\0'; /* chop final CR */
 	    tchar = mkChar(buf);
 	    UNPROTECT(1);
 	    PROTECT(tlist = CONS(tchar, tlist));
-#ifndef HAVE_GETLINE
-	    if (truncb > 0 && truncb <= MB_LEN_MAX) 
-		/* recover overflow bytes and prepend them for next line */
-		strcpy(buf, buf2 + (MB_LEN_MAX - truncb));
-#endif
 	}
 #ifdef HAVE_GETLINE
         if (buf != NULL)
