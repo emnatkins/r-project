@@ -221,7 +221,7 @@ palette.colors <- function(n = NULL, palette = "Okabe-Ito",
             cols <- cols[rep_len(seq_len(nc), n)]
         } else {
             warning(sprintf("'n' set to %s, the maximum available for %s palette",
-                            nc, palette))
+                            n, palette))
             n <- nc
         }
     }

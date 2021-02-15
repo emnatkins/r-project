@@ -1,7 +1,7 @@
 #  File src/library/stats/R/models.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -145,7 +145,12 @@ as.formula <- function(object, env = parent.frame())
 
 terms <- function(x, ...) UseMethod("terms")
 terms.default <- function(x, ...) {
-    x$terms %||% attr(x, "terms") %||% stop("no terms component nor attribute")
+    v <- x$terms
+    if(is.null(v)) {
+        v <- attr(x, "terms")
+        if(is.null(v)) stop("no terms component nor attribute")
+    }
+    v
 }
 
 terms.terms <- function(x, ...) x
@@ -297,7 +302,6 @@ terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
 			  neg.out = TRUE, keep.order = FALSE,
                           simplify = FALSE, ..., allowDotAsName = FALSE)
 {
-    if(simplify)
     fixFormulaObject <- function(object) {
         Terms <- terms(object)
 	tmp <- attr(Terms, "term.labels")
@@ -474,7 +478,8 @@ model.frame.default <-
         fcall <- fcall[c(1, m)]
         ## need stats:: for non-standard evaluation
         fcall[[1L]] <- quote(stats::model.frame)
-        env <- environment(formula$terms) %||% parent.frame()
+        env <- environment(formula$terms)
+	if (is.null(env)) env <- parent.frame()
         return(eval(fcall, env)) # 2-arg form as env is an environment
     }
     if(missing(formula)) {
@@ -490,7 +495,7 @@ model.frame.default <-
     } else
         formula <- as.formula(formula)
     if(missing(na.action)) {
-	if(!is.null(naa <- attr(data, "na.action")) && mode(naa)!="numeric")
+	if(!is.null(naa <- attr(data, "na.action")) & mode(naa)!="numeric")
 	    na.action <- naa
 	else if(!is.null(naa <- getOption("na.action")))
 	    na.action <- naa
@@ -519,7 +524,8 @@ model.frame.default <-
     env <- environment(formula)
     rownames <- .row_names_info(data, 0L) #attr(data, "row.names")
     vars <- attr(formula, "variables")
-    predvars <- attr(formula, "predvars") %||% vars
+    predvars <- attr(formula, "predvars")
+    if(is.null(predvars)) predvars <- vars
     varnames <- vapply(vars, deparse2, " ")[-1L]
     variables <- eval(predvars, data, env)
     resp <- attr(formula, "response")
@@ -607,8 +613,10 @@ model.weights <- function(x) x$"(weights)"
 model.offset <- function(x) {
     offsets <- attr(attr(x, "terms"),"offset")
     if(length(offsets)) {
-	ans <- x$"(offset)" %||% 0
+	ans <- x$"(offset)"
+        if (is.null(ans)) ans <- 0
 	for(i in offsets) ans <- ans+x[[i]]
+	ans
     }
     else ans <- x$"(offset)"
     if(!is.null(ans) && !is.numeric(ans)) stop("'offset' must be numeric")
@@ -678,11 +686,11 @@ model.matrix.default <- function(object, data = environment(object),
 model.response <- function (data, type = "any")
 {
     if (attr(attr(data, "terms"), "response")) {
-	if (is.list(data) || is.data.frame(data)) {
+	if (is.list(data) | is.data.frame(data)) {
 	    v <- data[[1L]]
 	    if (type == "numeric" && is.factor(v)) {
 		warning('using type = "numeric" with a factor response will be ignored')
-	    } else if (type == "numeric" || type == "double")
+	    } else if (type == "numeric" | type == "double")
 		storage.mode(v) <- "double"
 	    else if (type != "any") stop("invalid response type")
 	    if (is.matrix(v) && ncol(v) == 1L) dim(v) <- NULL

@@ -11,7 +11,7 @@
   function to margins of an array or matrix.
 }
 \usage{
-apply(X, MARGIN, FUN, \dots, simplify = TRUE)
+apply(X, MARGIN, FUN, \dots)
 }
 \arguments{
   \item{X}{an array, including a matrix.}
@@ -24,8 +24,6 @@ apply(X, MARGIN, FUN, \dots, simplify = TRUE)
     In the case of functions like \code{+}, \code{\%*\%}, etc., the
     function name must be backquoted or quoted.}
   \item{\dots}{optional arguments to \code{FUN}.}
-  \item{simplify}{a logical indicating whether results should be
-    simplified if possible.}
 }
 \details{
   If \code{X} is not an array but an object of a class with a non-null
@@ -48,9 +46,7 @@ apply(X, MARGIN, FUN, \dots, simplify = TRUE)
   through \code{\dots}.
 }
 \value{
-  If each call to \code{FUN} returns a vector of length \code{n},
-  and \code{simplify} is \code{TRUE}, 
-  then
+  If each call to \code{FUN} returns a vector of length \code{n}, then
   \code{apply} returns an array of dimension \code{c(n, dim(X)[MARGIN])}
   if \code{n > 1}.  If \code{n} equals \code{1}, \code{apply} returns a
   vector if \code{MARGIN} has length 1 and an array of dimension
@@ -59,7 +55,6 @@ apply(X, MARGIN, FUN, \dots, simplify = TRUE)
   the \sQuote{correct} dimension.
 
   If the calls to \code{FUN} return vectors of different lengths,
-  or if \code{simplify} is \code{FALSE},
   \code{apply} returns a list of length \code{prod(dim(X)[MARGIN])} with
   \code{dim} set to \code{MARGIN} if this has length greater than one.
 

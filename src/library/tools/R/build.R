@@ -47,8 +47,8 @@ function(filename, desc = file.path(dirname(filename), "DESCRIPTION"))
 
 ### formerly Perl R::Utils::get_exclude_patterns
 
-## Return list of file patterns excluded by R CMD build.
-## Not exported.
+## Return list of file patterns excluded by R CMD build and check.
+## Kept here so that we ensure that the lists are in sync, but not exported.
 ## Has Unix-style '/' path separators hard-coded, but that is what dir() uses.
 get_exclude_patterns <- function()
     c("^\\.Rbuildignore$",
@@ -1047,10 +1047,6 @@ inRbuildignore <- function(files, pkgdir) {
         exclude <- exclude | grepl("^.Rbuildindex[.]", allfiles)
         ## or simply?  exclude <- exclude | startsWith(allfiles, ".Rbuildindex.")
         exclude <- exclude | (bases %in% .hidden_file_exclusions)
-        ## exclude (old) source tarballs and binary packages (PR#17828)
-        exts <- "\\.(tar\\.gz|tar|tar\\.bz2|tar\\.xz|tgz|zip)"
-        exclude <- exclude | grepl(paste0("^", pkgname, "_[0-9.-]+", exts, "$"),
-                                   allfiles)
         unlink(allfiles[exclude], recursive = TRUE, force = TRUE,
                expand = FALSE)
         setwd(owd)
@@ -1096,17 +1092,15 @@ inRbuildignore <- function(files, pkgdir) {
                recursive = TRUE)
 
         ## work on 'data' directory if present
-        if(dir.exists(file.path(pkgname, "data")) ||
-           file_test("-f", file.path(pkgname, "R", "sysdata.rda"))) {
-            if(!str_parse_logic(desc["LazyData"], FALSE)) {
-                messageLog(Log,
-                           "looking to see if a 'data/datalist' file should be added")
-                ## in some cases data() needs the package installed as
-                ## there are links to the package's namespace
-                tryCatch(add_datalist(pkgname),
-                         error = function(e)
-                             printLog(Log, "  unable to create a 'datalist' file: may need the package to be installed\n"))
-            }
+        if(!str_parse_logic(desc["LazyData"], FALSE) &&
+           (dir.exists(file.path(pkgname, "data")) ||
+            file_test("-f", file.path(pkgname, "R", "sysdata.rda")))) {
+            messageLog(Log, "looking to see if a 'data/datalist' file should be added")
+            ## in some cases data() needs the package installed as
+            ## there are links to the package's namespace
+            tryCatch(add_datalist(pkgname),
+                     error = function(e)
+                     printLog(Log, "  unable to create a 'datalist' file: may need the package to be installed\n"))
             ## allow per-package override
             resave_data1 <- parse_description_field(desc, "BuildResaveData",
                                                     resave_data, logical=FALSE)
@@ -1135,12 +1129,10 @@ inRbuildignore <- function(files, pkgdir) {
                 msg <- paste("WARNING: Added dependency on R >= 3.5.0 because",
                              "serialized objects in serialize/load version 3",
                              "cannot be read in older versions of R. File(s)",
-                             "containing such objects:")
-                printLog(Log,
-                         paste(c(strwrap(msg, indent = 2L, exdent = 2L),
-                                 paste0("  ", .pretty_format(sort(toonew)))),
-                               collapse = "\n"),
-                         "\n")
+                             "containing such objects:",
+                             .pretty_format(sort(toonew)),
+                             "\n")
+                printLog(Log, strwrap(msg, indent = 2L, exdent = 2L), "\n")
             }
         }
 

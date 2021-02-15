@@ -1,7 +1,7 @@
 #  File src/library/utils/R/readtable.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2014 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,19 +35,13 @@ function(x, ...)
     UseMethod("type.convert")
 
 type.convert.default <-
-function(x, na.strings = "NA", as.is, dec = ".",
+function(x, na.strings = "NA", as.is = FALSE, dec = ".",
          numerals = c("allow.loss", "warn.loss", "no.loss"), ...)
 {
     if(is.array(x))
         storage.mode(x) <- "character"
     else
         x <- as.character(x)
-    ## as.is = FALSE  was default in R <= 4.0.0, but the default for 'stringsAsFactors',
-    ## hence 'as.is' was changed for/in read.table() with R 4.0.0
-    if(missing(as.is)) {
-        warning("'as.is' should be specified by the caller; using TRUE")
-        as.is <- TRUE
-    }
     .External2(C_typeconvert, x, na.strings, as.is, dec, match.arg(numerals))
 }
 
@@ -70,7 +64,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
          check.names = TRUE, fill = !blank.lines.skip,
          strip.white = FALSE, blank.lines.skip = TRUE,
          comment.char = "#", allowEscapes = FALSE, flush = FALSE,
-         stringsAsFactors = FALSE,
+         stringsAsFactors = default.stringsAsFactors(),
          fileEncoding = "", encoding = "unknown", text, skipNul = FALSE)
 {
     if (missing(file) && !missing(text)) {
@@ -114,7 +108,6 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
                       nlines = 1, quiet = TRUE, skip = 0,
                       strip.white = TRUE,
                       blank.lines.skip = blank.lines.skip,
-                      na.strings=character(0),# NA colname if !check.names 
                       comment.char = comment.char, allowEscapes = allowEscapes,
                       encoding = encoding, skipNul = skipNul)
         col1 <- if(missing(col.names)) length(first) else length(col.names)
@@ -185,7 +178,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
     colClasses[colClasses %in% c("real", "double")] <- "numeric"
     known <- colClasses %in% c("logical", "integer", "numeric", "complex",
                                "character", "raw")
-    what[known] <- lapply(colClasses[known], do.call, list(0))
+    what[known] <- sapply(colClasses[known], do.call, list(0))
     what[colClasses %in% "NULL"] <- list(NULL)
     keep <- !sapply(what, is.null)
 

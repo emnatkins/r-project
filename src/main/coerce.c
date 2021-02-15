@@ -1179,17 +1179,8 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
 
     SEXP ans = R_NilValue;	/* -Wall */
     if (ALTREP(v)) {
-	PROTECT(v); /* the methods should protect, but ... */
 	ans = ALTREP_COERCE(v, type);
-	if (ans) {
-	    /* attribute copying could be handled by a Coerce_Ex
-	       method as for Duplicate; for now, do it here */
-	    PROTECT(ans);
-	    SHALLOW_DUPLICATE_ATTRIB(ans, v);
-	    UNPROTECT(2); /* v, ans */
-	    return ans;
-	}
-	UNPROTECT(1); /* v */
+	if (ans) return ans;
     }
 
     /* code to allow classes to extend ENVSXP, SYMSXP, etc */
@@ -2489,7 +2480,6 @@ SEXP attribute_hidden do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, x, names, dims;
     R_xlen_t i, n;
-    int nprotect = 0;
 
     checkArity(op, args);
     check1arg(args, call, "x");
@@ -2504,7 +2494,6 @@ SEXP attribute_hidden do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
     x = CAR(args);
     n = xlength(x);
     PROTECT(ans = allocVector(LGLSXP, n));
-    nprotect++;
     int *pa = LOGICAL(ans);
     if (isVector(x)) {
 	dims = getAttrib(x, R_DimSymbol);
@@ -2512,7 +2501,6 @@ SEXP attribute_hidden do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    PROTECT(names = getAttrib(x, R_DimNamesSymbol));
 	else
 	    PROTECT(names = getAttrib(x, R_NamesSymbol));
-	nprotect++;
     }
     else dims = names = R_NilValue;
     switch (TYPEOF(x)) {
@@ -2549,7 +2537,9 @@ SEXP attribute_hidden do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	else
 	    setAttrib(ans, R_NamesSymbol, names);
     }
-    UNPROTECT(nprotect);
+    if (isVector(x))
+	UNPROTECT(1); /* names */
+    UNPROTECT(1); /* ans */
     return ans;
 }
 
@@ -2558,7 +2548,6 @@ SEXP attribute_hidden do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, x, names, dims;
     double xr, xi;
     R_xlen_t i, n;
-    int nprotect = 0;
 
     checkArity(op, args);
     check1arg(args, call, "x");
@@ -2573,7 +2562,6 @@ SEXP attribute_hidden do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
     x = CAR(args);
     n = xlength(x);
     PROTECT(ans = allocVector(LGLSXP, n));
-    nprotect++;
     int *pa = LOGICAL(ans);
     if (isVector(x)) {
 	dims = getAttrib(x, R_DimSymbol);
@@ -2581,7 +2569,6 @@ SEXP attribute_hidden do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    PROTECT(names = getAttrib(x, R_DimNamesSymbol));
 	else
 	    PROTECT(names = getAttrib(x, R_NamesSymbol));
-	nprotect++;
     }
     else	dims = names = R_NilValue;
     switch (TYPEOF(x)) {
@@ -2625,7 +2612,9 @@ SEXP attribute_hidden do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
 	else
 	    setAttrib(ans, R_NamesSymbol, names);
     }
-    UNPROTECT(nprotect);
+    if (isVector(x))
+	UNPROTECT(1); /* names */
+    UNPROTECT(1); /* ans */
     return ans;
 }
 
@@ -2909,9 +2898,6 @@ static int class2type(const char *s)
 
 static SEXP do_unsetS4(SEXP obj, SEXP newClass)
 {
-  // act now, as warning()s may be treated as errors:
-  UNSET_S4_OBJECT(obj);
-
   if(isNull(newClass))  { /* NULL class is only valid for S3 objects */
     warning(_("Setting class(x) to NULL;   result will no longer be an S4 object"));
   }
@@ -2922,6 +2908,7 @@ static SEXP do_unsetS4(SEXP obj, SEXP newClass)
   else
     warning(_("Setting class(x) to \"%s\" sets attribute to NULL; result will no longer be an S4 object"),
 	    CHAR(asChar(newClass)));
+  UNSET_S4_OBJECT(obj);
   return obj;
 }
 
@@ -3015,9 +3002,7 @@ SEXP attribute_hidden R_do_set_class(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     check1arg(args, call, "x");
 
-    if (MAYBE_SHARED(CAR(args)) ||
-	((! IS_ASSIGNMENT_CALL(call)) && MAYBE_REFERENCED(CAR(args))))
-	SETCAR(args, shallow_duplicate(CAR(args)));
+    if (MAYBE_SHARED(CAR(args))) SETCAR(args, shallow_duplicate(CAR(args)));
     ans = R_set_class(CAR(args), CADR(args), call);
     SETTER_CLEAR_NAMED(CAR(args));
     return ans;

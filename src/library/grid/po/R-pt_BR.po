@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: 2011-03-26 08:56-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -151,8 +151,7 @@ msgstr "elemento da lista de exibição inválido"
 
 #, fuzzy
 msgid ""
-"one or more grobs overwritten (grab WILL not be faithful; try 'wrap.grobs = "
-"TRUE')"
+"one of more grobs overwritten (grab WILL not be faithful; try 'wrap = TRUE')"
 msgstr "grob(s) sobrescrito(s) (captura NÃO será fiel; tente 'wrap=TRUE')"
 
 msgid "viewport overwritten (grab MAY not be faithful)"
@@ -395,12 +394,6 @@ msgstr "listing inválido"
 msgid "invalid 'origin'"
 msgstr "'origin' inválido"
 
-msgid "Missing pattern fill has been set to transparent"
-msgstr ""
-
-msgid "Gradient fill applied to object with no inside"
-msgstr ""
-
 #, fuzzy
 msgid "'length' must be a 'unit' object"
 msgstr "'length' deve ser um objeto unitário"
@@ -440,10 +433,6 @@ msgstr "'x' e 'y' devem ser unidades ou NULL"
 #, fuzzy
 msgid "corrupt 'arrows' object"
 msgstr "Objeto 'arrows' corrupto"
-
-#, fuzzy
-msgid "'x' and 'y' and 'pathId.lengths' must specify same overall length"
-msgstr "'x' e 'y' e 'id.lengths' devem especificar o mesmo comprimento geral"
 
 msgid "x and y must be units"
 msgstr "x e y devem ser unidades"
@@ -493,23 +482,31 @@ msgstr "'x', 'y', 'width', e 'height' devem ter comprimento 1"
 msgid "'x' and 'units' must have length > 0"
 msgstr "'x' e 'units' devem ter comprimentos > 0"
 
+msgid "'x' argument must be a unit object"
+msgstr "argumento 'x' deve ser um objeto unitário"
+
 #, fuzzy
 msgid "invalid 'axis' or 'type'"
 msgstr "'axis' ou 'type' inválido"
 
 #, fuzzy
-msgid "Not a unit object"
-msgstr "Objeto unitário inválido"
+msgid "no string supplied for 'strwidth/height' unit"
+msgstr "Nenhuma cadeia fornecida para unidade 'strwidth/height'"
 
-msgid "'Summary' function '%s' not meaningful for units"
-msgstr "função 'Summary' '%s' não faz sentido para unidades"
+#, fuzzy
+msgid "no 'grob' supplied for 'grobwidth/height' unit"
+msgstr "Nenhum 'grob' fornecido para unidade 'grobwidth/height'"
+
+msgid "'gPath' must have depth 1 in 'grobwidth/height' units"
+msgstr "'gPath' deve ter profundidade 1 em unidades 'grobwidth/height'"
+
+#, fuzzy
+msgid "non-NULL value supplied for plain unit"
+msgstr "Valor não-NULL fornecido para unidade simples"
 
 #, fuzzy
 msgid "operator '%s' not meaningful for units"
 msgstr "Operador '%s' não faz sentido para unidades"
-
-msgid "'*' or '/' cannot be used as a unary operator"
-msgstr ""
 
 #, fuzzy
 msgid "only one operand may be a unit"
@@ -519,27 +516,47 @@ msgstr "Somente um operando pode ser uma unidade"
 msgid "non-unit operand must be numeric"
 msgstr "Operando não-unitário deve ser numérico"
 
-msgid "can't divide with a unit"
-msgstr ""
-
 #, fuzzy
 msgid "both operands must be units"
 msgstr "Ambos os operandos devem ser unidades"
 
+msgid "'Summary' function '%s' not meaningful for units"
+msgstr "função 'Summary' '%s' não faz sentido para unidades"
+
 #, fuzzy
-msgid "index out of bounds (\"unit\" subsetting)"
+msgid "no arguments where at least one expected"
+msgstr "Nenhum argumento onde pelo menos um é esperado"
+
+msgid "Zero arguments where at least one expected"
+msgstr "Nenhum argumento onde pelo menos um é esperado"
+
+#, fuzzy
+msgid "cannot mix signs of indices"
+msgstr "Não é possível mesclar os sinais dos índices"
+
+#, fuzzy
+msgid "index out of bounds ('unit' subsetting)"
 msgstr "Índice fora dos limites (subsetting unitário)"
 
-msgid "Cannot create zero-length unit vector (\"unit\" subsetting)"
-msgstr ""
+#, fuzzy
+msgid "index out of bounds (unit arithmetic subsetting)"
+msgstr "Índice fora dos limites (subsetting aritmético unitário)"
 
 #, fuzzy
-msgid "index must be of length 1"
-msgstr "'x' e 'y' devem ser todos unidades de comprimento 1"
+msgid "index out of bounds (unit list subsetting)"
+msgstr "Índice fora dos limites (tentando fazer subset de lista unitária)"
 
 #, fuzzy
-msgid "replacement must be of length 1"
-msgstr "elemento gpar '%s' não deve ser de comprimento 0"
+msgid "Value being assigned must be a unit"
+msgstr "x e y devem ser unidades"
+
+#, fuzzy
+msgid "it is invalid to combine 'unit' objects with other types"
+msgstr "É inválido combinar objetos unitários com outros tipos"
+
+#, fuzzy
+msgid "invalid 'unit' object"
+msgstr "Objeto unitário inválido"
 
 #, fuzzy
 msgid "invalid 'theta'"
@@ -555,10 +572,6 @@ msgstr "Valor 'grep' inválido"
 #, fuzzy
 msgid "invalid 'clip' value"
 msgstr "Valor 'clip' inválido"
-
-#, fuzzy
-msgid "invalid 'mask' value"
-msgstr "Valor 'ask' incorreto"
 
 #, fuzzy
 msgid "invalid 'xscale' in viewport"
@@ -626,51 +639,6 @@ msgid_plural "invalid viewport names"
 msgstr[0] "Nome(s) de vista inválido(s)"
 msgstr[1] "Nome(s) de vista inválido(s)"
 
-#~ msgid "'x' argument must be a unit object"
-#~ msgstr "argumento 'x' deve ser um objeto unitário"
-
-#, fuzzy
-#~ msgid "no string supplied for 'strwidth/height' unit"
-#~ msgstr "Nenhuma cadeia fornecida para unidade 'strwidth/height'"
-
-#, fuzzy
-#~ msgid "no 'grob' supplied for 'grobwidth/height' unit"
-#~ msgstr "Nenhum 'grob' fornecido para unidade 'grobwidth/height'"
-
-#~ msgid "'gPath' must have depth 1 in 'grobwidth/height' units"
-#~ msgstr "'gPath' deve ter profundidade 1 em unidades 'grobwidth/height'"
-
-#, fuzzy
-#~ msgid "non-NULL value supplied for plain unit"
-#~ msgstr "Valor não-NULL fornecido para unidade simples"
-
-#, fuzzy
-#~ msgid "no arguments where at least one expected"
-#~ msgstr "Nenhum argumento onde pelo menos um é esperado"
-
-#~ msgid "Zero arguments where at least one expected"
-#~ msgstr "Nenhum argumento onde pelo menos um é esperado"
-
-#, fuzzy
-#~ msgid "cannot mix signs of indices"
-#~ msgstr "Não é possível mesclar os sinais dos índices"
-
-#, fuzzy
-#~ msgid "index out of bounds (unit arithmetic subsetting)"
-#~ msgstr "Índice fora dos limites (subsetting aritmético unitário)"
-
-#, fuzzy
-#~ msgid "index out of bounds (unit list subsetting)"
-#~ msgstr "Índice fora dos limites (tentando fazer subset de lista unitária)"
-
-#, fuzzy
-#~ msgid "Value being assigned must be a unit"
-#~ msgstr "x e y devem ser unidades"
-
-#, fuzzy
-#~ msgid "it is invalid to combine 'unit' objects with other types"
-#~ msgstr "É inválido combinar objetos unitários com outros tipos"
-
 #, fuzzy
 #~ msgid "invalid element in the display list"
 #~ msgstr "Elemento Inválido na lista de exibição"
@@ -689,6 +657,10 @@ msgstr[1] "Nome(s) de vista inválido(s)"
 #, fuzzy
 #~ msgid "the 'grob' argument must be a 'line.to', 'lines', or 'segments' grob"
 #~ msgstr "O argumento 'grob'  deve ser 'line.to', 'lines', ou 'segments' grob"
+
+#, fuzzy
+#~ msgid "invalid 'ask' value"
+#~ msgstr "Valor 'ask' incorreto"
 
 #~ msgid "Cannot mix signs of indices"
 #~ msgstr "Não é possível mesclar os sinais dos índices"

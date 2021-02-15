@@ -51,7 +51,7 @@
 # include <sys/stat.h>
 #endif
 
-int attribute_hidden R_isWriteableDir(char *path);
+static int isDir(char *path);
 
 #ifdef HAVE_AQUA
 int (*ptr_CocoaSystem)(const char*);
@@ -147,7 +147,6 @@ FILE *R_fopen(const char *filename, const char *mode)
 
    On NT-based versions of Windows, file names are stored in 'Unicode'
    (UCS-2), and _wfopen is provided to access them by UCS-2 names.
-   <FIXME> since Windows 2000 they could be UTF-16LE
 */
 
 #if defined(Win32)
@@ -173,7 +172,7 @@ wchar_t *filenameToWchar(const SEXP fn, const Rboolean expand)
 #endif
     if(IS_UTF8(fn)) from = "UTF-8";
     if(IS_BYTES(fn)) error(_("encoding of a filename cannot be 'bytes'"));
-    obj = Riconv_open("UCS-2LE", from); // "UTF-16LE" ?
+    obj = Riconv_open("UCS-2LE", from);
     if(obj == (void *)(-1))
 	error(_("unsupported conversion from '%s' in codepage %d"),
 	      from, localeCP);
@@ -239,7 +238,7 @@ SEXP attribute_hidden do_tempdir(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     checkArity(op, args);
     Rboolean check = asLogical(CAR(args));
-    if(check && !R_isWriteableDir(R_TempDir)) {
+    if(check && !isDir(R_TempDir)) {
 	R_TempDir = NULL;
 	R_reInitTempDir(/* die_on_fail = */ FALSE);
     }
@@ -1641,7 +1640,7 @@ size_t ucstomb(char *s, const unsigned int wc)
     return strlen(buf);
 }
 
-/* used in engine.c for non-UTF-8 MBCS */
+/* used in plot.c for non-UTF-8 MBCS */
 size_t attribute_hidden
 mbtoucs(unsigned int *wc, const char *s, size_t n)
 {
@@ -1740,7 +1739,7 @@ size_t ucstoutf8(char *s, const unsigned int wc)
 # define S_IFDIR __S_IFDIR
 #endif
 
-int attribute_hidden R_isWriteableDir(char *path)
+static int isDir(char *path)
 {
 #ifdef Win32
     struct _stati64 sb;
@@ -1764,7 +1763,7 @@ int attribute_hidden R_isWriteableDir(char *path)
     return isdir;
 }
 #else
-int attribute_hidden R_isWriteableDir(char *path)
+static int isDir(char *path)
 {
     return 1;
 }
@@ -1796,11 +1795,11 @@ void R_reInitTempDir(int die_on_fail)
     tmp = NULL; /* getenv("R_SESSION_TMPDIR");   no longer set in R.sh */
     if (!tmp) {
 	tm = getenv("TMPDIR");
-	if (!R_isWriteableDir(tm)) {
+	if (!isDir(tm)) {
 	    tm = getenv("TMP");
-	    if (!R_isWriteableDir(tm)) {
+	    if (!isDir(tm)) {
 		tm = getenv("TEMP");
-		if (!R_isWriteableDir(tm))
+		if (!isDir(tm))
 #ifdef Win32
 		    tm = getenv("R_USER"); /* this one will succeed */
 #else

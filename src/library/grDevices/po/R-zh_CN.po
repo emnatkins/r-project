@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-02-01 13:58\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: 2008-04-05 10:53+0100\n"
 "Last-Translator: 陈斐 <feic@normipaiva.com>\n"
 "Language-Team: Chinese\n"
@@ -19,15 +19,6 @@ msgstr ""
 
 msgid "invalid 'filename'"
 msgstr "'filename'不对"
-
-msgid "svg: Cairo-based devices are not available for this platform"
-msgstr ""
-
-msgid "cairo_pdf: Cairo-based devices are not available for this platform"
-msgstr ""
-
-msgid "cairo_ps: Cairo-based devices are not available for this platform"
-msgstr ""
 
 msgid "'coef' must not be negative"
 msgstr "'coef'的值不能是负的"
@@ -67,15 +58,6 @@ msgstr "rgb的值必需是在[0, maxColorValue] 之间"
 
 msgid "'start' and 'end' must be distinct and in [0, 1]."
 msgstr "'start'和'end'不能相等，而且必需在[0, 1] 之间。"
-
-msgid "'palette' does not match any given palette"
-msgstr ""
-
-msgid "'palette' is ambiguous"
-msgstr ""
-
-msgid "'n' set to %s, the maximum available for %s palette"
-msgstr ""
 
 msgid "'gamma' must be a scalar or 'sRGB'"
 msgstr "'gamma'的值要么是数量，要么是'sRGB'"
@@ -161,17 +143,6 @@ msgstr "没有合适的文件名字给postscript()来用"
 msgid "dev.new(): using postscript(file=\"%s\")"
 msgstr "dev.new():用postscript(file=\"%s\")"
 
-msgid "wrong 'type'; should never happen, please report!"
-msgstr ""
-
-#, fuzzy
-msgid "Invalid pattern type"
-msgstr "字体种类不对"
-
-#, fuzzy
-msgid "Invalid 'extend' value"
-msgstr "'filename'不对"
-
 msgid "invalid arguments in '%s' (need named args)"
 msgstr "'%s'里的参数不对(需要有带名参数)"
 
@@ -195,9 +166,6 @@ msgstr "没有'%s'这样的系列"
 
 msgid "invalid 'family' argument"
 msgstr "'family'参数不对"
-
-msgid "'title' argument \"%s\" contains invalid characters"
-msgstr ""
 
 #, fuzzy
 msgid "invalid 'file' argument '%s'"
@@ -291,9 +259,6 @@ msgstr "没有可用来记载的装置"
 msgid "argument is not of class %s"
 msgstr "参数的类别必需为%s"
 
-msgid "invalid \"recordedplot\":"
-msgstr ""
-
 #, fuzzy
 msgid "snapshot recorded in different R version (pre 3.3.0)"
 msgstr "从另外一个R版本载入快照"
@@ -313,9 +278,6 @@ msgstr "'bandwidth'必需是数字"
 
 msgid "'bandwidth' must be positive"
 msgstr "'bandwidth'的值必需是正数"
-
-msgid "Must have the ('Recommended') package \"KernSmooth\" installed"
-msgstr ""
 
 msgid "'r' must be a \"range\", hence of length 2"
 msgstr "'r'的值应该为\"range\"，因此它的长度必需为二"
@@ -359,15 +321,6 @@ msgstr "可用的装置是%s"
 msgid "'res' must be specified unless 'units = \"px\"'"
 msgstr "除非'units = \"px\"'，否则必需设定'res'"
 
-msgid "type = \"quartz\" is unavailable. trying \"Xlib\""
-msgstr ""
-
-msgid "type = \"cairo\" is unavailable. trying \"Xlib\""
-msgstr ""
-
-msgid "type = \"cairo-png\" is unavailable. trying \"Xlib\""
-msgstr ""
-
 msgid "invalid 'title'"
 msgstr "'title'不对"
 
@@ -406,9 +359,6 @@ msgstr "只能从'X11(type=\"*cairo\")'装置拷贝"
 
 msgid "invalid value for 'rescale'"
 msgstr "'rescale'不对"
-
-msgid "Calls like '%s' are unsafe and should be replaced by '%s'"
-msgstr ""
 
 msgid "can only bring windows devices to the front"
 msgstr "只能把窗户装置带到前方去"

@@ -695,23 +695,25 @@ R_xlen_t any_duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
 #undef DUPLICATED_INIT
 
 
-/* .Internal(   duplicated(x, incomparables, fromLast, nmax))  [op=0]
-   .Internal(       unique(x, incomparables, fromLast, nmax))  [op=1]
-   .Internal(anyDuplicated(x, incomparables, fromLast      ))  [op=2]
+/* .Internal(duplicated(x))	  [op=0]
+  .Internal(unique(x))		  [op=1]
+   .Internal(anyDuplicated(x))	  [op=2]
 */
 SEXP attribute_hidden do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP x, dup, ans;
+    SEXP x, incomp, dup, ans;
+    int fromLast, nmax = NA_INTEGER;
     R_xlen_t i, k, n;
 
     checkArity(op, args);
     x = CAR(args);
-    SEXP incomp = CADR(args);
+    incomp = CADR(args);
     if (length(CADDR(args)) < 1)
 	error(_("'fromLast' must be length 1"));
-    int fromLast = asLogical(CADDR(args));
+    fromLast = asLogical(CADDR(args));
     if (fromLast == NA_LOGICAL)
 	error(_("'fromLast' must be TRUE or FALSE"));
+
     Rboolean fL = (Rboolean) fromLast;
 
     /* handle zero length vectors, and NULL */
@@ -725,7 +727,6 @@ SEXP attribute_hidden do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 	      (PRIMVAL(op) == 0 ? "duplicated" :
 	       (PRIMVAL(op) == 1 ? "unique" : /* 2 */ "anyDuplicated")));
     }
-    int nmax = NA_INTEGER;
     if (PRIMVAL(op) <= 1) {
 	nmax = asInteger(CADDDR(args));
 	if (nmax != NA_INTEGER && nmax <= 0)
@@ -896,30 +897,6 @@ static SEXP match_transform(SEXP s, SEXP env)
     return duplicate(s);
 }
 
-/* assumes that x does not have any element in bytes encoding */
-static SEXP asUTF8(SEXP x)
-{
-    R_xlen_t nx = xlength(x);
-    SEXP ux = NULL;
-    for(R_xlen_t i = 0; i < nx; i++) {
-	SEXP xi = STRING_ELT(x, i);
-	if (!IS_ASCII(xi) && !IS_UTF8(xi)) {
-	    if (!ux) {
-		ux = PROTECT(allocVector(STRSXP, nx));
-		for(R_xlen_t j = 0; j < i; j++)
-		    SET_STRING_ELT(ux, j, STRING_ELT(x, j));
-	    }
-	    SET_STRING_ELT(ux, i, mkCharCE(translateCharUTF8(xi), CE_UTF8));
-	} else if (ux)
-	    SET_STRING_ELT(ux, i, xi);
-    }
-    if (ux) {
-	UNPROTECT(1);
-	return ux;
-    } else
-	return x;
-}
-    
 // workhorse of R's match() and hence also  " ix %in% itable "
 SEXP match5(SEXP itable, SEXP ix, int nmatch, SEXP incomp, SEXP env)
 {
@@ -1049,10 +1026,6 @@ SEXP match5(SEXP itable, SEXP ix, int nmatch, SEXP incomp, SEXP env)
 			break;
 		    }
 		}
-	    }
-	    if(useUTF8) {
-		x = PROTECT(asUTF8(x)); nprot++;
-		table = PROTECT(asUTF8(table)); nprot++;
 	    }
 	    data.useUTF8 = useUTF8;
 	    data.useCache = useCache;

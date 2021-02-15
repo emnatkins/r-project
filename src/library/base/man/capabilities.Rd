@@ -81,23 +81,16 @@ capabilities(what = NULL,
   \item{iconv}{is internationalization conversion via
     \code{\link{iconv}} supported?  Always true in current \R.}
   \item{NLS}{is there Natural Language Support (for message translations)?}
-  \item{Rprof}{is there support for \code{\link{Rprof}()} profiling?  This
-    is true if \R was configured (before compilation) with default settings
-    which include \command{--enable-R-profiling}.}
   \item{profmem}{is there support for memory profiling?  See
     \code{\link{tracemem}}.}
   \item{cairo}{is there support for the \code{\link{svg}},
     \code{\link{cairo_pdf}} and \code{\link{cairo_ps}} devices, and
-    for \code{type = "cairo"} in the \code{\link{bmp}},
-    \code{\link{jpeg}}, \code{\link{png}} and \code{\link{tiff}}
-    devices?
+    for \code{type = "cairo"} in the
 #ifdef unix
-    Prior to \R 4.1.0 this also indicated Cairo support in the
-    \code{\link{X11}} device, but it is now possible to build \R with
-    Cairo support for the bitmap devices without support for the
-    \code{X11} device (usually when that is not supported at all).
+    \code{\link{X11}},
 #endif
-  }
+    \code{\link{bmp}}, \code{\link{jpeg}}, \code{\link{png}},
+    and \code{\link{tiff}} devices?}
 
   \item{ICU}{is ICU available for collation?  See the help on
     \link{Comparison} and \code{\link{icuSetCollate}}: it is never
@@ -118,12 +111,10 @@ capabilities(what = NULL,
     \code{\link{download.file}} and \code{\link{url}}.   As from \R
     3.3.0 always true for Unix-alikes, and true for CRAN Windows builds.}
 }
-\seealso{
-  \code{\link{.Platform}}, \code{\link{extSoftVersion}}, and
-  \code{\link{grSoftVersion}} (and links there)
-  for availability of capabilities \emph{external} to \R but
-  used from \R functions.
-}
+\seealso{\code{\link{.Platform}} and \code{\link{extSoftVersion}} (and
+    links there) for availability of capabilities \emph{external} to \R but
+    used from \R functions.
+  }
 \examples{
 capabilities()
 

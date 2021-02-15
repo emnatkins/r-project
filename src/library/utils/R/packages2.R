@@ -1,7 +1,7 @@
 #  File src/library/utils/R/packages2.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -82,12 +82,7 @@ getDependencies <-
         msg3 <- c(paste0(ngettext(sum(m0),
                                   "A version of this package for your version of R might be available elsewhere,\nsee the ideas at\n",
                                   "Versions of these packages for your version of R might be available elsewhere,\nsee the ideas at\n"),
-                         ## refer to r-patched for released/patched versions
-                         if (grepl("Under development", R.version.string)) {
-                             "https://cran.r-project.org/doc/manuals/r-devel/R-admin.html#Installing-packages"
-                         } else {
-                             "https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Installing-packages"
-                         })
+                         "https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Installing-packages")
                  )
 	warning(sprintf(ngettext(sum(m0),
 				 "package %s is not available %s",
@@ -168,8 +163,6 @@ install.packages <-
              keep_outputs = FALSE,
              ...)
 {
-    if (!is.character(type))
-        stop("invalid 'type'; must be a character string")
     type2 <- .Platform$pkgType
     if (type == "binary") {
         if (type2 == "source")
@@ -704,7 +697,7 @@ install.packages <-
                          paste(c(cmd0, args0), collapse = " ")),
                 domain = NA)
 
-    if(is.null(repos) && missing(contriburl)) {
+    if(is.null(repos) & missing(contriburl)) {
         ## install from local source tarball(s)
         update <- cbind(path.expand(pkgs), lib) # for side-effect of recycling to same length
 
@@ -743,12 +736,12 @@ install.packages <-
     }
 
     ## from here on we deal with source packages in repos
-    av2 <- NULL
     if(is.null(available)) {
         filters <- getOption("available_packages_filters")
         if(!is.null(filters)) {
             available <- available.packages(contriburl = contriburl,
                                             method = method, ...)
+            av2 <- NULL
         } else {
             f <- setdiff(available_packages_filters_default,
                          c("R_version", "duplicates"))
@@ -870,19 +863,10 @@ install.packages <-
             }
             if(keep_outputs)
                 file.copy(paste0(update[, 1L], ".out"), outdir)
-            ## Keep binary packages possibly created via --build
-            file.copy(Sys.glob(paste0(update[, 1L], "*.zip")), cwd)
-            file.copy(Sys.glob(paste0(update[, 1L], "*.tgz")), cwd)
-            file.copy(Sys.glob(paste0(update[, 1L], "*.tar.gz")), cwd)
             setwd(cwd); on.exit()
             unlink(tmpd2, recursive = TRUE)
         } else {
-            tmpd2 <- tempfile()
-            if(!dir.create(tmpd2))
-                stop(gettextf("unable to create temporary directory %s",
-                              sQuote(tmpd2)),
-                     domain = NA)
-            outfiles <- file.path(tmpd2, paste0(update[, 1L], ".out"))
+            outfiles <- paste0(update[, 1L], ".out")
             for(i in seq_len(nrow(update))) {
                 outfile <- if(keep_outputs) outfiles[i] else output
                 fil <- update[i, 3L]
@@ -908,9 +892,10 @@ install.packages <-
                             domain = NA)
                 }
             }
-            if(keep_outputs)
+            if(keep_outputs && (outdir != getwd())) {
                 file.copy(outfiles, outdir)
-            unlink(tmpd2, recursive = TRUE)
+                file.remove(outfiles)
+            }
         }
         ## Using stderr is the wish of PR#16420
         if(!quiet && nonlocalrepos && !is.null(tmpd) && is.null(destdir))

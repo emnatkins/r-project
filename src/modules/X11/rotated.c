@@ -762,12 +762,10 @@ static RotatedTextItem *XRotRetrieveFromCache(Display *dpy, XFontStruct *font,
 
 	/* record what it shows */
 	item->text=strdup(text);
-	if(!item->text) return NULL;
 
 	/* fontname or ID */
 	if(font_name!=NULL) {
 	    item->font_name=strdup(font_name);
-	    if(!item->font_name) return NULL;
 	    item->fid=0;
 	}
 	else {
@@ -1978,11 +1976,11 @@ static RotatedTextItem
 	    return NULL;
 
 	/* record what it shows */
-	item->text=strdup(text); // FIXME: could be NULL
+	item->text=strdup(text);
 
 	/* fontname or ID */
 	if(font_name!=NULL) {
-	    item->font_name=strdup(font_name); // FIXME: could be NULL
+	    item->font_name=strdup(font_name);
 	    item->fid=0;
 	}
 	else {

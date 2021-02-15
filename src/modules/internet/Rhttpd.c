@@ -791,11 +791,11 @@ static void process_request(httpd_conn_t *c)
 /* Remove . and (most) .. from "p" following RFC 3986, 5.2.4.*/
 static char *remove_dot_segments(char *p) {
 
-    char *inbuf = Rstrdup(p);
+    char *inbuf = strdup(p);
     char *in = inbuf;   /* first byte of input buffer */
 
     char *outbuf = malloc(strlen(inbuf) + 1);
-    if (!outbuf)
+    if (!inbuf || !outbuf)
 	error("allocation error in remove_dot_segments");
     char *out = outbuf; /* last byte (terminator) of output buffer */
     *out = '\0';
@@ -1088,7 +1088,7 @@ static void worker_input_handler(void *data) {
 				while (*l && *l != ';') { if (*l >= 'A' && *l <= 'Z') *l |= 0x20; l++; }
 				c->attr |= CONTENT_TYPE;
 				if (c->content_type) free(c->content_type);
-				c->content_type = Rstrdup(k);
+				c->content_type = strdup(k);
 				if (!strncmp(k, "application/x-www-form-urlencoded", 33))
 				    c->attr |= CONTENT_FORM_UENC;
 			    }

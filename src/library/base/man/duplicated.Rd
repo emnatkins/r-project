@@ -1,6 +1,6 @@
 % File src/library/base/man/duplicated.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2021 R Core Team
+% Copyright 1995-2016 R Core Team
 % Distributed under GPL 2 or later
 
 \name{duplicated}
@@ -22,8 +22,7 @@
   indicating which elements (rows) are duplicates.
 
   \code{anyDuplicated(.)} is a \dQuote{generalized} more efficient
-  version \code{any(duplicated(.))}, returning positive integer indices
-  instead of just \code{TRUE}.
+  shortcut for \code{any(duplicated(.))}.
 }
 \usage{
 duplicated(x, incomparables = FALSE, \dots)

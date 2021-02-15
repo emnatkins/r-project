@@ -1,7 +1,7 @@
 #  File src/library/utils/R/packageStatus.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2017 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ packageStatus <- function(lib.loc = NULL, repositories = NULL, method,
     }
 
     y <- char2df(installed.packages(lib.loc = lib.loc, ...))
-    y[, "Status"] <- rep("ok", nrow(y))
+    y[, "Status"] <- "ok"
 
     z <- available.packages(repositories, method, ...)
     ## only consider the newest version of each package
@@ -63,7 +63,7 @@ packageStatus <- function(lib.loc = NULL, repositories = NULL, method,
     z <- char2df(z)
     attr(z, "row.names") <- z$Package
 
-    for(k in seq_len(nrow(y))){
+    for(k in 1L:nrow(y)){
         pkg <- y[k, "Package"]
         if(pkg %in% z$Package) {
             if(package_version(y[k, "Version"]) <
@@ -92,12 +92,10 @@ summary.packageStatus <- function(object, ...)
 
     Libs <- lapply(split(object$inst, object$inst$LibPath),
                    function(x) tapply(x$Package, x$Status,
-                                      function(x) sort(as.character(x)),
-                                      simplify = FALSE))
+                                      function(x) sort(as.character(x))))
     Repos <- lapply(split(object$avail, object$avail$Repository),
                     function(x) tapply(x$Package, x$Status,
-                                       function(x) sort(as.character(x)),
-                                       simplify = FALSE))
+                                       function(x) sort(as.character(x))))
     object$Libs <- Libs
     object$Repos <- Repos
     class(object) <- c("summary.packageStatus", "packageStatus")

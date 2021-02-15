@@ -1,21 +1,20 @@
 # Translation of src/library/base/R-base.pot to German
-# Copyright (C) 2005-2021 The R Foundation
+# Copyright (C) 2005-2014 The R Foundation
 # This file is distributed under the same license as the R package.
-# Detlef Steuer <detlef.steuer@hsu-hh.de>, 2007-2021.
+# Detlef Steuer <detlef.steuer@hsu-hh.de>, 2007-2014.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 4.1.0\n"
+"Project-Id-Version: R 3.5.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-02-12 09:25\n"
-"PO-Revision-Date: 2021-01-27 10:19+0100\n"
-"Last-Translator: Martin.Maechler@r-project.org\n"
+"POT-Creation-Date: 2018-03-30 07:33\n"
+"PO-Revision-Date: 2018-04-16 10:24+0200\n"
+"Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Regular-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 
 msgid "'%s' is defunct."
@@ -30,9 +29,6 @@ msgstr "Siehe help(\"Defunct\") und help(\"%s-defunct\")."
 msgid "See help(\"Defunct\")"
 msgstr "Siehe help(\"Defunct\")"
 
-msgid "defunctError"
-msgstr ""
-
 msgid "'%s' is deprecated."
 msgstr "'%s' ist veraltet."
 
@@ -42,9 +38,6 @@ msgstr "Siehe help(\"Deprecated\") und help(\"%s-deprecated\")."
 msgid "See help(\"Deprecated\")"
 msgstr "Siehe help(\"Deprecated\")"
 
-msgid "deprecatedWarning"
-msgstr ""
-
 msgid "argument to 'La.svd' must be numeric or complex"
 msgstr "Argument zu 'La.svd' muss numerisch oder komplex sein"
 
@@ -53,10 +46,6 @@ msgstr "unendliche oder fehlende Werte in 'x'"
 
 msgid "a dimension is zero"
 msgstr "eine Dimension ist 0"
-
-#, fuzzy
-msgid "\"all\" and \"exact\" are mutually exclusive"
-msgstr "\"hexNumeric\" und \"digits17\" schliessen sich gegenseitig aus"
 
 msgid "\"hexNumeric\" and \"digits17\" are mutually exclusive"
 msgstr "\"hexNumeric\" und \"digits17\" schliessen sich gegenseitig aus"
@@ -78,10 +67,6 @@ msgstr "'normal.kind' muss eine Zeichenkette der Länge 1 sein."
 
 msgid "'%s' is not a valid choice"
 msgstr "'%s' ist keine gültige Wahl"
-
-#, fuzzy
-msgid "'sample.kind' must be a character string of length 1"
-msgstr "'normal.kind' muss eine Zeichenkette der Länge 1 sein."
 
 msgid "malformed version string"
 msgstr "falsch aufgebaute Versionszeichenkette"
@@ -107,26 +92,14 @@ msgstr "'X' muss benannte Dimensionen besitzten"
 msgid "not all elements of 'MARGIN' are names of dimensions"
 msgstr "nicht alle Elemente von 'MARGIN' sind Namen von Dimensionen"
 
-msgid "'MARGIN' does not match dim(X)"
-msgstr ""
-
-#, fuzzy
-msgid "'dim' cannot be of length 0"
+msgid "'dims' cannot be of length 0"
 msgstr "'dims' kann nicht Länge 0 haben"
 
 msgid "'dim' specifies too large an array"
 msgstr "'dim' spezifiziert ein zu großes Array"
 
-#, fuzzy
-msgid "'x' must have named dimnames"
-msgstr "'X' muss benannte Dimensionen besitzten"
-
 msgid "incorrect value for 'MARGIN'"
 msgstr "falscher Wert für 'MARGIN'"
-
-#, fuzzy
-msgid "dim(x) must have a positive length"
-msgstr "dim(X) muss positive Länge haben"
 
 msgid "'pos=1' is not possible and has been warned about for years"
 msgstr "'pos=1' ist nicht möglich und es wird seit Jahren davor gewarnt"
@@ -174,16 +147,6 @@ msgstr "ein Objekt dieses Namens existiert bereits"
 msgid "autoloader did not find '%s' in '%s'"
 msgstr "Autoloader konnte '%s' nicht in '%s' finden"
 
-msgid "can only splice inside a call"
-msgstr ""
-
-#, fuzzy
-msgid "can only splice vectors"
-msgstr "kann nur Vektor-Objekte schreiben"
-
-msgid "the LINPACK argument has been defunct since R 3.1.0"
-msgstr ""
-
 msgid "complex matrices not permitted at present"
 msgstr "komplexe Matrizen momentan nicht zugelassen"
 
@@ -193,8 +156,8 @@ msgstr "'x' muss ein Array mit mindestens zwei Dimensionen sein"
 msgid "invalid 'dims'"
 msgstr "ungültige 'dims'"
 
-msgid "condition handlers must be specified with a condition class"
-msgstr ""
+msgid "bad handler specification"
+msgstr "schlechte handler Spezifikation"
 
 msgid "no 'restart' '%s' found"
 msgstr "kein 'restart' '%s' gefunden"
@@ -205,28 +168,10 @@ msgstr "keine interaktive Sitzung"
 msgid "not a valid restart specification"
 msgstr "keine gültige restart Spezifikation"
 
-#, fuzzy
-msgid "condition handlers must be functions"
-msgstr "Handler muss eine Funktion sein"
-
-msgid "pushing duplicate `%s` handler on top of the stack"
-msgstr ""
-
 msgid "argument 'where' of length 0"
 msgstr "Argument 'where' hat Länge 0"
 
-msgid "can only write character objects"
-msgstr "kann nur Zeichenketten-Objekte schreiben"
-
-#, fuzzy
-msgid "'headers' must have names and must not be NA"
-msgstr "'X' muss benannte Dimensionen besitzten"
-
 msgid "argument 'object' must deparse to a single character string"
-msgstr "Argument 'object' muss zu einer einzelnen Zeichenkette deparsen"
-
-#, fuzzy
-msgid "'name' must be a single character string"
 msgstr "Argument 'object' muss zu einer einzelnen Zeichenkette deparsen"
 
 msgid "'origin' must be one of 'start', 'current' or 'end'"
@@ -235,12 +180,11 @@ msgstr "'origin' muss entweder 'start', 'current' oder 'end' sein"
 msgid "can only truncate an open connection"
 msgstr "kann nur eine geöffnete Verbindung abschneiden"
 
-#, fuzzy
-msgid "invalid 'endian' argument"
-msgstr "ungültiges 'name' Argument"
-
 msgid "can only write vector objects"
 msgstr "kann nur Vektor-Objekte schreiben"
+
+msgid "can only write character objects"
+msgstr "kann nur Zeichenketten-Objekte schreiben"
 
 msgid "'timeout' must be NULL or a non-negative number"
 msgstr "'timeout' muss NULL oder eine nicht-negative Zahl sein"
@@ -281,9 +225,7 @@ msgstr "kann Klasse %s nicht in data.frame umwandeln"
 msgid ""
 "'row.names' is not a character vector of length %d -- omitting it. Will be "
 "an error!"
-msgstr ""
-"'row.names' ist kein Zeichenkettenvektor der Länge %d -- wird ausgelassen. "
-"Wird einen Fehler ergeben!"
+msgstr "'row.names' ist kein Zeichenkettenvektor der Länge %d -- wird ausgelassen. Wird einen Fehler ergeben!"
 
 msgid "options(\"stringsAsFactors\") not set to TRUE or FALSE"
 msgstr "options(\"stringsAsFactors\") weder TRUE noch FALSE gesetzt"
@@ -368,6 +310,9 @@ msgstr "ersetze Element in nicht existierender Spalte: %s"
 msgid "only a single element should be replaced"
 msgstr "nur ein einzelnes Element sollte ersetzt werden"
 
+msgid "Partial match of '%s' to '%s' in data frame"
+msgstr "Partielle Übereinstimmung von '%s' mit '%s' in Dataframe"
+
 msgid "names do not match previous names"
 msgstr "Namen passen nicht zu den vorhergehenden Namen"
 
@@ -380,11 +325,7 @@ msgstr "ungültiges list Argument: alle Variablen sollten dieselbe Länge haben"
 msgid "<0 rows> (or 0-length row.names)"
 msgstr "<0 Zeilen> (oder row.names mit Länge 0)"
 
-msgid "invalid 'max' / getOption(\"max.print\"):"
-msgstr ""
-
-#, fuzzy
-msgid "non-numeric-alike variable(s) in data frame:"
+msgid "non-numeric variable(s) in data frame:"
 msgstr "nicht numerische Variable(n) in Dataframe:"
 
 msgid ","
@@ -396,13 +337,8 @@ msgstr "%s ist nur für Dataframes gleicher Größe definiert"
 msgid "list of length %d not meaningful"
 msgstr "Liste der Länge %d nicht sinnvoll"
 
-#, fuzzy
-msgid "only defined on a data frame with all numeric-alike variables"
+msgid "only defined on a data frame with all numeric variables"
 msgstr "nur für einen Dataframe mit nur numerischen Variablen definiert"
-
-#, fuzzy
-msgid "cannot xtfrm data frames"
-msgstr "kein Dataframe"
 
 msgid "character string is not in a standard unambiguous format"
 msgstr "Zeichenkette ist nicht in einem eindeutigen Standardformat"
@@ -536,10 +472,6 @@ msgstr "'from' muss ein \"POSIXt\" Objekt sein"
 msgid "'to' must be a \"POSIXt\" object"
 msgstr "'to' muss ein \"POSIXt\" Objekt sein"
 
-#, fuzzy
-msgid "component subscript must be a character string"
-msgstr "Argument 'object' muss zu einer einzelnen Zeichenkette deparsen"
-
 msgid "no Olson database found"
 msgstr "keine Olson Datenbank gefunden"
 
@@ -569,12 +501,10 @@ msgstr ""
 "%s"
 
 msgid "failed to load the methods package for debugging by signature"
-msgstr ""
-"Laden des Paketes methods für \"debugging by signature\" fehlgeschlagen"
+msgstr "Laden des Paketes methods für \"debugging by signature\" fehlgeschlagen"
 
 msgid "failed to load methods package for undebugging by signature"
-msgstr ""
-"Laden des Paketes methods für \"undebugging by signatue\" fehlgeschlagen"
+msgstr "Laden des Paketes methods für \"undebugging by signatue\" fehlgeschlagen"
 
 msgid "failed to load methods package for handling signature"
 msgstr "Laden des Paketes methods für den Umgagn mit Signaturen fehlgeschlagen"
@@ -598,8 +528,7 @@ msgstr "nur Matrixdiagonalen können ersetzt werden"
 msgid "replacement diagonal has wrong length"
 msgstr "Ersatzdiagonale hat falsche Länge"
 
-#, fuzzy
-msgid "MARGIN = %s is invalid for dim = %s"
+msgid "MARGIN = %d is invalid for dim = %d"
 msgstr "MARGIN = %d ist ungültig für dim = %d"
 
 msgid "must pass a package name, %s or %s object"
@@ -675,9 +604,6 @@ msgstr ""
 "'recursive' wird ignoriert, da 'to' kein einzelnes, existierendes\n"
 "Verzeichnis ist"
 
-msgid "cannot overwrite a non-directory with a directory"
-msgstr ""
-
 msgid "file can not be copied both 'from' and 'to'"
 msgstr "Datei kann nicht sowohl 'from' als auch 'to' der Kopie sein"
 
@@ -703,17 +629,13 @@ msgid "invalid 'time' argument"
 msgstr "ungültiges 'time' Argument"
 
 msgid "'vec' must be sorted non-decreasingly and not contain NAs"
-msgstr ""
-"'vec' muss nicht-abfallend sortiert werden und darf keine NAs enthalten"
+msgstr "'vec' muss nicht-abfallend sortiert werden und darf keine NAs enthalten"
 
 msgid "'fun' is not a function"
 msgstr "'fun' ist keine Funktion"
 
 msgid "using the first element of 'value' of type \"expression\""
 msgstr "nutze das erste Element von 'value' vom Typ \"expression\""
-
-msgid "Found no format() method for class \"%s\""
-msgstr ""
 
 msgid "class of 'x' was discarded"
 msgstr "Klasse von 'x' wurde verworfen"
@@ -747,11 +669,6 @@ msgstr "'zero.print' muss Länge > 1 haben"
 msgid "'zero.print' must be character, logical or NULL"
 msgstr "'zero.print' muss Zeichenkette, boolesch oder NULL sein"
 
-msgid ""
-"'zero.print' is truncated to fit into formatted zeros; consider "
-"'replace=TRUE'"
-msgstr ""
-
 msgid "'big.mark' and 'decimal.mark' are both '%s', which could be confusing"
 msgstr ""
 "'big.mark' und 'decimal.mark' sind beide '%s', was verwirrend sein könnte"
@@ -767,10 +684,6 @@ msgstr "Wert für '%s' nicht gefunden"
 
 msgid "all arguments must be named"
 msgstr "alle Argumente müssen Namen haben"
-
-#, fuzzy
-msgid "argument '%s' will be ignored"
-msgstr "'drop' Argument wird ignoriert"
 
 msgid "match distance components must be non-negative"
 msgstr "match distance Komponenten dürfen nicht negativ sein"
@@ -814,11 +727,8 @@ msgstr "Norm '%s' nutzt aktuell immer exact = FALSE"
 msgid "triangular matrix should be square"
 msgstr "Dreiecks-Matrix sollte quadratisch sein"
 
-msgid "unknown conflict policy: %s"
-msgstr ""
-
-msgid "only one of 'include.only' and 'exclude' can be used"
-msgstr ""
+msgid "'object' must be a list"
+msgstr "'object' muss eine Liste sein"
 
 msgid "package %s has not been installed properly"
 msgstr "Paket '%s' wurde nicht korrekt installiert"
@@ -837,15 +747,6 @@ msgstr "Paket %s wurde für %s erstellt"
 
 msgid "package %s is not installed for 'arch = %s'"
 msgstr "Paket %s ist für 'arch=%s' nicht installiert"
-
-#, fuzzy
-msgid ""
-"Conflicts attaching package %s:\n"
-"%s"
-msgstr "Attache Paket: %s"
-
-msgid "packageConflictError"
-msgstr ""
 
 msgid "Attaching package: %s"
 msgstr "Attache Paket: %s"
@@ -874,8 +775,8 @@ msgid ""
 "Package %s version %s cannot be unloaded:\n"
 " %s"
 msgstr ""
-"Paket %s Version %s kann nicht entladen werden:\n"
-" %s"
+"Paket %s Version %s kann nicht entladen werden\n"
+"%s%"
 
 msgid ""
 "package or namespace load failed for %s%s:\n"
@@ -1121,24 +1022,17 @@ msgstr ""
 "Namensraum %s ist nicht verfügar und ist durch.GlobalEnv ersetzt worden "
 "während Objekt %s verarbeitet wurde"
 
+msgid "'%s' is not an exported object from 'namespace:%s'"
+msgstr "'%s' ist kein von 'namespace:%s' exportiertes Objekt"
+
 msgid "namespace is already attached"
 msgstr "Namensraum ist bereits angehängt"
-
-#, fuzzy
-msgid ""
-"not found in namespace %s: \n"
-"\n"
-"%s"
-msgstr "lade keinen Namensraum"
 
 msgid "%s not found"
 msgstr "%s nicht gefunden"
 
 msgid "namespace %s %s is already loaded, but %s %s is required"
 msgstr "Namensraum %s %s ist bereits geladen, aber %s %s wird gefordert"
-
-msgid "- loading"
-msgstr ""
 
 msgid "namespace %s is already sealed in 'loadNamespace'"
 msgstr "Namensraum %s ist bereits in 'loadNamespace' versiegelt"
@@ -1167,16 +1061,8 @@ msgstr ""
 msgid "package %s does not have a namespace"
 msgstr "Paket %s hat keinen Namensraum"
 
-#, fuzzy
-msgid "package %s was installed before R 4.0.0: please re-install it"
-msgstr "Paket '%s' wurde vor R 3.0.0 erstellt: bitte Paket neu installieren"
-
 msgid "namespace %s %s is being loaded, but %s %s is required"
 msgstr "Namensraum %s %s ist geladen, aber %s %s wird benötigt"
-
-#, fuzzy
-msgid "package %s has no 'package.rds' in Meta/"
-msgstr "Paket %s hat keine 'NAMESPACE' Datei"
 
 msgid ""
 "package %s has a license that you need to accept in an interactive session"
@@ -1203,58 +1089,10 @@ msgstr "Lizenz für Paket %s nicht akzeptiert"
 msgid ""
 "package %s was installed by an R version with different internals; it needs "
 "to be reinstalled for use with this R version"
-msgstr ""
-"Paket %s wurde mit einer R-Version mit anderen Internals installiert; um es "
-"zu nutzen, muss es mit dieser R-Version reinstalliert werden"
-
-msgid "-- processing imports for"
-msgstr ""
-
-msgid "-- done processing imports for"
-msgstr ""
-
-msgid "-- loading code for"
-msgstr ""
+msgstr "Paket %s wurde mit einer R-Version mit anderen Internals installiert; um es zu nutzen, muss es mit dieser R-Version reinstalliert werden"
 
 msgid "unable to load R code in package %s"
 msgstr "kann R Programmkode in Paket %s nicht laden"
-
-msgid "-- loading sysdata for"
-msgstr ""
-
-msgid "-- loading lazydata for"
-msgstr ""
-
-msgid "-- registerS3methods for"
-msgstr ""
-
-msgid "-- done registerS3methods for"
-msgstr ""
-
-msgid "-- running .onLoad for"
-msgstr ""
-
-msgid "-- done running .onLoad for"
-msgstr ""
-
-#, fuzzy
-msgid "S4 exports specified in 'NAMESPACE' but not defined in package %s"
-msgstr ""
-"'exportClassPattern' im 'NAMESPACE' angegeben, aber keine passenden Klassen "
-"in Paket %s"
-
-msgid "-- processing S4 stuff for"
-msgstr ""
-
-msgid "--- caching metadata"
-msgstr ""
-
-msgid "--- done caching metadata"
-msgstr ""
-
-#, fuzzy
-msgid "--- processing classes"
-msgstr "falsche Klasse"
 
 msgid ""
 "'exportClassPattern' specified in 'NAMESPACE' but no matching classes in "
@@ -1274,9 +1112,6 @@ msgstr ""
 msgid "in %s methods for export not found: %s"
 msgstr "in %s Methoden für den Export nicht gefunden: %s"
 
-msgid "---- export method"
-msgstr ""
-
 msgid "multiple methods tables found for %s"
 msgstr "Multiple Methodentabellen gefunden für %s"
 
@@ -1287,18 +1122,6 @@ msgid "in package %s methods %s were specified for export but not defined"
 msgstr ""
 "in Paket '%s' sind Methoden %s für den Export vorgesehen, aber nicht "
 "definiert"
-
-msgid "-- done processing S4 stuff for"
-msgstr ""
-
-msgid "--- processing exports for"
-msgstr ""
-
-msgid "--- sealing exports for"
-msgstr ""
-
-msgid "- done loading"
-msgstr ""
 
 msgid "Loading required namespace: %s"
 msgstr "Lade nötigen Namensraum: %s"
@@ -1343,18 +1166,14 @@ msgid ""
 "No generic function %s found corresponding to requested imported methods "
 "from package %s when loading %s (malformed exports?)"
 msgstr ""
-"Keine generische Funktion %s gefunden, die mit den angeforderten\n"
-"Importmethoden aus Paket %s korrespondiert, beim Laden von %s (Fehler in "
-"Exports?)"
+"Keine generische Funktion, die mit der angeforderten Importmethode für\n"
+"%s aus Paket %s korrespondiert, gefunden (Fehler in Exports?)"
 
 msgid "cannot add to exports of a sealed namespace"
 msgstr "kann keine Exporte zu versiegeltem Namensraum hinzufügen"
 
 msgid "undefined exports: %s"
 msgstr "nicht definierte Exporte: %s"
-
-msgid "unable to re-encode some lines in NAMESPACE file"
-msgstr "kann gewisse Zeilen nicht re-kodieren in der 'NAMESPACE' Datei"
 
 msgid "package %s has no 'NAMESPACE' file"
 msgstr "Paket %s hat keine 'NAMESPACE' Datei"
@@ -1379,13 +1198,6 @@ msgstr "unbrauchbare Methode"
 
 msgid "object '%s' not found whilst loading namespace '%s'"
 msgstr "Objekt '%s' nicht gefunden während Namensraum '%s' geladen wurde"
-
-msgid ""
-"While loading namespace \"%s\": \"%s\" differ in ncol(.), env=%d, newNS=%d."
-msgstr ""
-
-msgid "Maybe package installed with version of R newer than %s ?"
-msgstr ""
 
 msgid "'%s' is not implemented yet"
 msgstr "'%s' ist bisher nicht implementiert"
@@ -1571,19 +1383,15 @@ msgstr "nicht endliches 'partial'"
 msgid "argument lengths differ"
 msgstr "Argumentlängen unterschiedlich"
 
-msgid "method = \"quick\" is only for numeric 'x'"
-msgstr "method = \"quick\" nur für numerisches 'x'"
-
-#, fuzzy
 msgid ""
-"'x' must be atomic for 'sort.list', method \"shell\" and \"quick\"\n"
+"'x' must be atomic for 'sort.list'\n"
 "Have you called 'sort' on a list?"
 msgstr ""
 "'x' muss atomar sein für 'sort.list'\n"
 "Haben Sie 'sort' für eine Liste aufgerufen?"
 
-msgid "cannot xtfrm 'x'"
-msgstr ""
+msgid "method = \"quick\" is only for numeric 'x'"
+msgstr "method = \"quick\" nur für numerisches 'x'"
 
 msgid "'local' must be TRUE, FALSE or an environment"
 msgstr "'local' muss TRUE, FALSE oder eine Umgebung sein"
@@ -1624,8 +1432,8 @@ msgstr "'x' und 'to' müssen auf dieselbe Datei referenzieren"
 msgid "additional arguments ignored in stop()"
 msgstr "zusätzliche Argumente in stop() ignoriert"
 
-msgid "Only one of 'exprs', 'exprObject' or expressions, not more"
-msgstr ""
+msgid "Must use 'exprs' or unnamed expressions, but not both"
+msgstr "Entweder muss 'exprs' oder ein unbenannter Ausdruck genutzt werden, nicht beides"
 
 msgid ""
 "%s and %s are not equal:\n"
@@ -1641,8 +1449,7 @@ msgid ""
 "Calling 'structure(NULL, *)' is deprecated, as NULL cannot have attributes.\n"
 "  Consider 'structure(list(), *)' instead."
 msgstr ""
-"Der Aufruf 'struture(NULL, *)' ist veraltet, da NULL keine Attribute haben "
-"kann.\n"
+"Der Aufruf 'struture(NULL, *)' ist veraltet, da NULL keine Attribute haben kann.\n"
 " Evtl. geht stattdessen 'structure(list(), *)."
 
 msgid "incorrect value for 'x'"
@@ -1705,20 +1512,8 @@ msgstr "Gesamtzahl der Stufen >= 2^31"
 msgid "handler must be a function"
 msgstr "Handler muss eine Funktion sein"
 
-#, fuzzy
-msgid "'which' must be of length 1"
-msgstr "'to' muss Länge 1 haben"
-
 msgid "no such element '%s'"
 msgstr "kein solches Element '%s'"
-
-#, fuzzy
-msgid "invalid 'which' argument"
-msgstr "ungültiges 'path' Argument"
-
-#, fuzzy
-msgid "'which' must be character or numeric"
-msgstr "'tim' ist weder Zeichenkette noch numerisch"
 
 msgid "Removing %s"
 msgstr "Entferne %s"
@@ -1825,9 +1620,6 @@ msgstr "'minimized' muss TRUE oder FALSE sein"
 
 msgid "'invisible' must be TRUE or FALSE"
 msgstr "'invisible' muss TRUE oder FALSE sein"
-
-msgid "running command '%s' had status %d"
-msgstr ""
 
 msgid "'%s' could not be run"
 msgstr "'%s' konnte nicht ausgeführt werden"
@@ -1989,19 +1781,15 @@ msgstr[1] ""
 
 msgid "No methods found in package %s for request: %s when loading %s"
 msgid_plural "No methods found in package %s for requests: %s when loading %s"
-msgstr[0] ""
-"Keine Methoden in Paket %s gefunden für Anforderung: %s beim Laden von %s"
-msgstr[1] ""
-"Keine Methoden in Paket %s gefunden für Anforderungen: %s beim Laden von %s"
+msgstr[0] "Keine Methoden in Paket %s gefunden für Anforderung: %s beim Laden von %s"
+msgstr[1] "Keine Methoden in Paket %s gefunden für Anforderungen: %s beim Laden von %s"
 
 msgid ""
 "requested method not found in environment/package %s: %s when loading %s"
 msgid_plural ""
 "requested methods not found in environment/package %s: %s when loading %s"
-msgstr[0] ""
-"verlangte Methode nicht gefunden in Umgebung/Paket %s: %s beim Laden von %s"
-msgstr[1] ""
-"verlangte Methoden nicht gefunden in Umgebung/Paket %s: %s beim Laden von %s"
+msgstr[0] "verlangte Methode nicht gefunden in Umgebung/Paket %s: %s beim Laden von %s"
+msgstr[1] "verlangte Methoden nicht gefunden in Umgebung/Paket %s: %s beim Laden von %s"
 
 msgid "class %s is not exported by 'namespace:%s'"
 msgid_plural "classes %s are not exported by 'namespace:%s'"
@@ -2045,23 +1833,6 @@ msgstr[0] ""
 msgstr[1] ""
 "In %s :\n"
 "zusätzliche Argumente %s werden verworfen"
-
-#~ msgid "'%s' is not an exported object from 'namespace:%s'"
-#~ msgstr "'%s' ist kein von 'namespace:%s' exportiertes Objekt"
-
-#~ msgid "bad handler specification"
-#~ msgstr "schlechte handler Spezifikation"
-
-#~ msgid "Partial match of '%s' to '%s' in data frame"
-#~ msgstr "Partielle Übereinstimmung von '%s' mit '%s' in Dataframe"
-
-#~ msgid "'object' must be a list"
-#~ msgstr "'object' muss eine Liste sein"
-
-#~ msgid "Must use 'exprs' or unnamed expressions, but not both"
-#~ msgstr ""
-#~ "Entweder muss 'exprs' oder ein unbenannter Ausdruck genutzt werden, nicht "
-#~ "beides"
 
 #~ msgid "*** Note that 'pos=1' will give an error in the future"
 #~ msgstr "*** 'pos=1' wird in Zukunft einen Fehler erzeugen"

@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2021-02-13 r79999) -- "Unsuffered Consequences"
+R version 4.0.3 Patched (2021-01-08 r79820) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -2792,7 +2792,7 @@ Sturges   Scott      FD
 [53] "YlGnBu"        "Reds"          "RdPu"          "PuRd"         
 [57] "Purples"       "PuBuGn"        "PuBu"          "Greens"       
 [61] "BuGn"          "GnBu"          "BuPu"          "Blues"        
-[65] "Lajolla"       "Turku"         "Hawaii"        "Batlow"       
+[65] "Lajolla"       "Turku"        
 > hcl.pals("diverging")
  [1] "Blue-Red"      "Blue-Red 2"    "Blue-Red 3"    "Red-Green"    
  [5] "Purple-Green"  "Purple-Brown"  "Green-Brown"   "Blue-Yellow 2"
@@ -2802,7 +2802,7 @@ Sturges   Scott      FD
 > hcl.pals("divergingx")
  [1] "ArmyRose" "Earth"    "Fall"     "Geyser"   "TealRose" "Temps"   
  [7] "PuOr"     "RdBu"     "RdGy"     "PiYG"     "PRGn"     "BrBG"    
-[13] "RdYlBu"   "RdYlGn"   "Spectral" "Zissou 1" "Cividis"  "Roma"    
+[13] "RdYlBu"   "RdYlGn"   "Spectral" "Zissou 1" "Cividis" 
 > 
 > 
 > 
@@ -4268,7 +4268,7 @@ $zlab
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  81.776 1.411 83.73 0 0 
+Time elapsed:  79.87 1.384 83.873 0 0 
 > grDevices::dev.off()
 null device 
           1 

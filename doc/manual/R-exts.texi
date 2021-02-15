@@ -555,15 +555,6 @@ The @samp{ByteCompile} logical field controls if the package R code is to
 be byte-compiled on installation: the default is to byte-compile.  This
 can be overridden by installing with flag @option{--no-byte-compile}.
 
-@c DESCRIPTION field UseLTO
-The @samp{UseLTO} logical field is used on a Unix-alike to indicate if
-source code in the package is to be compiled with Link-Time Optimization
-(@pxref{Using Link-time Optimization}) if @R{} was installed with
-@option{--enable-lto} (default true) or @option{--enable-lto=R} (default
-false). This can be overridden by by the flags @option{--use-LTO} and
-@option{--no-use-LTO}.  LTO is said to give most size and performance
-improvements for large and complex (heavily templated) C++ projects.
-
 @c DESCRIPTION field StagedInstall
 The @samp{StagedInstall} logical field controls if package installation
 is `staged', that is done to a temporary location and moved to the final
@@ -1544,12 +1535,7 @@ the Windows@footnote{@samp{BWidget} still is on Windows but
 @samp{Tktable} is less widely available than it used to be, including
 not in the main repositories for major Linux distributions).
 @c Not in Fedora since 17
-@c 2008 sources at https://sourceforge.net/projects/tktable/files/tktable/2.10/
-@c In Feb 2021 declared by DALY PhViD RSiena RSurvey dgmb forensim
-@c rriskDistributions tcltk2
 
-@c In Feb 2021 declared by FFD GGEBiplotGUI OligoSpecificitySystem
-@c PBSmodelling asbio biplotbootGUI cncaGUI dgmb dpa multibiplotGUI rpanel
 @samp{BWidget} needs to be installed by the user on other OSes.  This is
 fairly easy to do: first find the Tcl search path:
 
@@ -1759,7 +1745,7 @@ The latter is important, as for example C headers may not be available
 to C++ programs or may not be written to avoid C++ name-mangling.  Note
 that an @R{} installation is not required to have a C++ compiler so
 @samp{CXX} may be empty.  If the package specifies a non-default C++
-standard, use the @command{config} variable names (such as @code{CXX17})
+standard, use the @command{config} variable names (such as @code{CXX14})
 appropriate to the standard, but still set @code{CXX} and
 @code{CXXFLAGS}.
 
@@ -1772,7 +1758,11 @@ both the command and the appropriate flags, so that for example
 @samp{CC} must always be used with @samp{CFLAGS} and (for code to be
 linked into a shared library) @samp{CPICFLAGS}.  For Fortran, be careful
 to use @samp{FC FFLAGS FPICFLAGS} for fixed-form Fortran and 
-@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.
+@samp{FC FCFLAGS FPICFLAGS} for free-form Fortran.  (Packages intended to
+be used with @R{} versions before 3.6.0 should use the legacy forms
+@samp{F77 FFLAGS FPICFLAGS} and @samp{FC FCFLAGS FCPICFLAGS}, but
+@samp{F77} and @samp{FCPICFLAGS} are no longer defined, so such packages
+should depend on @samp{R (< 4.0)}.)
 
 To check for an external BLAS library using the @code{AX_BLAS} macro
 from the official Autoconf Macro
@@ -1976,9 +1966,7 @@ options, and @strong{must} be set in @code{PKG_CPPFLAGS} as otherwise
 platform-specific paths (e.g.@: @samp{-I/usr/local/include}) will take
 precedence.  @code{PKG_CPPFLAGS} should contain @samp{-I}, @samp{-D},
 @samp{-U} and (where supported) @samp{-include} and @samp{-pthread}
-options: everything else should be a compiler flag.  The order of flags
-matters, and using @samp{-I} in @code{PKG_CFLAGS} or @code{PKG_CXXFLAGS}
-has led to hard-to-debug platform-specific errors.
+options: everything else should be a compiler flag.
 
 @file{Makevars} can also be used to set flags for the linker, for
 example @samp{-L} and @samp{-l} options, @emph{via} @code{PKG_LIBS}.
@@ -2268,12 +2256,12 @@ PKG_LIBS = $(SHLIB_OPENMP_CFLAGS)
 @end example
 
 Note that the macro @code{SHLIB_OPENMP_CXXFLAGS} applies to the default
-C++ compiler and not necessarily to the C++17/20 compiler: users of the
-latter should do their own @command{configure} checks.  If you do use
-your own checks, make sure that OpenMP support is complete by compiling
-and linking an OpenMP-using program: on some platforms the runtime
-library is optional and on others that library depends on other optional
-libraries.
+C++11 compiler and not necessarily to the C++14/17/20 compiler: users of
+the latter should do their own @command{configure} checks.  If you do
+use your own checks, make sure that OpenMP support is complete by
+compiling and linking an OpenMP-using program: on some platforms the
+runtime library is optional and on others that library depends on other
+optional libraries.
 @c For clang pre-7, libomp.so depended on libatomic.
 
 Some care is needed when compilers are from different families which may
@@ -2659,12 +2647,12 @@ or @file{.f95}, but those are not used by @R{} itself so this is not
 required.
 
 @vindex PKG_FCFLAGS
-The same compiler is used@footnote{for versions of @R{} since 3.6.0.}
-for both fixed-form and free-form Fortran code (with different file
-extensions and possibly different flags).  Macro @code{PKG_FFLAGS} can
-be used for package-specific flags: for the un-encountered case that both
-are included in a single package and that different flags are needed for
-the two forms, macro @code{PKG_FCFLAGS} is also available for free-form
+As from @R{} 3.6.0 the same compiler is used for both fixed-form and
+free-form Fortran code (with different file extensions and possibly
+different flags).  For both, macro @code{PKG_FFLAGS} can be used for
+package-specific flags: for the un-encountered case that both are
+included in a single package and that different flags are needed for the
+two forms, macro @code{PKG_FCFLAGS} is also available for free-form
 Fortran.
 
 The code used to build @R{} allows a `Fortran 90' compiler to be
@@ -2774,8 +2762,7 @@ AC_LANG(C++)
 @end example
 
 @noindent
-if C++11 was specified, but using @code{CXX} instead of @code{CXX11} if
-no standard was specified.
+(paying attention to all the quotes required).
 
 If you want to compile C++ code in a subdirectory, make sure you pass
 down the macros to specify the appropriate compiler, e.g.@: in
@@ -2841,12 +2828,16 @@ back-compatibility @option{-std=gnu1y}.
 
 C++17 (as from @R{} 3.4.0) and C++20 (as from @R{} 4.0.0) can be
 specified in an analogous way (replacing @code{14} by @code{17} or
-@code{20}) but compiler/OS support is platform-dependent.  Some C++17
-and C++20 support is available with the default builds of @R{} on macOS
-and Windows as from @R{} 4.0.0.  Much of @command{g++}'s support for
-C++17 needs version 7 or later: that is more recent than some
+@code{20}) but compiler/OS support is platform-dependent.  Feature tests
+can be used (and probably should be as support is still patchy,
+especially library support).
+
+C++17 and C++20 support is available with the default builds of @R{} on
+macOS and Windows as from @R{} 4.0.0.  Much of @command{g++}'s support
+for C++17 needs version 7 or later: that is more recent than some
 still-current Linux distributions and the OpenCSW compilers for
-Solaris.
+Solaris. (There is no support for C++17 in the ODS 12.6 Solaris
+compiler, thought to be the final version.)
 
 Note that C++17 or C++20 `support' does not mean complete support: use
 feature tests as well as resources such as
@@ -2854,6 +2845,10 @@ feature tests as well as resources such as
 @uref{https://gcc.gnu.org/projects/cxx-status.html} and
 @uref{https://libcxx.llvm.org/docs/Cxx1zStatus.html} to see if the
 features you want to use are widely implemented.
+
+It is intended that the default C++ version will be increased in future
+versions of @R{} but that it will still be possible to specify C++11 or
+C++14 by the mechanisms described here.
 
 @node Checking and building packages, Writing package vignettes, Configure and cleanup, Creating R packages
 @section Checking and building packages
@@ -3247,20 +3242,14 @@ directories from source control systems@footnote{called @file{CVS} or
 @file{.svn} or @file{.arch-ids} or @file{.bzr} or @file{.git} (but not
 files called @file{.git}) or @file{.hg}.} or from
 @command{eclipse}@footnote{called @file{.metadata}.}, directories with
-names @file{check}, @file{chm}, or ending @file{.Rcheck} or @file{Old}
-or @file{old} and files
+names ending @file{.Rcheck} or @file{Old} or @file{old} and files
 @file{GNUMakefile}@footnote{which is an error: GNU make uses
 @file{GNUmakefile}.}, @file{Read-and-delete-me} or with base names
 starting with @samp{.#}, or starting and ending with @samp{#}, or ending
-in @samp{~}, @samp{.bak} or @samp{.swp}, are excluded by
-default@footnote{see @code{tools:::.hidden_file_exclusions} and
-@code{tools:::get_exclude_patterns()} for further
-excluded files and file patterns, respectively.}.  In addition,
-same-package tarballs (from previous builds) and their binary forms will
-be excluded from the top-level directory, as well as
-those files in the @file{R}, @file{demo} and @file{man}
+in @samp{~}, @samp{.bak} or @samp{.swp}, are excluded by default.  In
+addition, those files in the @file{R}, @file{demo} and @file{man}
 directories which are flagged by @command{R CMD check} as having invalid
-names.
+names will be excluded.
 
 Use @kbd{R CMD build --help} to obtain more information about the usage
 of the @R{} package builder.
@@ -4828,7 +4817,7 @@ Non-ASCII filenames can also cause problems (particularly in non-UTF-8
 locales).
 
 @item
-Take care in naming @LaTeX{} macros (also known as `commands') in
+Take care in namimg @LaTeX{} macros (also known as `commands') in
 vignette sources: if these are also defined in a future version of one
 of the @LaTeX{} packages used there will be a fatal error.  One instance
 in 2021 was package @samp{hyperref} newly defining @samp{\C}, @samp{\F},
@@ -4847,10 +4836,8 @@ installed might not be the same as when the package is run and will not
 be for binary packages).  Java 8 is available for fewer platforms than
 Java 7, and Java 11 for fewer still (at the time of writing, only
 @cputype{x86_64} Linux, macOS, 64-bit Windows and 64-bit Solaris 11 from
-Oracle; Linux on several CPUs, Intel-based macOS, 32-
-and 64-bit Windows and AIX from from @uref{https://adoptopenjdk.net} and
-@cputype{arm64} macOS from Zulu -- several OSes provide builds of
-OpenJDK including FreeBSD and most Linux distributions).
+Oracle and Linux on several CPUs, Intel-based macOS, 32- and 64-bit
+Windows and AIX from from @uref{https://adoptopenjdk.net}).
 
 When specifying a minimum Java version please use the official version
 names, which are (confusingly)
@@ -5234,8 +5221,7 @@ extensions (such as POSIX functions) are supported.
 
 @strong{C++ standards}: From version 3.6.0 (3.6.2 on Windows), @R{}
 defaulted to C++11 where available@footnote{which it is on all known
-platforms, and is required as from @R{} 4.0.0}; @R{} 4.1.0 defaults to
-C++14 (where available).  However, in earlier
+platforms, and is required as from @R{} 4.0.0}.  However, in earlier
 versions the default standard was that of the compiler used, often C++98
 or C++14, and the default is likely to change in future.  For maximal
 portability a package should either specify a standard (@pxref{Using C++
@@ -5417,14 +5403,6 @@ and often @acronym{CRAN} submissions attempt to use @file{endian.h}.
 The latter is a @code{glibc} extension: some OSs have
 @file{machine/endian.h} or @file{sys/endian.h} but some have neither.
 @c macOS has machine/endian.h.  Solaris has none.
-
-@item
-Use @code{#include "my.h"} not @code{#include <my.h>} for headers in
-your package.  The second form is intended for system headers and the
-search order for such headers is platform-dependent (and may not include
-the current directory).  For extra safety, name headers in a way that
-cannot be confused with a system header so not, for example,
-@file{types.h}.
 
 @item
 For C++ code, be careful to specify namespaces where needed.  Many
@@ -6372,7 +6350,7 @@ E.g., @file{abline.Rd} contains
 @group
 \details@{
   Typical usages are
-\preformatted@{abline(a, b, ...)
+\preformatted@{abline(a, b, untf = FALSE, \dots)
 ......
 @}
 @end group
@@ -7065,28 +7043,23 @@ given above.
 
 There are two other forms with an optional argument, specified as
 @code{\link[@var{pkg}]@{@var{foo}@}} and
-@code{\link[@var{pkg:bar}]@{@var{foo}@}}, to link to topics
-@code{@var{foo}} and @code{@var{bar}} respectively in the package
-@pkg{@var{pkg}}. They are currently only used in @HTML{} help (and
-ignored for hyperlinks in @LaTeX{} conversions of help pages). One
-should be careful about topics containing special characters (such as
-arithmetic operators) as they may result in unresolvable links, and
-preferably use a safer alias in the same help page.
-
-Historically (before @R{} version 4.1.0), links of the form
-@code{\link[@var{pkg}]@{@var{foo}@}} and
-@code{\link[@var{pkg:bar}]@{@var{foo}@}} used to be interpreted as links
-to @emph{files} @file{@var{foo}.html} and @file{@var{bar}.html} in
-package @pkg{@var{pkg}}, respectively. For this reason, the @HTML{} help
-system looks for file @file{@var{foo}.html} in package @pkg{@var{pkg}}
-if it does not find topic @code{@var{foo}}, and then searches for the
-topic in other installed packages. To test that links work both with
-both old and new systems, the pre-4.1.0 behaviour can be restored by
-setting the environment variable @env{_R_HELP_LINKS_TO_TOPICS_=false}.
-
-Packages referred to by these `other forms' should be declared in the
-@file{DESCRIPTION} file, in the @samp{Depends}, @samp{Imports},
-@samp{Suggests} or @samp{Enhances} fields.
+@code{\link[@var{pkg:bar}]@{@var{foo}@}} to link to the package
+@pkg{@var{pkg}}, to @emph{files} @file{@var{foo}.html} and
+@file{@var{bar}.html} respectively.  These are rarely needed, perhaps to
+refer to not-yet-installed packages (but there the @HTML{} help system
+will resolve the link at run time) or in the normally undesirable event
+that more than one package offers help on a topic@footnote{a common
+example in @acronym{CRAN} packages is @code{\link[mgcv]@{gam@}}.} (in
+which case the present package has precedence so this is only needed to
+refer to other packages).  They are currently only used in @HTML{} help
+(and ignored for hyperlinks in @LaTeX{} conversions of help pages), and
+link to the file rather than the topic (since there is no way to know
+which topics are in which files in an uninstalled package).  The
+@strong{only} reason to use these forms for base and recommended
+packages is to force a reference to a package that might be further down
+the search path.  Because they have been frequently misused, the @HTML{}
+help system looks for topic @code{@var{foo}} in package @pkg{@var{pkg}}
+if it does not find file @file{@var{foo}.html}.
 
 @node Mathematics, Figures, Cross-references, Writing R documentation files
 @section Mathematics
@@ -9618,32 +9591,11 @@ For non-interactive use, one may need @command{lldb --batch}.
 
 Where supported, @emph{link time optimization} provides a comprehensive
 way to check the consistency of calls between Fortran files or between C
-and Fortran.  Use this @emph{via} @command{R CMD INSTALL --use-LTO}.
-
-To set up support on a Unix-alike,
+and Fortran.
 @ifset UseExternalXrefs
 @xref{Link-Time Optimization, , Link-Time Optimization,
 R-admin, R Installation and Administration}.
 @end ifset
-On Linux using GCC without building @R{} with LTO support,
-@c This will not set LTO for linking, but GCC does not seem to need that.
-it should suffice to set
-@example
-LTO_OPT = -flto
-LTO_FC_OPT = -flto
-AR = gcc-ar
-NM = gcc-nm
-@end example
-in a personal (or site) @file{Makevars} file:
-@ifset UseExternalXrefs
-@xref{Customizing package compilation, , Customizing package compilation,
-R-admin, R Installation and Administration},
-@end ifset
-
-For Windows, first edit file @file{etc/$@{R_ARCH@}/Makeconf} to give
-@code{LTO_OPT} the value @code{-flto} or do so in a personal/site
-@file{Makevars} file; see also file
-@file{src/gnuwin32/README.compilation} in the sources.
 
 For example:
 @example
@@ -10150,14 +10102,15 @@ routines with a variable number of arguments invoked @emph{via} the
 arguments which tells @R{} not to check the actual number passed.
 
 Routines for use with the @code{.C} and @code{.Fortran} interfaces are
-described with similar data structures, which have one optional
-additional field for describing the type of each argument.  If
-specified, this field should be an array with the @code{SEXP} types
-describing the expected type of each argument of the routine.
-(Technically, the elements of the types array are of type
-@code{R_NativePrimitiveArgType} which is just an unsigned integer.)
-The @R{} types and corresponding type identifiers are provided in the
-following table:
+described with similar data structures, but which have two additional
+fields for describing the type and ``style'' of each argument.  Each of
+these can be omitted. However, if specified, each should be an array
+with the same number of elements as the number of parameters for the
+routine.  The types array should contain the @code{SEXP} types
+describing the expected type of the argument. (Technically, the elements
+of the types array are of type @code{R_NativePrimitiveArgType} which is
+just an unsigned integer.)  The @R{} types and corresponding type
+identifiers are provided in the following table:
 
 @quotation
 @multitable {@code{character  }} {@code{SINGLESXP}}
@@ -11421,6 +11374,9 @@ several thousand objects at the end. It will almost invariably be
 possible to either assign the objects as part of another object (which
 automatically protects them) or unprotect them immediately after use.
 
+Protection is not needed for objects which @R{} already knows are in
+use.  In particular, this applies to function arguments.
+
 There is a less-used macro @code{UNPROTECT_PTR(@var{s})} that unprotects the
 object pointed to by the @code{SEXP} @var{s}, even if it is not the top item
 on the pointer protection stack.  This macro was introduced for use in the
@@ -11470,47 +11426,6 @@ compiled code: on the other hand it becomes the user's responsibility to
 release them when they are no longer needed (and this often requires the
 use of a finalizer).  It is less efficient than the normal protection
 mechanism, and should be used sparingly.
-
-For functions from packages as well as @R{} to safely co-operate in
-protecting objects, certain rules have to be followed:
-
-@itemize
-
-@item 
-Pointer-protection balance.  Calls to @code{PROTECT} and @code{UNPROTECT}
-should balance in each function.  A function may only call @code{UNPROTECT} or
-@code{REPROTECT} on objects it has itself protected.  Note that the pointer
-protection stack balance is restored automatically on non-local transfer of
-control (See @ref{Condition handling and cleanup code}.), as if a call to
-@code{UNPROTECT} was invoked with the right argument.
-
-@item
-Caller protection.  It is the responsibility of the caller that all
-arguments passed to a function are protected and will stay protected for the
-whole execution of the callee.  Typically this is achieved by @code{PROTECT}
-and @code{UNPROTECT} calls.
-
-@item
-Protecting return values. Any @R{} objects returned from a function are
-unprotected (the callee must maintain pointer-protection balance), and hence
-should be protected immediately by the caller. To be safe against future
-code changes, assume that any @R{} object returned from any function may
-need protection. Note that even when conceptually returning an existing
-protected object, that object may be duplicated.
-
-@item
-All functions/macros allocate.  To be safe against future code changes,
-assume that any function or macro may allocate and hence garbage collector
-may run and destroy unprotected objects.
-
-@end itemize
-
-It is always safe and recommended to follow those rules.  In fact, several
-@R{} functions and macros protect their own arguments and some functions do
-not allocate or do not allocate when used in a certain way, but that is
-subject to change, so relying on that may be fragile.  @code{PROTECT} and
-@code{PROTECT_WITH_INDEX} can be safely called with unprotected arguments
-and @code{UNPROTECT} does not allocate.
 
 @node Allocating storage, Details of R types, Garbage Collection, Handling R objects in C
 @subsection Allocating storage
@@ -11933,16 +11848,6 @@ If a binding is found, its value is changed to @code{value}.  Otherwise,
 a new binding with the specified value is created in the global
 environment.  This corresponds to @code{assign(symbol, value, envir =
 rho, inherits = TRUE)}.
-
-At times it may also be useful to create a new environment frame in C code.
-@code{R_NewEnv} is a C version of the @R{} function @code{new.env}:
-
-@example
-@group
-SEXP R_NewEnv(SEXP enclos, int hash, ins size)
-@end group
-@end example
-@findex R_NewEnv
 
 @node Some convenience functions, Named objects and copying, Finding and setting variables, Handling R objects in C
 @subsection Some convenience functions
@@ -13747,7 +13652,10 @@ further examples.
 Where supported, @emph{link time optimization} provides a reliable way
 to check the consistency of calls to C from Fortran or @emph{vice
 versa}.
-@xref{Using Link-time Optimization}.
+@ifset UseExternalXrefs
+@xref{Link-Time Optimization, , Link-Time Optimization,
+R-admin, R Installation and Administration}.
+@end ifset
 One place where this occurs is the registration of @code{.Fortran} calls
 in C code (@pxref{Registering native routines}).  For example
 @example
@@ -13765,7 +13673,6 @@ what the @code{.Fortran} call used) but only has 8.
 @menu
 * Fortran character strings::
 * Fortran LOGICAL::
-* Passing functions::
 @end menu
 
 @node Fortran character strings, Fortran LOGICAL, Calling C from Fortran and vice versa, Calling C from Fortran and vice versa
@@ -13925,7 +13832,7 @@ the character length(s) from C to Fortran. A portable way to do this is
 It is strongly recommended that packages which call from C/C++
 BLAS/LAPACK routines with character arguments adopt this approach.
 
-@node Fortran LOGICAL, Passing functions, Fortran character strings, Calling C from Fortran and vice versa
+@node Fortran LOGICAL,  , Fortran character strings, Calling C from Fortran and vice versa
 @subsection Fortran LOGICAL
 
 Passing Fortran LOGICAL variables to/from C/C++ is potentially
@@ -13937,38 +13844,6 @@ However, recent versions of @command{gfortran} @emph{via} the option
 *} as a mismatch. It is possible to use @code{iso_c_binding} in Fortran
 to map LOGICAL variables to the C99 type @code{_Bool}, but it is usually
 simpler to pass integers to and fro.
-
-@node Passing functions,  , Fortran LOGICAL, Calling C from Fortran and vice versa
-@subsection Passing functions
-
-A number of packages call C functions passed as arguments to Fortran
-code along the lines of
-
-@example
-c         subroutine fcn(m,n,x,fvec,iflag)
-c         integer m,n,iflag
-c         double precision x(n),fvec(m)
-...
-      subroutine lmdif(fcn, ...
-@end example
-
-@noindent
-where the C declaration and call are
-
-@example
-void fcn_lmdif(int *m, int *n, double *par, double *fvec, int *iflag);
-
-void F77_NAME(lmdif)(void (*fcn_lmdif)(int *m, int *n, double *par,
-                                       double *fvec, int *iflag), ...
-
-F77_CALL(lmdif)(&fcn_lmdif, ...
-@end example
-
-@c clang and experimental gfortran on M1 macOS in late 2020.
-This works on most platforms but depends on the C and Fortran compilers
-agreeing on calling conventions: this have been seen to fail.  The most
-portable solution seems to be to convert the Fortran code to C, perhaps
-using @command{f2c}.
 
 @node Numerical analysis subroutines, Optimization, Calling C from Fortran and vice versa, The R API
 @section Numerical analysis subroutines
@@ -14215,13 +14090,7 @@ Computes @code{log(1 + exp(@var{x}))} (@emph{log 1 @b{p}lus @b{exp}}),
 accurately, notably for large @var{x}, e.g., @eqn{x > 720, x > 720}.
 @end deftypefun
 
-@deftypefun double log1mexp (double @var{x})
-Computes @code{log(1 - exp(@var{-x}))} (@emph{log 1 @b{m}inus @b{exp}}),
-accurately, carefully for two regions of @var{x}, optimally cutting
-off at @eqn{\log 2, log 2} (= 0.693147..), using
-@code{((-x) > -M_LN2 ? log(-expm1(-x)) : log1p(-exp(-x)))}.
-@end deftypefun
-
+@c  log1mexp(.) to come
 
 @deftypefun double expm1 (double @var{x})
 Computes @code{exp(@var{x}) - 1} (@emph{exp x @b{m}inus 1}), accurately
@@ -14958,13 +14827,15 @@ Fortran entry points, but there is a more comprehensive scheme used by,
 for example package @pkg{stats}.  Most compilers which allow control of
 visibility will allow control of visibility for all symbols @emph{via} a
 flag, and where known the flag is encapsulated in the macros
-@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{This applies to the
-compiler for the default C++ dialect (currently C++11) and not
-necessarily to other dialects.} and @samp{F_VISIBILITY} for C, C++ and
-Fortran compilers.@footnote{In some cases Fortran compilers accept the
-flag but do not actually hide their symbols.}  These are defined in
-@file{etc/Makeconf} and so available for normal compilation of package
-code.  For example, @file{src/Makevars} could include some of
+@samp{C_VISIBILITY}, @samp{CXX_VISIBILITY}@footnote{As from @R{} 3.5.2:
+This applies to the compiler for the default C++ dialect (currently
+C++11) and not necessarily to other dialects.} and @samp{F_VISIBILITY}
+for C, C++ and Fortran compilers.@footnote{@samp{F77_VISIBILITY} was
+used prior to @R 3.6.0 and was still available in 3.6.x.  In some cases
+the Fortran compilers accept the flag but do not actually hide their
+symbols.}  These are defined in @file{etc/Makeconf} and so available for
+normal compilation of package code.  For example, @file{src/Makevars}
+could include some of
 
 @example
 PKG_CFLAGS=$(C_VISIBILITY)

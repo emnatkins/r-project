@@ -25,7 +25,7 @@ solve(a, b, \dots)
   \item{tol}{the tolerance for detecting linear dependencies in the
     columns of \code{a}.  The default is \code{.Machine$double.eps}. Not
     currently used with complex matrices \code{a}.}
-  \item{LINPACK}{logical.  Defunct and an error.}
+  \item{LINPACK}{logical.  Defunct and ignored with a warning.}
   \item{\dots}{further arguments passed to or from other methods}
 }
 \details{

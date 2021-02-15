@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR The R Core Team
-# This file is distributed under the same license as the R package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the utils package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: R 4.1.0\n"
-"Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-02-01 13:59+0000\n"
+"Project-Id-Version: utils 3.6.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-03-29 07:06-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,98 +17,98 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: io.c:327 io.c:331 io.c:341 io.c:571 io.c:771 io.c:824 io.c:838 io.c:842
-#: io.c:848 io.c:849 io.c:1090 io.c:1091 io.c:1093 io.c:1094 io.c:1095
-#: io.c:1096 io.c:1097 io.c:1098 stubs.c:47 stubs.c:67 windows/dialogs.c:169
+#: io.c:329 io.c:333 io.c:343 io.c:574 io.c:774 io.c:827 io.c:840 io.c:844
+#: io.c:850 io.c:851 io.c:1097 io.c:1098 io.c:1100 io.c:1101 io.c:1102
+#: io.c:1103 io.c:1104 io.c:1105 stubs.c:47 stubs.c:67 windows/dialogs.c:169
 #: windows/dialogs.c:194 windows/dialogs.c:197 windows/dialogs.c:241
 #: windows/dialogs.c:278 windows/dialogs.c:289 windows/dialogs.c:313
-#: windows/dialogs.c:321 windows/util.c:121 windows/widgets.c:75
-#: windows/widgets.c:78 windows/widgets.c:83
+#: windows/dialogs.c:321 windows/util.c:117 windows/widgets.c:78
+#: windows/widgets.c:81 windows/widgets.c:86
 #, c-format
 msgid "invalid '%s' argument"
 msgstr ""
 
-#: io.c:350 io.c:835
+#: io.c:352 io.c:837
 msgid "invalid quote symbol set"
 msgstr ""
 
-#: io.c:362 io.c:858 io.c:1078
+#: io.c:364 io.c:860 io.c:1085
 msgid "cannot open the connection"
 msgstr ""
 
-#: io.c:365 io.c:369
+#: io.c:367 io.c:371
 msgid "cannot read from this connection"
 msgstr ""
 
-#: io.c:416 io.c:434
+#: io.c:418 io.c:436
 #, c-format
 msgid "quoted string on line %d terminated by EOF"
 msgstr ""
 
-#: io.c:567
+#: io.c:570
 msgid "the first argument must be of mode character"
 msgstr ""
 
-#: io.c:597
+#: io.c:600
 #, c-format
 msgid "invalid 'numerals' string: \"%s\""
 msgstr ""
 
-#: io.c:773
+#: io.c:776
 #, c-format
 msgid "Selection: "
 msgstr ""
 
-#: io.c:868 io.c:883
+#: io.c:870 io.c:886
 msgid "cannot allocate buffer in 'readTableHead'"
 msgstr ""
 
-#: io.c:896
+#: io.c:900
 msgid "\\ followed by EOF"
 msgstr ""
 
-#: io.c:948 io.c:952
+#: io.c:953 io.c:958
 #, c-format
 msgid "incomplete final line found by readTableHeader on '%s'"
 msgstr ""
 
-#: io.c:1009
+#: io.c:1016
 msgid "index out of range"
 msgstr ""
 
-#: io.c:1046
+#: io.c:1053
 #, c-format
 msgid "Problem closing connection:  %s"
 msgstr ""
 
-#: io.c:1048
+#: io.c:1055
 msgid "Problem closing connection"
 msgstr ""
 
-#: io.c:1071
+#: io.c:1078
 msgid "'file' is not a connection"
 msgstr ""
 
-#: io.c:1074
+#: io.c:1081
 msgid "cannot write to this connection"
 msgstr ""
 
-#: io.c:1104
+#: io.c:1111
 msgid "'dec' must be a single character"
 msgstr ""
 
-#: io.c:1130
+#: io.c:1137
 #, c-format
-msgid "corrupt data frame -- length of column %d does not match nrows"
+msgid "corrupt data frame -- length of column %d does not not match nrows"
 msgstr ""
 
-#: io.c:1161
+#: io.c:1168
 #, c-format
 msgid "column %s claims to be a factor but does not have numeric codes"
 msgstr ""
 
-#: io.c:1179
-msgid "corrupt matrix -- dims do not match length"
+#: io.c:1186
+msgid "corrupt matrix -- dims not not match length"
 msgstr ""
 
 #: stubs.c:56
@@ -134,11 +134,6 @@ msgstr ""
 #: stubs.c:248 stubs.c:251
 #, c-format
 msgid "invalid '%s' specification"
-msgstr ""
-
-#: stubs.c:254
-#, c-format
-msgid "'%s' contains missing values"
 msgstr ""
 
 #: utils.c:85
@@ -202,69 +197,69 @@ msgstr ""
 msgid "Registry key '%ls' not found"
 msgstr ""
 
-#: windows/util.c:46
+#: windows/util.c:42
 msgid "unsupported version of Windows"
 msgstr ""
 
-#: windows/util.c:285
+#: windows/util.c:281
 msgid "argument must be a character vector or a raw vector"
 msgstr ""
 
-#: windows/util.c:324
+#: windows/util.c:318
 msgid "unable to open the clipboard"
 msgstr ""
 
-#: windows/util.c:329
+#: windows/util.c:323
 msgid "unable to write to the clipboard"
 msgstr ""
 
-#: windows/util.c:408
+#: windows/util.c:402
 msgid "'title' must be a character string"
 msgstr ""
 
-#: windows/util.c:417
+#: windows/util.c:411
 msgid "'text' must be a character string"
 msgstr ""
 
-#: windows/util.c:456
+#: windows/util.c:450
 #, c-format
 msgid "'%s' must be length 1"
 msgstr ""
 
-#: windows/util.c:569
+#: windows/util.c:563
 #, c-format
 msgid "'%s' must be a list"
 msgstr ""
 
-#: windows/util.c:573
+#: windows/util.c:567
 #, c-format
 msgid "'%s' element %d is not a window handle"
 msgstr ""
 
-#: windows/widgets.c:105
+#: windows/widgets.c:108
 msgid "Select one or more"
 msgstr ""
 
-#: windows/widgets.c:105
+#: windows/widgets.c:108
 msgid "Select one"
 msgstr ""
 
-#: windows/widgets.c:188 windows/widgets.c:256
+#: windows/widgets.c:182 windows/widgets.c:250
 msgid "'default' must be a character string"
 msgstr ""
 
-#: windows/widgets.c:190 windows/widgets.c:258
+#: windows/widgets.c:184 windows/widgets.c:252
 msgid "'default' is overlong"
 msgstr ""
 
-#: windows/widgets.c:194 windows/widgets.c:262
+#: windows/widgets.c:188 windows/widgets.c:256
 msgid "'caption' must be a character string"
 msgstr ""
 
-#: windows/widgets.c:196
+#: windows/widgets.c:190
 msgid "'multi' must be a logical value"
 msgstr ""
 
-#: windows/widgets.c:198
+#: windows/widgets.c:192
 msgid "'filterindex' must be an integer value"
 msgstr ""

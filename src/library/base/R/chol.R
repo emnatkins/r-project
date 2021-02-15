@@ -21,7 +21,7 @@ chol <- function(x, ...) UseMethod("chol")
 chol.default <- function(x, pivot = FALSE, LINPACK = FALSE, tol = -1, ...)
 {
     if (!missing(LINPACK))
-        stop("the LINPACK argument has been defunct since R 3.1.0")
+        warning("the LINPACK argument has been defunct since R 3.1.0")
     if (is.complex(x))
         stop("complex matrices not permitted at present")
 
@@ -31,6 +31,6 @@ chol.default <- function(x, pivot = FALSE, LINPACK = FALSE, tol = -1, ...)
 chol2inv <- function(x, size = NCOL(x), LINPACK = FALSE)
 {
     if (!missing(LINPACK))
-        stop("the LINPACK argument has been defunct since R 3.1.0")
+        warning("the LINPACK argument has been defunct since R 3.1.0")
     .Internal(La_chol2inv(x, size))
 }

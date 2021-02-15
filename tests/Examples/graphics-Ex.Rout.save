@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2021-02-13 r79999) -- "Unsuffered Consequences"
+R version 4.0.3 Patched (2021-01-08 r79820) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -150,7 +150,7 @@ Hair    Brown Blue Hazel Green
 > x <- 9.9*10^(-3:10)
 > plot(x, 1:14, log = "x")
 > axTicks(1) # now length 5, in R <= 2.13.x gave the following
-[1] 1e-01 1e+01 1e+03 1e+05 1e+07 1e+09 1e+11
+[1] 1e-02 1e+01 1e+04 1e+07 1e+10
 > axTicks(1, nintLog = Inf) # rather too many
  [1] 1e-02 1e-01 1e+00 1e+01 1e+02 1e+03 1e+04 1e+05 1e+06 1e+07 1e+08 1e+09
 [13] 1e+10 1e+11
@@ -432,7 +432,7 @@ Survived 1st 2nd 3rd Crew
 > # *add* notches (somewhat funny here <--> warning "notches .. outside hinges"):
 > boxplot(count ~ spray, data = InsectSprays,
 +         notch = TRUE, add = TRUE, col = "blue")
-Warning in (function (z, notch = FALSE, width = NULL, varwidth = FALSE,  :
+Warning in bxp(list(stats = c(7, 11, 14, 18.5, 23, 7, 12, 16.5, 18, 21,  :
   some notches went outside hinges ('box'): maybe set notch=FALSE
 > 
 > boxplot(decrease ~ treatment, data = OrchardSprays, col = "bisque",
@@ -2144,7 +2144,7 @@ N
 > points.default # to see how it calls "plot.xy(xy.coords(x, y), ...)"
 function (x, y = NULL, type = "p", ...) 
 plot.xy(xy.coords(x, y), type = type, ...)
-<bytecode: 0x4b84470>
+<bytecode: 0x29cc618>
 <environment: namespace:graphics>
 > 
 > 
@@ -3014,7 +3014,7 @@ function (xy = 1, warn.log = TRUE)
     u <- par("usr")
     xy * c(u[2L] - u[1L], u[4L] - u[3L])/par("pin")
 }
-<bytecode: 0x3f41910>
+<bytecode: 0x40ba380>
 <environment: namespace:graphics>
 > 
 > ## plot labels offset 0.12 inches to the right
@@ -3095,7 +3095,7 @@ function (xy = 1, warn.log = TRUE)
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  7.753 0.16 7.966 0 0 
+Time elapsed:  7.416 0.12 8.032 0 0 
 > grDevices::dev.off()
 null device 
           1 

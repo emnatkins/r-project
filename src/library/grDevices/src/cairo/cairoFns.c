@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2008--2021  R Core Team
+ *  Copyright (C) 2008--2020  R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,14 +17,6 @@
  *  https://www.R-project.org/Licenses/
  */
 
-/* Included by
-
-  cairoBM.c (with NO_X11 defined)
-  src/modules/X11/devX11.c if HAVE_WORKING_X11_CAIRO is defined
-
-  pX11Desc is a pointer to one of two similar structures defined in
-  cairoBM.h and devX11.h
-*/
 
 /* Entry points used
 
@@ -95,22 +87,17 @@
 
 */
 
-static void CairoCol(unsigned int col, double* R, double* G, double* B)
-{
-    *R = R_RED(col)/255.0;
-    *G = R_GREEN(col)/255.0;
-    *B = R_BLUE(col)/255.0;
-    *R = pow(*R, RedGamma);
-    *G = pow(*G, GreenGamma);
-    *B = pow(*B, BlueGamma);
-}
-
 static void CairoColor(unsigned int col, pX11Desc xd)
 {
     unsigned int alpha = R_ALPHA(col);
     double red, blue, green;
 
-    CairoCol(col, &red, &green, &blue);
+    red = R_RED(col)/255.0;
+    green = R_GREEN(col)/255.0;
+    blue = R_BLUE(col)/255.0;
+    red = pow(red, RedGamma);
+    green = pow(green, GreenGamma);
+    blue = pow(blue, BlueGamma);
 
     /* This optimization should not be necessary, but alpha = 1 seems
        to cause image fallback in some backends */
@@ -120,488 +107,6 @@ static void CairoColor(unsigned int col, pX11Desc xd)
 	cairo_set_source_rgba(xd->cc, red, green, blue, alpha/255.0);
 }
 
-/*
- ***************************
- * Patterns
- ***************************
- */
-static void CairoInitPatterns(pX11Desc xd)
-{
-    int i;
-    xd->numPatterns = 20;
-    xd->patterns = malloc(sizeof(cairo_pattern_t*) * xd->numPatterns);
-    for (i = 0; i < xd->numPatterns; i++) {
-        xd->patterns[i] = NULL;
-    }
-}
-
-static void CairoCleanPatterns(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numPatterns; i++) {
-        if (xd->patterns[i] != NULL) {
-            cairo_pattern_destroy(xd->patterns[i]);
-            xd->patterns[i] = NULL;
-        }
-    }    
-}
-
-static void CairoDestroyPatterns(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numPatterns; i++) {
-        if (xd->patterns[i] != NULL) {
-            cairo_pattern_destroy(xd->patterns[i]);
-        }
-    }    
-    free(xd->patterns);
-}
-
-static int CairoNewPatternIndex(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numPatterns; i++) {
-        if (xd->patterns[i] == NULL) {
-            return i;
-        }
-    }    
-    warning(_("Cairo patterns exhausted (try opening device with more patterns)"));
-    return -1;
-}
-
-static cairo_pattern_t* CairoLinearGradient(SEXP gradient, pX11Desc xd)
-{
-    unsigned int col;
-    unsigned int alpha;
-    double red, blue, green;
-    int i, nStops = R_GE_linearGradientNumStops(gradient);
-    double stop;
-    cairo_extend_t extend = CAIRO_EXTEND_NONE;
-    cairo_pattern_t *cairo_gradient;  
-    cairo_gradient = 
-        cairo_pattern_create_linear(R_GE_linearGradientX1(gradient),
-                                    R_GE_linearGradientY1(gradient),
-                                    R_GE_linearGradientX2(gradient),
-                                    R_GE_linearGradientY2(gradient));
-    for (i = 0; i < nStops; i++) {
-        col = R_GE_linearGradientColour(gradient, i);
-        stop = R_GE_linearGradientStop(gradient, i);
-        CairoCol(col, &red, &green, &blue);
-        alpha = R_ALPHA(col);
-        if (alpha == 255)
-            cairo_pattern_add_color_stop_rgb(cairo_gradient, stop, 
-                                             red, green, blue);
-        else
-            cairo_pattern_add_color_stop_rgba(cairo_gradient, stop, 
-                                              red, green, blue, alpha/255.0);
-    }
-    switch(R_GE_linearGradientExtend(gradient)) {
-    case R_GE_patternExtendNone: extend = CAIRO_EXTEND_NONE; break;
-    case R_GE_patternExtendPad: extend = CAIRO_EXTEND_PAD; break;
-    case R_GE_patternExtendReflect: extend = CAIRO_EXTEND_REFLECT; break;
-    case R_GE_patternExtendRepeat: extend = CAIRO_EXTEND_REPEAT; break;
-    }
-    cairo_pattern_set_extend(cairo_gradient, extend);    
-    return cairo_gradient;
-}
-
-static cairo_pattern_t* CairoRadialGradient(SEXP gradient, pX11Desc xd)
-{
-    unsigned int col;
-    unsigned int alpha;
-    double red, blue, green;
-    int i, nStops = R_GE_radialGradientNumStops(gradient);
-    double stop;
-    cairo_extend_t extend = CAIRO_EXTEND_NONE;
-    cairo_pattern_t *cairo_gradient;  
-    cairo_gradient = 
-        cairo_pattern_create_radial(R_GE_radialGradientCX1(gradient),
-                                    R_GE_radialGradientCY1(gradient),
-                                    R_GE_radialGradientR1(gradient),
-                                    R_GE_radialGradientCX2(gradient),
-                                    R_GE_radialGradientCY2(gradient),
-                                    R_GE_radialGradientR2(gradient));
-    for (i = 0; i < nStops; i++) {
-        col = R_GE_radialGradientColour(gradient, i);
-        stop = R_GE_radialGradientStop(gradient, i);
-        CairoCol(col, &red, &green, &blue);
-        alpha = R_ALPHA(col);
-        if (alpha == 255)
-            cairo_pattern_add_color_stop_rgb(cairo_gradient, stop, 
-                                             red, green, blue);
-        else
-            cairo_pattern_add_color_stop_rgba(cairo_gradient, stop, 
-                                              red, green, blue, alpha/255.0);
-    }
-    switch(R_GE_radialGradientExtend(gradient)) {
-    case R_GE_patternExtendNone: extend = CAIRO_EXTEND_NONE; break;
-    case R_GE_patternExtendPad: extend = CAIRO_EXTEND_PAD; break;
-    case R_GE_patternExtendReflect: extend = CAIRO_EXTEND_REFLECT; break;
-    case R_GE_patternExtendRepeat: extend = CAIRO_EXTEND_REPEAT; break;
-    }
-    cairo_pattern_set_extend(cairo_gradient, extend);    
-    return cairo_gradient;
-}
-
-static cairo_pattern_t *CairoTilingPattern(SEXP pattern, pX11Desc xd)
-{
-    cairo_t *cc = xd->cc;
-    SEXP R_fcall;
-    cairo_pattern_t *cairo_tiling;
-    cairo_extend_t extend = CAIRO_EXTEND_NONE;
-    /* Start new group - drawing is redirected to this group */
-    cairo_push_group(cc);
-    /* Scale the drawing to fill the temporary group surface */
-    cairo_matrix_t tm;
-    cairo_matrix_init_identity(&tm);
-    cairo_matrix_scale(&tm, 
-                       xd->windowWidth/R_GE_tilingPatternWidth(pattern),
-                       xd->windowHeight/R_GE_tilingPatternHeight(pattern));
-    cairo_matrix_translate(&tm, 
-                           -R_GE_tilingPatternX(pattern),
-                           -R_GE_tilingPatternY(pattern));
-    cairo_set_matrix(cc, &tm);
-    /* Play the pattern function to build the pattern */
-    R_fcall = PROTECT(lang1(R_GE_tilingPatternFunction(pattern)));
-    eval(R_fcall, R_GlobalEnv);
-    UNPROTECT(1);
-    /* Close group and return resulting pattern */
-    cairo_tiling = cairo_pop_group(cc);
-    /* Scale the pattern to its proper size */
-    cairo_matrix_init_identity(&tm);
-    cairo_matrix_scale(&tm, 
-                       xd->windowWidth/R_GE_tilingPatternWidth(pattern),
-                       xd->windowHeight/R_GE_tilingPatternHeight(pattern));
-    cairo_matrix_translate(&tm, 
-                           -R_GE_tilingPatternX(pattern), 
-                           -R_GE_tilingPatternY(pattern));
-    cairo_pattern_set_matrix(cairo_tiling, &tm);
-    switch(R_GE_tilingPatternExtend(pattern)) {
-    case R_GE_patternExtendNone: extend = CAIRO_EXTEND_NONE; break;
-    case R_GE_patternExtendPad: extend = CAIRO_EXTEND_PAD; break;
-    case R_GE_patternExtendReflect: extend = CAIRO_EXTEND_REFLECT; break;
-    case R_GE_patternExtendRepeat: extend = CAIRO_EXTEND_REPEAT; break;
-    }
-    cairo_pattern_set_extend(cairo_tiling, extend);
-    return cairo_tiling;
-}
-
-static cairo_pattern_t *CairoCreatePattern(SEXP pattern, pX11Desc xd)
-{
-    cairo_pattern_t *cairo_pattern = NULL;
-    switch(R_GE_patternType(pattern)) {
-    case R_GE_linearGradientPattern: 
-        cairo_pattern = CairoLinearGradient(pattern, xd);
-        break;
-    case R_GE_radialGradientPattern:
-        cairo_pattern = CairoRadialGradient(pattern, xd);            
-        break;
-    case R_GE_tilingPattern:
-        cairo_pattern = CairoTilingPattern(pattern, xd);
-        break;
-    }
-    return cairo_pattern;
-}
-
-static int CairoSetPattern(SEXP pattern, pX11Desc xd)
-{
-    int index = CairoNewPatternIndex(xd);
-    if (index >= 0) {
-        cairo_pattern_t *cairo_pattern = CairoCreatePattern(pattern, xd);
-
-        xd->patterns[index] = cairo_pattern;
-    }
-    return index;
-}
-
-static void CairoReleasePattern(int index, pX11Desc xd)
-{
-    if (xd->patterns[index]) {
-        cairo_pattern_destroy(xd->patterns[index]);
-        xd->patterns[index] = NULL;
-    } else {
-        warning(_("Attempt to release non-existent pattern"));
-    }
-}
-
-static void CairoPatternFill(SEXP ref, pX11Desc xd)
-{
-    int index = INTEGER(ref)[0];
-    if (index >= 0) {
-        cairo_set_source(xd->cc, xd->patterns[index]);
-    } else {
-        /* Patterns may have been exhausted */
-	cairo_set_source_rgba(xd->cc, 0.0, 0.0, 0.0, 0.0);
-    }
-    cairo_fill_preserve(xd->cc);
-}
-
-/*
- ***************************
- * Clipping paths
- ***************************
- */
-static void CairoInitClipPaths(pX11Desc xd)
-{
-    int i;
-    /* Zero clip paths */
-    xd->numClipPaths = 20;
-    xd->clippaths = malloc(sizeof(cairo_path_t*) * xd->numClipPaths);
-    for (i = 0; i < xd->numClipPaths; i++) {
-        xd->clippaths[i] = NULL;
-    }
-}
-
-static void CairoCleanClipPaths(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numClipPaths; i++) {
-        if (xd->clippaths[i] != NULL) {
-            cairo_path_destroy(xd->clippaths[i]);
-            xd->clippaths[i] = NULL;
-        }
-    }    
-}
-
-static void CairoDestroyClipPaths(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numClipPaths; i++) {
-        if (xd->clippaths[i] != NULL) {
-            cairo_path_destroy(xd->clippaths[i]);
-            xd->clippaths[i] = NULL;
-        }
-    }    
-    free(xd->clippaths);
-}
-
-static int CairoNewClipPathIndex(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numClipPaths; i++) {
-        if (xd->clippaths[i] == NULL) {
-            return i;
-        }
-    }    
-    warning(_("Cairo clipping paths exhausted"));
-    return -1;
-}
-
-static cairo_path_t* CairoCreateClipPath(SEXP clipPath, int index, pX11Desc xd)
-{
-    cairo_t *cc = xd->cc;
-    SEXP R_fcall;
-    cairo_path_t *cairo_clippath;
-    /* Save the current path */
-    cairo_path_t *cairo_saved_path = cairo_copy_path(cc);
-    /* Increment the "appending" count */
-    xd->appending++;
-    /* Clear the current path */
-    cairo_new_path(cc);
-    /* Play the clipPath function to build the clipping path */
-    R_fcall = PROTECT(lang1(clipPath));
-    eval(R_fcall, R_GlobalEnv);
-    UNPROTECT(1);
-    /* Set the clipping region from the path */
-    cairo_reset_clip(cc);
-    cairo_clip_preserve(cc);
-    /* Save the clipping path (for reuse) */
-    cairo_clippath = cairo_copy_path(cc);
-    /* Clear the path again */
-    cairo_new_path(cc);
-    /* Decrement the "appending" count */
-    xd->appending--;
-    /* Restore the saved path */
-    cairo_append_path(cc, cairo_saved_path);
-    /* Destroy the saved path */
-    cairo_path_destroy(cairo_saved_path);
-    /* Return the clipping path */
-    return cairo_clippath;
-}
-
-static void CairoReuseClipPath(cairo_path_t *cairo_clippath, pX11Desc xd)
-{
-    cairo_t *cc = xd->cc;
-    /* Save the current path */
-    cairo_path_t *cairo_saved_path = cairo_copy_path(cc);
-    /* Clear the current path */
-    cairo_new_path(cc);
-    /* Append the clipping path */
-    cairo_append_path(cc, cairo_clippath);
-    /* Set the clipping region from the path (which clears the path) */
-    cairo_reset_clip(cc);
-    cairo_clip(cc);
-    /* Restore the saved path */
-    cairo_append_path(cc, cairo_saved_path);
-    /* Destroy the saved path */
-    cairo_path_destroy(cairo_saved_path);
-}
-
-static SEXP CairoSetClipPath(SEXP path, SEXP ref, pX11Desc xd)
-{
-    cairo_path_t *cairo_clippath;
-    SEXP newref = R_NilValue;
-    int index;
-
-    if (isNull(ref)) {
-        /* Must generate new ref */
-        index = CairoNewClipPathIndex(xd);
-        if (index < 0) {
-            /* Unless we have run out of space */
-        } else {
-            /* Create this clipping path */
-            cairo_clippath = CairoCreateClipPath(path, index, xd);
-            xd->clippaths[index] = cairo_clippath;
-            PROTECT(newref = allocVector(INTSXP, 1));
-            INTEGER(newref)[0] = index;
-            UNPROTECT(1);
-        }
-    } else {
-        /* Reuse indexed clip path */
-        int index = INTEGER(ref)[0];
-        if (xd->clippaths[index]) {
-            CairoReuseClipPath(xd->clippaths[index], xd);
-        } else {
-            /* BUT if index clip path does not exist, create a new one */
-            cairo_clippath = CairoCreateClipPath(path, index, xd);
-            xd->clippaths[index] = cairo_clippath;
-            warning(_("Attempt to reuse non-existent clipping path"));
-        }
-    }
-
-    return newref;
-}
-
-static void CairoReleaseClipPath(int index, pX11Desc xd)
-{
-    if (xd->clippaths[index]) {
-        cairo_path_destroy(xd->clippaths[index]);
-        xd->clippaths[index] = NULL;
-    } else {
-        warning(_("Attempt to release non-existent clipping path"));
-    }
-}
-
-/*
- ***************************
- * Masks
- ***************************
- */
-static void CairoInitMasks(pX11Desc xd)
-{
-    int i;
-    xd->numMasks = 20;
-    xd->masks = malloc(sizeof(cairo_pattern_t*) * xd->numMasks);
-    for (i = 0; i < xd->numMasks; i++) {
-        xd->masks[i] = NULL;
-    }
-    xd->currentMask = -1;
-}
-
-static void CairoCleanMasks(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numMasks; i++) {
-        if (xd->masks[i] != NULL) {
-            cairo_pattern_destroy(xd->masks[i]);
-            xd->masks[i] = NULL;
-        }
-    }    
-    xd->currentMask = -1;
-}
-
-static void CairoDestroyMasks(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numMasks; i++) {
-        if (xd->masks[i] != NULL) {
-            cairo_pattern_destroy(xd->masks[i]);
-            xd->masks[i] = NULL;
-        }
-    }    
-    free(xd->masks);
-}
-
-static int CairoNewMaskIndex(pX11Desc xd)
-{
-    int i;
-    for (i = 0; i < xd->numMasks; i++) {
-        if (xd->masks[i] == NULL) {
-            return i;
-        }
-    }    
-    warning(_("Cairo masks exhausted (try opening device with more masks)"));
-    return -1;
-}
-
-static cairo_pattern_t *CairoCreateMask(SEXP mask, pX11Desc xd)
-{
-    cairo_t *cc = xd->cc;
-    SEXP R_fcall;
-    /* Start new group - drawing is redirected to this group */
-    cairo_push_group(cc);
-    /* Play the mask function to build the mask */
-    R_fcall = PROTECT(lang1(mask));
-    eval(R_fcall, R_GlobalEnv);
-    UNPROTECT(1);
-    /* Close group and return resulting mask */
-    return cairo_pop_group(cc);
-}
-
-static SEXP CairoSetMask(SEXP mask, SEXP ref, pX11Desc xd)
-{
-    int index;
-    cairo_pattern_t *cairo_mask;
-    SEXP newref = R_NilValue;
-
-    if (isNull(mask)) {
-        /* Set NO mask */
-        index = -1;
-    } else {
-        if (isNull(ref)) {
-            /* Create a new mask */
-            index = CairoNewMaskIndex(xd);
-            if (index >= 0) {
-                cairo_mask = CairoCreateMask(mask, xd);
-                xd->masks[index] = cairo_mask;
-            }
-        } else {
-            /* Reuse existing mask */
-            index = INTEGER(ref)[0];
-            if (index >= 0 && !xd->masks[index]) {
-                /* But if it does not exist, make a new one */
-                index = CairoNewMaskIndex(xd);
-                if (index >= 0) {
-                    cairo_mask = CairoCreateMask(mask, xd);
-                    xd->masks[index] = cairo_mask;
-                }
-            }
-        }
-        newref = PROTECT(allocVector(INTSXP, 1));
-        INTEGER(newref)[0] = index;
-        UNPROTECT(1);
-    }
-
-    xd->currentMask = index;
-
-    return newref;
-}
-
-static void CairoReleaseMask(int index, pX11Desc xd)
-{
-    if (xd->masks[index]) {
-        cairo_pattern_destroy(xd->masks[index]);
-        xd->masks[index] = NULL;
-    } else {
-        warning(_("Attempt to release non-existent mask"));
-    }
-}
-
-/*
- ***************************
- * Rendering
- ***************************
- */
 static void CairoLineType(const pGEcontext gc, pX11Desc xd)
 {
     cairo_t *cc = xd->cc;
@@ -657,41 +162,20 @@ static void Cairo_Rect(double x0, double y0, double x1, double y1,
 {
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
-    if (!xd->appending) {
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-        cairo_new_path(xd->cc);
-    }
-
+    cairo_new_path(xd->cc);
     cairo_rectangle(xd->cc, x0, y0, x1 - x0, y1 - y0);
 
-    if (!xd->appending) {
+    if (R_ALPHA(gc->fill) > 0) {
+	cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
+	CairoColor(gc->fill, xd);
+	cairo_fill_preserve(xd->cc);
+	cairo_set_antialias(xd->cc, xd->antialias);
+    }
 
-        /* patternFill overrides fill */
-        if (gc->patternFill != R_NilValue) { 
-            CairoPatternFill(gc->patternFill, xd);
-        } else if (R_ALPHA(gc->fill) > 0) {
-            cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
-            CairoColor(gc->fill, xd);
-            cairo_fill_preserve(xd->cc);
-            cairo_set_antialias(xd->cc, xd->antialias);
-        }
-        if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_stroke(xd->cc);
-        }
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
+    if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -700,41 +184,20 @@ static void Cairo_Circle(double x, double y, double r,
 {
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
-    if (!xd->appending) {
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-        cairo_new_path(xd->cc);
-    }
-
+    cairo_new_path(xd->cc);
     /* radius 0.5 seems to be visible */
     cairo_arc(xd->cc, x, y, (r > 0.5 ? r : 0.5), 0.0, 2 * M_PI);
 
-    if (!xd->appending) {
-        /* patternFill overrides fill */
-        if (gc->patternFill != R_NilValue) { 
-            CairoPatternFill(gc->patternFill, xd);
-        } else if (R_ALPHA(gc->fill) > 0) {
-            cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
-            CairoColor(gc->fill, xd);
-            cairo_fill_preserve(xd->cc);
-            cairo_set_antialias(xd->cc, xd->antialias);
-        }
-        if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_stroke(xd->cc);
-        }
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
+    if (R_ALPHA(gc->fill) > 0) {
+	cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
+	CairoColor(gc->fill, xd);
+	cairo_fill_preserve(xd->cc);
+	cairo_set_antialias(xd->cc, xd->antialias);
+   }
+    if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -744,31 +207,12 @@ static void Cairo_Line(double x1, double y1, double x2, double y2,
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
     if (R_ALPHA(gc->col) > 0) {
-        if (!xd->appending) {
-            if (xd->currentMask >= 0) {
-                /* If masking, draw temporary pattern */
-                cairo_push_group(xd->cc);
-            }
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_new_path(xd->cc);
-        }
-
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_new_path(xd->cc);
 	cairo_move_to(xd->cc, x1, y1);
 	cairo_line_to(xd->cc, x2, y2);
-
-        if (!xd->appending) {
-            cairo_stroke(xd->cc);
-            if (xd->currentMask >= 0) {
-                /* If masking, use temporary pattern as source and mask that */
-                cairo_pattern_t *source = cairo_pop_group(xd->cc);
-                cairo_pattern_t *mask = xd->masks[xd->currentMask];
-                cairo_set_source(xd->cc, source);
-                cairo_mask(xd->cc, mask);
-                /* Release temporary pattern */
-                cairo_pattern_destroy(source);
-            }
-        }
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -779,31 +223,12 @@ static void Cairo_Polyline(int n, double *x, double *y,
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
     if (R_ALPHA(gc->col) > 0) {
-        if (!xd->appending) {
-            if (xd->currentMask >= 0) {
-                /* If masking, draw temporary pattern */
-                cairo_push_group(xd->cc);
-            }
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_new_path(xd->cc);
-        }
-
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_new_path(xd->cc);
 	cairo_move_to(xd->cc, x[0], y[0]);
 	for(i = 0; i < n; i++) cairo_line_to(xd->cc, x[i], y[i]);
-        
-        if (!xd->appending) {
-            cairo_stroke(xd->cc);
-            if (xd->currentMask >= 0) {
-                /* If masking, use temporary pattern as source and mask that */
-                cairo_pattern_t *source = cairo_pop_group(xd->cc);
-                cairo_pattern_t *mask = xd->masks[xd->currentMask];
-                cairo_set_source(xd->cc, source);
-                cairo_mask(xd->cc, mask);
-                /* Release temporary pattern */
-                cairo_pattern_destroy(source);
-            }
-        }
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -813,42 +238,21 @@ static void Cairo_Polygon(int n, double *x, double *y,
     int i;
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
-    if (!xd->appending) {
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-        cairo_new_path(xd->cc);
-    }
-
+    cairo_new_path(xd->cc);
     cairo_move_to(xd->cc, x[0], y[0]);
     for(i = 0; i < n; i++) cairo_line_to(xd->cc, x[i], y[i]);
     cairo_close_path(xd->cc);
 
-    if (!xd->appending) {
-        /* patternFill overrides fill */
-        if (gc->patternFill != R_NilValue) { 
-            CairoPatternFill(gc->patternFill, xd);
-        } else if (R_ALPHA(gc->fill) > 0) {
-            cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
-            CairoColor(gc->fill, xd);
-            cairo_fill_preserve(xd->cc);
-            cairo_set_antialias(xd->cc, xd->antialias);
-        }
-        if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_stroke(xd->cc);
-        }
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
+    if (R_ALPHA(gc->fill) > 0) {
+	cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
+	CairoColor(gc->fill, xd);
+	cairo_fill_preserve(xd->cc);
+	cairo_set_antialias(xd->cc, xd->antialias);
+    }
+    if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -860,14 +264,7 @@ static void Cairo_Path(double *x, double *y,
     int i, j, n;
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
-    if (!xd->appending) {
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-        cairo_new_path(xd->cc);
-    }
-
+    cairo_new_path(xd->cc);
     n = 0;
     for (i=0; i < npoly; i++) {
         cairo_move_to(xd->cc, x[n], y[n]);
@@ -879,39 +276,20 @@ static void Cairo_Path(double *x, double *y,
         cairo_close_path(xd->cc);
     }
 
-    if (!xd->appending) {
-        if (gc->patternFill != R_NilValue) { 
-            cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
-            if (winding) 
-                cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_WINDING);
-            else 
-                cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_EVEN_ODD);
-            CairoPatternFill(gc->patternFill, xd);
-            cairo_set_antialias(xd->cc, xd->antialias);
-        } else if (R_ALPHA(gc->fill) > 0) {
-            cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
-            if (winding) 
-                cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_WINDING);
-            else 
-                cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_EVEN_ODD);
-            CairoColor(gc->fill, xd);
-            cairo_fill_preserve(xd->cc);
-            cairo_set_antialias(xd->cc, xd->antialias);
-        }
-        if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
-            CairoColor(gc->col, xd);
-            CairoLineType(gc, xd);
-            cairo_stroke(xd->cc);
-        }
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
+    if (R_ALPHA(gc->fill) > 0) {
+	cairo_set_antialias(xd->cc, CAIRO_ANTIALIAS_NONE);
+        if (winding) 
+            cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_WINDING);
+        else 
+            cairo_set_fill_rule(xd->cc, CAIRO_FILL_RULE_EVEN_ODD);
+	CairoColor(gc->fill, xd);
+	cairo_fill_preserve(xd->cc);
+	cairo_set_antialias(xd->cc, xd->antialias);
+    }
+    if (R_ALPHA(gc->col) > 0 && gc->lty != -1) {
+	CairoColor(gc->col, xd);
+	CairoLineType(gc, xd);
+	cairo_stroke(xd->cc);
     }
 }
 
@@ -958,18 +336,7 @@ static void Cairo_Raster(unsigned int *raster, int w, int h,
     cairo_surface_t *image;
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
 
-    /* 
-     * A raster image adds nothing to a clipping path (?)
-     */
-    if (xd->appending) 
-        return;
-    
     cairo_save(xd->cc);
-
-    if (xd->currentMask >= 0) {
-        /* If masking, draw temporary pattern */
-        cairo_push_group(xd->cc);
-    }
 
     /* If we are going to use the graphics engine for interpolation
      * the image used for the Cairo surface is going to be a
@@ -1022,16 +389,6 @@ static void Cairo_Raster(unsigned int *raster, int w, int h,
     cairo_rectangle(xd->cc, 0, 0, imageWidth, imageHeight);
     cairo_clip(xd->cc);
     cairo_paint(xd->cc); 
-
-    if (xd->currentMask >= 0) {
-        /* If masking, use temporary pattern as source and mask that */
-        cairo_pattern_t *source = cairo_pop_group(xd->cc);
-        cairo_pattern_t *mask = xd->masks[xd->currentMask];
-        cairo_set_source(xd->cc, source);
-        cairo_mask(xd->cc, mask);
-        /* Release temporary pattern */
-        cairo_pattern_destroy(source);
-    }
 
     cairo_restore(xd->cc);
     cairo_surface_destroy(image);
@@ -1243,13 +600,6 @@ PangoCairo_Text(double x, double y,
 		const pGEcontext gc, pDevDesc dd)
 {
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    
-    /*
-     * Pango text does not add to clipping path (yet ?)
-     */
-    if (xd->appending) 
-        return;
-
     const char *textstr;
     if (!utf8Valid(str)) error("invalid string in PangoCairo_Text");
     if (gc->fontface == 5 && !xd->usePUA) {
@@ -1257,19 +607,12 @@ PangoCairo_Text(double x, double y,
     } else {
         textstr = str;
     }
-
     if (R_ALPHA(gc->col) > 0) {
 	gint ascent, lbearing, width;
 	PangoLayout *layout;
 	PangoFontDescription *desc = 
 	    PG_getFont(gc, xd->fontscale, xd->basefontfamily, xd->symbolfamily);
 	cairo_save(xd->cc);
-
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-
 	layout = PG_layout(desc, xd->cc, textstr);
 	PG_text_extents(xd->cc, layout, &lbearing, NULL, &width,
 			&ascent, NULL, 0);
@@ -1279,17 +622,6 @@ PangoCairo_Text(double x, double y,
 	cairo_rel_move_to(xd->cc, -lbearing - width*hadj, -ascent);
 	CairoColor(gc->col, xd);
 	pango_cairo_show_layout(xd->cc, layout);
-
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
-
 	cairo_restore(xd->cc);
 	g_object_unref(layout);
 	pango_font_description_free(desc);
@@ -1303,41 +635,23 @@ PangoCairo_Text(double x, double y,
    http://cairographics.org/manual/cairo-text.html
 
    No diagnostics that glyphs are present, no kerning. 
+ */
 
-   CAIRO_HAS_FT_FONT is defined (or not) in cairo-features.h included
-   by cairo.h.  Windows builds of cairo often have it but the include
-   paths in Windows R are not set up to include freetype2, needed by
-   cairo-ft.h and ft2build.h.
-*/
+#ifdef __APPLE__
+# define USE_FC 1
+#endif
 
-#if CAIRO_HAS_FT_FONT && !defined(_WIN32)
-/* 
-   The branch used on macOS and other-Unix alikes without pango but
-   with freetype2/fontconfig (FT implies FC in Cairo).
-*/
-
-#include <cairo-ft.h>
-#include <ft2build.h> // currently included by cairo-ft.h
-#include FT_FREETYPE_H
-#include <fontconfig/fontconfig.h>
+#if CAIRO_HAS_FT_FONT && USE_FC
 
 SEXP in_CairoFT(void) 
 {
-//    return mkString("yes");
-
-    FT_Library ft;
-    FT_Error err = FT_Init_FreeType(&ft);
-    if (err) return mkString("unknown");
-    FT_Int major, minor, patch;
-    FT_Library_Version(ft, &major, &minor, &patch);
-    char buf[100];
-    snprintf(buf, 100, "%d.%d.%d/%d.%d.%d",
-	     major, minor, patch,
-	     FC_MAJOR, FC_MINOR, FC_REVISION);
-    return mkString(buf);
+    return mkString("yes");
 }
 
-/* cairo font cache - to prevent unnecessary font lookups */
+/* FT implies FC in Cairo */
+#include <cairo-ft.h>
+
+/* cairo font cache - to prevent unnecessary font look ups */
 typedef struct Rc_font_cache_s {
     const char *family;
     int face;
@@ -1362,7 +676,7 @@ static void Rc_addFont(const char *family, int face, cairo_font_face_t* font)
 {
     Rc_font_cache_t *fc = (Rc_font_cache_t*) malloc(sizeof(Rc_font_cache_t));
     if (!fc) return;
-    fc->family = Rstrdup(family);
+    fc->family = strdup(family);
     fc->face = face;
     fc->font = font;
     fc->next = NULL;
@@ -1415,9 +729,9 @@ static cairo_font_face_t *FC_getFont(const char *family, int style)
 
     /* then try to load the font into FT */
     if (fs) {
-	for (int j = 0; j < fs->nfont; j++) {
+	int j = 0, index = 0;
+	while (j < fs->nfont) {
 	    /* find the font file + face index and use it with FreeType */
-	    int index = 0;
 	    if (FcPatternGetString (fs->fonts[j], FC_FILE, 0, &file)
 		== FcResultMatch &&
 		FcPatternGetInteger(fs->fonts[j], FC_INDEX, 0, &index)
@@ -1433,6 +747,7 @@ static cairo_font_face_t *FC_getFont(const char *family, int style)
 				 (const char *) file, index, &face) ||
 		    (index && !FT_New_Face(ft_library, 
 					   (const char *) file, 0, &face))) {
+//		    FcFontSetDestroy (fs);
 
 #ifdef __APPLE__
 		    /* FreeType is broken on macOS in that face index
@@ -1442,27 +757,28 @@ static cairo_font_face_t *FC_getFont(const char *family, int style)
 		    if (style == 2) style = 1; else if (style == 1) style = 2;
 		    if (face->num_faces > 1 && 
 			(face->style_flags & 3) != style) {
-			for (int i = 0; i < face->num_faces; i++) {
-			    FT_Face alt_face;
+			FT_Face alt_face;
+			int i = 0;
+			while (i < face->num_faces)
 			    if (!FT_New_Face(ft_library, 
 					     (const char *) file, 
-					     i, &alt_face)) {
+					     i++, &alt_face)) {
 				if ((alt_face->style_flags & 3) == style) {
 				    FT_Done_Face(face);
 				    face = alt_face;
 				    break;
 				} else FT_Done_Face(alt_face);
 			    }
-			}
 		    }
 #endif
 
 		    return cairo_ft_font_face_create_for_ft_face(face, FT_LOAD_DEFAULT);
 		}
 	    }
-	} // end of for loop
+	    j++;
+	}
 	FcFontSetDestroy (fs);
-    } // if fs
+    }
     return NULL;
 }
 
@@ -1503,7 +819,6 @@ static void FT_getFont(pGEcontext gc, pDevDesc dd, double fs)
 }
 
 #else
-// Branch without using FreeType/FontConfig, including on Windows
 
 SEXP in_CairoFT(void) 
 {
@@ -1537,8 +852,6 @@ static void FT_getFont(pGEcontext gc, pDevDesc dd, double fs)
 	else if (streql(fm, "serif")) family = times;
 	else if (streql(fm, "sans")) family = hv;
 	else if (fm[0]) family = fm;
-	// none of the above, so ultimate fallback.
-	else family = hv;
     }
 
     cairo_select_font_face (xd->cc, family, slant, wt);
@@ -1614,13 +927,6 @@ static void Cairo_Text(double x, double y,
 {
     pX11Desc xd = (pX11Desc) dd->deviceSpecific;
     const char *textstr;
-
-    /*
-     * Cairo "toy" text does not add to the clipping path (yet?)
-     */
-    if (xd->appending) 
-        return;
-
     if (!utf8Valid(str)) error("invalid string in Cairo_Text");
 
     if (gc->fontface == 5 && dd->wantSymbolUTF8 == NA_LOGICAL &&
@@ -1634,12 +940,6 @@ static void Cairo_Text(double x, double y,
     }
     if (R_ALPHA(gc->col) > 0) {
 	cairo_save(xd->cc);
-
-        if (xd->currentMask >= 0) {
-            /* If masking, draw temporary pattern */
-            cairo_push_group(xd->cc);
-        }
-
 	FT_getFont(gc, dd, xd->fontscale);
 	cairo_move_to(xd->cc, x, y);
 	if (hadj != 0.0 || rot != 0.0) {
@@ -1651,81 +951,7 @@ static void Cairo_Text(double x, double y,
 	}
 	CairoColor(gc->col, xd);
 	cairo_show_text(xd->cc, textstr);
-
-        if (xd->currentMask >= 0) {
-            /* If masking, use temporary pattern as source and mask that */
-            cairo_pattern_t *source = cairo_pop_group(xd->cc);
-            cairo_pattern_t *mask = xd->masks[xd->currentMask];
-            cairo_set_source(xd->cc, source);
-            cairo_mask(xd->cc, mask);
-            /* Release temporary pattern */
-            cairo_pattern_destroy(source);
-        }
-
 	cairo_restore(xd->cc);
     }
 }
-
 #endif
-
-static SEXP Cairo_SetPattern(SEXP pattern, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    SEXP ref;
-    PROTECT(ref = allocVector(INTSXP, 1));
-    INTEGER(ref)[0] = CairoSetPattern(pattern, xd);
-    UNPROTECT(1);
-    return ref;
-}
-
-static void Cairo_ReleasePattern(SEXP ref, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    /* NULL means release all patterns */
-    if (ref == R_NilValue) {
-        CairoCleanPatterns(xd);
-    } else {
-        CairoReleasePattern(INTEGER(ref)[0], xd);
-    }
-}
-
-static SEXP Cairo_SetClipPath(SEXP path, SEXP ref, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    return CairoSetClipPath(path, ref, xd);
-}
-
-static void Cairo_ReleaseClipPath(SEXP ref, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    /* NULL means release all patterns */
-    if (isNull(ref)) {
-        CairoCleanClipPaths(xd);
-    } else {
-        int i;
-        for (i = 0; i < LENGTH(ref); i++) {
-            CairoReleaseClipPath(INTEGER(ref)[i], xd);
-        }
-    }
-}
-
-static SEXP Cairo_SetMask(SEXP mask, SEXP ref, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    return CairoSetMask(mask, ref, xd);
-}
-
-static void Cairo_ReleaseMask(SEXP ref, pDevDesc dd) 
-{
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
-    /* NULL means release all patterns */
-    if (isNull(ref)) {
-        CairoCleanMasks(xd);
-    } else {
-        int i;
-        for (i = 0; i < LENGTH(ref); i++) {
-            CairoReleaseMask(INTEGER(ref)[i], xd);
-        }
-    }
-}
-

@@ -1,7 +1,7 @@
 #  File src/library/base/R/factor.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -397,14 +397,4 @@ addNA <- function(x, ifany=FALSE)
     if (!anyNA(ll)) ll <- c(ll, NA)
     else if (!ifany && !anyNA(x)) return(x)
     factor(x, levels=ll, exclude=NULL)
-}
-
-c.factor <- function(..., recursive=TRUE) {
-    x <- list(...)
-    y <- unlist(x, recursive = recursive)
-    if(inherits(y, "factor") &&
-       all(vapply(x, inherits, NA, "ordered")) &&
-       (length(unique(lapply(x, levels))) == 1L))
-        class(y) <- c("ordered", "factor")
-    y
 }

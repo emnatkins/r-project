@@ -2,7 +2,7 @@
 ###
 ### Process this file with autoconf to produce a configure script.
 ###
-### Copyright (C) 1998-2021 R Core Team
+### Copyright (C) 1998-2020 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -79,7 +79,7 @@ AC_DEFINE_UNQUOTED(R_OS, "${host_os}",
 ## exclude some unsupported OSes
 case "${host_os}" in
    ## Darwin 1.3.1 was macOS 10.0, 1.4.1 was 10.1, 5 is 10.2 etc
-   ## with 19 being 10.15 (Catalina) and 20 being 11 (Big Sur)
+   ## with 19 being 10.15 (Catalina) and 20 11.0 (Big Sur)
    ## We no longer support < 10.6 (Snow Leopard, Darwin 10)
    ## https://en.wikipedia.org/wiki/Darwin_OS
    darwin1.*)
@@ -96,22 +96,6 @@ esac
 
 R_PLATFORM="${host}"
 AC_SUBST(R_PLATFORM)
-
-MAC_CPU=
-case "${host_os}" in
-  darwin*)
-    case "${host_cpu}" in
-       aarch64)
-       MAC_CPU="arm64"
-       ;;
-       *)
-       MAC_CPU="${host_cpu}"
-       ;;
-    esac
-    AC_SUBST(MAC_CPU)
-    ;;
-esac
-
 R_OS="${host_os}"
 AC_SUBST(R_OS)
 
@@ -511,25 +495,6 @@ AC_ARG_WITH([internal-tzcode],
 [use_internal_tzcode=${withval}],
 [use_internal_tzcode=default])
 
-AC_ARG_WITH([internal-towlower],
-[AS_HELP_STRING([--with-internal-towlower],[use internal code for towlower/upper @<:@no, yes on macOS and Solaris@:>@])],
-[use_internal_towlower=${withval}],
-[use_internal_towlower=default])
-
-AC_ARG_WITH([internal-iswxxxxx],
-[AS_HELP_STRING([--with-internal-iswxxxxx],[use internal iswprint etc. @<:@no, yes on macOS, Solaris and AIX@:>@])],
-[use_internal_iswxxxxx=${withval}],
-[use_internal_iswxxxxx=default])
-
-AC_ARG_WITH([internal-wcwidth],
-[AS_HELP_STRING([--with-internal-wcwidth],[use internal wcwidth @<:@yes@:>@])],
-[use_internal_wcwidth=${withval}],
-[use_internal_wcwidth=yes])
-
-AC_ARG_WITH([internal-tzcode],
-[AS_HELP_STRING([--with-internal-tzcode],[use internal time-zone code @<:@no, yes on macOS@:>@])],
-[use_internal_tzcode=${withval}],
-[use_internal_tzcode=default])
 
 ## <FIXME>
 ## Completely disable using libtool for building shlibs until libtool
@@ -561,21 +526,6 @@ AC_ARG_ENABLE([byte-compiled-packages],
 [want_byte_compiled_packages=yes])
 AM_CONDITIONAL(BYTE_COMPILE_PACKAGES,
                [test "x${want_byte_compiled_packages}" = xyes])
-
-AC_ARG_WITH([static-cairo],
-[AS_HELP_STRING([--with-static-cairo],[allow for the use of static cairo libraries @<:@no, yes on macOS@:>@])],
-[use_static_cairo=${withval}],
-[use_static_cairo=default])
-if test "x$use_static_cairo" = xdefault; then
-  case "${host_os}" in
-    darwin*)
-      use_static_cairo=yes
-      ;;
-    *)
-      use_static_cairo=no
-      ;;
-  esac
-fi
 
 ### ** Precious variables.
 
@@ -728,8 +678,9 @@ AC_PATH_PROG(REALPATH, realpath, false)
 
 ## Search for cairographics needs pkg-config, 
 ## helps find jpeg, libpng and libtiff.
-AC_PATH_PROGS(PKG_CONFIG, [ pkg-config pkgconf ], [])
-AC_ARG_VAR([PKG_CONFIG], [path to pkg-config (or pkgconf) utility])
+AC_PATH_TOOL(PKG_CONFIG, pkg-config , [], 
+	     [$PATH:/usr/local/bin:/ext/bin:/ext:/sw/bin:/opt/bin])
+AC_ARG_VAR([PKG_CONFIG], [path to pkg-config utility])
 AC_ARG_VAR([PKG_CONFIG_PATH], [directories to add to pkg-config's search path])
 AC_ARG_VAR([PKG_CONFIG_LIBDIR], [path overriding pkg-config's default search path])
 
@@ -1792,22 +1743,13 @@ R_STDCXX([14], [CXX14], [CXX11])
 R_STDCXX([17], [CXX17], [CXX14])
 R_STDCXX([20], [CXX20], [CXX17])
 
-## Set default C++ compiler to C++14 if available, otherwise C++11
-## Do not set if neither is available.
+## Set default compiler to C++11 if available
 if test -n "${CXX}" && test -z "${CXXSTD}"; then
-  if test -n "${CXX14}"; then
-    CXX=${CXX14}
-    CXXSTD=${CXX14STD}
-    CXXFLAGS=${CXX14FLAGS}
-    CXXPICFLAGS=${CXX14PICFLAGS}
-  elif test -n "${CXX11}"; then
-    AC_MSG_WARN([C++14 is not available so the default C++ standard is C++11])
+  if test -n "${CXX11}"; then
     CXX=${CXX11}
     CXXSTD=${CXX11STD}
     CXXFLAGS=${CXX11FLAGS}
     CXXPICFLAGS=${CXX11PICFLAGS}
-  else
-    AC_MSG_WARN([Neither C++14 nor C++11 is available so no default C++ compiler is set])
   fi
 fi
 
@@ -1962,7 +1904,7 @@ AC_CHECK_FUNCS(fseeko ftello matherr)
 ## POSIX functions
 R_CHECK_FUNCS([fcntl], [#include <fcntl.h>])
 R_CHECK_FUNCS([getgrgid], [#include <grp.h>])
-R_CHECK_FUNCS([getpwnam getpwuid], [#include <pwd.h>])
+R_CHECK_FUNCS([getpwuid], [#include <pwd.h>])
 R_CHECK_FUNCS([kill sigaction sigaltstack sigemptyset], [#include <signal.h>])
 R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
 if test "${ac_cv_have_decl_popen}" = "no"; then
@@ -2153,41 +2095,6 @@ fi
 if test "${use_internal_tzcode}" != yes; then
   R_MKTIME_ERRNO
   R_FUNC_MKTIME
-fi
-
-if test x${use_internal_iswxxxxx} = xdefault; then
-case "${host_os}" in
-   darwin*)
-     use_internal_iswxxxxx=yes;
-     ;; 
-   aix*)
-     use_internal_iswxxxxx=yes;
-     ;; 
-   solaris*)
-     use_internal_iswxxxxx=yes;
-     ;; 
-esac
-fi
-if test x${use_internal_iswxxxxx} = xyes; then
-  AC_DEFINE(USE_RI18N_FNS, 1, [Define to 1 to use internal `iswprint' etc.])
-fi
-
-if test x${use_internal_wcwidth} = xyes; then
-  AC_DEFINE(USE_RI18N_WIDTH, 1, [Define to 1 to use internal `wcwidth'])
-fi
-
-if test x${use_internal_towlower} = xdefault; then
-case "${host_os}" in
-   darwin*)
-     use_internal_towlower=yes;
-     ;; 
-   solaris*)
-     use_internal_towlower=yes;
-     ;; 
-esac
-fi
-if test x${use_internal_towlower} = xyes; then
-  AC_DEFINE(USE_RI18N_CASE, 1, [Define to 1 to use internal code for `towlower' and `towupper'.])
 fi
 
 R_C99_COMPLEX
@@ -2762,7 +2669,7 @@ AM_CONDITIONAL(BUILD_LIBINTL, [test "x${USE_INCLUDED_LIBINTL}" = xyes])
 R_OPENMP_SIMDRED
 
 ### shell for use in scripts: we allow R_SHELL to set the script,
-### since some AIX and macOS systems have zsh as sh.
+### since some AIX systems have zsh as sh.
 : ${R_SHELL=${SHELL}}
 AC_SUBST(R_SHELL)
 AC_MSG_RESULT([using as R_SHELL for scripts ... ${R_SHELL}])
@@ -3034,7 +2941,6 @@ R is now configured for ${host}
   Fortran fixed-form compiler: ${r_f77_compiler}
 
   Default C++ compiler:        ${r_cxx_compiler}
-  C++11 compiler:              ${r_cxx11_compiler}
   C++14 compiler:              ${r_cxx14_compiler}
   C++17 compiler:              ${r_cxx17_compiler}
   C++20 compiler:              ${r_cxx20_compiler}

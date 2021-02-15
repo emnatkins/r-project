@@ -50,14 +50,14 @@ workerCommand <- function(machine, options, setup_strategy = "sequential")
         if (homogeneous) shQuote(getClusterOption("rscript", options)) else "Rscript"
     rscript_args <- getClusterOption("rscript_args", options)
     if(methods)
-        rscript_args <-c("--default-packages=datasets,utils,grDevices,graphics,stats,methods",
-                         rscript_args)
+        rscript_args <-c("--default-packages=datasets,utils,grDevices,graphics,stats,methods",  rscript_args)
 
     ## in principle we should quote these,
     ## but the current possible values do not need quoting
-    cmd <- paste(rscript,
-                 if(length(rscript_args)) paste(rscript_args, collapse = " "),
-                 "-e", shQuote(arg), env)
+    cmd <- if(length(rscript_args))
+        paste(rscript, paste(rscript_args, collapse = " "),
+              "-e", shQuote(arg), env)
+    else paste(rscript, "-e", shQuote(arg), env)
 
     ## We do redirection of connections at R level once the process is
     ## running.  We could instead do it at C level here, at least on
@@ -73,9 +73,8 @@ workerCommand <- function(machine, options, setup_strategy = "sequential")
         user <- getClusterOption("user", options)
         ## this assume that rshcmd will use a shell, and that is
         ## the same shell as on the master.
-        cmd <- paste(rshcmd,
-                     if(length(user) == 1L) paste("-l", user),
-                     machine, shQuote(cmd))
+        cmd <- shQuote(cmd)
+        cmd <- paste(rshcmd, "-l", user, machine, cmd)
     }
     cmd
 }
@@ -267,6 +266,7 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
     invisible(x)
 }
 
+.slaveRSOCK <- ## temporarily as packages use it, although they should not
 .workRSOCK <- function()
 {
     makeSOCKmaster <- function(master, port, setup_timeout, timeout, useXDR,

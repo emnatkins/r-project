@@ -94,13 +94,9 @@ function(pattern, text, ignore.case = FALSE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
 {
     if (!is.character(text)) text <- as.character(text)
-    if(!perl || fixed) {
-        if(perl) warning(
-              gettextf("argument '%s' will be ignored", "perl = TRUE"),
-              domain = NA)
+    if(!perl || fixed)
         return(.Internal(regexec(as.character(pattern), text, ignore.case, fixed,
                                  useBytes)))
-    }
 
     ## For perl = TRUE, re-use regexpr(perl = TRUE) which always
     ## captures subexpressions.
@@ -131,55 +127,7 @@ function(pattern, text, ignore.case = FALSE, perl = FALSE,
     }
     if(identical(attr(m, "useBytes"), TRUE))
         y <- lapply(y, `attr<-`, "useBytes", TRUE)
-    lapply(y, `attr<-`, "index.type", attr(m, "index.type"))
-}
-
-gregexec <- function(pattern, text, ignore.case = FALSE, perl = FALSE,
-                     fixed = FALSE, useBytes = FALSE) {
-    dat <- gregexpr(pattern = pattern, text=text, ignore.case = ignore.case,
-                    fixed = fixed, useBytes = useBytes, perl = TRUE)
-    if(perl) {
-        ## Perl generates match data, so use that
-        capt.attr <- c('capture.start', 'capture.length', 'capture.names')
-        process <- function(x) {
-            if(anyNA(x) || any(x < 0)) y <- x
-            else {
-                ## Interleave matches with captures
-                y <- t(cbind(x, attr(x, "capture.start"), deparse.level=0L))
-                attributes(y)[names(attributes(x))] <- attributes(x)
-                attr(y, "match.length") <-
-                    t(cbind(attr(x, "match.length"), attr(x, "capture.length"),
-                            deparse.level=0L))
-            }
-            attributes(y)[capt.attr] <- NULL
-            y
-        }
-        lapply(dat, process)
-    } else {
-        ## For TRE we must compute the match data ourselves
-        m1 <- lapply(regmatches(text, dat),
-                     regexec, pattern = pattern, ignore.case = ignore.case,
-                     perl = perl, fixed = fixed, useBytes = useBytes)
-        mlen <- lengths(m1)
-        res <- vector("list", length(m1))
-        im <- mlen > 0
-        res[!im] <- dat[!im]   # -1, NA
-        res[im] <- Map(
-            function(outer, inner) {
-                tmp <- do.call(cbind, inner)
-                attributes(tmp)[names(attributes(inner))] <- attributes(inner)
-                attr(tmp, 'match.length') <-
-                    do.call(cbind, lapply(inner, `attr`, 'match.length'))
-                # useBytes/index.type should be same for all so use outer vals
-                attr(tmp, 'useBytes') <- attr(outer, 'useBytes')
-                attr(tmp, 'index.type') <- attr(outer, 'index.type')
-                tmp + rep(outer - 1L, each = nrow(tmp))
-            },
-            dat[im],
-            m1[im]
-        )
-        res
-    }
+    y
 }
 
 agrep <-
@@ -399,11 +347,7 @@ function(x, m, invert = FALSE)
                     if(is.na(so) || (so == -1L))
                         return(character())
                 }
-                tmp <- substring(u, so, so + ml - 1L)
-                ## gregexec may produce matrix inputs in which 
-                ## case keep dim for outputs (only for !invert).
-                dim(tmp) <- dim(so)
-                tmp
+                substring(u, so, so + ml - 1L)
             },
             x, m,
             lapply(m, attr, "match.length"),

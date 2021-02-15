@@ -1,7 +1,7 @@
 #  File src/library/base/R/zzz.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ is.name <- is.symbol
     utilsGenerics <- c("edit", "str")
 
     graphicsGenerics <- c("contour", "hist", "identify", "image",
-        ## "plot",
+        ## "plot", 
         "lines", "pairs", "points", "text")
 
     statsGenerics <- c("add1", "AIC", "anova", "biplot", "coef",
@@ -56,11 +56,8 @@ is.name <- is.symbol
 
 .ArgsEnv <- new.env(hash = TRUE, parent = emptyenv())
 
-assign("::", function(pkg, name) NULL, envir = .ArgsEnv)
-assign(":::", function(pkg, name) NULL, envir = .ArgsEnv)
 assign("%*%", function(x, y) NULL, envir = .ArgsEnv)
 assign("...length", function() NULL, envir = .ArgsEnv)
-assign("...names",  function() NULL, envir = .ArgsEnv)
 assign("...elt", function(n) NULL, envir = .ArgsEnv)
 assign(".C", function(.NAME, ..., NAOK = FALSE, DUP = TRUE, PACKAGE,
                       ENCODING) NULL,
@@ -256,7 +253,7 @@ assign("trunc", function(x, ...) UseMethod("trunc"), envir = .GenericArgsEnv)
 assign("as.numeric", get("as.double", envir = .GenericArgsEnv),
        envir = .GenericArgsEnv)
 
-## Keep this in sync with ../../tools/R/utils.R
+## Keep this in sync with
 ##   tools:::.make_S3_methods_table_for_base()
 ## for computing the methods table and
 ##   tools:::.deparse_S3_methods_table_for_base()
@@ -338,7 +335,6 @@ matrix(c("!", "hexmode",
          "all.equal", "environment",
          "all.equal", "factor",
          "all.equal", "formula",
-         "all.equal", "function",
          "all.equal", "language",
          "all.equal", "list",
          "all.equal", "numeric",
@@ -432,7 +428,6 @@ matrix(c("!", "hexmode",
          "c", "POSIXct",
          "c", "POSIXlt",
          "c", "difftime",
-         "c", "factor",
          "c", "noquote",
          "c", "numeric_version",
          "c", "warnings",
@@ -633,7 +628,6 @@ matrix(c("!", "hexmode",
          "xtfrm", "Date",
          "xtfrm", "POSIXct",
          "xtfrm", "POSIXlt",
-         "xtfrm", "data.frame",         
          "xtfrm", "default",
          "xtfrm", "difftime",
          "xtfrm", "factor",

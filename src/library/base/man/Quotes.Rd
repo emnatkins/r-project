@@ -61,9 +61,6 @@
   escapes can be used to enter Unicode characters not in the current
   locale's charset (when the string will be stored internally in UTF-8).
 
-  As from \R 4.1.0 the largest allowed \samp{\\U} value is
-  \samp{\\U10FFFF}, the maximum Unicode point.
-
   The parser does not allow the use of both octal/hex and Unicode
   escapes in a single string.
 
@@ -104,12 +101,12 @@
 }
 
 \note{
-  UTF-16 surrogate pairs in \samp{\\unnnn\uoooo} form will be converted
-  to a single Unicode point, so for example \samp{\\uD834\\uDD1E} gives
-  the single character \samp{\\U1D11E}.  However, unpaired values in
-  the surrogate range such as in the string \code{"abc\uD834de"} will be
-  converted to a non-standard-conformant UTF-8 string (as is done by most
-  other software): this may change in future.
+  Handling of UTF-16 surrogate pairs in \samp{\\unnnn\\uoooo} form is
+  platform-dependent: these are better specified by \samp{\\U}, for
+  example \samp{\\U1D11E} rather than \samp{\\uD834\\uDD1E}.  The
+  handling of unpaired values in the surrogate range such as in the
+  string \code{"abc\uD834de"} is even more platform-dependent and may
+  become an error.
 }
 
 \seealso{
@@ -190,7 +187,7 @@ stopifnot(identical(nn, n2))
 ## and bug 16098 https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16098
 ## This character may or not be printable (the platform decides)
 ## and if it is, may not have a glyph in the font used.
-"\U1d4d7" # On Windows this used to give the incorrect value of "\Ud4d7"
+"\U1d4d7" # On Windows this gives the incorrect value of "\Ud4d7"
 
 ## nul characters (for terminating strings in C) are not allowed (parse errors)
 \dontrun{% as above, these errors cannot be caught via try*(..)

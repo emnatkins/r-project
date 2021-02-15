@@ -357,7 +357,7 @@ as.POSIXct.default <- function(x, tz = "", ...)
     if(is.character(x) || is.factor(x))
 	return(as.POSIXct(as.POSIXlt(x, tz, ...), tz, ...))
     if(is.logical(x) && all(is.na(x)))
-        return(.POSIXct(as.numeric(x), tz))
+        return(.POSIXct(as.numeric(x)))
     stop(gettextf("do not know how to convert '%s' to class %s",
                   deparse1(substitute(x)),
                   dQuote("POSIXct")),
@@ -595,20 +595,14 @@ anyNA.POSIXlt <- function(x, recursive = FALSE)
     anyNA(as.POSIXct(x))
 
 ## <FIXME> check the argument validity
-## This is documented to remove the timezone (unless all are marked with
-## the same).
-c.POSIXct <- function(..., recursive = FALSE) {
-    x <- lapply(list(...), function(e) unclass(as.POSIXct(e)))
-    tzones <- lapply(x, attr, "tzone")
-    tz <- if(length(unique(tzones)) == 1L) tzones[[1L]] else NULL
-    .POSIXct(c(unlist(x)), tz)
-}
+## This is documented to remove the timezone
+c.POSIXct <- function(..., recursive = FALSE)
+    .POSIXct(c(unlist(lapply(list(...),
+                             function(e) unclass(as.POSIXct(e))))))
 
 ## we need conversion to POSIXct as POSIXlt objects can be in different tz.
-c.POSIXlt <- function(..., recursive = FALSE) {
-    as.POSIXlt(do.call("c",
-                       lapply(list(...), as.POSIXct)))
-}
+c.POSIXlt <- function(..., recursive = FALSE)
+    as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 
 ISOdatetime <- function(year, month, day, hour, min, sec, tz = "")
@@ -1017,30 +1011,22 @@ cut.POSIXt <-
         if(valid == 8L) incr <- 25*3600 # DSTdays
         if(valid == 6L) {               # months
             start$mday <- 1L
-            maxx <- max(x, na.rm = TRUE)
-            end <- as.POSIXlt(maxx)
+            end <- as.POSIXlt(max(x, na.rm = TRUE))
             step <- if(length(by2) == 2L) as.integer(by2[1L]) else 1L
             end <- as.POSIXlt(end + (31 * step * 86400))
             end$mday <- 1L
             end$isdst <- -1L
             breaks <- seq(start, end, breaks)
-            ## 31 days ahead could give an empty level, so
-	    lb <- length(breaks)
-	    if(maxx < breaks[lb-1]) breaks <- breaks[-lb]
         } else if(valid == 7L) {        # years
             start$mon <- 0L
             start$mday <- 1L
-            maxx <- max(x, na.rm = TRUE)
-            end <- as.POSIXlt(maxx)
+            end <- as.POSIXlt(max(x, na.rm = TRUE))
             step <- if(length(by2) == 2L) as.integer(by2[1L]) else 1L
             end <- as.POSIXlt(end + (366 * step* 86400))
             end$mon <- 0L
             end$mday <- 1L
             end$isdst <- -1L
             breaks <- seq(start, end, breaks)
-            ## 366 days ahead could give an empty level, so
-	    lb <- length(breaks)
-	    if(maxx < breaks[lb-1]) breaks <- breaks[-lb]
         } else if(valid == 9L) {        # quarters
             qtr <- rep(c(0L, 3L, 6L, 9L), each = 3L)
             start$mon <- qtr[start$mon + 1L]
@@ -1341,7 +1327,7 @@ is.numeric.difftime <- function(x) FALSE
 ## Class generators added in 2.11.0, class order changed in 2.12.0.
 
 ## FIXME:
-## At least temporarily avoid structure() for performance reasons.
+## At least temporarily avoide structure() for performance reasons.
 ## .POSIXct <- function(xx, tz = NULL)
 ##     structure(xx, class = c("POSIXct", "POSIXt"), tzone = tz)
 .POSIXct <- function(xx, tz = NULL, cl = c("POSIXct", "POSIXt")) {

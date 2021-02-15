@@ -24,105 +24,92 @@
 #include <R_ext/Applic.h>
 #include <R_ext/Boolean.h>
 #include <R_ext/Error.h>
-#include <R_ext/Print.h>
 #include <R_ext/Utils.h>
-#ifdef DEBUG_rcont2
-# include <limits.h>
-#endif
-
-#include "stats.h"
 
 // NB: Exported via S_rcont() --> ../../../include/R_ext/stats_stubs.h & stats_package.h
 void
-rcont2(int nrow, int ncol,
+rcont2(int *nrow, int *ncol,
        /* vectors of row and column totals, and their sum ntotal: */
-       const int nrowt[], const int ncolt[], int ntotal,
-       const double fact[],
-       int *jwork, int *matrix)
+       int *nrowt, int *ncolt, int *ntotal,
+       double *fact, int *jwork, int *matrix)
 {
-    int nr_1 = nrow - 1,
-	nc_1 = ncol - 1,
-	ib = 0; /* -Wall */
+    int j, l, m, ia, ib, ic, jc, id, ie, ii, nll, nlm, nr_1, nc_1;
+    double x, y, dummy, sumprb;
+    Rboolean lsm, lsp;
+
+    nr_1 = *nrow - 1;
+    nc_1 = *ncol - 1;
+
+    ib = 0; /* -Wall */
 
     /* Construct random matrix */
-    for (int j = 0; j < nc_1; ++j)
+    for (j = 0; j < nc_1; ++j)
 	jwork[j] = ncolt[j];
 
-    int jc = ntotal;
-    for (int l = 0; l < nr_1; ++l) { /* -----  matrix[ l, * ] ----- */
-	int ia = nrowt[l],
-	    ic = jc;
+    jc = *ntotal;
+
+    for (l = 0; l < nr_1; ++l) { /* -----  matrix[ l, * ] ----- */
+	ia = nrowt[l];
+	ic = jc;
 	jc -= ia;/* = n_tot - sum(nr[0:l]) */
 
-	for (int m = 0; m < nc_1; ++m) {
-	    int id = jwork[m],
-		ie = ic, ii;
+	for (m = 0; m < nc_1; ++m) {
+	    id = jwork[m];
+	    ie = ic;
+	    ic -= id;
 	    ib = ie - ia;
 	    ii = ib - id;
-	    ic -= id;
 
 	    if (ie == 0) { /* Row [l,] is full, fill rest with zero entries */
-		for (int j = m; j < nc_1; ++j)
-		    matrix[l + j * nrow] = 0;
+		for (j = m; j < nc_1; ++j)
+		    matrix[l + j * *nrow] = 0;
 		ia = 0;
 		break;
 	    }
 
 	    /* Generate pseudo-random number */
-	    double U = unif_rand();
-	    int nlm;
+	    dummy = unif_rand();
+
 	    do {/* Outer Loop */
 
 		/* Compute conditional expected value of MATRIX(L, M) */
 
 		nlm = (int)(ia * (id / (double) ie) + 0.5);
-		double x = exp(fact[ia] + fact[ib] + fact[ic] + fact[id]
-			       - fact[ie] - fact[nlm]
-			       - fact[id - nlm] - fact[ia - nlm] - fact[ii + nlm]);
-		if (x >= U)
+		x = exp(fact[ia] + fact[ib] + fact[ic] + fact[id]
+			- fact[ie] - fact[nlm]
+			- fact[id - nlm] - fact[ia - nlm] - fact[ii + nlm]);
+		if (x >= dummy)
 		    break;
 		if (x == 0.)/* MM: I haven't seen this anymore */
 		    error(_("rcont2 [%d,%d]: exp underflow to 0; algorithm failure"), l, m);
 
-		double sumprb = x,
-		    y = x;
+		sumprb = x;
+		y = x;
+		nll = nlm;
 
-		int nll = nlm;
-		Rboolean lsp;
 		do {
 		    /* Increment entry in row L, column M */
 		    double j = (id - nlm) * (double)(ia - nlm);
-#ifdef DEBUG_rcont2
-		    if(j > INT_MAX)
-			REprintf("Incr.: j = %20.20g > INT_MAX !! (id,ia,nlm) = (%d,%d,%d)\n",
-				 j, id,ia,nlm);
-#endif
 		    lsp = ((nlm == ia) || (nlm == id));
 		    if (!lsp) {
 			++nlm;
-			x *= j / ((double) nlm * (ii + nlm));
+			x = x * j / ((double) nlm * (ii + nlm));
 			sumprb += x;
-			if (sumprb >= U)
+			if (sumprb >= dummy)
 			    goto L160;
 		    }
 
-		    Rboolean lsm;
 		    do {
 			R_CheckUserInterrupt();
 
 			/* Decrement entry in row L, column M */
 			j = (nll * (double)(ii + nll));
-#ifdef DEBUG_rcont2
-			if(j > INT_MAX)
-			    REprintf("Decr.: j = %20.20g > INT_MAX !! (ii,nll) = (%d,%d)\n",
-				     j, ii,nll);
-#endif
 			lsm = (nll == 0);
 			if (!lsm) {
 			    --nll;
-			    y *= j / ((double) (id - nll) * (ia - nll));
+			    y = y * j / ((double) (id - nll) * (ia - nll));
 			    sumprb += y;
-			    if (sumprb >= U) {
+			    if (sumprb >= dummy) {
 				nlm = nll;
 				goto L160;
 			    }
@@ -134,23 +121,23 @@ rcont2(int nrow, int ncol,
 
 		} while (!lsp);
 
-		U = sumprb * unif_rand();
+		dummy = sumprb * unif_rand();
 
 	    } while (1); // 'Outer Loop'
 
 L160:
-	    matrix[l + m * nrow] = nlm;
+	    matrix[l + m * *nrow] = nlm;
 	    ia -= nlm;
 	    jwork[m] -= nlm;
 	}// for (m = 0..nc_1-1)
-	matrix[l + nc_1 * nrow] = ia;/* last column in row l */
+	matrix[l + nc_1 * *nrow] = ia;/* last column in row l */
     } // for (l = ...)
 
     /* Compute entries in last row of MATRIX */
-    for (int m = 0; m < nc_1; ++m)
-	matrix[nr_1 + m * nrow] = jwork[m];
+    for (m = 0; m < nc_1; ++m)
+	matrix[nr_1 + m * *nrow] = jwork[m];
 
-    matrix[nr_1 + nc_1 * nrow] = ib - matrix[nr_1 + (nc_1-1) * nrow];
+    matrix[nr_1 + nc_1 * *nrow] = ib - matrix[nr_1 + (nc_1-1) * *nrow];
 
     return;
 }

@@ -124,7 +124,7 @@ typedef long long int _lli_t;
 # include <Startup.h>
 #endif
 
-#define NCONNECTIONS 128 /* need one per cluster node */
+#define NCONNECTIONS 128 /* snow needs one per no-echo node */
 #define NSINKS 21
 
 static Rconnection Connections[NCONNECTIONS];
@@ -412,7 +412,7 @@ static int NORET null_vfprintf(Rconnection con, const char *format, va_list ap)
 }
 
 /* va_copy is C99, but a draft standard had __va_copy.  Glibc has
-   __va_copy declared unconditionally */
+   __va_copy declared uncondiitonally */
 
 
 #if defined(HAVE_VASPRINTF) && !HAVE_DECL_VASPRINTF
@@ -420,7 +420,6 @@ int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif
 
 # define BUFSIZE 10000
-// similar to Rcons_vprintf in printutils.c
 int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 {
     R_CheckStack2(BUFSIZE); // prudence
@@ -431,15 +430,15 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
     va_list aq;
 
     va_copy(aq, ap);
-    res = Rvsnprintf_mbcs(buf, BUFSIZE, format, aq);
+    res = vsnprintf(buf, BUFSIZE, format, aq);
     va_end(aq);
 #ifdef HAVE_VASPRINTF
     if(res >= BUFSIZE || res < 0) {
 	res = vasprintf(&b, format, ap);
 	if (res < 0) {
 	    b = buf;
+	    buf[BUFSIZE-1] = '\0';
 	    warning(_("printing of extremely long output is truncated"));
-	    res = (int)strlen(buf);
 	} else usedVasprintf = TRUE;
     }
 #else
@@ -450,15 +449,14 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	   so add some margin here */
 	b = R_alloc(res + 101, sizeof(char));
 	vsnprintf(b, res + 100, format, ap);
-    } else if(res < 0) {
-	/* Some non-C99 conforming vsnprintf implementations return -1 on
-	   truncation instead of only on error. */
+    } else if(res < 0) { /* just a failure indication */
 	vmax = vmaxget();
 	b = R_alloc(10*BUFSIZE, sizeof(char));
-	res = Rvsnprintf_mbcs(b, 10*BUFSIZE, format, ap);
-	if (res < 0 || res >= 10*BUFSIZE) {
+	res = vsnprintf(b, 10*BUFSIZE, format, ap);
+	if (res < 0) {
+	    b[10*BUFSIZE - 1] = '\0';
 	    warning(_("printing of extremely long output is truncated"));
-	    res = (int)strlen(b);
+	    res = 10*BUFSIZE;
 	}
     }
 #endif /* HAVE_VASPRINTF */
@@ -1165,7 +1163,7 @@ static size_t fifo_write(const void *ptr, size_t size, size_t nitems,
 
 // PR#15600, based on https://github.com/0xbaadf00d/r-project_win_fifo
 # define WIN32_LEAN_AND_MEAN 1
-#include <windows.h>
+#include <Windows.h>
 #include <wchar.h>
 
 /* Microsoft addition, not supported in Win XP
@@ -1202,30 +1200,31 @@ static char* win_getlasterror_str(void)
 static Rboolean	fifo_open(Rconnection con)
 {
     Rfifoconn this = con->private;
+    unsigned int uin_pipname_len = strlen(con->description);
     unsigned int uin_mode_len = strlen(con->mode);
     char *hch_pipename = NULL;
+    const char *hch_tempname = NULL;
     Rboolean boo_retvalue = TRUE;
-    const char *pipe_prefix = "\\\\.\\pipe\\";
 
     /* Prepare FIFO filename */
-    if (strlen(con->description) == 0) 
-	hch_pipename = R_tmpnam("fifo", pipe_prefix); /* malloc */
-    else {
-	const char* hch_tempname = R_ExpandFileName(con->description);
-	size_t len = strlen(hch_tempname);
-	Rboolean add_prefix = FALSE;
-	if (strncmp(pipe_prefix, con->description, strlen(pipe_prefix)) != 0) {
-	    len += strlen(pipe_prefix);
-	    add_prefix = TRUE;
-	}	
-	hch_pipename = (char*) malloc(len+1);
-	if (!hch_pipename)
-	    error(_("allocation of fifo name failed"));
-	if (add_prefix) {
-	    strcpy(hch_pipename, pipe_prefix);
-	    strcat(hch_pipename, hch_tempname);
-	} else
-	    strcpy(hch_pipename, hch_tempname);
+    if (!uin_pipname_len) {
+	hch_pipename = R_tmpnam("fifo", "\\\\.\\pipe\\");
+    } else {
+	if (strncmp("\\\\.\\pipe\\", con->description, 9) != 0) {
+	    uin_pipname_len += strlen("\\\\.\\pipe\\") + 1;
+	    hch_pipename = (char*) malloc(uin_pipname_len);
+	    if (!hch_pipename) error(_("allocation of fifo name failed"));
+	    ZeroMemory(hch_pipename, uin_pipname_len);
+/*	    strcpy_s(hch_pipename, uin_pipname_len, "\\\\.\\pipe\\");  Win XP doesn't support this */
+	    strcpy(hch_pipename, "\\\\.\\pipe\\");
+	} else {
+	    hch_pipename = (char*)malloc(uin_pipname_len);
+	    if (!hch_pipename) error(_("allocation of fifo name failed"));
+	    ZeroMemory(hch_pipename, uin_pipname_len);
+	}
+	hch_tempname = R_ExpandFileName(con->description);
+/*	strcat_s(hch_pipename, uin_pipname_len, hch_tempname);  Win XP doesn't support this */
+	strcat(hch_pipename, hch_tempname);
     }
 
     /* Prepare FIFO open mode */
@@ -1290,11 +1289,12 @@ static Rboolean	fifo_open(Rconnection con)
 
     /* Free malloc-ed variables */
     free(hch_pipename);
+    if (hch_tempname) free((void*) hch_tempname);
 
     /* Finalize FIFO configuration (only if FIFO is opened/created) */
     if (boo_retvalue && this->hdl_namedpipe) {
 	con->isopen = TRUE;
-	con->text = strchr(con->mode, 'b') ? FALSE : TRUE;
+	con->text = uin_mode_len >= 2 && con->mode[uin_mode_len - 1] == 'b';
 	set_iconv(con);
 	con->save = -1000;
     }
@@ -3198,11 +3198,12 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 #define NBUFSIZE (already + 100*BUFSIZE)
 	vmax = vmaxget();
 	b = R_alloc(NBUFSIZE, sizeof(char));
-	strncpy(b, this->lastline, NBUFSIZE); /* `already` < NBUFSIZE */
+	strncpy(b, this->lastline, NBUFSIZE);
 	*(b + NBUFSIZE - 1) = '\0';
 	p = b + already;
-	res = Rvsnprintf_mbcs(p, NBUFSIZE - already, format, ap);
-	if (res < 0 || res >= NBUFSIZE - already) {
+	res = vsnprintf(p, NBUFSIZE - already, format, ap);
+	if (res < 0) {
+	    *(b + NBUFSIZE - 1) = '\0';
 	    warning(_("printing of extremely long output is truncated"));
 	}
     }
@@ -3842,7 +3843,7 @@ size_t Rconn_getline(Rconnection con, char *buf, size_t bufsize)
 	if(nbuf+1 >= bufsize)
 	    error(_("line longer than buffer size %lu"), (unsigned long) bufsize);
 	if(c != '\n'){
-	    buf[++nbuf] = (char) c; /* compiler-defined conversion behavior */
+	    buf[++nbuf] = (char) c;
 	} else {
 	    buf[++nbuf] = '\0';
 	    break;
@@ -3972,11 +3973,7 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 		} else buf = tmp;
 	    }
 	    if(skipNul && c == '\0') continue;
-	    if(c != '\n')
-		/* compiler-defined conversion behavior */
-		buf[nbuf++] = (char) c;
-	    else
-		break;
+	    if(c != '\n') buf[nbuf++] = (char) c; else break;
 	}
 	buf[nbuf] = '\0';
 	/* Remove UTF-8 BOM */
@@ -4585,7 +4582,6 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    case 1:
 		for (i = 0; i < len; i++)
-		    /* compiler-defined conversion behavior */
 		    buf[i] = (signed char) INTEGER(object)[i];
 		break;
 	    default:
@@ -5227,7 +5223,7 @@ void WinCheckUTF8(void)
 {
     if(EmitEmbeddedUTF8) /* RGui */
 	WinUTF8out = (SinkCons[R_SinkNumber] == 1 ||
-	              SinkCons[R_SinkNumber] == 2) && localeCP != 65001;
+	              SinkCons[R_SinkNumber] == 2);
     else
 	WinUTF8out = FALSE;
 }
@@ -5933,7 +5929,7 @@ SEXP attribute_hidden do_gzcon(SEXP call, SEXP op, SEXP args, SEXP rho)
  	/* for Solaris 12.5 */ new = NULL;
    }
     strcpy(new->class, "gzcon");
-    Rsnprintf_mbcs(description, 1000, "gzcon(%s)", incon->description);
+    snprintf(description, 1000, "gzcon(%s)", incon->description);
     new->description = (char *) malloc(strlen(description) + 1);
     if(!new->description) {
 	free(new->class); free(new);

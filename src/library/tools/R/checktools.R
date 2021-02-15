@@ -151,11 +151,6 @@ function(dir,
         pos <- pmatch(names(reverse), names(defaults), nomatch = 0L)
         defaults[pos] <- reverse[pos > 0L]
 
-        subset_reverse_repos <- !identical(defaults$repos, getOption("repos"))
-        if(subset_reverse_repos &&
-           !all(defaults$repos %in% getOption("repos")))
-            stop("'reverse$repos' should be a subset of getOption(\"repos\")")
-
         rnames <- if(is.list(defaults$which)) {
             ## No recycling of repos for now.
             defaults$recursive <- rep_len(as.list(defaults$recursive),
@@ -200,7 +195,7 @@ function(dir,
         rnames <- setdiff(rnames, pnames)
 
         pos <- match(rnames, available[, "Package"], nomatch = 0L)
-        if(subset_reverse_repos) {
+        if(!identical(defaults$repos, getOption("repos"))) {
             pos <- split(pos[pos > 0L], available[pos, "Repository"])
             ## Only want the reverse dependencies for which Repository
             ## starts with an entry in defaults$repos.
@@ -250,14 +245,12 @@ function(dir,
     ## Need to install depends which are not installed or installed but
     ## old.
     libs <- c(libdir, .libPaths())
-    installed <- utils::installed.packages(libs)
-    installed <- installed[!duplicated(installed[, "Package"]), ,
-                           drop = FALSE]
-    outofdate <- utils::old.packages(instPkgs = installed,
-                                     available = available)[, "Package"]
-    installed <- installed[, "Package"]
-    depends <- c(setdiff(depends, installed),
-                 intersect(intersect(depends, installed), outofdate))
+    installed <- utils::installed.packages(libs)[, "Package"]
+    depends <-
+        c(setdiff(depends, installed),
+          intersect(intersect(depends, installed),
+                    utils::old.packages(libs,
+                                        available = available)[, "Package"]))
     if(length(depends)) {
         message(paste(strwrap(sprintf("installing dependencies %s",
                                       paste(sQuote(sort(depends)),
@@ -957,7 +950,8 @@ function(dir, logs = NULL, drop_ok = TRUE, ...)
 {
     ## Build a data frame with columns
     ##   Package Version Check Status Output Flags
-    ## and some optimizations.
+    ## and some optimizations (in particular, Check Status Flags can be
+    ## factors).
 
     db_from_logs <- function(logs, drop_ok, ...) {
         out <- lapply(logs, analyze_check_log, drop_ok, ...)
@@ -1017,8 +1011,10 @@ function(dir, logs = NULL, drop_ok = TRUE, ...)
         sub("[[:space:]]+$", "", db[, "Output"], perl = TRUE)
 
     db <- as.data.frame(db, stringsAsFactors = FALSE)
-    class(db) <- c("check_details", "data.frame")
+    db$Check <- as.factor(db$Check)
+    db$Status <- as.factor(db$Status)
 
+    class(db) <- c("check_details", "data.frame")
     db
 }
 

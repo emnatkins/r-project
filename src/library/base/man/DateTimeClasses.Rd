@@ -148,10 +148,8 @@
   specified.
 
   \code{"POSIXlt"} objects will often have an attribute \code{"tzone"},
-  a character vector of length 3 giving the time zone name (from the \env{TZ}
-  environment variable or argument \code{tz} of functions creating
-  \code{"POSIXlt"} objects; \code{""} marks the current time zone)
-  and the names of the base time zone
+  a character vector of length 3 giving the time zone name from the
+  \env{TZ} environment variable and the names of the base time zone
   and the alternate (daylight-saving) time zone.  Sometimes this may
   just be of length one, giving the \link{time zone} name.
 
@@ -179,8 +177,8 @@
 
   Using \code{\link{c}} on \code{"POSIXlt"} objects converts them to the
   current time zone, and on \code{"POSIXct"} objects drops any
-  \code{"tzone"} attributes, unless they are all marked with the same
-  time zone.
+  \code{"tzone"} attributes (even if they are all marked with the same
+  time zone).
 
   A few times have specific issues.  First, the leap seconds are ignored,
   and real times such as \code{"2005-12-31 23:59:60"} are (probably)
@@ -267,10 +265,9 @@
   \code{\link{weekdays}} for convenience extraction functions.
 }
 \references{
-  Ripley, B. D. and Hornik, K. (2001).
-  \dQuote{Date-time classes.}
-  \emph{R News}, \bold{1}(2), 8--11.
-  \url{https://www.r-project.org/doc/Rnews/Rnews_2001-2.pdf}.
+  Ripley, B. D. and Hornik, K. (2001) Date-time classes. \emph{R News},
+  \bold{1/2}, 8--11.
+  \url{https://www.r-project.org/doc/Rnews/Rnews_2001-2.pdf}
 }
 
 \section{Warnings}{

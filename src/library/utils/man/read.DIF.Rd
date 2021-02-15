@@ -16,7 +16,7 @@ read.DIF(file, header = FALSE,
          row.names, col.names, as.is = !stringsAsFactors,
          na.strings = "NA", colClasses = NA, nrows = -1,
          skip = 0, check.names = TRUE, blank.lines.skip = TRUE,
-         stringsAsFactors = FALSE,
+         stringsAsFactors = default.stringsAsFactors(),
          transpose = FALSE, fileEncoding = "")
 }
 \arguments{
@@ -121,8 +121,8 @@ read.DIF(file, header = FALSE,
   \item{fileEncoding}{character string: if non-empty declares the
     encoding used on a file (not a connection or clipboard) so the
     character data can be re-encoded.  See the \sQuote{Encoding} section
-    of the help for \code{\link{file}}, the \sQuote{R Data Import/Export}
-    manual and \sQuote{Note}.}
+    of the help for \code{\link{file}}, the \sQuote{R Data Import/Export
+    Manual} and \sQuote{Note}.}
 }
 \value{
   A data frame (\code{\link{data.frame}}) containing a representation of

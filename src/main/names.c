@@ -156,7 +156,6 @@ FUNTAB R_FunTab[] =
 {"makeLazy",	do_makelazy,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	  0}},
 {"identical",	do_identical,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	  0}},
 {"C_tryCatchHelper",do_tryCatchHelper,0,11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"getNamespaceValue",	do_getNSValue,	0,	211,	3,	{PP_FUNCALL, PREC_FN,	  0}},
 
 
 /* Binary Operators, all primitives */
@@ -186,8 +185,6 @@ FUNTAB R_FunTab[] =
 {":",		do_colon,	0,	1,	2,	{PP_BINARY2, PREC_COLON,  0}},
 /* does not evaluate */
 {"~",		do_tilde,	0,	0,	-1,	{PP_BINARY,  PREC_TILDE,  0}},
-{"::",		do_colon2,	0,	200,	2,	{PP_BINARY2, PREC_NS,	  0}},
-{":::",		do_colon3,	0,	200,	2,	{PP_BINARY2, PREC_NS,	  0}},
 
 
 /* Logic Related Functions */
@@ -200,9 +197,8 @@ FUNTAB R_FunTab[] =
 
 /* Primitives */
 
-{"...elt",      do_dotsElt,	0,    201,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"...elt",      do_dotsElt,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"...length",   do_dotsLength,	0,	1,	0,	{PP_FUNCALL, PREC_FN,	0}},
-{"...names",    do_dotsNames,	0,	1,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"length",	do_length,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"length<-",	do_lengthgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
 {"c",/* bind.c: */ do_c,	0,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -521,6 +517,7 @@ FUNTAB R_FunTab[] =
 {"asCharacterFactor",	do_asCharacterFactor,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 
 {"as.vector",	do_asvector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+// for paste/paste0 we allow one less in the C code
 {"paste",	do_paste,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"paste0",	do_paste,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.path",	do_filepath,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -564,8 +561,6 @@ FUNTAB R_FunTab[] =
 {"rawToChar",	do_rawToChar,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"rawShift",	do_rawShift,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"intToBits",	do_intToBits,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"numToBits",	do_numToBits,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"numToInts",	do_numToInts,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"rawToBits",	do_rawToBits,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"packBits",	do_packBits,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"utf8ToInt",	do_utf8ToInt,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -643,6 +638,11 @@ FUNTAB R_FunTab[] =
 {"environment<-",do_envirgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
 {"pos.to.env",	do_pos2env,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 
+{"eapply",	do_eapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"lapply",	do_lapply,	0,	10,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"vapply",	do_vapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"mapply",	do_mapply,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+
 {".C",		do_dotCode,	0,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 {".Fortran",	do_dotCode,	1,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 {".External",   do_External,    0,      1,      -1,     {PP_FOREIGN, PREC_FN,	0}},
@@ -652,11 +652,6 @@ FUNTAB R_FunTab[] =
 {".Call.graphics", do_dotcallgr, 0,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 
 /* .Internal */
-{"eapply",	do_eapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"lapply",	do_lapply,	0,	10,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"vapply",	do_vapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"mapply",	do_mapply,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
-
 {"Version",	do_version,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"machine",	do_machine,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"commandArgs", do_commandArgs, 0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
@@ -997,7 +992,7 @@ FUNTAB R_FunTab[] =
 
 {"eSoftVersion",do_eSoftVersion, 0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"curlVersion", do_curlVersion, 0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
-{"curlGetHeaders",do_curlGetHeaders,0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"curlGetHeaders",do_curlGetHeaders,0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"curlDownload",do_curlDownload, 0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
 
 {NULL,		NULL,		0,	0,	0,	{PP_INVALID, PREC_FN,	0}},
@@ -1013,18 +1008,12 @@ FUNTAB R_FunTab[] =
    Any symbols can be put here, but ones that contain special
    characters, or are reserved words, are the ones unlikely to be
    defined in any environment other than base, and hence the ones
-   where this is most likely to help.
-
-   This is now also used for screening out syntactically special
-   functions fromuse on the RHS of a pipe. If a
-   non-syntactically-special symbol is added here it would neet to be
-   explicutly allowed in the pipe code. */
+   where this is most likely to help. */
 
 static char *Spec_name[] = {
     "if", "while", "repeat", "for", "break", "next", "return", "function",
     "(", "{",
-    "+", "-", "*", "/", "^", "%%", "%/%", "%*%", ":", "::", ":::", "?", "|>",
-    "~", "@", "=>",
+    "+", "-", "*", "/", "^", "%%", "%/%", "%*%", ":",
     "==", "!=", "<", ">", "<=", ">=",
     "&", "|", "&&", "||", "!",
     "<-", "<<-", "=",
@@ -1138,7 +1127,6 @@ static void SymbolShortcuts(void)
     R_SpecSymbol = install("spec");
     R_NamespaceEnvSymbol = install(".__NAMESPACE__.");
     R_AsCharacterSymbol = install("as.character");
-    R_FunctionSymbol = install("function");
 
     R_dot_Generic = install(".Generic");
     R_dot_Method = install(".Method");

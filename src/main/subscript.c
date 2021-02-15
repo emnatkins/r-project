@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2020  The R Core Team
+ *  Copyright (C) 1997--2018  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -91,21 +91,8 @@ OneIndex(SEXP x, SEXP s, R_xlen_t nx, int partial, SEXP *newname,
 	indx = integerOneIndex(INTEGER_ELT(s, pos), nx, call);
 	break;
     case REALSXP:
-    {
-	double dblind = REAL_ELT(s, pos);
-	if(!ISNAN(dblind)) {
-	    /* see comment above integerOneIndex */
-	    if (dblind > 0) indx = (R_xlen_t)(dblind - 1);
-	    else if (dblind == 0 || nx < 2) {
-		ECALL3(call, _("attempt to select less than one element in %s"), "OneIndex <real>");
-	    } else if (nx == 2 && dblind > -3)
-		indx = (R_xlen_t)(2 + dblind);
-	    else {
-		ECALL3(call, _("attempt to select more than one element in %s"), "OneIndex <real>");
-	    }
-	}
+	indx = integerOneIndex((int)REAL_ELT(s, pos), nx, call);
 	break;
-    }
     case STRSXP:
 	vmax = vmaxget();
 	names = getAttrib(x, R_NamesSymbol);
@@ -830,11 +817,9 @@ stringSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, SEXP names,
     int canstretch = *stretch > 0;
     /* product may overflow, so check factors as well. */
     Rboolean usehashing = ( ((ns > 1000 && nx) || (nx > 1000 && ns)) || (ns * nx > 15*nx + ns) );
-    int nprotect = 0;
 
     PROTECT(s);
     PROTECT(names);
-    nprotect += 2;
     nnames = nx;
     extra = nnames;
 
@@ -850,7 +835,6 @@ stringSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, SEXP names,
 	/* NB: this does not behave in the same way with respect to ""
 	   and NA names: they will match */
 	PROTECT(indx = match(names, s, 0)); /**** guaranteed to be fresh???*/
-	nprotect++;
 	/* second pass to correct this */
 	int *pindx = INTEGER(indx);
 	for (i = 0; i < ns; i++)
@@ -858,7 +842,6 @@ stringSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, SEXP names,
 		pindx[i] = 0;
     } else {
 	PROTECT(indx = allocVector(INTSXP, ns));
-	nprotect++;
 	int *pindx = INTEGER(indx);
 	for (i = 0; i < ns; i++) {
 	    sub = 0;
@@ -883,7 +866,6 @@ stringSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, SEXP names,
 	    if (sindx == NULL) {
 		sindx = PROTECT(match(s, s, 0));
 		indexnames = PROTECT(allocVector(VECSXP, ns));
-		nprotect += 2;
 		for (int z = 0; z < ns; z++)
 		    SET_VECTOR_ELT(indexnames, z, R_NilValue);
 	    }
@@ -907,9 +889,12 @@ stringSubscript(SEXP s, R_xlen_t ns, R_xlen_t nx, SEXP names,
        subscript vector. */
     if (extra != nnames)
 	setAttrib(indx, R_UseNamesSymbol, indexnames);
+    if (sindx != NULL) {
+	UNPROTECT(2);
+    }
     if (canstretch)
 	*stretch = extra;
-    UNPROTECT(nprotect);
+    UNPROTECT(3);
     return indx;
 }
 

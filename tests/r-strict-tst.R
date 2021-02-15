@@ -1,5 +1,5 @@
 #### Strict "regression" (no output comparison) tests
-#### for  [R]andom number generating functions
+#### or  [R]andom number generating functions
 
 options(warn = 2)# warnings are errors here
 

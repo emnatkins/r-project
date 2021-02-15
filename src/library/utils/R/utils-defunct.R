@@ -35,8 +35,7 @@
 ## <entry>
 ## Deprecated in 2.2.0
 ## Defunct in 3.0.0
-## Removed in 4.1.0
-## CRAN.packages <- function(CRAN = getOption("repos"), method,
-##                           contriburl = contrib.url(CRAN))
-##     .Defunct("available.packages")
+CRAN.packages <- function(CRAN = getOption("repos"), method,
+                          contriburl = contrib.url(CRAN))
+    .Defunct("available.packages")
 ## </entry>

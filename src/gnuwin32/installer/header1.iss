@@ -1,5 +1,4 @@
 PrivilegesRequired=none
-PrivilegesRequiredOverridesAllowed=commandline
 MinVersion=0,6.0
 DefaultGroupName=R
 AllowNoIcons=yes
