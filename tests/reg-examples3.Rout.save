@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2021-03-10 r80084) -- "Unsuffered Consequences"
+R version 4.0.3 Patched (2021-01-08 r79820) -- "Bunny-Wunnies Freak Out"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -581,11 +581,9 @@ pckgDs>
 > ## there are few dependencies in a vanilla R installation:
 > ## lattice may not be installed
 > ## Avoid possibly large list from R_HOME/site-library, which --vanilla includes.
-> notrun <- function() {
-+ stopifnot(identical(
+> stopifnot(identical(
 +     sort(dependsOnPkgs("lattice", lib.loc = .Library)),
 +     c("Matrix", "mgcv", "nlme", "survival")))
-+ }
 > 
 > ## Vignettes may not yet be installed
 > gridEx <- system.file("doc", "grid.Rnw", package = "grid")

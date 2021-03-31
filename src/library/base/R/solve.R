@@ -37,7 +37,7 @@ solve.default <-
     function(a, b, tol = .Machine$double.eps, LINPACK = FALSE, ...)
 {
     if (!missing(LINPACK))
-        stop("the LINPACK argument has been defunct since R 3.1.0")
+        warning("the LINPACK argument has been defunct since R 3.1.0")
     if(is.complex(a) || (!missing(b) && is.complex(b))) {
 	a <- as.matrix(a)
 	if(missing(b)) {

@@ -1,6 +1,6 @@
 % File src/library/grid/man/viewport.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2013 R Core Team
 % Distributed under GPL 2 or later
 
 \name{Grid Viewports}
@@ -18,7 +18,7 @@
 viewport(x = unit(0.5, "npc"), y = unit(0.5, "npc"),
          width = unit(1, "npc"), height = unit(1, "npc"),
          default.units = "npc", just = "centre",
-         gp = gpar(), clip = "inherit", mask = "inherit",
+         gp = gpar(), clip = "inherit",
          xscale = c(0, 1), yscale = c(0, 1),
          angle = 0,
          layout = NULL,
@@ -45,22 +45,15 @@ vpTree(parent, children)
     and \code{"top"}.  For numeric values, 0 means left alignment
     and 1 means right alignment.
   }
-  \item{gp}{An object of class \code{"gpar"}, typically the output
-    from a call to the function \code{\link{gpar}}.  This is basically
+  \item{gp}{An object of class \code{gpar}, typically the output
+    from a call to the function \code{gpar}.  This is basically
     a list of graphical parameter settings.}
   \item{clip}{One of \code{"on"}, \code{"inherit"}, or
     \code{"off"}, indicating whether to
     clip to the extent of this viewport, inherit the clipping region
     from the parent viewport, or turn clipping off altogether.
     For back-compatibility, a logical value of \code{TRUE} corresponds
-    to \code{"on"} and \code{FALSE} corresponds to \code{"inherit"}.
-
-    May also be a grob (or a gTree) that describes a clipping path.}
-  \item{mask}{One of \code{"none"} (or \code{FALSE})
-    or \code{"inherit"} (or \code{TRUE}) 
-    or a grob (or a gTree).  This specifies that the viewport
-    should have no mask, or it should inherit the mask of its parent,
-    or it should have its own mask, as described by the grob.}
+    to \code{"on"} and \code{FALSE} corresponds to \code{"inherit"}.}
   \item{xscale}{A numeric vector of length two indicating the minimum and
     maximum on the x-scale.  The limits may not be identical. }
   \item{yscale}{A numeric vector of length two indicating the minimum
@@ -152,7 +145,7 @@ The viewports in a \code{vpList} are pushed in parallel.  The
 \examples{
 # Diagram of a sample viewport
 grid.show.viewport(viewport(x=0.6, y=0.6,
-                   width=unit(1, "inches"), height=unit(1, "inches")))
+                   w=unit(1, "inches"), h=unit(1, "inches")))
 # Demonstrate viewport clipping
 clip.demo <- function(i, j, clip1, clip2) {
   pushViewport(viewport(layout.pos.col=i,
@@ -178,7 +171,7 @@ clip.demo(2, 2, TRUE, TRUE)
 popViewport()
 # Demonstrate turning clipping off
 grid.newpage()
-pushViewport(viewport(width=.5, height=.5, clip="on"))
+pushViewport(viewport(w=.5, h=.5, clip="on"))
 grid.rect()
 grid.circle(r=.6, gp=gpar(lwd=10))
 pushViewport(viewport(clip="inherit"))
@@ -188,14 +181,14 @@ grid.circle(r=.6)
 popViewport(3)
 # Demonstrate vpList, vpStack, and vpTree
 grid.newpage()
-tree <- vpTree(viewport(width=0.8, height=0.8, name="A"),
-               vpList(vpStack(viewport(x=0.1, y=0.1, width=0.5, height=0.5,
+tree <- vpTree(viewport(w=0.8, h=0.8, name="A"),
+               vpList(vpStack(viewport(x=0.1, y=0.1, w=0.5, h=0.5,
                                        just=c("left", "bottom"), name="B"),
-                              viewport(x=0.1, y=0.1, width=0.5, height=0.5,
+                              viewport(x=0.1, y=0.1, w=0.5, h=0.5,
                                        just=c("left", "bottom"), name="C"),
-                              viewport(x=0.1, y=0.1, width=0.5, height=0.5,
+                              viewport(x=0.1, y=0.1, w=0.5, h=0.5,
                                        just=c("left", "bottom"), name="D")),
-                      viewport(x=0.5, width=0.4, height=0.9,
+                      viewport(x=0.5, w=0.4, h=0.9,
                                just="left", name="E")))
 pushViewport(tree)
 for (i in LETTERS[1:5]) {

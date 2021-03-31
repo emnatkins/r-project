@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2021  The R Core Team
+ *  Copyright (C) 1997--2020  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -836,7 +836,7 @@ char *PrintUsage(void)
 	"  --ess                 Don't use getline for command-line editing\n                          and assert interactive use\n  -f file               Take input from 'file'\n  --file=file           ditto\n  -e expression         Use 'expression' as input\n\nOne or more -e options can be used, but not together with -f or --file\n",
 	msg5[] = "\nAn argument ending in .RData (in any case) is taken as the path\nto the workspace to be restored (and implies --restore)";
     if(CharacterMode == RTerm)
-	strcpy(msg, "Usage: Rterm [options] [EnvVars]\n\n");
+	strcpy(msg, "Usage: Rterm [options] [< infile] [> outfile] [EnvVars]\n\n");
     else strcpy(msg, "Usage: Rgui [options] [EnvVars]\n\n");
     strcat(msg, msg0);
     strcat(msg, msg1);
@@ -866,7 +866,20 @@ void R_setupHistory(void)
     }
 }
 
-extern int R_isWriteableDir(char *path);
+#include <sys/stat.h>
+static int isDir(char *path)
+{
+    struct stat sb;
+    int isdir = 0;
+    if(!path) return 0;
+    if(stat(path, &sb) == 0) {
+	isdir = (sb.st_mode & S_IFDIR) > 0; /* is a directory */
+	/* We want to know if the directory is writable by this user,
+	   which mode does not tell us */
+	isdir &= (access(path, W_OK) == 0);
+    }
+    return isdir;
+}
 
 static Rboolean use_workspace(Rstart Rp, char *name, Rboolean usedRdata)
 {
@@ -1179,12 +1192,12 @@ int cmdlineoptions(int ac, char **av)
 	{
 	    char *tm;
 	    tm = getenv("TMPDIR");
-	    if (!R_isWriteableDir(tm)) {
+	    if (!isDir(tm)) {
 		tm = getenv("TMP");
-		if (!R_isWriteableDir(tm)) {
+		if (!isDir(tm)) {
 		    tm = getenv("TEMP");
-		    if (!R_isWriteableDir(tm))
-			tm = getRUser(); /* this one will succeed */
+		    if (!isDir(tm))
+			tm = getenv("R_USER"); /* this one will succeed */
 		}
 	    }
 	    /* in case getpid() is not unique -- has been seen under Windows */

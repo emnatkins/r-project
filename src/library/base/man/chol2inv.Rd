@@ -19,7 +19,7 @@ chol2inv(x, size = NCOL(x), LINPACK = FALSE)
     contain the Choleski decomposition of the matrix to be inverted.}
   \item{size}{the number of columns of \code{x} containing the
     Choleski decomposition.}
-  \item{LINPACK}{logical.  Defunct and gives an error.}
+  \item{LINPACK}{logical.  Defunct and ignored (with a warning).}
 
 }
 \value{

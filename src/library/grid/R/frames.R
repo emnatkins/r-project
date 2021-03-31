@@ -141,6 +141,10 @@ placeGrob <- function(frame, grob,
     row <- c(1, dim[1L])
   if (is.null(col))
     col <- c(1, dim[2L])
+  if (length(row) == 1)
+    row <- rep(row, 2)
+  if (length(col) == 1)
+    col <- rep(col, 2)
   if (min(row) < 1 || max(row) > dim[1L] ||
       min(col) < 1 || max(col) > dim[2L])
     stop("invalid 'row' and/or 'col' (no such cell in frame layout)")
@@ -325,13 +329,13 @@ packGrob <- function(frame, grob,
     stop("invalid 'grob'")
   # col/row can be given as a range, but I only want to know
   # about the min and max
-  if (!is.null(col) && length(col) > 1) {
+  if (!is.null(col) & length(col) > 1) {
     col <- range(col)
     col.range <- TRUE
   }
   else
     col.range <- FALSE
-  if (!is.null(row) && length(row) > 1) {
+  if (!is.null(row) & length(row) > 1) {
     row <- range(row)
     row.range <- TRUE
   }

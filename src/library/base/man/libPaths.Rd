@@ -1,6 +1,6 @@
 % File src/library/base/man/libPaths.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2021 R Core Team
+% Copyright 1995-2013 R Core Team
 % Distributed under GPL 2 or later
 
 \name{libPaths}
@@ -17,7 +17,7 @@
   looked for.
 }
 \usage{
-.libPaths(new, include.site = TRUE)
+.libPaths(new)
 
 .Library
 .Library.site
@@ -27,10 +27,6 @@
     trees.  Tilde expansion (\code{\link{path.expand}}) is done, and if
     any element contains one of \code{*?[}, globbing is done where
     supported by the platform: see \code{\link{Sys.glob}}.}
-  \item{include.site}{a logical value indicating whether the value of
-    \code{.Library.site} should be included in the new set of library
-    tree locations.  Defaulting to \code{TRUE}, it is ignored when
-    \code{.libPaths} is called without the \code{new} argument.}
 }
 \details{
   \code{.Library} is a character string giving the location of the
@@ -42,12 +38,10 @@
 
   \code{.libPaths} is used for getting or setting the library trees that
   \R knows about (and hence uses when looking for packages).  If called
-  with argument \code{new}, by default, the library search path is set to
+  with argument \code{new}, the library search path is set to
   the existing directories in \code{unique(c(new, .Library.site, .Library))}
-  and this is returned.  If \code{include.site} is \code{FALSE} when the
-  \code{new} argument is set, \code{.Library.site} is excluded from the
-  new library search path.  If called without the \code{new} argument, a
-  character vector with the currently active library trees is returned.
+  and this is returned.  If given no argument, a character vector with
+  the currently active library trees is returned.
 
   How paths \code{new} with a trailing slash are treated is
   OS-dependent.  On a POSIX filesystem existing directories can usually
@@ -64,7 +58,7 @@
 
   By default \env{R_LIBS} is unset, and \env{R_LIBS_USER} is set to
   directory \file{R/\var{R.version$platform}-library/\var{x.y}}
-  of the home directory (or \file{Library/R/\var{arch}/\var{x.y}/library} for
+  of the home directory (or \file{Library/R/\var{x.y}/library} for
   CRAN macOS builds), for \R \var{x.y.z}.
 
   \code{.Library.site} can be set via the environment variable

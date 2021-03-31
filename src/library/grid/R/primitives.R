@@ -80,7 +80,7 @@ validDetails.move.to <- function(x) {
       !is.unit(x$y))
     stop("'x' and 'y' must be units")
   # Make sure that x and y are of length 1
-  if (length(x$x) > 1 || length(x$y) > 1)
+  if (length(x$x) > 1 | length(x$y) > 1)
     stop("'x' and 'y' must have length 1")
   x
 }
@@ -115,7 +115,7 @@ validDetails.line.to <- function(x) {
       !is.unit(x$y))
     stop("'x' and 'y' must be units")
   # Make sure that x and y are of length 1
-  if (length(x$x) > 1 || length(x$y) > 1)
+  if (length(x$x) > 1 | length(x$y) > 1)
     stop("'x' and 'y' must have length 1")
   if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
       stop("invalid 'arrow' argument")
@@ -426,7 +426,7 @@ validDetails.arrows <- function(x) {
     stop("'length' must be a 'unit' object")
   x$ends <- as.integer(match(x$ends, c("first", "last", "both")))
   x$type <- as.integer(match(x$type, c("open", "closed")))
-  if (anyNA(x$ends) || anyNA(x$type))
+  if (any(is.na(x$ends)) || any(is.na(x$type)))
     stop("invalid 'ends' or 'type' argument")
   x
 }
@@ -1116,9 +1116,9 @@ validDetails.rect <- function(x) {
 }
 
 drawDetails.rect <- function(x, recording=TRUE) {
-    grid.Call.graphics(C_rect, x$x, x$y, x$width, x$height,
-                       resolveHJust(x$just, x$hjust),
-                       resolveVJust(x$just, x$vjust))
+  grid.Call.graphics(C_rect, x$x, x$y, x$width, x$height,
+                     resolveHJust(x$just, x$hjust),
+                     resolveVJust(x$just, x$vjust))
 }
 
 xDetails.rect <- function(x, theta) {
@@ -1697,3 +1697,13 @@ nullGrob <- function(x=unit(0.5, "npc"), y=unit(0.5, "npc"),
 grid.null <- function(...) {
     grid.draw(nullGrob(...))
 }
+
+
+
+
+
+
+
+
+
+

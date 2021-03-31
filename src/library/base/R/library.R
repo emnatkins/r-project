@@ -1,7 +1,7 @@
 #  File src/library/base/R/library.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -626,9 +626,8 @@ function(chname, package, lib.loc, verbose = getOption("verbose"),
     }
     if(verbose)
         message(gettextf("now dyn.load(\"%s\") ...", file), domain = NA)
-    dll <- if("DLLpath" %in% ...names())
-                dyn.load(file, ...)
-           else dyn.load(file, DLLpath = DLLpath, ...)
+    dll <- if("DLLpath" %in% names(list(...))) dyn.load(file, ...)
+    else dyn.load(file, DLLpath = DLLpath, ...)
     .dynLibs(c(dll_list, list(dll)))
     invisible(dll)
 }
@@ -806,22 +805,17 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
                 ## Note that this is sometimes used for source
                 ## packages, e.g. by promptPackage from package.skeleton
                 pfile <- file.path(p, "Meta", "package.rds")
-                info <- if(file.exists(pfile)) {
+                info <- if(file.exists(pfile))
                     ## this must have these fields to get installed
-                    tryCatch(readRDS(pfile)$DESCRIPTION[c("Package",
-                                                          "Version")],
-                             error = function(e)
-                                 c(Package = NA_character_,
-                                   Version = NA_character_))
-                } else {
+                    readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
+                else {
                     info <- tryCatch(read.dcf(file.path(p, "DESCRIPTION"),
                                               c("Package", "Version"))[1, ],
                                      error = identity)
                     if(inherits(info, "error")
                        || (length(info) != 2L)
                        || anyNA(info))
-                        c(Package = NA_character_,
-                          Version = NA_character_) # need dimnames below
+                        c(Package = NA, Version = NA) # need dimnames below
                     else
                         info
                 }

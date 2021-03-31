@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-3.5.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-02-01 13:58+0000\n"
+"POT-Creation-Date: 2018-03-29 07:06-0700\n"
 "PO-Revision-Date: 2018-04-09 12:06-0600\n"
 "Last-Translator: Chel Hee Lee <gnustats@gmail.com>\n"
 "Language-Team: \n"
@@ -35,70 +35,75 @@ msgstr "base 그래픽 시스템이 등록되지 않았습니다"
 msgid "bad units specified in '%s'"
 msgstr "'%s'에 지정된 기본단위가 올바르지 않습니다"
 
-#: graphics.c:1818 graphics.c:1840
+#: graphics.c:1791 graphics.c:1813
 msgid "attempt to plot on null device"
 msgstr "null device에 플랏을 시도합니다"
 
-#: graphics.c:1870
+#: graphics.c:1843
 msgid "outer margins too large (figure region too small)"
 msgstr "외부 여백이 너무 커서 figure region이 너무 작습니다"
 
-#: graphics.c:1872
+#: graphics.c:1845
 msgid "figure region too large"
 msgstr "figure region이 너무 큽니다"
 
-#: graphics.c:1874
+#: graphics.c:1847
 msgid "figure margins too large"
 msgstr "figure 여백이 너무 큽니다"
 
-#: graphics.c:1876
+#: graphics.c:1849
 msgid "plot region too large"
 msgstr "플랏 영역이 너무 큽니다"
 
-#: graphics.c:1932
+#: graphics.c:1896
+#, c-format
+msgid "relative range of values (%4.0f * EPS) is small (axis %d)"
+msgstr "값들(%4.0f * EPS)에 대한 상대적 범위가 작습니다 (axis %d)"
+
+#: graphics.c:1948
 #, c-format
 msgid "nonfinite axis limits [GScale(%g,%g,%d, .); log=%d]"
 msgstr "무한한 한계를 가지는 축입니다 [GScale(%g,%g,%d, .); log=%d]"
 
-#: graphics.c:1962
+#: graphics.c:1978
 #, c-format
 msgid "axis style \"%c\" unimplemented"
 msgstr "축의 스타일 \"%c\"은 구현되지 않았습니다"
 
-#: graphics.c:2200
+#: graphics.c:2216
 msgid "no graphics device is active"
 msgstr "활성화 된 그래픽 장치가 없습니다"
 
-#: graphics.c:2395
+#: graphics.c:2411
 msgid "plot.new has not been called yet"
 msgstr "plot.new는 아직까지 호출되지 않았습니다"
 
-#: graphics.c:2397
+#: graphics.c:2413
 msgid "invalid graphics state"
 msgstr "유효한 그래픽 상태가 아닙니다"
 
-#: graphics.c:2552
+#: graphics.c:2564
 msgid "graphics device closed during call to locator or identify"
 msgstr "locator 또는 identify 로의 호출이 있는 동안 그래픽 장치는 잠깁니다"
 
-#: graphics.c:2602
+#: graphics.c:2614
 msgid "No graphics device is active"
 msgstr "활성화된 그래픽 장치가 없습니다"
 
-#: graphics.c:3060
+#: graphics.c:3073
 msgid "zero-length arrow is of indeterminate angle and so skipped"
 msgstr "길이가 0인 arrow는 angle을 정할 수 없기 때문에 넘어갑니다"
 
-#: graphics.c:3141
+#: graphics.c:3154
 #, c-format
 msgid "invalid par(\"bty\") = '%c'; no box() drawn"
 msgstr "유효한 par(\"bty\") = '%c'가 아니므로 그려질 box()가 없습니다"
 
-#: graphics.c:3158
+#: graphics.c:3171
 msgid "invalid argument to GBox"
 msgstr "유효하지 않은 인자가 GBox에 전달되었습니다"
 
-#: graphics.c:3365
+#: graphics.c:3416
 msgid "metric information not available for this device"
 msgstr "이 장치에 대한 metric information이 사용가능하지 않습니다"
 
@@ -190,8 +195,8 @@ msgstr "유효한 플랏 기호가 아닙니다"
 msgid "invalid font specification"
 msgstr "유효한 폰트 지정이 아닙니다"
 
-#: plot.c:276 plot.c:290 plot.c:477 plot.c:482 plot.c:2133 plot.c:2140
-#: plot.c:3163 plot.c:3165 plot.c:3167 plot.c:3326 plot3d.c:1163 plot3d.c:1167
+#: plot.c:276 plot.c:290 plot.c:481 plot.c:486 plot.c:2112 plot.c:2119
+#: plot.c:3141 plot.c:3143 plot.c:3145 plot.c:3300 plot3d.c:1163 plot3d.c:1167
 #: plot3d.c:1169 plot3d.c:1903
 #, c-format
 msgid "invalid '%s' value"
@@ -211,36 +216,36 @@ msgstr "유효한 'vfont'의 값이 아닙니다 [typeface = %d, fontindex = %d]
 msgid "invalid graphics parameter"
 msgstr "유효한 그래픽 파라미터가 아닙니다"
 
-#: plot.c:473
+#: plot.c:477
 msgid "at least 3 arguments required"
 msgstr "최소한 3개의 인자가 요구되어 집니다"
 
-#: plot.c:487
+#: plot.c:492
 msgid "\"log=\" specification must be character"
 msgstr "\"log=\" 지정은 반드시 문자이어야 합니다"
 
-#: plot.c:500
+#: plot.c:503
 #, c-format
 msgid "invalid \"log=%s\" specification"
 msgstr "유효한 \"log=%s\" 지정이 아닙니다"
 
-#: plot.c:516
+#: plot.c:518
 msgid "NAs not allowed in 'xlim'"
 msgstr "NA는 'xlim'에 사용할 수 없습니다"
 
-#: plot.c:522
+#: plot.c:524
 msgid "need finite 'xlim' values"
 msgstr "유한한 값들만이 'xlim'에 사용될 수 있습니다"
 
-#: plot.c:528
+#: plot.c:530
 msgid "NAs not allowed in 'ylim'"
 msgstr "NA는 'ylim'에 사용할 수 없습니다"
 
-#: plot.c:534
+#: plot.c:536
 msgid "need finite 'ylim' values"
 msgstr "유한한 값들만이 'ylim'에 사용될 수 있습니다"
 
-#: plot.c:540
+#: plot.c:542
 msgid "Logarithmic axis must have positive limits"
 msgstr "로그값을 가지는 축은 반드시 양의 한계값을 가져야 합니다"
 
@@ -248,225 +253,221 @@ msgstr "로그값을 가지는 축은 반드시 양의 한계값을 가져야 �
 msgid "invalid type for axis labels"
 msgstr "축 레이블에 유효한 타입이 아닙니다"
 
-#: plot.c:752 plot.c:1328 plot.c:1642 plot.c:1707 plot.c:1782 plot.c:1848
-#: plot.c:1922 plot.c:2017 plot.c:2093 plot.c:2371 plot.c:2545 plot.c:2761
-#: plot.c:3308 plot.c:3443 plot.c:3519 plot.c:3685 plot.c:3965 plot3d.c:1872
+#: plot.c:765 plot.c:1298 plot.c:1621 plot.c:1686 plot.c:1761 plot.c:1827
+#: plot.c:1901 plot.c:1996 plot.c:2072 plot.c:2350 plot.c:2524 plot.c:2740
+#: plot.c:3282 plot.c:3409 plot.c:3485 plot.c:3651 plot.c:3931 plot3d.c:1872
 msgid "too few arguments"
 msgstr "인자의 수가 너무 적습니다"
 
-#: plot.c:763
+#: plot.c:776
 #, c-format
 msgid "invalid axis number %d"
 msgstr "유효하지 않은 축 번호 %d입니다"
 
-#: plot.c:850
+#: plot.c:866
 msgid "'hadj' must be of length one"
 msgstr "'hadj'의 길이는 반드시 1이어야 합니다"
 
-#: plot.c:857 plot.c:2105 plot.c:2382 plot.c:2388 plot.c:2395 plot.c:2403
-#: plot.c:2410 plot.c:2417 plot.c:2424 plot.c:2431 plot.c:2439 plot.c:2446
-#: plot.c:3170
+#: plot.c:873 plot.c:2084 plot.c:2361 plot.c:2367 plot.c:2374 plot.c:2382
+#: plot.c:2389 plot.c:2396 plot.c:2403 plot.c:2410 plot.c:2418 plot.c:2425
+#: plot.c:3148
 #, c-format
 msgid "zero-length '%s' specified"
 msgstr "길이가 0인 '%s'가 지정되었습니다"
 
-#: plot.c:862
-#, fuzzy
-msgid "'gap.axis' must be of length one"
-msgstr "'hadj'의 길이는 반드시 1이어야 합니다"
-
-#: plot.c:892
-msgid "'gap.axis' must be NA or a finite number"
-msgstr ""
-
-#: plot.c:944
+#: plot.c:942
 msgid "'labels' is supplied and not 'at'"
 msgstr "'labels'만 주어지고 'at'은 주어지지 않았습니다"
 
-#: plot.c:948
+#: plot.c:946
 #, c-format
 msgid "'at' and 'labels' lengths differ, %d != %d"
 msgstr "'at'의 길이는 %d인데, 'labels'의 길이는 %d입니다"
 
-#: plot.c:968
+#: plot.c:963
 msgid "no locations are finite"
 msgstr ""
 
-#: plot.c:1344
+#: plot.c:1314
 msgid "invalid plotting structure"
 msgstr "유효하지 않은 플롯팅 구조입니다"
 
-#: plot.c:1346
+#: plot.c:1316
 #, c-format
 msgid "'x' and 'y' lengths differ in %s()"
 msgstr "%s()에 있는 'x'와 'y'의 길이가 다릅니다"
 
-#: plot.c:1554
+#: plot.c:1327
+#, c-format
+msgid "plot type '%s' will be truncated to first character"
+msgstr "플랏 타입 '%s'은 첫번째 문자에서 잘려질 것입니다"
+
+#: plot.c:1331 plot.c:3002
+msgid "invalid plot type"
+msgstr "유효한 플랏 타입이 아닙니다"
+
+#: plot.c:1533
 #, c-format
 msgid "invalid plot type '%c'"
 msgstr "'%c'는 유효한 플랏 타입이 아닙니다"
 
-#: plot.c:1597
+#: plot.c:1576
 msgid "invalid first argument"
 msgstr "첫번째 인자가 잘못되었습니다"
 
-#: plot.c:1604
+#: plot.c:1583
 msgid "invalid second argument"
 msgstr "두번째 인자가 잘못되었습니다"
 
-#: plot.c:1612
+#: plot.c:1591
 msgid "invalid third argument"
 msgstr "세번째 인자가 잘못되었습니다"
 
-#: plot.c:1620
+#: plot.c:1599
 msgid "invalid fourth argument"
 msgstr "네번째 인자가 잘못되었습니다"
 
-#: plot.c:1628
+#: plot.c:1607
 msgid "cannot mix zero-length and non-zero-length coordinates"
 msgstr "길이가 0인 좌표와 길이가 0이 아닌 좌표는 함께 사용될 수 없습니다"
 
-#: plot.c:1853
+#: plot.c:1832
 msgid "Empty raster"
 msgstr ""
 
-#: plot.c:1935
+#: plot.c:1914
 msgid "invalid arrow head length"
 msgstr "화살표 머리부분의 길이가 유효하지 않습니다"
 
-#: plot.c:1940
+#: plot.c:1919
 msgid "invalid arrow head angle"
 msgstr "화살표 머리부분의 각도가 유효하지 않습니다"
 
-#: plot.c:1945
+#: plot.c:1924
 msgid "invalid arrow head specification"
 msgstr "화살표 머리부분의 지정이 유효하지 않습니다"
 
-#: plot.c:2179
+#: plot.c:2158
 msgid "no coordinates were supplied"
 msgstr "좌표가 제공되지 않았습니다"
 
-#: plot.c:2802
+#: plot.c:2781
 msgid "invalid a=, b= specification"
 msgstr "유효하지 않은 a=, b= 지정입니다"
 
-#: plot.c:2811
+#: plot.c:2790
 msgid "'a' and 'b' must be finite"
 msgstr "'a'와 'b'는 반드시 유한해야 합니다"
 
-#: plot.c:2947 plot.c:4085 plot.c:4089 plot.c:4092 plot.c:4112 plot.c:4116
-#: plot.c:4119 plot3d.c:1085 plot3d.c:1089 plot3d.c:1094 plot3d.c:1098
+#: plot.c:2925 plot.c:4051 plot.c:4055 plot.c:4058 plot.c:4078 plot.c:4082
+#: plot.c:4085 plot3d.c:1085 plot3d.c:1089 plot3d.c:1094 plot3d.c:1098
 #: plot3d.c:1102 plot3d.c:1106 stem.c:153 stem.c:154 stem.c:156 stem.c:157
 #: stem.c:203 stem.c:204
 #, c-format
 msgid "invalid '%s' argument"
 msgstr "유효하지 않은 '%s' 인자입니다"
 
-#: plot.c:3019 plot.c:3159
+#: plot.c:2997 plot.c:3137
 #, c-format
 msgid "invalid number of points in %s"
 msgstr "%s에 있는 점들의 개수가 유효하지 않습니다"
 
-#: plot.c:3024
-msgid "invalid plot type"
-msgstr "유효한 플랏 타입이 아닙니다"
-
-#: plot.c:3161
+#: plot.c:3139
 msgid "incorrect argument type"
 msgstr "올바르지 않은 인자 유형입니다"
 
-#: plot.c:3173
+#: plot.c:3151
 msgid "different argument lengths"
 msgstr "인자의 길이들이 다릅니다"
 
-#: plot.c:3175
+#: plot.c:3153
 msgid "more 'labels' than points"
 msgstr "점의 개수보다 'labels'의 수가 더 많습니다"
 
-#: plot.c:3227
+#: plot.c:3202
 #, c-format
 msgid "warning: no point within %.2f inches\n"
 msgstr "경고: %.2f 인치이내에 포인트가 하나도 없습니다\n"
 
-#: plot.c:3233
+#: plot.c:3208
 msgid "warning: nearest point already identified\n"
 msgstr "경고: 가장 가까운 포인트는 이미 확인되었습니다\n"
 
-#: plot.c:3319
+#: plot.c:3293
 msgid "invalid units"
 msgstr ""
 
-#: plot.c:3503 plot.c:3610
+#: plot.c:3469 plot.c:3576
 msgid "invalid dendrogram input"
 msgstr "유효하지 않은 덴드로이드그램 입력입니다"
 
-#: plot.c:3667
+#: plot.c:3633
 msgid "invalid symbol parameter vector"
 msgstr "유효하지 않은 심볼 파라마터 벡터입니다"
 
-#: plot.c:3690
+#: plot.c:3656
 msgid "invalid symbol coordinates"
 msgstr "심볼의 좌표가 유효하지 않습니다"
 
-#: plot.c:3698
+#: plot.c:3664
 msgid "x/y/parameter length mismatch"
 msgstr "x/y/파라미터의 길이가 일치하지 않습니다"
 
-#: plot.c:3717
+#: plot.c:3683
 msgid "invalid circles data"
 msgstr ""
 
-#: plot.c:3719 plot.c:3740 plot.c:3765 plot.c:3795
+#: plot.c:3685 plot.c:3706 plot.c:3731 plot.c:3761
 msgid "invalid symbol parameter"
 msgstr "유효하지 않은 심볼 파라미터입니다"
 
-#: plot.c:3738
+#: plot.c:3704
 msgid "invalid squares data"
 msgstr ""
 
-#: plot.c:3763
+#: plot.c:3729
 msgid "invalid rectangles data (need 2 columns)"
 msgstr "사각형을 그리는데 유효한 데이터가 아닙니다 (2개의 열들이 필요합니다)"
 
-#: plot.c:3793
+#: plot.c:3759
 msgid "invalid stars data"
 msgstr ""
 
-#: plot.c:3835
+#: plot.c:3801
 msgid "invalid thermometers data (need 3 or 4 columns)"
 msgstr ""
 
-#: plot.c:3838
+#: plot.c:3804
 #, c-format
 msgid "invalid 'thermometers[, %s]'"
 msgstr ""
 
-#: plot.c:3841
+#: plot.c:3807
 #, c-format
 msgid "'thermometers[, %s]' not in [0,1] -- may look funny"
 msgstr ""
 
-#: plot.c:3844
+#: plot.c:3810
 msgid "invalid 'thermometers[, 1:2]'"
 msgstr ""
 
-#: plot.c:3883
+#: plot.c:3849
 msgid "invalid 'boxplots' data (need 5 columns)"
 msgstr "'boxplots'에 유효한 데이터가 아닙니다 (5개의 열들이 필요합니다)"
 
-#: plot.c:3892
+#: plot.c:3858
 msgid "'boxplots[, 5]' outside [0,1] -- may look funny"
 msgstr ""
 
-#: plot.c:3894
+#: plot.c:3860
 msgid "invalid 'boxplots[, 1:4]'"
 msgstr "유효하지 않은 'boxplots[, 1:4]'입니다"
 
-#: plot.c:3940
+#: plot.c:3906
 msgid "invalid symbol type"
 msgstr "유효하지 않은 심볼 유형입니다"
 
-#: plot.c:3978 plot.c:3980 plot.c:3985 plot.c:3987
+#: plot.c:3944 plot.c:3946 plot.c:3951 plot.c:3953
 #, c-format
 msgid "incorrect length for '%s' argument"
 msgstr "'%s' 인자의 길이가 잘못되었습니다"
@@ -479,7 +480,7 @@ msgstr "충분하지 않은 'x' 또는 'y'의 값입니다"
 msgid "dimension mismatch"
 msgstr "차원이 일치하지 않습니다"
 
-#: plot3d.c:193
+#: plot3d.c:193 plot3d.c:1935
 msgid "no contour values"
 msgstr "contour 값들이 없습니다"
 
@@ -532,13 +533,9 @@ msgstr "유효하지 않은 viewing 파라미터입니다"
 msgid "invalid '%s' specification"
 msgstr "유효한 '%s' 지정이 아닙니다"
 
-#: plot3d.c:1526
+#: plot3d.c:1529
 #, c-format
 msgid "contour(): circular/long seglist -- set %s > %d?"
-msgstr ""
-
-#: plot3d.c:1935
-msgid "no 'levels'"
 msgstr ""
 
 #: plot3d.c:1939
@@ -558,15 +555,14 @@ msgid "increasing 'y' values expected"
 msgstr "'y'의 값들은 증가해야만 합니다"
 
 #: plot3d.c:1953
-#, c-format
-msgid "non-finite level values: levels[%d] = %g"
-msgstr ""
+msgid "invalid NA contour values"
+msgstr "NA값은 contour에 유효하지 않습니다"
 
-#: plot3d.c:1966
+#: plot3d.c:1965
 msgid "all z values are equal"
 msgstr "모든 z 값들이 동일합니다"
 
-#: plot3d.c:1968
+#: plot3d.c:1967
 msgid "all z values are NA"
 msgstr "모든 z 값들이 NA입니다"
 
@@ -574,13 +570,3 @@ msgstr "모든 z 값들이 NA입니다"
 #, c-format
 msgid "long vector '%s' is not supported"
 msgstr "벡터 '%s'는 지원되지 않는 길이를 가지고 있습니다"
-
-#, c-format
-#~ msgid "plot type '%s' will be truncated to first character"
-#~ msgstr "플랏 타입 '%s'은 첫번째 문자에서 잘려질 것입니다"
-
-#~ msgid "relative range of values (%4.0f * EPS) is small (axis %d)"
-#~ msgstr "값들(%4.0f * EPS)에 대한 상대적 범위가 작습니다 (axis %d)"
-
-#~ msgid "invalid NA contour values"
-#~ msgstr "NA값은 contour에 유효하지 않습니다"

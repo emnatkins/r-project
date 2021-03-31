@@ -137,8 +137,7 @@ anyNA.data.frame <- function(x, recursive = FALSE)
 
 is.data.frame <- function(x) inherits(x, "data.frame")
 
-## as fast as possible; used also for subsetting
-I <- function(x) { class(x) <- unique.default(c("AsIs", oldClass(x))); x }
+I <- function(x) { structure(x, class = unique(c("AsIs", oldClass(x)))) }
 
 print.AsIs <- function (x, ...)
 {
@@ -212,8 +211,7 @@ as.data.frame.data.frame <- function(x, row.names = NULL, ...)
 as.data.frame.list <-
     function(x, row.names = NULL, optional = FALSE, ...,
 	     cut.names = FALSE, col.names = names(x), fix.empty.names = TRUE,
-             check.names = !optional,
-             stringsAsFactors = FALSE)
+             stringsAsFactors = default.stringsAsFactors())
 {
     ## need to protect names in x.
     ## truncate any of more than 256 (or cut.names) bytes:
@@ -229,8 +227,9 @@ as.data.frame.list <-
 	       col.names, 0L)
     if(any.m <- any(m)) col.names[m] <- paste0("..adfl.", col.names[m])
     if(new.nms || any.m || cut.names) names(x) <- col.names
+    if(is.null(check.n <- list(...)$check.names)) check.n <- !optional
     ## data.frame() is picky with its 'row.names':
-    alis <- c(list(check.names = check.names, fix.empty.names = fix.empty.names,
+    alis <- c(list(check.names = check.n, fix.empty.names = fix.empty.names,
 		   stringsAsFactors = stringsAsFactors),
 	      if(!missing(row.names)) list(row.names = row.names))
     x <- do.call(data.frame, c(x, alis))
@@ -294,17 +293,17 @@ default.stringsAsFactors <- function()
 
 ## in case someone passes 'nm'
 as.data.frame.character <-
-    function(x, ..., stringsAsFactors = FALSE)
+    function(x, ..., stringsAsFactors = default.stringsAsFactors())
 {
     nm <- deparse1(substitute(x))
     if(stringsAsFactors) x <- factor(x)
-    if(!"nm" %in% ...names())
+    if(!"nm" %in% names(list(...)))
         as.data.frame.vector(x, ..., nm = nm)
     else as.data.frame.vector(x, ...)
 }
 
 as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, make.names = TRUE, ...,
-                                 stringsAsFactors = FALSE)
+                                 stringsAsFactors = default.stringsAsFactors())
 {
     d <- dim(x)
     nrows <- d[[1L]]
@@ -435,7 +434,7 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
 data.frame <-
     function(..., row.names = NULL, check.rows = FALSE, check.names = TRUE,
 	     fix.empty.names = TRUE,
-             stringsAsFactors = FALSE)
+             stringsAsFactors = default.stringsAsFactors())
 {
     data.row.names <-
 	if(check.rows && is.null(row.names))
@@ -1260,7 +1259,7 @@ cbind.data.frame <- function(..., deparse.level = 1)
     data.frame(..., check.names = FALSE)
 
 rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
-                             stringsAsFactors = FALSE,
+                             stringsAsFactors = default.stringsAsFactors(),
                              factor.exclude = TRUE)
 {
     match.names <- function(clabs, nmi)
@@ -1387,10 +1386,10 @@ rbind.data.frame <- function(..., deparse.level = 1, make.row.names = TRUE,
 	    if(ni[1L] == ni[2L])
 		ni <- ni[1L]
 	    else stop("invalid list argument: all variables should have the same length")
-            ri <- seq_len(ni)
-	    rows[[i]] <- seq.int(from = nrow + 1L, length.out = ni)
-	    if(make.row.names) rlabs[[i]] <- Make.row.names(nmi, ri, ni, nrow)
+	    rows[[i]] <- ri <-
+                as.integer(seq.int(from = nrow + 1L, length.out = ni))
 	    nrow <- nrow + ni
+	    if(make.row.names) rlabs[[i]] <- Make.row.names(nmi, ri, ni, nrow)
 	    if(length(nmi <- names(xi)) > 0L) {
 		if(is.null(clabs))
 		    clabs <- nmi
@@ -1606,15 +1605,14 @@ as.matrix.data.frame <- function (x, rownames.force = NA, ...)
 
 Math.data.frame <- function (x, ...)
 {
-    mode.ok <- vapply(x, function(x)
-        is.numeric(x) || is.logical(x) || is.complex(x), NA)
+    mode.ok <- vapply(x, function(x) is.numeric(x) || is.complex(x), NA)
     if (all(mode.ok)) {
 	x[] <- lapply(X = x, FUN = .Generic, ...)
 	return(x)
     } else {
 	vnames <- names(x)
 	if (is.null(vnames)) vnames <- seq_along(x)
-	stop("non-numeric-alike variable(s) in data frame: ",
+	stop("non-numeric variable(s) in data frame: ",
 	     paste(vnames[!mode.ok], collapse = ", "))
     }
 }
@@ -1700,21 +1698,11 @@ Summary.data.frame <- function(..., na.rm)
     args <- list(...)
     args <- lapply(args, function(x) {
         x <- as.matrix(x)
-        if(!is.numeric(x) && !is.logical(x) && !is.complex(x))
-            stop("only defined on a data frame with all numeric-alike variables")
+        if(!is.numeric(x) && !is.complex(x))
+            stop("only defined on a data frame with all numeric variables")
         x
     })
     do.call(.Generic, c(args, na.rm=na.rm))
-}
-
-xtfrm.data.frame <- function(x) {
-    if(tolower(Sys.getenv("_R_STOP_ON_XTFRM_DATA_FRAME_")) %in%
-       c("1", "yes", "true"))
-        stop("cannot xtfrm data frames")
-    else {
-        warning("cannot xtfrm data frames")
-        NextMethod("xtfrm")
-    }
 }
 
 list2DF <-

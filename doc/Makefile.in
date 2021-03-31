@@ -39,9 +39,7 @@ R: Makefile svnonly
 	  $(MAKE) rdocdir=$(top_builddir)/doc install-sources; \
 	fi
 
-## R.1 last: currently needs perl (which is *not* checked at configure time);
-## NB: need NEWS.rds for 'news()' which is run in 'make check'
-docs: NEWS.rds NEWS html/NEWS.html NEWS.pdf NEWS.2.rds NEWS.3.rds R.1
+docs: R.1 NEWS.rds NEWS html/NEWS.html NEWS.pdf NEWS.2.rds NEWS.3.rds
 	@(cd manual && $(MAKE) $@)
 
 R.1:

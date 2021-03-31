@@ -1,7 +1,7 @@
 #  File src/library/graphics/R/boxplot.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -43,17 +43,8 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
 	    attr(groups, "names") <- 1L:n
 	names <- attr(groups, "names")
     }
-    cls <- lapply(groups, class)    
-    cl <- NULL
-    ## Check for simple numeric structures with only a common class attribute
-    if(all(vapply(groups,
-                  function(e) {
-                      is.numeric(unclass(e)) &&
-                          identical(names(attributes(e)), "class")
-                  },
-                  NA)) &&
-       (length(unique(cls)) == 1L))
-        cl <- cls[[1L]]
+    cls <- vapply(groups, function(x) class(x)[1L], "")
+    cl <- if(all(cls == cls[1L])) cls[1L] # else NULL
     for(i in 1L:n)
 	groups[i] <- list(boxplot.stats(unclass(groups[[i]]), range)) # do.conf=notch)
     stats <- matrix(0, nrow = 5L, ncol = n)
@@ -70,19 +61,17 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
 	}
 	ct <- ct+1
     }
-    if(length(cl) && cl != "numeric")
-        oldClass(stats) <- oldClass(conf) <- oldClass(out) <- cl
+    if(length(cl) && cl != "numeric") oldClass(stats) <- cl
     z <- list(stats = stats, n = ng, conf = conf, out = out, group = group,
 	      names = names)
     if(plot) {
         if(is.null(pars$boxfill) && is.null(args$boxfill)) pars$boxfill <- col
-        do.call(bxp,
+        do.call("bxp",
                 c(list(z, notch = notch, width = width, varwidth = varwidth,
                        log = log, border = border, pars = pars,
                        outline = outline, horizontal = horizontal, add = add,
                        ann = ann,
-                       at = at), args[namedargs]),
-                quote = TRUE)# *not* to eval() calls in labels etc
+                       at = at), args[namedargs]))
 	invisible(z)
     }
     else z
@@ -296,7 +285,7 @@ bxp <- function(z, notch = FALSE, width = NULL, varwidth = FALSE,
 
     width <-
 	if(!is.null(width)) {
-	    if(length(width) != n || anyNA(width) || any(width <= 0))
+	    if(length(width) != n | anyNA(width) | any(width <= 0))
 		stop("invalid boxplot widths")
 	    boxwex * width/max(width)
 	}
@@ -332,16 +321,13 @@ bxp <- function(z, notch = FALSE, width = NULL, varwidth = FALSE,
 	if (is.null(show.names)) show.names <- n > 1
 	if (show.names)
 	    do.call("axis", c(list(side = 1 + horizontal,
-				   at = at, labels = z$names), ax.pars),
-		    quote = TRUE)
-	do.call("Axis", c(list(x = z$stats, side = 2 - horizontal), ax.pars),
-		quote = TRUE)
+				   at = at, labels = z$names), ax.pars))
+	do.call("Axis", c(list(x = z$stats, side = 2 - horizontal), ax.pars))
     }
     if(ann) do.call(title,
 	    pars[names(pars) %in% c("main", "cex.main", "col.main",
 				    "sub", "cex.sub", "col.sub",
-				    "xlab", "ylab", "cex.lab", "col.lab")],
-	    quote = TRUE)
+				    "xlab", "ylab", "cex.lab", "col.lab")])
     if(frame.plot)
 	box()
     invisible(at)

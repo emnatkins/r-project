@@ -21,7 +21,8 @@ chol(x, \dots)
     applies to numeric (or logical) symmetric, positive-definite matrices.}
   \item{\dots}{arguments to be based to or from methods.}
   \item{pivot}{Should pivoting be used?}
-  \item{LINPACK}{logical.  Should LINPACK be used (now an error)?}
+  \item{LINPACK}{logical.  Should LINPACK be used (defunct, ignored with
+    a warning)?}
   \item{tol}{A numeric tolerance for use with \code{pivot = TRUE}.}
 }
 \value{

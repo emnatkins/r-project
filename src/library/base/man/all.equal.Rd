@@ -1,6 +1,6 @@
 % File src/library/base/man/all.equal.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2018 R Core Team
 % Distributed under GPL 2 or later
 
 \name{all.equal}
@@ -13,7 +13,6 @@
 \alias{all.equal.envRefClass}
 \alias{all.equal.factor}
 \alias{all.equal.formula}
-\alias{all.equal.function}
 \alias{all.equal.list}
 \alias{all.equal.language}
 \alias{all.equal.POSIXt}
@@ -34,13 +33,9 @@ all.equal(target, current, \dots)
 \method{all.equal}{list}(target, current, \dots,
           check.attributes = TRUE, use.names = TRUE)
 
-\method{all.equal}{environment}(target, current, all.names = TRUE,
-          evaluate = TRUE, \dots)
+\method{all.equal}{environment}(target, current, all.names=TRUE, \dots)
 
-\method{all.equal}{function}(target, current, check.environment=TRUE, \dots)
-
-\method{all.equal}{POSIXt}(target, current, \dots, tolerance = 1e-3, scale,
-          check.tzone = TRUE)
+\method{all.equal}{POSIXt}(target, current, \dots, tolerance = 1e-3, scale)
 
 
 attr.all.equal(target, current, \dots,
@@ -64,7 +59,7 @@ attr.all.equal(target, current, \dots,
   \item{formatFUN}{a \code{\link{function}} of two arguments,
     \code{err}, the relative, absolute or scaled error, and
     \code{what}, a character string indicating the \emph{kind} of error;
-    may be used, e.g., to format relative and absolute errors differently.}
+    maybe used, e.g., to format relative and absolute errors differently.}
   \item{check.attributes}{logical indicating if the
     \code{\link{attributes}} of \code{target} and \code{current}
     (other than the names) should be compared.}
@@ -74,16 +69,6 @@ attr.all.equal(target, current, \dots,
     be specified by its full name.}
   \item{all.names}{logical passed to \code{\link{ls}} indicating if
     \dQuote{hidden} objects should also be considered in the environments.}
-  \item{evaluate}{for the \code{environment} method: \code{\link{logical}} indicating if
-    \dQuote{promises should be forced}, i.e., typically formal function arguments
-    be evaluated for comparison.  If false, only the \code{\link{names}} of
-    the objects in the two environments are checked for equality.}
-  \item{check.environment}{logical requiring that the
-    \code{\link{environment}()}s of functions should be compared, too.
-    You may need to set \code{check.environment=FALSE} in unexpected
-    cases, such as when comparing two \code{\link{nls}()} fits.}
-  \item{check.tzone}{logical indicating if the \code{"tzone"} attributes
-    of \code{target} and \code{current} should be compared.}
   \item{check.names}{logical indicating if the \code{\link{names}(.)}
     of \code{target} and \code{current} should be compared.}
 }
@@ -135,11 +120,8 @@ attr.all.equal(target, current, \dots,
   and is also used for reference classes (unless a specific
   \code{all.equal} method is defined).
 
-  The method for date-time objects uses \code{all.equal.numeric} to
-  compare times (in \code{"\link{POSIXct}"} representation) with a
-  default \code{tolerance} of 0.001 seconds, ignoring \code{scale}.
-  A time zone mismatch between \code{target} and \code{current} is
-  reported unless \code{check.tzone = FALSE}.
+  The methods for the date-time classes by default allow a tolerance of
+  \code{tolerance = 0.001} seconds, and ignore \code{scale}.
 
   \code{attr.all.equal} is used for comparing
   \code{\link{attributes}}, returning \code{NULL} or a
@@ -191,17 +173,6 @@ mtext(paste("mean(all.equal(x1, x2*(1 + eps_k))) {100 x} Mean rel.diff.=",
 ## With argument  countEQ=TRUE, get "the same" (w/o need for jittering):
 mtext(paste("all.equal(x1,x2, countEQ=TRUE) :",
           signif(all.eqNum(x1,x2, countEQ=TRUE), 3)), line= -6, col=2)
-
-## comparison of date-time objects
-now <- Sys.time()
-stopifnot(
-all.equal(now, now + 1e-4)  # TRUE (default tolerance = 0.001 seconds)
-)
-all.equal(now, now + 0.2)
-all.equal(now, as.POSIXlt(now, "UTC"))
-stopifnot(
-all.equal(now, as.POSIXlt(now, "UTC"), check.tzone = FALSE)  # TRUE
-)
 }
 \keyword{programming}% is.*
 \keyword{utilities}

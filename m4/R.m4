@@ -1976,8 +1976,7 @@ if test "${use_libtiff}" = yes; then
       fi
     fi
     if test "x${have_tiff}" != xyes; then
-      # tiff >= 4.1.0 may need webp too:
-      # (actually, it could also need jbig zstd libdeflate ....)
+      # tiff 4.1.x may need webp too:
       unset ac_cv_lib_tiff_TIFFOpen
       AC_MSG_NOTICE([checking for libtiff with -lwebp])
       AC_CHECK_LIB(tiff, TIFFOpen, [have_tiff=yes], [have_tiff=no], [-lwebp -llzma ${BITMAP_LIBS}])
@@ -3234,8 +3233,6 @@ fi
 AC_DEFUN([R_PCRE2],
 [have_pcre2=no
 if test "x${use_pcre2}" = xyes; then
-## FIXME: Maybe these should be the other way around?
-## Maybe there should be a way to use pkg-config --static
 if "${PKG_CONFIG}" --exists libpcre2-8; then
   PCRE2_CPPFLAGS=`"${PKG_CONFIG}" --cflags libpcre2-8`
   PCRE2_LIBS=`"${PKG_CONFIG}" --libs libpcre2-8`
@@ -3672,10 +3669,11 @@ for ac_header in wchar wctype; do
   fi
 done
 if test "$want_mbcs_support" = yes ; then
+dnl Solaris 8 is missing iswblank, but we can make it from iswctype.
 dnl These are all C99, but Cygwin lacks wcsftime & wcstod
   R_CHECK_FUNCS([mbrtowc wcrtomb wcscoll wcsftime wcstod], [#include <wchar.h>])
   R_CHECK_FUNCS([mbstowcs wcstombs], [#include <stdlib.h>])
-  R_CHECK_FUNCS([wctrans wctype iswctype], 
+  R_CHECK_FUNCS([wctrans iswblank wctype iswctype], 
 [#include <wchar.h>
 #include <wctype.h>])
   for ac_func in mbrtowc mbstowcs wcrtomb wcscoll wcstombs \
@@ -3687,10 +3685,6 @@ dnl These are all C99, but Cygwin lacks wcsftime & wcstod
       want_mbcs_support=no
     fi
   done
-fi
-dnl These are POSIX. not used by default.
-if test "$want_mbcs_support" = yes ; then
-  R_CHECK_FUNCS([wcwidth wcswidth], [#include <wchar.h>])
 fi
 dnl it seems IRIX once had wctrans but not wctrans_t: we check this when we
 dnl know we have the headers and wctrans().
@@ -4191,7 +4185,7 @@ fi
 
 ## R_STDCXX
 ## --------
-## Support for C++ standards (C++11, C++14, C++17, C++20), for use in packages.
+## Support for C++ standards (C++98, C++11, C++14, C++17), for use in packages.
 ## R_STDCXX(VERSION, PREFIX, DEFAULT)
 AC_DEFUN([R_STDCXX],
 [r_save_CXX="${CXX}"

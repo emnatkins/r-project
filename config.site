@@ -407,8 +407,6 @@
 ## Tries less more page pg in turn
 ## PAGER
 ## PAPERCONF
-## Tries pkg-config then pkgconf
-## PKG_CONFIG
 ## RANLIB
 ## REALPATH
 ## Tries gtar gnutar tar
@@ -436,5 +434,9 @@
 ## TEXI2ANY
 ## TEXI2DVI
 
-## The exception, looked for in /usr/xpg4/bin before the path
+## An exception, pkg-config is looked for in
+## /usr/local/bin /ext/bin /ext /sw/bin /opt/bin after the path.
+## PKG_CONFIG
+
+## An exception, looked for in /usr/xpg4/bin before the path
 ## SED=sed

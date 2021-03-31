@@ -1,7 +1,7 @@
 #  File src/library/tools/R/build.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2020 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -47,8 +47,8 @@ function(filename, desc = file.path(dirname(filename), "DESCRIPTION"))
 
 ### formerly Perl R::Utils::get_exclude_patterns
 
-## Return list of file patterns excluded by R CMD build.
-## Not exported.
+## Return list of file patterns excluded by R CMD build and check.
+## Kept here so that we ensure that the lists are in sync, but not exported.
 ## Has Unix-style '/' path separators hard-coded, but that is what dir() uses.
 get_exclude_patterns <- function()
     c("^\\.Rbuildignore$",
@@ -1047,10 +1047,6 @@ inRbuildignore <- function(files, pkgdir) {
         exclude <- exclude | grepl("^.Rbuildindex[.]", allfiles)
         ## or simply?  exclude <- exclude | startsWith(allfiles, ".Rbuildindex.")
         exclude <- exclude | (bases %in% .hidden_file_exclusions)
-        ## exclude (old) source tarballs and binary packages (PR#17828)
-        exts <- "\\.(tar\\.gz|tar|tar\\.bz2|tar\\.xz|tgz|zip)"
-        exclude <- exclude | grepl(paste0("^", pkgname, "_[0-9.-]+", exts, "$"),
-                                   allfiles)
         unlink(allfiles[exclude], recursive = TRUE, force = TRUE,
                expand = FALSE)
         setwd(owd)
@@ -1114,23 +1110,6 @@ inRbuildignore <- function(files, pkgdir) {
             resave_data_rda(pkgname, resave_data1)
         }
 
-        ## clean up DESCRIPTION file if there is (now) no data directory.
-        if (!dir.exists(file.path(pkgname, "data"))) {
-            desc <- file.path(pkgname, "DESCRIPTION")
-            db <- .read_description(desc)
-            ndb <- names(db)
-            omit <- character()
-            for (x in c("LazyData", "LazyDataCompression"))
-                if (x %in% ndb) omit <- c(omit, x)
-            if (length(omit)) {
-                printLog(Log,
-                         sprintf("Omitted %s from DESCRIPTION\n",
-                                 paste(sQuote(omit), collapse = " and ")))
-                db <- db[!(names(db) %in% omit)]
-                .write_description(db, desc)
-            }
-        }
-
         ## add dependency on R >= 3.5.0 to DESCRIPTION if there are files in
         ## serialization version 3
         desc <- .read_description(file.path(pkgname, "DESCRIPTION"))
@@ -1152,12 +1131,10 @@ inRbuildignore <- function(files, pkgdir) {
                 msg <- paste("WARNING: Added dependency on R >= 3.5.0 because",
                              "serialized objects in serialize/load version 3",
                              "cannot be read in older versions of R. File(s)",
-                             "containing such objects:")
-                printLog(Log,
-                         paste(c(strwrap(msg, indent = 2L, exdent = 2L),
-                                 paste0("  ", .pretty_format(sort(toonew)))),
-                               collapse = "\n"),
-                         "\n")
+                             "containing such objects:",
+                             .pretty_format(sort(toonew)),
+                             "\n")
+                printLog(Log, strwrap(msg, indent = 2L, exdent = 2L), "\n")
             }
         }
 

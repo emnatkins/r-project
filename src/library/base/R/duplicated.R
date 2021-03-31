@@ -102,8 +102,6 @@ function(x, incomparables = FALSE, ...)
 unique.default <-
 function(x, incomparables = FALSE, fromLast = FALSE, nmax = NA, ...)
 {
-    if(!is.object(x))
-        return(.Internal(unique(x, incomparables, fromLast, nmax)))
     if(is.factor(x)) {
         z <- .Internal(unique(x, incomparables, fromLast,
                               min(length(x), nlevels(x) + 1L)))

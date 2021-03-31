@@ -92,10 +92,10 @@ x != y
 
   For numerical and complex values, remember \code{==} and \code{!=} do
   not allow for the finite representation of fractions, nor for rounding
-  error.  Using \code{\link{all.equal}} with \code{identical} or
-  \code{\link{isTRUE}} is almost always preferable; see the examples.
-  (This also applies to the other comparison operators.)
-
+  error.  Using \code{\link{all.equal}} with \code{identical} is almost
+  always preferable.  See the examples.  (This also applies to the other
+  comparison operators.)
+  
   These operators are sometimes called as functions as
   e.g.\sspace{}\code{`<`(x, y)}: see the description of how
   argument-matching is done in \code{\link[base:groupGeneric]{Ops}}.
@@ -121,9 +121,6 @@ x != y
   locale).
 }
 \seealso{
-  \code{\link{Logic}} on how to \emph{combine} results of comparisons,
-  i.e., logical vectors.
-
   \code{\link{factor}} for the behaviour with factor arguments.
 
   \code{\link{Syntax}} for operator precedence.
@@ -139,8 +136,8 @@ x[x > 0]
 
 x1 <- 0.5 - 0.3
 x2 <- 0.3 - 0.1
-x1 == x2                   # FALSE on most machines
-isTRUE(all.equal(x1, x2))  # TRUE everywhere
+x1 == x2                           # FALSE on most machines
+identical(all.equal(x1, x2), TRUE) # TRUE everywhere
 
 \donttest{
 # range of most 8-bit charsets, as well as of Latin-1 in Unicode

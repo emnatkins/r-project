@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2021 The R Core Team
+ *  Copyright (C) 1998--2020 The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -348,20 +348,16 @@ const char attribute_hidden *R_nativeEncoding(void)
 /* retrieves information about the current locale and
    sets the corresponding variables (known_to_be_utf8,
    known_to_be_latin1, utf8locale, latin1locale and mbcslocale) */
-
-static char codeset[R_CODESET_MAX + 1];
 void attribute_hidden R_check_locale(void)
 {
     known_to_be_utf8 = utf8locale = FALSE;
     known_to_be_latin1 = latin1locale = FALSE;
     mbcslocale = FALSE;
     strcpy(native_enc, "ASCII");
-    strcpy(codeset, "");
 #ifdef HAVE_LANGINFO_CODESET
     /* not on Windows */
     {
 	char  *p = nl_langinfo(CODESET);
-	strcpy(codeset, p);  // copy just in case something else calls nl_langinfo.
 	/* more relaxed due to Darwin: CODESET is case-insensitive and
 	   latin1 is ISO8859-1 */
 	if (R_strieql(p, "UTF-8")) known_to_be_utf8 = utf8locale = TRUE;
@@ -369,14 +365,9 @@ void attribute_hidden R_check_locale(void)
 	if (R_strieql(p, "ISO8859-1")) known_to_be_latin1 = latin1locale = TRUE;
 # if __APPLE__
 	/* On Darwin 'regular' locales such as 'en_US' are UTF-8 (hence
-	   MB_CUR_MAX == 6), but CODESET is "" 
-	   2021: that comment dated from 2008: MB_CUR_MAX is now 4 in 
-	   a UTF-8 locale, even on 10.13. 
-	*/
-	if (*p == 0 && (MB_CUR_MAX == 4 || MB_CUR_MAX == 6)) {
+	   MB_CUR_MAX == 6), but CODESET is "" */
+	if (*p == 0 && MB_CUR_MAX == 6)
 	    known_to_be_utf8 = utf8locale = TRUE;
-	    strcpy(codeset, "UTF-8");
-	}
 # endif
 	if (utf8locale)
 	    strcpy(native_enc, "UTF-8");
@@ -393,20 +384,10 @@ void attribute_hidden R_check_locale(void)
     {
 	char *ctype = setlocale(LC_CTYPE, NULL), *p;
 	p = strrchr(ctype, '.');
-	if (p) {
-	    if (isdigit(p[1]))
-		localeCP = atoi(p+1);
-	    else if (!strcasecmp(p+1, "UTF-8") || !strcasecmp(p+1, "UTF8"))
-		localeCP = 65001;
-	    else
-		localeCP = 0;
-	}
+	if (p && isdigit(p[1])) localeCP = atoi(p+1); else localeCP = 0;
 	/* Not 100% correct, but CP1252 is a superset */
 	known_to_be_latin1 = latin1locale = (localeCP == 1252);
-	known_to_be_utf8 = utf8locale = (localeCP == 65001);
-	if (localeCP == 65001)
-	    strcpy(native_enc, "UTF-8");
-	else if (localeCP) {
+	if (localeCP) {
 	    /* CP1252 when latin1locale is true */
 	    snprintf(native_enc, R_CODESET_MAX, "CP%d", localeCP);
 	    native_enc[R_CODESET_MAX] = 0;
@@ -2074,26 +2055,18 @@ SEXP attribute_hidden do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++) {
 	SEXP tmp = STRING_ELT(fn, i);
-	if (tmp != NA_STRING) {
-#ifdef Win32
-	    /* Windows can have files and home directories that aren't
-	       representable in the native encoding (e.g. latin1). Translate
-	       to UTF-8 when the input is in UTF-8 already or is in latin1,
-	       but the native encoding is not latin1.
-
-	       R (including R_ExpandFileNameUTF8) for now only supports R home
-	       directories representable in native encoding.
-	    */
-	    if (IS_UTF8(tmp) || (IS_LATIN1(tmp) && !latin1locale))
-		tmp = mkCharCE(R_ExpandFileNameUTF8(trCharUTF8(tmp)), CE_UTF8);
-	    else
+#ifndef Win32
+	const char *p = translateCharFP2(tmp);
+	if (p && tmp != NA_STRING)
+	    tmp = markKnown(R_ExpandFileName(p), tmp);
+#else
+/* Windows can have files and home directories that aren't representable
+   in the native encoding (e.g. latin1), so we need to translate
+   everything to UTF8.
+*/
+	if (tmp != NA_STRING)
+	    tmp = mkCharCE(R_ExpandFileNameUTF8(trCharUTF8(tmp)), CE_UTF8);
 #endif
-	    {
-		const char *p = translateCharFP2(tmp);
-		if (p)
-		    tmp = markKnown(R_ExpandFileName(p), tmp);
-	    }
-	}
 	SET_STRING_ELT(ans, i, tmp);
     }
     UNPROTECT(1);
@@ -2149,8 +2122,8 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     checkArity(op, args);
 
-    PROTECT(ans      = allocVector(LGLSXP, 19));
-    PROTECT(ansnames = allocVector(STRSXP, 19));
+    PROTECT(ans = allocVector(LGLSXP, 18));
+    PROTECT(ansnames = allocVector(STRSXP, 18));
 
     SET_STRING_ELT(ansnames, i, mkChar("jpeg"));
 #ifdef HAVE_JPEG
@@ -2238,7 +2211,7 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (strcmp(R_GUIType, "GNOME") == 0) {  /* always interactive */
 	LOGICAL(ans)[i] = TRUE;  /* also AQUA ? */
     } else {
-#if defined(HAVE_LIBREADLINE)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
 	extern Rboolean UsingReadline;
 	if (R_Interactive && UsingReadline) LOGICAL(ans)[i] = TRUE;
 #endif
@@ -2252,13 +2225,6 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     SET_STRING_ELT(ansnames, i, mkChar("NLS"));
 #ifdef ENABLE_NLS
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("Rprof"));
-#ifdef R_PROFILING
     LOGICAL(ans)[i++] = TRUE;
 #else
     LOGICAL(ans)[i++] = FALSE;
@@ -2869,8 +2835,7 @@ SEXP attribute_hidden do_filecopy(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(strlen(q) > PATH_MAX - 2) // allow for '/' and terminator
 	    error(_("invalid '%s' argument"), "to");
 	char dir[PATH_MAX];
-	// gcc 10 with sanitizers objects to PATH_MAX here.
-	strncpy(dir, q, PATH_MAX - 1);
+	strncpy(dir, q, PATH_MAX);
 	dir[PATH_MAX - 1] = '\0';
 	if (*(dir + (strlen(dir) - 1)) !=  '/')
 	    strcat(dir, "/");
@@ -2915,7 +2880,7 @@ SEXP attribute_hidden do_l10n_info(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifdef Win32
     int len = 5;
 #else
-    int len = 4;
+    int len = 3;
 #endif
     SEXP ans, names;
     checkArity(op, args);
@@ -2927,10 +2892,6 @@ SEXP attribute_hidden do_l10n_info(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_VECTOR_ELT(ans, 0, ScalarLogical(mbcslocale));
     SET_VECTOR_ELT(ans, 1, ScalarLogical(utf8locale));
     SET_VECTOR_ELT(ans, 2, ScalarLogical(latin1locale));
-#ifndef Win32
-    SET_STRING_ELT(names, 3, mkChar("codeset"));
-    SET_VECTOR_ELT(ans, 3, mkString(codeset));
-#endif
 #ifdef Win32
     SET_STRING_ELT(names, 3, mkChar("codepage"));
     SET_VECTOR_ELT(ans, 3, ScalarInteger(localeCP));
@@ -3366,7 +3327,7 @@ do_eSoftVersion(SEXP call, SEXP op, SEXP args, SEXP rho)
     && defined(HAVE_DECL_RTLD_NEXT) && HAVE_DECL_RTLD_NEXT
 
     /* Look for blas function dgemm and try to figure out in which
-       binary/shared library it is defined.  That is based on experimentation
+       binary/shared library is it defined. That is based on experimentation
        and heuristics, and depends on implementation details
        of dynamic linkers.
     */

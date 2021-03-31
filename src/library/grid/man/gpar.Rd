@@ -71,9 +71,6 @@ get.gpar(names = NULL)
   individual colours by multiplying (with both alpha settings
   normalised to the range 0 to 1).
 
-  The \code{fill} setting can also be a linear gradient or a radial
-  gradient or a pattern (see \link[=pattern]{patterns}).
-  
   The size of text is \code{fontsize}*\code{cex}.  The size of a line
   is \code{fontsize}*\code{cex}*\code{lineheight}.
 
@@ -122,7 +119,7 @@ gpar(col = "red")
 gpar(col = "blue", lty = "solid", lwd = 3, fontsize = 16)
 get.gpar(c("col", "lty"))
 grid.newpage()
-vp <- viewport(width = .8, height = .8, gp = gpar(col="blue"))
+vp <- viewport(w = .8, h = .8, gp = gpar(col="blue"))
 grid.draw(gTree(children=gList(rectGrob(gp = gpar(col="red")),
                      textGrob(paste("The rect is its own colour (red)",
                                     "but this text is the colour",

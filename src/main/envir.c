@@ -1211,7 +1211,7 @@ static R_INLINE SEXP findGlobalVar(SEXP symbol)
     case NILSXP: return R_UnboundValue;
     case SYMSXP: return SYMBOL_BINDING_VALUE(symbol);
     default: return BINDING_VALUE(loc);
-    }
+    }	
 }
 #endif
 
@@ -1461,24 +1461,6 @@ SEXP attribute_hidden do_dotsLength(SEXP call, SEXP op, SEXP args, SEXP env)
     return ScalarInteger(length_DOTS(vl));
 }
 
-SEXP attribute_hidden do_dotsNames(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    checkArity(op, args);
-    SEXP vl = findVar(R_DotsSymbol, env);
-    if (vl == R_UnboundValue)
-	error(_("incorrect context: the current call has no '...' to look in"));
-    // else
-    SEXP out = PROTECT(allocVector(STRSXP, length_DOTS(vl)));
-    for(int i = 0; i < LENGTH(out); i++) {
-        SEXP tag = TAG(vl);
-        SET_STRING_ELT(out, i, tag == R_NilValue ? NA_STRING : PRINTNAME(tag));
-        vl = CDR(vl);
-    }
-
-    UNPROTECT(1);
-    return out;
-}
-
 #undef length_DOTS
 
 /*----------------------------------------------------------------------
@@ -1705,7 +1687,7 @@ void addMissingVarsToNewEnv(SEXP env, SEXP addVars)
 	SEXP s;
 	for(s = addVars; s != end; s = CDR(s)) {
 	    if (TAG(s) == endTag) {
-		/* remove variable s from the list, because it is overridden by "end" */
+		/* remove variable s from the list, because it is overriden by "end" */
 		if (sprev == R_NilValue) {
 		    addVars = CDR(s);
 		    SET_FRAME(env, addVars);
@@ -1890,7 +1872,6 @@ SEXP attribute_hidden do_list2env(SEXP call, SEXP op, SEXP args, SEXP rho)
     x = CAR(args);
     n = LENGTH(x);
     xnms = getAttrib(x, R_NamesSymbol);
-    PROTECT(xnms);
     if (n && (TYPEOF(xnms) != STRSXP || LENGTH(xnms) != n))
 	error(_("names(x) must be a character vector of the same length as x"));
     envir = CADR(args);
@@ -1901,7 +1882,6 @@ SEXP attribute_hidden do_list2env(SEXP call, SEXP op, SEXP args, SEXP rho)
 	SEXP name = installTrChar(STRING_ELT(xnms, i));
 	defineVar(name, lazy_duplicate(VECTOR_ELT(x, i)), envir);
     }
-    UNPROTECT(1); /* xnms */
 
     return envir;
 }
@@ -2053,15 +2033,10 @@ SEXP attribute_hidden do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* The first arg is the object name */
     /* It must be present and a non-empty string */
 
-    if (TYPEOF(CAR(args)) == SYMSXP)
-	t1 = CAR(args);
-    else if (isValidStringF(CAR(args))) {
-	if (XLENGTH(CAR(args)) > 1)
-	    error(_("first argument has length > 1"));
-	t1 = installTrChar(STRING_ELT(CAR(args), 0));
-    }
-    else
+    if (!isValidStringF(CAR(args)))
 	error(_("invalid first argument"));
+    else
+	t1 = installTrChar(STRING_ELT(CAR(args), 0));
 
     /* envir :	originally, the "where=" argument */
 
@@ -2709,12 +2684,31 @@ static void FrameNames(SEXP frame, int all, SEXP names, int *indx)
     }
 }
 
+/* returning the active binding function instead of the
+   value is not right, but packages are depending on it so
+   keep for now. */
+static R_INLINE SEXP BINDING_VALUE_TMP(SEXP cell)
+{
+    if (IS_ACTIVE_BINDING(cell)) {
+	static int inited = FALSE;
+	static int bugfix = FALSE;
+	if (! inited) {
+	    inited = TRUE;
+	    const char *p = getenv("_R_ENV2LIST_BUGFIX_");
+	    if (p != NULL && StringTrue(p))
+		bugfix = TRUE;
+	}
+	return bugfix ? BINDING_VALUE(cell) : CAR(cell);
+    }
+    else return BINDING_VALUE(cell);
+}
+
 static void FrameValues(SEXP frame, int all, SEXP values, int *indx)
 {
     if (all) {
 	while (frame != R_NilValue) {
 #         define DO_FrameValues						\
-	    SEXP value = BINDING_VALUE(frame);				\
+	    SEXP value = BINDING_VALUE_TMP(frame);			\
 	    if (TYPEOF(value) == PROMSXP) {				\
 		PROTECT(value);						\
 		value = eval(value, R_GlobalEnv);			\
@@ -3600,19 +3594,6 @@ SEXP attribute_hidden do_mkUnbound(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_NilValue;
 }
 
-/* C version of new.env */
-SEXP R_NewEnv(SEXP enclos, int hash, int size)
-{
-    if (hash) {
-	SEXP ssize = PROTECT(ScalarInteger(size));
-	SEXP ans = R_NewHashedEnv(enclos, ssize);
-	UNPROTECT(1); /* ssize */
-	return ans;
-    }
-    else
-	return NewEnvironment(R_NilValue, R_NilValue, enclos);
-}
-
 void R_RestoreHashCount(SEXP rho)
 {
     if (IS_HASHED(rho)) {
@@ -3805,137 +3786,6 @@ SEXP attribute_hidden do_getNSRegistry(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     checkArity(op, args);
     return R_NamespaceRegistry;
-}
-
-static SEXP getVarValInFrame(SEXP rho, SEXP sym, int unbound_ok)
-{
-    SEXP val = findVarInFrame(rho, sym);
-    if (! unbound_ok && val == R_UnboundValue)
-	error(_("object '%s' not found"), EncodeChar(PRINTNAME(sym)));
-    if (TYPEOF(val) == PROMSXP) {
-	PROTECT(val);
-	val = eval(val, R_EmptyEnv);
-	UNPROTECT(1);
-    }
-    return val;
-}
-
-static SEXP checkVarName(SEXP call, SEXP name)
-{
-    switch(TYPEOF(name)) {
-    case SYMSXP: break;
-    case STRSXP:
-	if (LENGTH(name) >= 1) {
-	    name = installTrChar(STRING_ELT(name, 0));
-	    break;
-	}
-	/* else fall through */
-    default:
-	errorcall(call, _("bad variable name"));
-    }
-    return name;
-}
-
-static SEXP callR1(SEXP fun, SEXP arg)
-{
-    static SEXP R_xSymbol = NULL;
-    if (R_xSymbol == NULL)
-	R_xSymbol = install("x");
-
-    SEXP rho = PROTECT(NewEnvironment(R_NilValue, R_NilValue, R_BaseNamespace));
-    defineVar(R_xSymbol, arg, rho);
-    SEXP expr = PROTECT(lang2(fun, R_xSymbol));
-    SEXP val = eval(expr, rho);
-    /**** ideally this should clear out rho if it isn't captured - LT */
-    UNPROTECT(2); /* rho, expr */
-    return val;
-}
-
-SEXP attribute_hidden R_getNSValue(SEXP call, SEXP ns, SEXP name, int exported)
-{
-    static SEXP R_loadNamespaceSymbol = NULL;
-    static SEXP R_exportsSymbol = NULL;
-    static SEXP R_lazydataSymbol = NULL;
-    static SEXP R_getNamespaceNameSymbol = NULL;
-    if (R_loadNamespaceSymbol == NULL) {
-	R_loadNamespaceSymbol = install("loadNamespace");
-	R_exportsSymbol = install("exports");
-	R_lazydataSymbol = install("lazydata");
-	R_getNamespaceNameSymbol = install("getNamespaceName");
-    }
-
-    if (R_IsNamespaceEnv(ns))
-	PROTECT(ns);
-    else {
-	SEXP pkg = checkNSname(call, ns);
-	ns = findVarInFrame(R_NamespaceRegistry, pkg);
-	if (ns == R_UnboundValue)
-	    ns = callR1(R_loadNamespaceSymbol, pkg);
-	PROTECT(ns);
-	if (! R_IsNamespaceEnv(ns))
-	    errorcall(call, _("bad namespace"));
-    }
-
-    name = checkVarName(call, name);
-
-    SEXP val;
-
-    /* base or non-exported variables */
-    if (ns == R_BaseNamespace || ! exported) {
-	val = getVarValInFrame(ns, name, FALSE);
-	UNPROTECT(1); /* ns */
-	return val;
-    }
-
-    /* exported variables */
-    SEXP info = PROTECT(getVarValInFrame(ns, R_NamespaceSymbol, FALSE));
-    SEXP exports = PROTECT(getVarValInFrame(info, R_exportsSymbol, FALSE));
-    SEXP exportName = PROTECT(getVarValInFrame(exports, name, TRUE));
-    if (exportName != R_UnboundValue) {
-	val = eval(checkVarName(call, exportName), ns);	
-	UNPROTECT(4);  /* ns, info, exports, exportName */
-	return val;
-    }
-
-    /* lazydata */
-    SEXP ld = PROTECT(getVarValInFrame(info, R_lazydataSymbol, FALSE));
-    val = getVarValInFrame(ld, name, TRUE);
-    if (val != R_UnboundValue) {
-	UNPROTECT(5); /* ns, info, exports, exportName, ld */
-	return val;
-    }
-
-    SEXP nsname = PROTECT(callR1(R_getNamespaceNameSymbol, ns));
-    if (TYPEOF(nsname) != STRSXP || LENGTH(nsname) != 1)
-	errorcall(call, "bad value returned by `getNamespaceName'");
-    errorcall(call,
-	      _("'%s' is not an exported object from 'namespace:%s'"),
-	      EncodeChar(PRINTNAME(name)),
-	      CHAR(STRING_ELT(nsname, 0)));
-    return NULL; /* not reached */
-}
-
-SEXP do_getNSValue(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    SEXP ns = CAR(args);
-    SEXP name = CADR(args);
-    int exported = asLogical(CADDR(args));
-
-    return R_getNSValue(R_NilValue, ns, name, exported);
-}
-
-SEXP do_colon2(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    /* use R_NilValue for the call to avoid changing the error message */
-    return R_getNSValue(R_NilValue, CAR(args), CADR(args), TRUE);
-}
-
-SEXP do_colon3(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    return R_getNSValue(call, CAR(args), CADR(args), FALSE);
 }
 
 SEXP attribute_hidden do_importIntoEnv(SEXP call, SEXP op, SEXP args, SEXP rho)

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2021  The R Core Team
+ *  Copyright (C) 1997--2008  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ typedef enum {
 #include <X11/cursorfont.h>
 #include <X11/Intrinsic.h>  /*->	Xlib.h	Xutil.h Xresource.h .. */
 
-#ifdef HAVE_WORKING_X11_CAIRO
+#ifdef HAVE_WORKING_CAIRO
 # ifdef HAVE_PANGOCAIRO
 #  include <pango/pango.h>
 #  include <pango/pangocairo.h>
@@ -83,10 +83,6 @@ Rboolean X11DeviceDriver(pDevDesc, const char*, double, double, double,
 	/* specific structure					*/
 	/********************************************************/
 
-/* 
-   A similar-enough structure of the same name is used in
-   src/library/grDevices/src/cairo/cairoBM.h
-*/
 typedef struct {
     /* Graphics Parameters */
     /* Local device copy so that we can detect */
@@ -141,7 +137,7 @@ typedef struct {
     char title[101];
     Rboolean onefile;
 
-#ifdef HAVE_WORKING_X11_CAIRO
+#ifdef HAVE_WORKING_CAIRO
     /* In the buffered cases, xcc and xcs are the xlib context and surface
        whereas cc, cs are an RGB24 image surface.
        In the non-buffered case, xcc and xcs are NULL and cc, cs are the
@@ -152,14 +148,6 @@ typedef struct {
     cairo_surface_t *cs, *xcs;
     cairo_antialias_t antialias;
     double last, last_activity, update_interval;
-    int numPatterns;
-    cairo_pattern_t **patterns;    
-    int numClipPaths;
-    cairo_path_t **clippaths;
-    int appending;
-    int numMasks;
-    cairo_pattern_t **masks;
-    int currentMask;
 #endif
 
     double fontscale;

@@ -1,6 +1,6 @@
 % File src/library/stats/man/dendrogram.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2020 R Core Team
+% Copyright 1995-2016 R Core Team
 % Copyright 2002-2015 The R Foundation
 % Distributed under GPL 2 or later
 
@@ -228,9 +228,9 @@ require(graphics); require(utils)
 hc <- hclust(dist(USArrests), "ave")
 (dend1 <- as.dendrogram(hc)) # "print()" method
 str(dend1)          # "str()" method
-str(dend1, max.level = 2, last.str =  "'") # only the first two sub-levels
+str(dend1, max = 2, last.str =  "'") # only the first two sub-levels
 oo <- options(str.dendrogram.last = "\\\\") # yet another possibility
-str(dend1, max.level = 2) # only the first two sub-levels
+str(dend1, max = 2) # only the first two sub-levels
 options(oo)  # .. resetting them
 
 op <- par(mfrow =  c(2,2), mar = c(5,2,1,4))
@@ -247,8 +247,8 @@ plot(dend1, nodePar = list(pch = 2:1, cex = .4*2:1, col = 2:3),
 stopifnot(identical(as.hclust(dend1)[1:4], hc[1:4]))
 
 dend2 <- cut(dend1, h = 70)
-## leaves are wrong horizontally in R 4.0 and earlier:
 plot(dend2$upper)
+## leaves are wrong horizontally:
 plot(dend2$upper, nodePar = list(pch = c(1,7), col = 2:1))
 ##  dend2$lower is *NOT* a dendrogram, but a list of .. :
 plot(dend2$lower[[3]], nodePar = list(col = 4), horiz = TRUE, type = "tr")

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999--2021  The R Core Team
+ *  Copyright (C) 1999--2020  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -66,11 +66,8 @@
 
 #include "RBufferUtils.h"
 
-/* At times we want to convert marked UTF-8 strings to wchar_t*. We
- * can use our facilities to do so in a UTF-8 locale or system
- * facilities if the platform tells us that wchar_t is UCS-4 or we
- * know that about the platform. */
-#if !defined(__STDC_ISO_10646__) && (defined(__APPLE__) || defined(__FreeBSD__) || defined(__sun))
+
+#if !defined(__STDC_ISO_10646__) && (defined(__APPLE__) || defined(__FreeBSD__))
 /* This may not be 100% true (see the comment in rlocales.h),
    but it seems true in normal locales */
 # define __STDC_ISO_10646__
@@ -403,27 +400,21 @@ int Rstrwid(const char *str, int slen, cetype_t ienc, int quote)
     if(ienc > 2) // CE_NATIVE, CE_UTF8, CE_BYTES are supported
 	warning("unsupported encoding (%d) in Rstrwid", ienc);
     if(mbcslocale || ienc == CE_UTF8) {
-#ifdef __sun
-	/* Need to avoid mbtrowc on Solaris, where it only covers the BMP
-	   so we set ienc for unmarked strings in a UTF-8 locale */
-	Rboolean useUTF8 = (ienc == CE_UTF8) || utf8locale;
-#else
-	Rboolean useUTF8 = (ienc == CE_UTF8);
-#endif
+	int res;
 	mbstate_t mb_st;
+	wchar_t wc;
+	R_wchar_t k; /* not wint_t as it might be signed */
 
-	if(!useUTF8)  mbs_init(&mb_st);
+	if(ienc != CE_UTF8)  mbs_init(&mb_st);
 	for (i = 0; i < slen; i++) {
-	    unsigned int k; /* not wint_t as it might be signed */
-	    wchar_t wc;
-	    int res = useUTF8 ? (int) utf8toucs(&wc, p):
+	    res = (ienc == CE_UTF8) ? (int) utf8toucs(&wc, p):
 		(int) mbrtowc(&wc, p, MB_CUR_MAX, NULL);
 	    if(res >= 0) {
-		if (useUTF8 && IS_HIGH_SURROGATE(wc))
+		if (ienc == CE_UTF8 && IS_HIGH_SURROGATE(wc))
 		    k = utf8toucs32(wc, p);
 		else
 		    k = wc;
-		if(0x20 <= k && k < 0x7f && iswprint(k)) {
+		if(0x20 <= k && k < 0x7f && iswprint((wint_t)k)) {
 		    switch(wc) {
 		    case L'\\':
 			len += 2;
@@ -455,25 +446,12 @@ int Rstrwid(const char *str, int slen, cetype_t ienc, int quote)
 		    }
 		    p++;
 		} else {
-		    /* no need to worry about truncation as iswprint
-		     * and wcwidth get replaced on Windows */
-		    // conceivably an invalid \U escape could use 11 or 12
-		    len += iswprint(k) ?
-#ifdef USE_RI18N_WIDTH
-			Ri18n_wcwidth(k) :
-#else
-			/* this is expected to return -1 for
-			   non-printable (including unassigned)
-			   characters: that is unlikely to occur,
-			   although the system's idea of 'printing'
-			   may differ from the internal tables */
-			imax2(wcwidth((wchar_t) k), 0) :
-#endif
+		    len += iswprint((wint_t)k) ? Ri18n_wcwidth(wc) :
 		    	(k > 0xffff ? 10 : 6);
 		    i += (res - 1);
 		    p += res;
 		}
-	    } else { /* invalid char */
+	    } else {
 		len += 4;
 		p++;
 	    }
@@ -548,8 +526,8 @@ int Rstrlen(SEXP s, int quote)
 attribute_hidden
 const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 {
-    int i, cnt;
-    const char *p; char *q, buf[13];
+    int b, b0, i, j, cnt;
+    const char *p; char *q, buf[11];
     cetype_t ienc = getCharCE(s);
     Rboolean useUTF8 = w < 0;
     const void *vmax = vmaxget();
@@ -588,7 +566,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 		    if (quote && *q == '"') cnt++;
 		} else {
 		    snprintf(buf, 5, "\\x%02x", k);
-		    for(int j = 0; j < 4; j++) *qq++ = buf[j];
+		    for(j = 0; j < 4; j++) *qq++ = buf[j];
 		    cnt += 3;
 		}
 	    }
@@ -607,22 +585,12 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 		    i = Rstrlen(s, quote);
 		    cnt = LENGTH(s);
 		} else {
-		    cnt = (int) strlen(p);
+		    cnt = strlen(p);
 		    i = Rstrwid(p, cnt, CE_UTF8, quote);
 		}
 		ienc = CE_UTF8;
 	    }
 #endif
-	} else if(ienc == CE_LATIN1) {
-	    p = translateCharUTF8(s);
-	    if(p == CHAR(s)) {
-		i = Rstrlen(s, quote);
-		cnt = LENGTH(s);
-	    } else {
-		cnt = (int) strlen(p);
-		i = Rstrwid(p, cnt, CE_UTF8, quote);
-	    }
-	    ienc = CE_UTF8;
 	} else {
 	    if (useUTF8 && ienc == CE_UTF8) {
 		p = CHAR(s);
@@ -658,43 +626,37 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
     if(q_len < w) q_len = (size_t) w;
     q = R_AllocStringBuffer(q_len, buffer);
 
-    int b = w - i - (quote ? 2 : 0); /* total amount of padding */
+    b = w - i - (quote ? 2 : 0); /* total amount of padding */
     if(justify == Rprt_adj_none) b = 0;
     if(b > 0 && justify != Rprt_adj_left) {
-	int b0 = (justify == Rprt_adj_centre) ? b/2 : b;
+	b0 = (justify == Rprt_adj_centre) ? b/2 : b;
 	for(i = 0 ; i < b0 ; i++) *q++ = ' ';
 	b -= b0;
     }
     if(quote) *q++ = (char) quote;
     if(mbcslocale || ienc == CE_UTF8) {
-#ifdef __sun
-	/* Need to avoid mbtrowc on Solaris, where it only covers the BMP
-	   so we set ienc for unmarked strings in a UTF-8 locale */
-	Rboolean useUTF8 = (ienc == CE_UTF8) || utf8locale;
-#else
-	Rboolean useUTF8 = (ienc == CE_UTF8);
-#endif
+	int j, res;
 	mbstate_t mb_st;
+	wchar_t wc;
+	unsigned int k; /* not wint_t as it might be signed */
 #ifndef __STDC_ISO_10646__
 	Rboolean Unicode_warning = FALSE;
 #endif
-	if(!useUTF8)  mbs_init(&mb_st);
+	if(ienc != CE_UTF8)  mbs_init(&mb_st);
 #ifdef Win32
 	else if(WinUTF8out) { memcpy(q, UTF8in, 3); q += 3; }
 #endif
 	for (i = 0; i < cnt; i++) {
-	    wchar_t wc;
-	    int res = (int)(useUTF8 ? utf8toucs(&wc, p):
-			    mbrtowc(&wc, p, MB_CUR_MAX, NULL));
+	    res = (int)((ienc == CE_UTF8) ? utf8toucs(&wc, p):
+			mbrtowc(&wc, p, MB_CUR_MAX, NULL));
 	    if(res >= 0) { /* res = 0 is a terminator */
-		unsigned int k; /* not wint_t as it might be signed */
-		if (useUTF8 && IS_HIGH_SURROGATE(wc))
+		if (ienc == CE_UTF8 && IS_HIGH_SURROGATE(wc))
 		    k = utf8toucs32(wc, p);
 		else
 		    k = wc;
 		/* To be portable, treat \0 explicitly */
 		if(res == 0) {k = 0; wc = L'\0';}
-		if(0x20 <= k && k < 0x7f && iswprint(k)) {
+		if(0x20 <= k && k < 0x7f && iswprint((wint_t) k)) {
 		    switch(wc) {
 		    case L'\\': *q++ = '\\'; *q++ = '\\'; p++; break;
 		    case L'\'':
@@ -706,7 +668,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 			    break;
 			}
 		    default:
-			for(int j = 0; j < res; j++) *q++ = *p++;
+			for(j = 0; j < res; j++) *q++ = *p++;
 			break;
 		    }
 		} else if (k < 0x80) {
@@ -725,34 +687,26 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 			/* print in octal */
 			// gcc 7 requires cast here
 			snprintf(buf, 5, "\\%03o", (unsigned char)k);
-			for(int j = 0; j < 4; j++) *q++ = buf[j];
+			for(j = 0; j < 4; j++) *q++ = buf[j];
 			break;
 		    }
 		    p++;
 		} else {
-		    /* wc could be an unpaired surrogate and this does
-		     * not do the same as Rstrwid */
-		    /* no need to worry about truncation as iswprint
-		     * gets replaced on Windows */
-		    if(iswprint(k)) {
+		    if(iswprint(wc)) {
 			/* The problem here is that wc may be
 			   printable according to the Unicode tables,
 			   but it may not be printable on the output
-			   device concerned.
-
-			   And the system iswprintf may not correspond
-			   to the latest Unicode tables.
-			*/
-			for(int j = 0; j < res; j++) *q++ = *p++;
+			   device concerned. */
+			for(j = 0; j < res; j++) *q++ = *p++;
 		    } else {
 # if !defined (__STDC_ISO_10646__) && !defined (Win32)
-			if(!use_ucs) Unicode_warning = TRUE;
+			Unicode_warning = TRUE;
 # endif
 			if(k > 0xffff)
-			    snprintf(buf, 13, "\\U{%06x}", k);
+			    snprintf(buf, 11, "\\U%08x", k);
 			else
 			    snprintf(buf, 11, "\\u%04x", k);
-			int j = (int) strlen(buf);
+			j = (int) strlen(buf);
 			memcpy(q, buf, j);
 			q += j;
 			p += res;
@@ -765,8 +719,11 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 	    }
 	}
 #ifndef __STDC_ISO_10646__
+// We know Solaris conforms even if the system headers do not define it.
+# ifndef __sun
 	if(Unicode_warning)
 	    warning(_("it is not known that wchar_t is Unicode on this platform"));
+# endif
 #endif
 
     } else
@@ -801,7 +758,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 		    default:
 			/* print in octal */
 			snprintf(buf, 5, "\\%03o", (unsigned char) *p);
-			for(int j = 0; j < 4; j++) *q++ = buf[j];
+			for(j = 0; j < 4; j++) *q++ = buf[j];
 			break;
 		    }
 		p++;
@@ -809,7 +766,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 		if(!isprint((int)*p & 0xff)) {
 		    /* print in octal */
 		    snprintf(buf, 5, "\\%03o", (unsigned char) *p);
-		    for(int j = 0; j < 4; j++) *q++ = buf[j];
+		    for(j = 0; j < 4; j++) *q++ = buf[j];
 		    p++;
 		} else *q++ = *p++;
 	    }
@@ -922,7 +879,6 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
 #endif
 
 # define R_BUFSIZE BUFSIZE
-// similar to dummy_vfprintf in connections.c
 attribute_hidden
 void Rcons_vprintf(const char *format, va_list arg)
 {
@@ -933,31 +889,30 @@ void Rcons_vprintf(const char *format, va_list arg)
     va_list aq;
 
     va_copy(aq, arg);
-    res = Rvsnprintf_mbcs(buf, R_BUFSIZE, format, aq);
+    res = vsnprintf(buf, R_BUFSIZE, format, aq);
     va_end(aq);
 #ifdef HAVE_VASPRINTF
     if(res >= R_BUFSIZE || res < 0) {
 	res = vasprintf(&p, format, arg);
 	if (res < 0) {
 	    p = buf;
-	    warning(_("printing of extremely long output is truncated"));
+	    buf[R_BUFSIZE - 1] = '\0';
+	    warning("printing of extremely long output is truncated");
 	} else usedVasprintf = TRUE;
     }
 #else
     if(res >= R_BUFSIZE) { /* res is the desired output length */
 	usedRalloc = TRUE;
-	/* dummy_vfprintf protects against `res` being counted short; we do not
-	   do that here */
 	p = R_alloc(res+1, sizeof(char));
 	vsprintf(p, format, arg);
-    } else if(res < 0) {
-	/* Some non-C99 conforming vsnprintf implementations return -1 on
-	   truncation instead of only on error. */
+    } else if(res < 0) { /* just a failure indication */
 	usedRalloc = TRUE;
 	p = R_alloc(10*R_BUFSIZE, sizeof(char));
-	res = Rvsnprintf_mbcs(p, 10*R_BUFSIZE, format, arg);
-	if (res < 0 || res >= 10*R_BUFSIZE)
-	    warning(_("printing of extremely long output is truncated"));
+	res = vsnprintf(p, 10*R_BUFSIZE, format, arg);
+	if (res < 0) {
+	    *(p + 10*R_BUFSIZE - 1) = '\0';
+	    warning("printing of extremely long output is truncated");
+	}
     }
 #endif /* HAVE_VASPRINTF */
     R_WriteConsole(p, (int) strlen(p));
@@ -1035,8 +990,9 @@ void REvprintf(const char *format, va_list arg)
 	va_list aq;
 
 	va_copy(aq, arg);
-	int res = Rvsnprintf_mbcs(buf, BUFSIZE, format, aq);
+	int res = vsnprintf(buf, BUFSIZE, format, aq);
 	va_end(aq);
+	buf[BUFSIZE-1] = '\0';
 	if (res >= BUFSIZE) {
 	    /* A very long string has been truncated. Try to allocate a large
 	       buffer for it to print it in full. Do not use R_alloc() as this

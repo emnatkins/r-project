@@ -113,6 +113,23 @@ function(packages, results = NULL, details = NULL, issues = NULL)
               collapse = "\n\n")
     }
 
+    ## summarize_mtnotes <- function(p, m) {
+    ##     if(!length(m)) return(character())
+    ##     tests <- m[, "Test"]
+    ##     paths <- m[, "Path"]
+    ##     isdir <- !grepl("-Ex.Rout$", paths)
+    ##     if(any(isdir))
+    ##         paths[isdir] <- sprintf("%s/", paths[isdir])
+    ##     paste(c(paste("Memtest notes:",
+    ##                   paste(unique(tests), collapse = " ")),
+    ##             sprintf("See: %s",
+    ##                     paste(sprintf("<https://www.stats.ox.ac.uk/pub/bdr/memtests/%s/%s>",
+    ##                                   tests,
+    ##                                   paths),
+    ##                           collapse = ",\n     "))),
+    ##           collapse = "\n")
+    ## }
+
     summarize_issues <- function(i) {
         if(!length(i)) return(character())
         ## In principle the hyperrefs can be obtained from the package
@@ -621,7 +638,7 @@ function(packages)
     rr <- package_dependencies(packages, a,
                                reverse = TRUE, recursive = TRUE)
     rrs <- package_dependencies(packages, a, "Suggests",
-                                reverse = TRUE, recursive = "strong")
+                                reverse = TRUE, recursive = TRUE)
 
     ## For formatting reverse dependencies, for now indicate non-CRAN
     ## ones by adding a '*'.
@@ -649,8 +666,8 @@ function(packages)
                           fmt(expansions[r[[p]]]),
                       "Additional recursive reverse depends" =
                           fmt(expansions[setdiff(rr[[p]], r[[p]])]),
-                      "Additional recursive reverse depends of suggests" =
-                          fmt(expansions[setdiff(rrs[[p]], rr[[p]])]),
+                      "Reverse recursive suggests" =
+                          fmt(expansions[rrs[[p]]]),
                       "Reverse Rd xref depends" =
                           fmt(rxrefs[[p]]),
                       "Views" =
@@ -681,8 +698,8 @@ function(x, ...)
 }
 
 CRAN_package_reverse_dependencies_with_maintainers <-
-function(packages, which = "strong", recursive = FALSE,
-         db = CRAN_package_db())
+function(packages, which = c("Depends", "Imports", "LinkingTo"),
+         recursive = FALSE, db = CRAN_package_db())
 {
     rdepends <- package_dependencies(packages, db, which,
                                      recursive = recursive,
@@ -694,15 +711,13 @@ function(packages, which = "strong", recursive = FALSE,
 }
 
 CRAN_package_dependencies_with_dates <-
-function(packages, which = "most", recursive = FALSE,
-         db = CRAN_package_db())
+function(packages, db = CRAN_package_db())
 {
     repos <- .get_standard_repository_URLs() # CRAN and BioC
     a <- utils::available.packages(filters = list(), repos = repos)
 
     pb <- NULL                          # Compute if necessary ...
-    d <- package_dependencies(packages, a, which = which,
-                              recursive = recursive)
+    d <- package_dependencies(packages, a, which = "most")
     ## We currently keep the base packages dependencies, which have no
     ## date.  Hence, filter these out ...
     base_packages <- .get_standard_package_names()[["base"]]

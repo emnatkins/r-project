@@ -1,7 +1,7 @@
 #  File src/library/tools/R/index.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2015 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -30,12 +30,25 @@
 ### * .build_data_index
 
 .build_data_index <-
-function(dir, contents)
+function(dataDir, contents)
 {
     ## Build an index with information about all available data sets.
     ## See .build_demo_index() for an explanation of what we do here.
 
-    dataTopics <- list_data_in_pkg(dir = dir)
+    ## <NOTE>
+    ## We could also have an interface like
+    ##   .build_data_index(dir, contents = NULL)
+    ## where @code{dir} is the path to a package's root source dir and
+    ## contents is
+    ##    Rd_contents(list_files_with_type(file.path(dir, "man"),
+    ##                                     "docs")).
+    ## </NOTE>
+
+    if(!dir.exists(dataDir))
+        stop(gettextf("directory '%s' does not exist", dataDir),
+             domain = NA)
+    ## dataFiles <- list_files_with_type(dataDir, "data")
+    dataTopics <- list_data_in_pkg(dataDir=dataDir)
     if(!length(dataTopics)) return(matrix("", 0L, 2L))
     names(dataTopics) <- paste0(names(dataTopics), "/")
     datasets <- unlist(dataTopics)

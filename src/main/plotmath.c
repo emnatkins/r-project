@@ -584,11 +584,8 @@ static int StringMatch(SEXP expr, const char *aString)
 #define S_RADICAL	 214
 #define S_SUM		 229
 #define S_INTEGRAL	 242
-
-#define S_ANGLELEFT	 225
 #define S_BRACKETLEFTTP	 233
 #define S_BRACKETLEFTBT	 235
-#define S_ANGLERIGHT	 241
 #define S_BRACKETRIGHTTP 249
 #define S_BRACKETRIGHTBT 251
 
@@ -979,7 +976,6 @@ static BBOX RenderSymbolStr(const char *str, int draw, mathContext *mc,
 	    mbs_init(&mb_st);
 	    while (*s) {
 		wc = 0;
-		// FIXME this does not allow for surrogate pairs (implausible)
 		res = mbrtowc(&wc, s, MB_LEN_MAX, &mb_st);
 		if(res == -1) error("invalid multibyte string '%s'", s);
 		if (iswdigit(wc) && font != PlainFont) {
@@ -1092,7 +1088,6 @@ static BBOX RenderStr(const char *str, int draw, mathContext *mc,
 	    const char *p = str;
 	    mbstate_t mb_st;
 	    mbs_init(&mb_st);
-	    // FIXME this does not allow for surrogate pairs
 	    while ((used = Mbrtowc(&wc, p, n, &mb_st)) > 0) {
 		/* On Windows could have sign extension here */
 		glyphBBox = GlyphBBox((unsigned int) wc, gc, dd);
@@ -1940,14 +1935,10 @@ static int DelimCode(SEXP expr, SEXP head)
 	    code = S_BRACKETLEFTBT;
 	else if (NameMatch(head, "rfloor"))
 	    code = S_BRACKETRIGHTBT;
-	else if (NameMatch(head, "lceil"))
+	if (NameMatch(head, "lceil"))
 	    code = S_BRACKETLEFTTP;
 	else if (NameMatch(head, "rceil"))
 	    code = S_BRACKETRIGHTTP;
-	else if (NameMatch(head, "langle"))
-	    code = S_ANGLELEFT;
-	else if (NameMatch(head, "rangle"))
-	    code = S_ANGLERIGHT;
     }
     else if (StringAtom(head) && length(head) > 0) {
 	if (StringMatch(head, "|"))

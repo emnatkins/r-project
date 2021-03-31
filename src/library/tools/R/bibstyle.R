@@ -162,7 +162,7 @@ makeJSS <- function() {
     	# PR#17725:  DOIs can contain % signs, and need multiple 
     	#            levels of escaping when translated to Rd.
     	escapeDOIPercent <- function(s) gsub("%", 
-    					  paste0(strrep("\\", 11L), "%"),
+    					  paste0(paste(rep("\\", 11), collapse=""), "%"),
     					  fixed = TRUE,
     					  s)
         result <- paste(c(fmtDOI(escapeDOIPercent(paper$doi)), fmtNote(paper$note),

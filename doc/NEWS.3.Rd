@@ -7,11 +7,9 @@
 
 \section{LATER NEWS}{
   \itemize{
-    \item News for \R 4.x.y can be found in HTML format at
-    \ifelse{html}{\url{NEWS.html}}{\file{doc/html/NEWS.html}},
-    and in text format in file
-    \ifelse{html}{\href{../NEWS}{NEWS}}{\file{NEWS}}
-    in the \file{doc} directory.
+    \item News for \R 4.0.0 and later can be found in file
+    \file{NEWS.Rd} in the \R sources and files \file{NEWS} and
+    \file{doc/html/NEWS.html} in an \R build.
   }
 }
 
@@ -3824,7 +3822,7 @@
       Haverty and Suharto Anggono.  (\PR{16640})
 
       \item \code{match.arg(arg)} (the one-argument case) is faster; so
-      is \code{sort.int()}.  (\PR{16652})
+      is \code{sort.int()}.  (\PR{16640})
 
       \item The \code{format} method for \code{object_size} objects now
       also accepts \dQuote{binary} units such as \code{"KiB"} and e.g.,

@@ -102,23 +102,23 @@ sampleGTree <- gTree(name="parent",
                                        children=vpList(viewport(name="vp2"))))
 grid.ls(sampleGTree)
 # Show viewports too
-grid.ls(sampleGTree, viewports=TRUE)
+grid.ls(sampleGTree, view=TRUE)
 # Only show viewports
-grid.ls(sampleGTree, viewports=TRUE, grobs=FALSE)
+grid.ls(sampleGTree, view=TRUE, grob=FALSE)
 # Alternate displays
 # nested listing, custom indent
-grid.ls(sampleGTree, viewports=TRUE, print=nestedListing, gindent="--")
+grid.ls(sampleGTree, view=TRUE, print=nestedListing, gindent="--")
 # path listing
-grid.ls(sampleGTree, viewports=TRUE, print=pathListing)
+grid.ls(sampleGTree, view=TRUE, print=pathListing)
 # path listing, without grobs aligned
-grid.ls(sampleGTree, viewports=TRUE, print=pathListing, gAlign=FALSE)
+grid.ls(sampleGTree, view=TRUE, print=pathListing, gAlign=FALSE)
 # grob path listing
-grid.ls(sampleGTree, viewports=TRUE, print=grobPathListing)
+grid.ls(sampleGTree, view=TRUE, print=grobPathListing)
 # path listing, grobs only
 grid.ls(sampleGTree, print=pathListing)
 # path listing, viewports only
-grid.ls(sampleGTree, viewports=TRUE, grobs=FALSE, print=pathListing)
+grid.ls(sampleGTree, view=TRUE, grob=FALSE, print=pathListing)
 # raw flat listing
-str(grid.ls(sampleGTree, viewports=TRUE, print=FALSE))
+str(grid.ls(sampleGTree, view=TRUE, print=FALSE))
 }
 \keyword{ dplot }

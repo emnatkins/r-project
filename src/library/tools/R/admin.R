@@ -35,7 +35,8 @@ function(dir, outDir, builtStamp=character())
     ok <- .check_package_description(file.path(dir, "DESCRIPTION"))
     if(any(as.integer(lengths(ok)) > 0L)) {
         stop(paste(gettext("Invalid DESCRIPTION file") ,
-                   paste(format(ok), collapse = "\n\n"),
+                   paste(.eval_with_capture(print(ok))$output,
+                         collapse = "\n"),
                    sep = "\n\n"),
              domain = NA,
              call. = FALSE)
@@ -477,7 +478,7 @@ function(dir, outDir)
 
     }
     if(dir.exists(dataDir))
-        saveRDS(.build_data_index(outDir, contents),
+        saveRDS(.build_data_index(dataDir, contents),
                  file.path(outDir, "Meta", "data.rds"))
     invisible()
 }
@@ -1132,7 +1133,8 @@ add_datalist <- function(pkgpath, force = FALSE, small.size = 1024^2)
     if (!force && file.exists(dlist)) return()
     size <- sum(file.size(Sys.glob(file.path(pkgpath, "data", "*"))))
     if(size <= small.size) return()
-    z <- list_data_in_pkg(dir = pkgpath, use_datalist = FALSE)
+    z <- suppressPackageStartupMessages(
+        list_data_in_pkg(dataDir = file.path(pkgpath, "data"))) # for BARD
     if(!length(z)) return()
     con <- file(dlist, "w")
     for (nm in names(z)) {

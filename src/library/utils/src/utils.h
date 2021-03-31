@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2012-2020  The R Core Team
+ *  Copyright (C) 2012-2013  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,8 +60,6 @@ SEXP processevents(void);
 
 SEXP octsize(SEXP);
 
-SEXP charClass(SEXP, SEXP);
-
 #ifdef Win32
 SEXP winProgressBar(SEXP call, SEXP op, SEXP args, SEXP rho);
 SEXP closeWinProgressBar(SEXP call, SEXP op, SEXP args, SEXP rho);
@@ -86,8 +84,8 @@ SEXP setStatusBar(SEXP text);
 SEXP chooseFiles(SEXP def, SEXP action, SEXP smulti, SEXP filters, SEXP sindex);
 SEXP chooseDir(SEXP def, SEXP caption);
 
-SEXP getWindowsHandle(SEXP which);
-SEXP getWindowsHandles(SEXP which, SEXP minimized);
+SEXP getWindowsHandle(SEXP call, SEXP op, SEXP args, SEXP rho);
+SEXP getWindowsHandles(SEXP call, SEXP op, SEXP args, SEXP rho);
 SEXP arrangeWindows(SEXP call, SEXP op, SEXP args, SEXP env);
 
 SEXP dllversion(SEXP path);

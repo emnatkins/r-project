@@ -114,32 +114,22 @@ convertNative <- function(unit, dimension="x", type="location") {
   .Defunct("convertUnit")
 }
 
-deviceLoc <- function(x, y, valueOnly=FALSE, device=FALSE) {
-    result <- grid.Call(C_devLoc, x, y, as.logical(device))
+deviceLoc <- function(x, y, valueOnly=FALSE) {
+    result <- grid.Call(C_devLoc, x, y)
     names(result) <- c("x", "y")
-    if (valueOnly) {
+    if (!valueOnly)
+        list(x=unit(result$x, "in"), y=unit(result$y, "in"))
+    else
         result
-    } else {
-        if (device) {
-            list(x=unit(result$x, "native"), y=unit(result$y, "native"))
-        } else {
-            list(x=unit(result$x, "in"), y=unit(result$y, "in"))
-        }
-    }
 }
 
-deviceDim <- function(w, h, valueOnly=FALSE, device=FALSE) {
-    result <- grid.Call(C_devDim, w, h, as.logical(device))
+deviceDim <- function(w, h, valueOnly=FALSE) {
+    result <- grid.Call(C_devDim, w, h)
     names(result) <- c("w", "h")
-    if (valueOnly) {
+    if (!valueOnly)
+        list(w=unit(result$w, "in"), h=unit(result$h, "in"))
+    else
         result
-    } else {
-        if (device) {
-            list(w=unit(result$w, "native"), h=unit(result$h, "native"))
-        } else {
-            list(w=unit(result$w, "in"), h=unit(result$h, "in"))
-        }
-    }
 }
 
 # This is like the "convert" functions:  it evaluates units (immediately)

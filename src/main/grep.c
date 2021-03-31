@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2021  The R Core Team
+ *  Copyright (C) 1997--2020  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,8 @@ Support for UTF-8-encoded strings in non-UTF-8 locales
 strsplit grep [g]sub [g]regexpr
   handle UTF-8 directly if fixed/perl = TRUE, via wchar_t for extended
 
-As from R 4.1.0 we translate latin1 strings in a non-latin1-locale to UTF-8.
+  We currrently translate latin1 strings to the native encoding.
+  We could use UTF-8 in a non-latin1-locale instead.
 
 */
 
@@ -146,12 +147,9 @@ static void NORET reg_report(int rc,  regex_t *reg, const char *pat)
 {
     char errbuf[1001];
     tre_regerror(rc, reg, errbuf, 1001);
-    if (pat) {
-	/* PR#16600 - the regex may be so long that the TRE error description
-	   is truncated out from the message, so give also a warning */
-	warning(_("TRE pattern compilation error '%s'"), errbuf);
+    if (pat)
 	error(_("invalid regular expression '%s', reason '%s'"), pat, errbuf);
-    } else
+    else
 	error(_("invalid regular expression, reason '%s'"), errbuf);
 }
 
@@ -231,43 +229,6 @@ static void R_pcre_exec_error(int rc, R_xlen_t i)
 static const char *to_native(const char *str, Rboolean use_UTF8)
 {
     return use_UTF8 ? reEnc(str, CE_UTF8, CE_NATIVE, 1) : str;
-}
-
-static Rboolean only_ascii(SEXP x, R_xlen_t len)
-{
-    R_xlen_t i;
-
-    for(i = 0; i < len; i++) 
-	if (!IS_ASCII(STRING_ELT(x, i)) && STRING_ELT(x, i) != NA_STRING)  
-	    return FALSE;
-    return TRUE;
-}
-
-static Rboolean have_bytes(SEXP x, R_xlen_t len)
-{
-    R_xlen_t i;
-
-    for(i = 0; i < len; i++) 
-	if (IS_BYTES(STRING_ELT(x, i))) return TRUE;
-    return FALSE;
-}
-
-static Rboolean have_utf8(SEXP x, R_xlen_t len)
-{
-    R_xlen_t i;
-
-    for(i = 0; i < len; i++) 
-	if (IS_UTF8(STRING_ELT(x, i))) return TRUE;
-    return FALSE;
-}
-
-static Rboolean have_latin1(SEXP x, R_xlen_t len)
-{
-    R_xlen_t i;
-
-    for(i = 0; i < len; i++) 
-	if (IS_LATIN1(STRING_ELT(x, i))) return TRUE;
-    return FALSE;
 }
 
 #ifdef HAVE_PCRE2
@@ -486,7 +447,7 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
     char *pt = NULL; wchar_t *wpt = NULL;
     const char *buf, *split = "", *bufp;
     const unsigned char *tables = NULL;
-    Rboolean use_UTF8 = FALSE;
+    Rboolean use_UTF8 = FALSE, haveBytes = FALSE;
     const void *vmax, *vmax2;
     int nwarn = 0;
 
@@ -512,19 +473,34 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* treat split = NULL as split = "" */
     if (!tlen) { tlen = 1; SETCADR(args0, tok = mkString("")); }
-    PROTECT(tok);
 
-    if (!useBytes)
-	useBytes = only_ascii(tok, tlen) && only_ascii(x, len);
-    if (!useBytes) 
-	useBytes = have_bytes(tok, tlen) || have_bytes(x, len);
     if (!useBytes) {
-	// use_UTF8 means use wchar_t* for the TRE engine
-	if (!fixed_opt && mbcslocale) use_UTF8 = TRUE;
-	if (!use_UTF8)
-	    use_UTF8 = have_utf8(tok, tlen) || have_utf8(x, len);
-	if (!use_UTF8 && !latin1locale)
-	    use_UTF8 = have_latin1(tok, tlen) || have_latin1(x, len);
+	for (i = 0; i < tlen; i++)
+	    if (IS_BYTES(STRING_ELT(tok, i))) {
+		haveBytes = TRUE; break;
+	    }
+	if (!haveBytes)
+	    for (i = 0; i < len; i++)
+		if (IS_BYTES(STRING_ELT(x, i))) {
+		    haveBytes = TRUE;
+		    break;
+		}
+	if (haveBytes) {
+	    useBytes = TRUE;
+	} else {
+	    if (perl_opt && mbcslocale) use_UTF8 = TRUE;
+	    if (!use_UTF8)
+		for (i = 0; i < tlen; i++)
+		    if (IS_UTF8(STRING_ELT(tok, i))) {
+			use_UTF8 = TRUE; break;
+		    }
+	    if (!use_UTF8)
+		for (i = 0; i < len; i++)
+		    if (IS_UTF8(STRING_ELT(x, i))) {
+			use_UTF8 = TRUE;
+			break;
+		    }
+	}
     }
 
     /* group by token for efficiency with PCRE/TRE versions */
@@ -615,7 +591,7 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 	    const char *laststart, *ebuf;
 	    if (useBytes)
 		split = CHAR(STRING_ELT(tok, itok));
-	    else if (use_UTF8) { // includes Latin-1 support
+	    else if (use_UTF8) {
 		split = translateCharUTF8(STRING_ELT(tok, itok));
 		if (!utf8Valid(split))
 		    error(_("'split' string %d is invalid UTF-8"), itok+1);
@@ -1000,7 +976,6 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 #else
     if (tables) pcre_free((void *)tables);
 #endif
-    UNPROTECT(1); /* tok */
     return ans;
 }
 
@@ -1174,21 +1149,45 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
 	return ans;
     }
 
-    if (!useBytes) 
-	useBytes = only_ascii(pat, 1) && only_ascii(text, n);
-    if (!useBytes) 
-	useBytes = have_bytes(pat, 1) || have_bytes(text, n);
+    if (!useBytes) {
+	Rboolean onlyASCII = IS_ASCII(STRING_ELT(pat, 0));
+	if (onlyASCII)
+	    for (i = 0; i < n; i++) {
+		if(STRING_ELT(text, i) == NA_STRING) continue;
+		if (!IS_ASCII(STRING_ELT(text, i))) {
+		    onlyASCII = FALSE;
+		    break;
+		}
+	    }
+	useBytes = onlyASCII;
+    }
+    if (!useBytes) {
+	Rboolean haveBytes = IS_BYTES(STRING_ELT(pat, 0));
+	if (!haveBytes)
+	    for (i = 0; i < n; i++)
+		if (IS_BYTES(STRING_ELT(text, i))) {
+		    haveBytes = TRUE;
+		    break;
+		}
+	if(haveBytes) {
+	    useBytes = TRUE;
+	}
+    }
     if (!useBytes) {
 	/* As from R 2.10.0 we use UTF-8 mode in PCRE in all MBCS locales */
-	/* if we have non-ASCII text in a DBCS locale, we need to use wchar in TRE */
-	if (!fixed_opt && mbcslocale) use_UTF8 = TRUE;
+	if (perl_opt && mbcslocale) use_UTF8 = TRUE;
+	else if (IS_UTF8(STRING_ELT(pat, 0))) use_UTF8 = TRUE;
 	if (!use_UTF8)
-	    use_UTF8 = have_utf8(pat, 1) || have_utf8(text, n);
-	if (!use_UTF8 && !latin1locale)
-	    use_UTF8 = have_latin1(pat, 1) || have_latin1(text, n);
+	    for (i = 0; i < n; i++)
+		if (IS_UTF8(STRING_ELT(text, i))) {
+		    use_UTF8 = TRUE;
+		    break;
+		}
     }
 
     if (!fixed_opt && !perl_opt) {
+	/* if we have non-ASCII text in a DBCS locale, we need to use wchar */
+	if (!useBytes && mbcslocale && !utf8locale) use_UTF8 =TRUE;
 	use_WC = use_UTF8; use_UTF8 = FALSE;
     }
     if (useBytes)
@@ -1506,15 +1505,13 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 		    R_size_t pos = 0;
 		    SEXP elt, mvec = NULL;
 		    int *fmatches = (int*) matches; /* either the minbuffer or an allocated maxibuffer */
-		    int nprotect = 0;
 
 		    if (!nmatches) return text;
 
 		    /* if there are more matches than in the buffer,
 		       we actually need to get them first */
 		    if (nmatches > MAX_MATCHES_MINIBUF) {
-			PROTECT(mvec = allocVector(INTSXP, nmatches));
-			nprotect++;
+			mvec = PROTECT(allocVector(INTSXP, nmatches));
 			fmatches = INTEGER(mvec);
 			memcpy(fmatches, matches, sizeof(matches));
 			nmatches = MAX_MATCHES_MINIBUF;
@@ -1530,7 +1527,6 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 
 		    /* there are always nmatches + 1 pieces (unlike strsplit) */
 		    ans = PROTECT(allocVector(VECSXP, nmatches + 1));
-		    nprotect++;
 		    /* add all pieces before matches */
 		    for (i = 0; i < nmatches; i++) {
 			R_size_t elt_size = fmatches[i] - 1 - pos;
@@ -1545,7 +1541,9 @@ SEXP attribute_hidden do_grepraw(SEXP call, SEXP op, SEXP args, SEXP env)
 		    SET_VECTOR_ELT(ans, nmatches, elt);
 		    if (LENGTH(elt))
 			memcpy(RAW(elt), RAW(text) + LENGTH(text) - LENGTH(elt), LENGTH(elt));
-		    UNPROTECT(nprotect);
+		    UNPROTECT(1); /* ans */
+		    if (mvec)
+			UNPROTECT(1);
 		    return ans;
 		}
 
@@ -1939,28 +1937,52 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
     if (STRING_ELT(pat, 0) == NA_STRING) {
 	PROTECT(ans = allocVector(STRSXP, n));
 	for (i = 0; i < n; i++)  SET_STRING_ELT(ans, i, NA_STRING);
-
-	goto exit_gsub;
+	UNPROTECT(1);
+	return ans;
     }
 
-    if (!useBytes) 
-	useBytes = only_ascii(pat, 1) && only_ascii(rep, 1) && 
-	           only_ascii(text, n);
-    if (!useBytes) 
-	useBytes = have_bytes(pat, 1) || have_bytes(rep, 1) ||
-	           have_bytes(text, n);
     if (!useBytes) {
-	/* if we have non-ASCII text in a DBCS locale, we need to use wchar in TRE */
+	Rboolean onlyASCII = (IS_ASCII(STRING_ELT(pat, 0)) &&
+			      IS_ASCII(STRING_ELT(rep, 0)));
+	if (onlyASCII)
+	    for (i = 0; i < n; i++) {
+		if(STRING_ELT(text, i) == NA_STRING) continue;
+		if (!IS_ASCII(STRING_ELT(text, i))) {
+		    onlyASCII = FALSE;
+		    break;
+		}
+	    }
+	useBytes = onlyASCII;
+    }
+    if (!useBytes) {
+	Rboolean haveBytes = (IS_BYTES(STRING_ELT(pat, 0)) ||
+			      IS_BYTES(STRING_ELT(rep, 0)));
+	if (!haveBytes)
+	    for (i = 0; i < n; i++)
+		if (IS_BYTES(STRING_ELT(text, i))) {
+		    haveBytes = TRUE;
+		    break;
+		}
+	if(haveBytes) {
+	    useBytes = TRUE;
+	}
+    }
+    if (!useBytes) {
 	if (!fixed_opt && mbcslocale) use_UTF8 = TRUE;
+	else if (IS_UTF8(STRING_ELT(pat, 0)) ||
+		 IS_UTF8(STRING_ELT(rep, 0)))
+	    use_UTF8 = TRUE;
 	if (!use_UTF8)
-	    use_UTF8 = have_utf8(pat, 1) || have_utf8(rep, 1) ||
-	               have_utf8(text, n);
-	if (!use_UTF8 && !latin1locale)
-	    use_UTF8 = have_latin1(pat, 1) || have_latin1(rep, 1) ||
-	               have_latin1(text, n);
+	    for (i = 0; i < n; i++)
+		if (IS_UTF8(STRING_ELT(text, i))) {
+		    use_UTF8 = TRUE;
+		    break;
+		}
     }
 
     if (!fixed_opt && !perl_opt) {
+	/* if we have non-ASCII text in a DBCS locale, we need to use wchar */
+	if (!useBytes && mbcslocale && !utf8locale) use_UTF8 =TRUE;
 	use_WC = use_UTF8; use_UTF8 = FALSE;
     }
 
@@ -2321,10 +2343,8 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	pcre_free((void *)tables);
 #endif
     } else tre_regfree(&reg);
-
-  exit_gsub: 
     SHALLOW_DUPLICATE_ATTRIB(ans, text);
-    /* This also copied the class, if any */
+    /* This copied the class, if any */
     UNPROTECT(1);
     return ans;
 }
@@ -2804,25 +2824,49 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
     if (!isString(text))
 	error(_("invalid '%s' argument"), "text");
 
-    n = XLENGTH(text);
-    if (!useBytes) 
-	useBytes = have_bytes(pat, 1) || have_bytes(text, n);
     PROTECT(itype = ScalarString(mkChar(useBytes ? "bytes" : "chars")));
 
-    if (!useBytes) 
-	useBytes = only_ascii(pat, 1) && only_ascii(text, n);
+    n = XLENGTH(text);
+    if (!useBytes) {
+	Rboolean onlyASCII = IS_ASCII(STRING_ELT(pat, 0));
+	if (onlyASCII)
+	    for (i = 0; i < n; i++) {
+		if(STRING_ELT(text, i) == NA_STRING) continue;
+		if (!IS_ASCII(STRING_ELT(text, i))) {
+		    onlyASCII = FALSE;
+		    break;
+		}
+	    }
+	useBytes = onlyASCII;
+    }
+    if (!useBytes) {
+	Rboolean haveBytes = IS_BYTES(STRING_ELT(pat, 0));
+	if (!haveBytes)
+	    for (i = 0; i < n; i++)
+		if (IS_BYTES(STRING_ELT(text, i))) {
+		    haveBytes = TRUE;
+		    break;
+		}
+	if(haveBytes) {
+	    useBytes = TRUE;
+	}
+    }
     if (!useBytes) {
 	/* As from R 2.10.0 we use UTF-8 mode in PCRE in all MBCS locales,
 	   and as from 2.11.0 in TRE too. */
-	/* if we have non-ASCII text in a DBCS locale, we need to use wchar in TRE */
 	if (!fixed_opt && mbcslocale) use_UTF8 = TRUE;
+	else if (IS_UTF8(STRING_ELT(pat, 0))) use_UTF8 = TRUE;
 	if (!use_UTF8)
-	    use_UTF8 = have_utf8(pat, 1) || have_utf8(text, n);
-	if (!use_UTF8 && !latin1locale)
-	    use_UTF8 = have_latin1(pat, 1) || have_latin1(text, n); 
+	    for (i = 0; i < n; i++)
+		if (IS_UTF8(STRING_ELT(text, i))) {
+		    use_UTF8 = TRUE;
+		    break;
+		}
     }
 
     if (!fixed_opt && !perl_opt) {
+	/* if we have non-ASCII text in a DBCS locale, we need to use wchar */
+	if (!useBytes && mbcslocale && !utf8locale) use_UTF8 =TRUE;
 	use_WC = use_UTF8; use_UTF8 = FALSE;
     }
 
@@ -3124,21 +3168,47 @@ SEXP attribute_hidden do_regexec(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(text))
 	error(_("invalid '%s' argument"), "text");
 
-    n = XLENGTH(text);
-
-    if(!useBytes) 
-	useBytes = have_bytes(pat, 1) || have_bytes(text, n);
     PROTECT(itype = ScalarString(mkChar(useBytes ? "bytes" : "chars")));
 
-    if(!useBytes) 
-	useBytes = only_ascii(pat, 1) && only_ascii(text, n);
+    n = XLENGTH(text);
+
+    if (!useBytes) {
+	Rboolean onlyASCII = IS_ASCII(STRING_ELT(pat, 0));
+	if(onlyASCII)
+	    for(i = 0; i < n; i++) {
+		if(STRING_ELT(text, i) == NA_STRING) continue;
+		if (!IS_ASCII(STRING_ELT(text, i))) {
+		    onlyASCII = FALSE;
+		    break;
+		}
+	    }
+	useBytes = onlyASCII;
+    }
+    if(!useBytes) {
+	Rboolean haveBytes = IS_BYTES(STRING_ELT(pat, 0));
+	if(!haveBytes)
+	    for(i = 0; i < n; i++) {
+		if(IS_BYTES(STRING_ELT(text, i))) {
+		    haveBytes = TRUE;
+		    break;
+		}
+	    }
+	if(haveBytes) {
+	    useBytes = TRUE;
+	}
+    }
 
     if(!useBytes) {
-	if (!opt_fixed && mbcslocale) use_WC = TRUE;
-	if (!use_WC)
-	    use_WC = have_utf8(pat, 1) || have_utf8(text, n);
-	if (!use_WC && !latin1locale)
-	    use_WC = have_latin1(pat, 1) || have_latin1(text, n);
+	use_WC = !IS_ASCII(STRING_ELT(pat, 0));
+	if(!use_WC) {
+	    for(i = 0 ; i < n ; i++) {
+		if(STRING_ELT(text, i) == NA_STRING) continue;
+		if(!IS_ASCII(STRING_ELT(text, i))) {
+		    use_WC = TRUE;
+		    break;
+		}
+	    }
+	}
     }
 
     if(useBytes)
@@ -3238,7 +3308,7 @@ SEXP attribute_hidden do_regexec(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /* pcre_config was added in PCRE 4.0, with PCRE_CONFIG_UTF8 .
    PCRE_CONFIG_UNICODE_PROPERTIES had been added by 8.10,
-   the earliest version we allowed when coding this.
+   the earliest version we allow.
  */
 #ifdef HAVE_PCRE2
 SEXP attribute_hidden do_pcre_config(SEXP call, SEXP op, SEXP args, SEXP env)

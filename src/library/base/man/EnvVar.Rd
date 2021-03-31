@@ -1,6 +1,6 @@
 % File src/library/base/man/EnvVar.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 2007-2021 R Core Team
+% Copyright 2007-2018 R Core Team
 % Distributed under GPL 2 or later
 
 \name{EnvVar}
@@ -34,15 +34,17 @@
 % R_HOME is in ?R.home.
 % R_MAX_NUM_DLLS is in ?dyn.load
 
-%% Only on Unix-alike:
+#ifdef unix
 \alias{DISPLAY}
 \alias{EDITOR}
 \alias{PAGER}
 \alias{R_PRINTCMD}
+#endif
 
-%% Only on Windows:
+#ifdef windows
 \alias{GSC}
 \alias{R_USER}
+#endif
 
 
 \title{Environment Variables}
@@ -90,14 +92,16 @@
     \item{\env{R_HISTSIZE}:}{Optional.  The maximum size of the history
       file, in lines.  Exactly how this is used depends on the
       interface.
-      \describe{
-	\item{On Unix-alikes,}{for the \code{readline} command-line interface it takes effect
-	  when the history is saved (by \code{\link{savehistory}} or at the
-	  end of a session).}
-	\item{On Windows,}{for \command{Rgui} it controls the number of lines saved to the
-	  history file: the size of the history used in the session is
-	  controlled by the console customization: see \code{\link{Rconsole}}.}
-      }
+#ifdef unix
+      For the \code{readline} command-line interface it takes effect
+      when the history is saved (by \code{\link{savehistory}} or at the
+      end of a session).
+#endif
+#ifdef windows
+      For \command{Rgui} it controls the number of lines saved to the
+      history file: the size of the history used in the session is
+      controlled by the console customization: see \code{\link{Rconsole}}.
+#endif
     }
     \item{\env{R_HOME}:}{The top-level directory of the \R
       installation: see \code{\link{R.home}}.  Set by \R.}
@@ -127,11 +131,11 @@
     \item{\env{R_TEXI2DVICMD}:}{The path to \command{texi2dvi}.
       Defaults to the value of \env{TEXI2DVI}, and if that is unset to a
       value determined when \R was built.
-
-      Only on Unix-alikes:\cr
+#ifdef unix
       Consulted at startup to set the default for
       \code{\link{options}("texi2dvi")}, used by
       \code{\link{texi2dvi}} and \code{\link{texi2pdf}} in package \pkg{tools}.
+#endif
     }
     \item{\env{R_UNZIPCMD}:}{The path to \command{unzip}.  Sets the
       initial value for \code{\link{options}("unzip")} on a Unix-alike
@@ -151,6 +155,7 @@
   }
 }
 
+#ifdef unix
 \section{Unix-specific}{
   Some variables set on Unix-alikes, and not (in general) on Windows.
   \describe{
@@ -172,7 +177,9 @@
       automagically detecting compression type.}
   }
 }
+#endif
 
+#ifdef windows
 \section{Windows-specific}{
   Some Windows-specific variables are
   \describe{
@@ -184,6 +191,7 @@
       time-zone database.  See \code{\link{Sys.timezone}}.}
   }
 }
+#endif
 
 \seealso{
   \code{\link{Sys.getenv}} and \code{\link{Sys.setenv}} to read and set

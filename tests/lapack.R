@@ -143,10 +143,7 @@ As[upper.tri(A)] <- t(A)[upper.tri(A)]
 det(As)
 E <- eigen(As)
 E$values
-## The eigenvectors are of arbitrary sign, so we fix the first element to
-## be positive for cross-platform comparisons.
-Ev <- E$vectors
-zapsmall(Ev * rep(sign(Ev[1, ]), each = 5))
+zapsmall(E$vectors)
 solve(As)
 
 ## quite hard to come up with an example where this might make sense.

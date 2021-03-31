@@ -1,7 +1,7 @@
 #  File src/library/tools/R/urltools.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 2015-2021 The R Core Team
+#  Copyright (C) 2015-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ function(x)
 }
 
 .get_urls_from_Rd <-
-function(x, href = TRUE, ifdef = FALSE)
+function(x)
 {
     urls <- character()
     recurse <- function(e) {
@@ -52,22 +52,8 @@ function(x, href = TRUE, ifdef = FALSE)
         ## Rd2HTML and Rd2latex remove whitespace and \n from URLs.
         if(identical(tag, "\\url")) {
             urls <<- c(urls, lines2str(.Rd_deparse(e, tag = FALSE)))
-        } else if(href && identical(tag, "\\href")) {
-            ## One could also record the \href text argument in the
-            ## names, but then one would need to process named and
-            ## unnamed extracted URLs separately.
+        } else if(identical(tag, "\\href")) {
             urls <<- c(urls, lines2str(.Rd_deparse(e[[1L]], tag = FALSE)))
-        } else if(ifdef && length(tag) && (tag %in% c("\\if", "\\ifelse"))) {
-            ## cf. testRdConditional()
-            condition <- e[[1L]]
-            if(all(RdTags(condition) == "TEXT")) {
-                if(any(c("TRUE", "html") %in%
-                       trimws(strsplit(paste(condition, collapse = ""), 
-                                       ",")[[1L]])))
-                    recurse(e[[2L]])
-                else if(tag == "\\ifelse")
-                    recurse(e[[3L]])
-            }
         } else if(is.list(e))
             lapply(e, recurse)
     }
@@ -393,16 +379,12 @@ table_of_FTP_server_return_codes <-
       )
 
 check_url_db <-
-function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
+function(db, remote = TRUE, verbose = FALSE)
 {
     use_curl <-
-        !parallel &&
         config_val_to_logical(Sys.getenv("_R_CHECK_URLS_USE_CURL_",
                                          "TRUE")) &&
         requireNamespace("curl", quietly = TRUE)
-
-    if(parallel && is.null(pool))
-        pool <- curl::new_pool()    
 
     .gather <- function(u = character(),
                         p = list(),
@@ -419,16 +401,26 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
         class(y) <- c("check_url_db", "data.frame")
         y
     }
-    
-    .fetch_headers <-
-        if(parallel)
-            function(urls)
-                .fetch_headers_via_curl(urls, verbose, pool)
-        else
-            function(urls)
-                .fetch_headers_via_base(urls, verbose)
 
-    .check_ftp <- function(u, h) {
+    .fetch <- function(u) {
+        if(verbose) message(sprintf("processing %s", u))
+        h <- tryCatch(curlGetHeaders(u), error = identity)
+        if(inherits(h, "error")) {
+            ## Currently, this info is only used in .check_http().
+            ## Might be useful for checking ftps too, so simply leave it
+            ## here instead of moving to .check_http().
+            msg <- conditionMessage(h)
+            if (grepl("libcurl error code (51|60)", msg)) {
+                h2 <- tryCatch(curlGetHeaders(u, verify = FALSE),
+                               error = identity)
+                attr(h, "no-verify") <- h2
+            }
+        }
+        h
+    }
+
+    .check_ftp <- function(u) {
+        h <- .fetch(u)
         if(inherits(h, "error")) {
             s <- "-1"
             msg <- sub("[[:space:]]*$", "", conditionMessage(h))
@@ -440,25 +432,18 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
     }
 
     .check_http <- if(remote)
-                       function(u, h) c(.check_http_A(u, h),
-                                        .check_http_B(u))
-                   else
-                       function(u, h) c(rep.int("", 3L),
-                                        .check_http_B(u))
+        function(u) c(.check_http_A(u), .check_http_B(u))
+    else
+        function(u) c(rep.int("", 3L), .check_http_B(u))
 
-    .check_http_A <- function(u, h) {
+    .check_http_A <- function(u) {
+        h <- .fetch(u)
         newLoc <- ""
         if(inherits(h, "error")) {
             s <- "-1"
             msg <- sub("[[:space:]]*$", "", conditionMessage(h))
-            if(grepl(paste(c("server certificate verification failed",
-                             "failed to get server cert",
-                             "libcurl error code (51|60)"),
-                           collapse = "|"),
-                     msg)) {
-                h2 <- tryCatch(curlGetHeaders(u, verify = FALSE),
-                               error = identity)
-                s2 <- as.character(attr(h2, "status"))
+            if (!is.null(v <- attr(h, "no-verify"))) {
+                s2 <- as.character(attr(v, "status"))
                 msg <- paste0(msg, "\n\t(Status without verification: ",
                               table_of_HTTP_status_codes[s2], ")")
             }
@@ -467,38 +452,10 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
             msg <- table_of_HTTP_status_codes[s]
         }
         ## Look for redirected URLs
-        ## According to
-        ## <https://tools.ietf.org/html/rfc7230#section-3.1.2> the first
-        ## line of a response is the status-line, with "a possibly empty
-        ## textual phrase describing the status code", so only look for
-        ## a 301 status code in the first line.
-        if(grepl(" 301 ", h[1L], useBytes = TRUE) &&
-           !startsWith(u, "https://doi.org/") &&
-           !startsWith(u, "http://dx.doi.org/")) {
-            ## Get the new location from the last consecutive 301
-            ## obtained.
-            h <- split(h, c(0L, cumsum(h == "\r\n")[-length(h)]))
-            i <- vapply(h,
-                        function(e)
-                            grepl(" 301 ", e[1L], useBytes = TRUE),
-                        NA)
-            h <- h[[which(!i)[1L] - 1L]]
-            pos <- grep("^[Ll]ocation: ", h, useBytes = TRUE)
-            if(length(pos)) {
-                loc <- sub("^[Ll]ocation: ([^\r]*)\r\n", "\\1",
-                           h[pos[1L]])
-                ## Ouch.  According to RFC 7231, the location is a URI
-                ## reference, and may be relative in which case it needs
-                ## resolving against the effect request URI.
-                ## <https://tools.ietf.org/html/rfc7231#section-7.1.2>.
-                ## Not quite straightforward, hence do not report such
-                ## 301s. 
-                ## (Alternatively, could try reporting the 301 but no
-                ## new location.)
-                if(nzchar(parse_URI_reference(loc)[1L, "scheme"]))
-                    newLoc <- loc
-                ## (Note also that fragments would need extra care.)
-            }
+        if (any(grepl("301 Moved Permanently", h, useBytes = TRUE))) {
+            ind <- grep("^[Ll]ocation: ", h, useBytes = TRUE)
+            if (length(ind))
+                newLoc <- sub("^[Ll]ocation: ([^\r]*)\r\n", "\\1", h[max(ind)])
         }
         ##
         if((s != "200") && use_curl) {
@@ -517,7 +474,7 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
     .check_http_B <- function(u) {
         ul <- tolower(u)
         cran <- ((grepl("^https?://cran.r-project.org/web/packages", ul) &&
-                  !grepl("^https?://cran.r-project.org/web/packages/[.[:alnum:]_]+(html|pdf|rds)$",
+                  !grepl("^https?://cran.r-project.org/web/packages/[.[:alnum:]]+(html|pdf|rds)$",
                          ul)) ||
                  (grepl("^https?://cran.r-project.org/web/views/[[:alnum:]]+[.]html$",
                         ul)) ||
@@ -583,9 +540,7 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
     ## ftp.
     pos <- which(schemes == "ftp")
     if(length(pos) && remote) {
-        urlspos <- urls[pos]
-        headers <- .fetch_headers(urlspos)
-        results <- do.call(rbind, Map(.check_ftp, urlspos, headers))
+        results <- do.call(rbind, lapply(urls[pos], .check_ftp))
         status <- as.numeric(results[, 1L])
         ind <- (status < 0L) | (status >= 400L)
         if(any(ind)) {
@@ -602,14 +557,11 @@ function(db, remote = TRUE, verbose = FALSE, parallel = FALSE, pool = NULL)
     ## http/https.
     pos <- which(schemes == "http" | schemes == "https")
     if(length(pos)) {
-        urlspos <- urls[pos]
-        headers <- .fetch_headers(urlspos)
-        results <- do.call(rbind, Map(.check_http, urlspos, headers))
+        results <- do.call(rbind, lapply(urls[pos], .check_http))
         status <- as.numeric(results[, 1L])
         ## 405 is HTTP not allowing HEAD requests
         ## maybe also skip 500, 503, 504 as likely to be temporary issues
         ind <- is.na(match(status, c(200L, 405L, NA))) |
-            nzchar(results[, 3L]) |
             nzchar(results[, 4L]) |
             nzchar(results[, 5L]) |
             nzchar(results[, 6L])
@@ -682,107 +634,6 @@ function(x, ...)
     y
 }
 
-.fetch_headers_via_base <- function(urls, verbose = FALSE, ids = urls)
-    Map(function(u, verbose, i) {
-            if(verbose) message(sprintf("processing %s", i))
-            tryCatch(curlGetHeaders(u), error = identity)
-        },
-        urls, verbose, ids)
-
-.fetch_headers_via_curl <- function(urls, verbose = FALSE, pool = NULL) {
-
-    .progress_bar <- function(length, msg = "") {
-        bar <- new.env(parent = baseenv())
-        if(is.null(length)) {
-            length <- 0L
-        }
-        ## <FIXME>
-        ## make codetools happy
-        done <- fmt <- NULL
-        ## </FIXME>
-        bar$length <- length
-        bar$done <- -1L
-        digits <- trunc(log10(length)) + 1L
-        bar$fmt <- paste0("\r", msg, "[ %", digits, "i / %", digits, "i ]")
-        bar$update <- function() {
-            assign("done", inherits = TRUE, done + 1L)
-            if (length <= 0L) {
-                return()
-            }
-            if (done >= length) {
-                cat("\r", strrep(" ", nchar(fmt)), "\r", sep = "")
-            } else {
-                cat(sprintf(fmt, done, length), sep = "")
-            }
-        }
-        environment(bar$update) <- bar
-        bar$update()
-        bar
-    }
-
-    if(is.null(pool))
-        pool <- curl::new_pool()
-
-    hs <- vector("list", length(urls))
-
-    bar <- .progress_bar(if (verbose) length(urls), msg = "fetching ")
-    for(i in seq_along(hs)) {
-        u <- urls[[i]]
-        h <- curl::new_handle(url = u)
-        curl::handle_setopt(h,
-                            nobody = TRUE,
-                            cookiesession = 1L,
-                            followlocation = 1L,
-                            http_version = 2L,
-                            ssl_enable_alpn = 0L)
-        timeout <- as.integer(getOption("timeout"))
-        if(!is.na(timeout) && (timeout > 0L))
-            curl::handle_setopt(h,
-                                connecttimeout = timeout,
-                                timeout = timeout)
-        if(grepl("^https?://github[.]com", u) &&
-           nzchar(a <- Sys.getenv("GITHUB_PAT", ""))) {
-            curl::handle_setheaders(h, "Authorization" = paste("token", a))
-        }
-        handle_result <- local({
-            i <- i
-            function(x) {
-                hs[[i]] <<- x
-                bar$update()
-            }
-        })
-        handle_error <- local({
-            i <- i
-            function(x) {
-                hs[[i]] <<-
-                    structure(list(message = x),
-                              class = c("curl_error", "error", "condition"))
-                bar$update()
-            }
-        })
-        curl::multi_add(h,
-                        done = handle_result,
-                        fail = handle_error,
-                        pool = pool)
-    }
-
-    curl::multi_run(pool = pool)
-   
-    out <- vector("list", length(hs))
-    for(i in seq_along(out)) {
-        if(inherits(hs[[i]], "error")) {
-            out[[i]] <- hs[[i]]
-        } else {
-            out[[i]] <- strsplit(rawToChar(hs[[i]]$headers),
-                                 "(?<=\r\n)",
-                                 perl = TRUE)[[1L]]
-            attr(out[[i]], "status") <- hs[[i]]$status_code
-        }
-    }
-        
-    out
-}
-    
 .curl_GET_status <-
 function(u, verbose = FALSE)
 {
@@ -798,11 +649,6 @@ function(u, verbose = FALSE)
                         followlocation = 1,
                         http_version = 2L,
                         ssl_enable_alpn = 0)
-    timeout <- as.integer(getOption("timeout"))
-    if(!is.na(timeout) && (timeout > 0L))
-        curl::handle_setopt(h,
-                            connecttimeout = timeout,
-                            timeout = timeout)
     if(startsWith(u, "https://github.com") &&
        nzchar(a <- Sys.getenv("GITHUB_PAT", "")))
         curl::handle_setheaders(h, "Authorization" = paste("token", a))

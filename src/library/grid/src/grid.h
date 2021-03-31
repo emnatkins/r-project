@@ -59,7 +59,6 @@
 #define GSS_ENGINERECORDING 13
 /* #define GSS_ASK 14 unused in R >= 2.7.0 */
 #define GSS_SCALE 15
-#define GSS_RESOLVINGCLIP 16
 
 /*
  * Structure of a viewport
@@ -81,7 +80,6 @@
 #define VP_VALIDLPOSROW 14
 #define VP_VALIDLPOSCOL 15
 #define VP_NAME 16
-#define VP_MASK 31
 /* 
  * Additional structure of a pushedvp
  */
@@ -98,8 +96,6 @@
 #define PVP_CHILDREN 27
 #define PVP_DEVWIDTHCM 28
 #define PVP_DEVHEIGHTCM 29
-#define PVP_CLIPPATH 30
-#define PVP_MASK 32
 
 /*
  * Structure of a layout
@@ -327,8 +323,8 @@ SEXP L_pretty(SEXP scale);
 SEXP L_locator();
 SEXP L_convert(SEXP x, SEXP whatfrom,
 	       SEXP whatto, SEXP unitto);
-SEXP L_devLoc(SEXP x, SEXP y, SEXP device);
-SEXP L_devDim(SEXP x, SEXP y, SEXP device);
+SEXP L_devLoc(SEXP x, SEXP y);
+SEXP L_devDim(SEXP x, SEXP y);
 SEXP L_layoutRegion(SEXP layoutPosRow, SEXP layoutPosCol);
 
 SEXP L_stringMetric(SEXP label);
@@ -516,8 +512,6 @@ SEXP gpFontSizeSXP(SEXP gp);
 
 SEXP gpLineHeightSXP(SEXP gp);
 
-SEXP resolveGPar(SEXP gp);
-
 void gcontextFromgpar(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd);
 void initGContext(SEXP gp, const pGEcontext gc, pGEDevDesc dd, int* gpIsScalar, 
                   const pGEcontext gcCache);
@@ -525,16 +519,6 @@ void updateGContext(SEXP gp, int i, const pGEcontext gc, pGEDevDesc dd,
                     int* gpIsScalar, const pGEcontext gcCache);
 
 void initGPar(pGEDevDesc dd);
-
-/* From clippath.c */
-Rboolean isClipPath(SEXP clip);
-
-SEXP resolveClipPath(SEXP path, pGEDevDesc dd);
-
-/* From mask.c */
-Rboolean isMask(SEXP mask);
-
-SEXP resolveMask(SEXP mask, pGEDevDesc dd);
 
 /* From viewport.c */
 SEXP viewportX(SEXP vp);
@@ -555,11 +539,7 @@ double viewportFontSize(SEXP vp);
 
 double viewportLineHeight(SEXP vp);
 
-SEXP viewportClipSXP(SEXP vp);
 Rboolean viewportClip(SEXP vp);
-
-SEXP viewportMaskSXP(SEXP vp);
-Rboolean viewportMask(SEXP vp);
 
 SEXP viewportClipRect(SEXP vp);
 

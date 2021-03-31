@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-02-12 09:26\n"
+"POT-Creation-Date: 2018-03-29 07:06\n"
 "PO-Revision-Date: 2015-03-27 14:18+0900 \n"
 "Last-Translator: Masafumi  \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -257,9 +257,6 @@ msgstr " 射影を許容するためにモデルの再当てはめを行いま�
 
 msgid "columns of 'contrast.obj' must define a contrast(sum to zero)"
 msgstr " 'contrast.obj' の列は対比 (総和が 0) を定義しなければなりません "
-
-msgid "'ties' is not \"ordered\", a function, or list(<string>, <function>)"
-msgstr ""
 
 msgid "collapsing to unique 'x' values"
 msgstr " ユニークな 'x' 値を得るため縮小します "
@@ -829,8 +826,7 @@ msgstr " 無効な引数 'lambda' "
 msgid "%s link not recognised"
 msgstr " リンク %s は利用できません "
 
-#, fuzzy
-msgid "link \"%s\" not available for %s family; available links are %s"
+msgid "link \"%s\" not available for poisson family; available links are %s"
 msgstr ""
 " リンク \"%s\" は poisson ファミリには利用できません。利用できるリンクは %s "
 "です "
@@ -841,26 +837,39 @@ msgstr " 'Poisson' ファミリには負の値は許されません "
 msgid "ignoring prior weights"
 msgstr " 事前重みを無視します "
 
+msgid ""
+"link \"%s\" not available for quasipoisson family; available links are %s"
+msgstr ""
+" リンク \"%s\" は quasiPoisson ファミリには利用できません。利用できるリンク"
+"は %s です "
+
 msgid "negative values not allowed for the 'quasiPoisson' family"
 msgstr " 'quasiPoisson' ファミリには負の値は許されません "
+
+msgid "link \"%s\" not available for gaussian family; available links are %s"
+msgstr ""
+" リンク \"%s\" は gaussian ファミリに利用できるリンクではありません。利用でき"
+"るリンクは %s です "
 
 msgid "cannot find valid starting values: please specify some"
 msgstr " 有効な初期値を見つけることができません: 何か指定してください "
 
+msgid "link \"%s\" not available for binomial family; available links are %s"
+msgstr ""
+" リンク \"%s\" は binomial ファミリには利用できません。利用できるリンクは %s "
+"です "
+
 msgid "y values must be 0 <= y <= 1"
 msgstr " y の値は [0, 1] 中でなければなりません "
 
-#, fuzzy
-msgid "non-integer #successes in a %s glm!"
+msgid "non-integer #successes in a binomial glm!"
 msgstr " 二項 glm で整数でない成功数がありました! "
 
-#, fuzzy
-msgid "non-integer counts in a %s glm!"
+msgid "non-integer counts in a binomial glm!"
 msgstr " 二項 glm で整数でないカウントがありました! "
 
-#, fuzzy
 msgid ""
-"for the '%s' family, y must be a vector of 0 and 1's\n"
+"for the 'binomial' family, y must be a vector of 0 and 1's\n"
 "or a 2 column matrix where col 1 is no. successes and col 2 is no. failures"
 msgstr ""
 " 'binomial' ファミリに対しては、y は 0 と 1 のベクトル \n"
@@ -870,12 +879,36 @@ msgstr ""
 msgid "cannot simulate from non-integer prior.weights"
 msgstr " 整数でない事前重みからはシミュレーションできません "
 
-#, fuzzy
-msgid "non-positive values not allowed for the 'Gamma' family"
+msgid ""
+"link \"%s\" not available for quasibinomial family; available links are %s"
+msgstr ""
+" リンク \"%s\" は quasibinomial ファミリには利用できません。利用できるリンク"
+"は %s です "
+
+msgid ""
+"for the 'quasibinomial' family, y must be a vector of 0 and 1's\n"
+"or a 2 column matrix where col 1 is no. successes and col 2 is no. failures"
+msgstr ""
+" 'quasibinomial' ファミリに対しては、y は 0 と 1 のベクトル \n"
+" もしくは、第 1 列が成功数、第 2 列が失敗数である 2 列の行列である必要があり"
+"ます "
+
+msgid "link \"%s\" not available for gamma family; available links are %s"
+msgstr ""
+" リンク \"%s\" は gamma ファミリに利用できるリンクではありません。利用できる"
+"リンクは %s です "
+
+msgid "non-positive values not allowed for the 'gamma' family"
 msgstr " 正でない値は 'gamma' ファミリには許されません "
 
 msgid "using weights as shape parameters"
 msgstr " shape パラメータとして重み (weights) を使います "
+
+msgid ""
+"link \"%s\" not available for inverse.gaussian family; available links are %s"
+msgstr ""
+" リンク \"%s\" は inverse.gaussian に利用できるリンクではありません。利用でき"
+"るリンクは %s です "
 
 msgid "positive values only are allowed for the 'inverse.gaussian' family"
 msgstr " 'inverse.gaussian' ファミリでは正の値しか許されません "
@@ -951,6 +984,9 @@ msgstr " 'hybrid' は 2 x 2 分割表に対しては無視されます "
 
 msgid "all groups must contain data"
 msgstr " 全てのグループはデータを含まなければなりません "
+
+msgid "all group levels must be finite"
+msgstr " グループのレベルはすべて有限でなければなりません "
 
 msgid "not enough observations"
 msgstr " 十分な観測値がありません "
@@ -1364,8 +1400,7 @@ msgstr " モデルの計算における QR 分解の結果が不正です "
 msgid "non-NA residual length does not match cases used in fitting"
 msgstr " NA でない残差の長さが、当てはめで使われたケースと一致しません "
 
-#, fuzzy
-msgid "too few cases i with h_ii > 0), n < k"
+msgid "too few cases, n < k"
 msgstr " ケースが少なすぎます、n < k "
 
 msgid "predictors must all be numeric"
@@ -1414,8 +1449,11 @@ msgstr " 無効な引数 'cell' です "
 msgid "invalid argument 'degree'"
 msgstr " 無効な引数 'degree' です "
 
+msgid "iterTrace ="
+msgstr ""
+
 #, fuzzy
-msgid "iterTrace = %d is not obeyed since iterations = %d"
+msgid "not obeyed as iterations ="
 msgstr " 有限な観測値がありません "
 
 msgid "first argument must be a \"loess\" object"
@@ -1549,40 +1587,11 @@ msgstr " eff.aovlist: 直交しない対比は誤った結果を与えるかも�
 msgid "cannot create a formula from a zero-column data frame"
 msgstr " 列の無いデータフレームからモデル式を作れません "
 
-#, fuzzy
-msgid "invalid formula: %s"
-msgstr " 無効なモデル式です "
-
-#, fuzzy
-msgid "invalid formula %s: not a call"
-msgstr " deriv に不正な式があります "
-
-#, fuzzy
-msgid "invalid formula %s: assignment is deprecated"
-msgstr " deriv に不正な式があります "
-
-msgid "invalid formula %s: extraneous call to `%s` is deprecated"
-msgstr ""
-
-#, fuzzy
-msgid "invalid formula %s"
-msgstr " 無効なモデル式です "
-
 msgid "no terms component nor attribute"
 msgstr " terms 要素も terms 属性もありません "
 
 msgid "'termlabels' must be a character vector of length at least one"
 msgstr " 'termlabels' は少なくとも長さ 1 の文字ベクトルでなければなりません "
-
-msgid ""
-"Unparseable 'response' \"%s\"; use is deprecated.  Use as.name(.) or `..`!"
-msgstr ""
-
-msgid "reformulate"
-msgstr ""
-
-msgid "deprecatedWarning"
-msgstr ""
 
 msgid "'termobj' must be a object of class %s"
 msgstr " 'termobj' はクラス %s のオブジェクトでなければなりません "
@@ -1598,10 +1607,6 @@ msgstr " 変数 %s は当てはめによるものとは異なったタイプを�
 msgid "'data' must be a data.frame, not a matrix or an array"
 msgstr " 'data' は行列や配列ではなく、データフレームでなければなりません "
 
-#, fuzzy
-msgid "'data' must be a data.frame, environment, or list"
-msgstr " 'data' はリストか環境でなければなりません "
-
 msgid "variable '%s' is not a factor"
 msgstr " 変数 '%s' は因子ではありません "
 
@@ -1611,13 +1616,8 @@ msgstr " 'offset' は数値でなければなりません "
 msgid "model frame and formula mismatch in model.matrix()"
 msgstr " model.matrix() でモデルフレームとモデル式の組合せが不適当です "
 
-#, fuzzy
-msgid "non-list contrasts argument ignored"
+msgid "invalid 'contrasts.arg' argument"
 msgstr " 無効な 'contrasts.arg' 引数です "
-
-#, fuzzy
-msgid "'contrasts.arg' argument must be named"
-msgstr " 引数 'control' は名前付きリストでなければなりません "
 
 msgid "variable '%s' is absent, its contrast will be ignored"
 msgstr " 変数 '%s' は存在しません。その対比は無視されます "
@@ -1699,9 +1699,6 @@ msgstr " パラメータの名前を確認できません "
 
 msgid "levels truncated to positive values only"
 msgstr " 水準は正の値だけに縮小されました "
-
-msgid "invalid  'attr(rhs, \"gradient\")'"
-msgstr ""
 
 msgid "setVarying : 'vary' length must match length of parameters"
 msgstr " setVarying: 'vary' 長はパラメータの長さに一致しなければなりません "
@@ -1843,23 +1840,22 @@ msgstr ""
 " 'n', 'delta', 'sd', 'power' 及び 'sig.level' の内、丁度一つが NULL でなけれ"
 "ばなりません "
 
+msgid "'sig.level' must be numeric in [0, 1]"
+msgstr " 'sig.level' は [0, 1] 中の数字でなければなりません "
+
 msgid "exactly one of 'n', 'p1', 'p2', 'power', and 'sig.level' must be NULL"
 msgstr ""
 " 'n', 'p1', 'p2', 'power', 及び 'sig.level' の内、丁度一つが NULL でなければ"
 "なりません "
 
-msgid "No p1 in [0, p2] can be found to achieve the desired power"
+msgid "No p1 in in [0, p2] can be found to achieve the desired power"
 msgstr ""
 
-msgid "No p2 in [p1, 1] can be found to achieve the desired power"
+msgid "No p2 in in [p1, 1] can be found to achieve the desired power"
 msgstr ""
 
 msgid "No significance level [0, 1] can be found to achieve the desired power"
 msgstr ""
-
-#, fuzzy
-msgid "'%s' must be numeric in [0, 1]"
-msgstr " 'sig.level' は [0, 1] 中の数字でなければなりません "
 
 msgid ""
 "exactly one of 'groups', 'n', 'between.var', 'within.var', 'power', and 'sig."
@@ -1954,8 +1950,7 @@ msgstr " モデル式 ('formula') がありません "
 msgid "'type' must be 1 or 3 for ordered factors"
 msgstr ""
 
-#, fuzzy
-msgid "(unordered) factors are not allowed"
+msgid "factors are not allowed"
 msgstr " 要因 (factor) は許されません "
 
 msgid "missing values and NaN's not allowed if 'na.rm' is FALSE"
@@ -2003,9 +1998,6 @@ msgid "'varying' arguments must be the same length"
 msgstr " 'varying' 引数は同じ長さでなければなりません "
 
 msgid "'lengths(varying)' must all match 'length(times)'"
-msgstr ""
-
-msgid "'idvar' must uniquely identify records"
 msgstr ""
 
 msgid "there are records with missing times, which will be dropped."
@@ -2285,18 +2277,10 @@ msgstr " 'ts' オブジェクトは 1 つ以上の観測値を持たなければ
 msgid "'start' cannot be after 'end'"
 msgstr " 開始時間 ('start') は終了時間 ('end') の後にあることができません "
 
-#, fuzzy
-msgid "'end' must be a whole number of cycles after 'start'"
-msgstr " 中心 ('centers') は数値か行列でなければなりません "
-
 msgid "no time series supplied"
 msgstr " 時系列が与えられていません "
 
 msgid "not all series have the same frequency"
-msgstr " 系列の頻度が全ては同じではありません "
-
-#, fuzzy
-msgid "not all series have the same phase"
 msgstr " 系列の頻度が全ては同じではありません "
 
 msgid "non-intersecting series"
@@ -2323,8 +2307,7 @@ msgstr " 散布図は一変量時系列用です "
 msgid "'xy.labels' must be logical or character"
 msgstr " 'xy.labels' は論理値もしくは文字です "
 
-#, fuzzy
-msgid "'frequency' and 'deltat' are both not NULL and are inconsistent"
+msgid "'frequency' and 'deltat' are both supplied and are inconsistent"
 msgstr ""
 " 頻度 ('frequency') と 'deltat' の双方が与えられましたが、矛盾しています "
 
@@ -2401,8 +2384,7 @@ msgstr " 比率 ('ratio') は単一の正値でなければなりません "
 msgid "'x' and 'w' must have the same length"
 msgstr " 'x' と 'w' は同じ長さでなければなりません "
 
-#, fuzzy
-msgid "not enough (non-missing) 'x' observations"
+msgid "not enough (finite) 'x' observations"
 msgstr " (有限な) 'x' の観察値の数が十分ではありません "
 
 msgid "requested conf.level not achievable"
@@ -2588,54 +2570,6 @@ msgstr[0] " NA, NaN および Inf を含む %d 個のの観測値は削除され
 msgid "'start.innov' is too short: need %d point"
 msgid_plural "'start.innov' is too short: need %d points"
 msgstr[0] " 'start.innov' が短すぎます: %d 個の点が必要です "
-
-#~ msgid ""
-#~ "link \"%s\" not available for quasipoisson family; available links are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は quasiPoisson ファミリには利用できません。利用できるリン"
-#~ "クは %s です "
-
-#~ msgid ""
-#~ "link \"%s\" not available for gaussian family; available links are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は gaussian ファミリに利用できるリンクではありません。利用"
-#~ "できるリンクは %s です "
-
-#~ msgid ""
-#~ "link \"%s\" not available for binomial family; available links are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は binomial ファミリには利用できません。利用できるリンクは "
-#~ "%s です "
-
-#~ msgid ""
-#~ "link \"%s\" not available for quasibinomial family; available links are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は quasibinomial ファミリには利用できません。利用できるリン"
-#~ "クは %s です "
-
-#~ msgid ""
-#~ "for the 'quasibinomial' family, y must be a vector of 0 and 1's\n"
-#~ "or a 2 column matrix where col 1 is no. successes and col 2 is no. "
-#~ "failures"
-#~ msgstr ""
-#~ " 'quasibinomial' ファミリに対しては、y は 0 と 1 のベクトル \n"
-#~ " もしくは、第 1 列が成功数、第 2 列が失敗数である 2 列の行列である必要があ"
-#~ "ります "
-
-#~ msgid "link \"%s\" not available for gamma family; available links are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は gamma ファミリに利用できるリンクではありません。利用でき"
-#~ "るリンクは %s です "
-
-#~ msgid ""
-#~ "link \"%s\" not available for inverse.gaussian family; available links "
-#~ "are %s"
-#~ msgstr ""
-#~ " リンク \"%s\" は inverse.gaussian に利用できるリンクではありません。利用"
-#~ "できるリンクは %s です "
-
-#~ msgid "all group levels must be finite"
-#~ msgstr " グループのレベルはすべて有限でなければなりません "
 
 #~ msgid "invalid value of length(x)"
 #~ msgstr " length(x) の値が不正です "

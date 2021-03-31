@@ -1,7 +1,7 @@
 #  File src/library/stats/R/dist.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2012 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -95,9 +95,9 @@ print.dist <-
 {
     if(length(x)) {
 	if(is.null(diag))
-	    diag <- attr(x, "Diag") %||% FALSE
+	    diag <- if(is.null(a <- attr(x, "Diag"))) FALSE else a
 	if(is.null(upper))
-	    upper <- attr(x,"Upper") %||% FALSE
+	    upper <- if(is.null(a <- attr(x,"Upper"))) FALSE else a
 
 	m <- as.matrix(x)
 	cf <- format(m, digits = digits, justify = justify)

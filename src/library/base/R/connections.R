@@ -125,16 +125,14 @@ xzfile <- function(description, open = "", encoding = getOption("encoding"),
 socketConnection <- function(host = "localhost", port, server = FALSE,
                              blocking = FALSE, open = "a+",
                              encoding = getOption("encoding"),
-                             timeout = getOption("timeout"),
-                             options = getOption("socketOptions"))
+                             timeout = getOption("timeout"))
     .Internal(socketConnection(host, port, server, blocking, open, encoding,
-                               timeout, options))
+                               timeout))
 
 socketAccept <- function(socket, blocking = FALSE, open = "a+",
                          encoding = getOption("encoding"),
-                         timeout = getOption("timeout"),
-                         options = getOption("socketOptions"))
-    .Internal(socketAccept(socket, blocking, open, encoding, timeout, options))
+                         timeout = getOption("timeout"))
+    .Internal(socketAccept(socket, blocking, open, encoding, timeout))
 
 serverSocket <- function(port)
     .Internal(serverSocket(port))
@@ -149,16 +147,14 @@ rawConnection <- function(object, open = "r") {
 rawConnectionValue <- function(con) .Internal(rawConnectionValue(con))
 
 textConnection <- function(object, open = "r", local = FALSE,
-                           name = deparse(substitute(object)),
                            encoding = c("", "bytes", "UTF-8"))
 {
     env <- if (local) parent.frame() else .GlobalEnv
     type <- match(match.arg(encoding), c("", "bytes", "UTF-8"))
-    if(!(is.character(name) && length(name) == 1))
-        stop(if(missing(name))
-                 "argument 'object' must deparse to a single character string"
-             else "'name' must be a single character string")
-    .Internal(textConnection(name, object, open, env, type))
+    nm <- deparse(substitute(object))
+    if(length(nm) != 1) # or use deparse1() above ?
+        stop("argument 'object' must deparse to a single character string")
+    .Internal(textConnection(nm, object, open, env, type))
 }
 
 textConnectionValue <- function(con) .Internal(textConnectionValue(con))

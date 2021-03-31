@@ -183,7 +183,7 @@ line information for new files, and issue a warning when
 }
 \seealso{
   The chapter on \dQuote{Tidying and profiling R code} in
-  \sQuote{Writing R Extensions} (see the \file{doc/manual} subdirectory
+  \dQuote{Writing \R Extensions} (see the \file{doc/manual} subdirectory
   of the \R source tree).
 
   \code{\link{summaryRprof}} to analyse the output file.
@@ -199,7 +199,7 @@ Rprof(NULL)
 Rprof(append = TRUE)
 ## some code to be profiled
 Rprof(NULL)
-## ...
+\dots
 ## Now post-process the output as described in Details
 }}
 \keyword{utilities}

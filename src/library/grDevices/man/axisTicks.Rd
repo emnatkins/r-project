@@ -1,6 +1,6 @@
 % File src/library/grDevices/man/axisTicks.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 2011-2020 R Core Team
+% Copyright 2011-2019 R Core Team
 % Distributed under GPL 2 or later
 
 \name{axisTicks}
@@ -40,9 +40,6 @@ axisTicks(usr, log, axp = NULL, nint = 5)
   called by the base \pkg{graphics} package function
   \code{\link[graphics]{axis}(side, *)} when its argument \code{at} is not
   specified.
-
-  Since \R 4.1.0, the underlying C \code{CreateAtVector()} has been tuned
-  to provide a considerably more balanced (symmetric) set of tick locations.
 }
 \value{
   \code{axisTicks()} returns a numeric vector of potential axis tick
@@ -71,7 +68,7 @@ aX <- function(side, at, ...)
 aX(1, print(xa <- axisTicks(pu[1:2], log = FALSE)))  # x axis
 aX(2, print(ya <- axisTicks(pu[3:4], log = FALSE)))  # y axis
 
-axisTicks(pu[3:4], log = FALSE, nint = 10)
+axisTicks(pu[3:4], log = FALSE, n = 10)
 
 plot(10*(0:10), log = "y"); (pu <- par("usr"))
 aX(2, print(ya <- axisTicks(pu[3:4], log = TRUE)))  # y axis

@@ -87,22 +87,6 @@ write.etags <-
 }
 
 
-### * write.ctags
-
-
-write.ctags <-
-    function(src,
-             tokens, startlines, lines, nchars,
-             ...,
-             shorten.lines = NULL)
-{
-    tag.lines <-
-        sprintf("%s\t%s\t%d\n",
-                tokens, src, startlines)
-    cat(tag.lines, sep = "", ...)
-}
-
-
 ### * expr2token
 
 ## this computes the tag name from an expression.  Currently, this
@@ -194,37 +178,25 @@ rtags <-
                               recursive = recursive),
              keep.re = NULL,
              ofile = "", append = FALSE,
-             verbose = getOption("verbose"),
-             type = c("etags", "ctags"))
+             verbose = getOption("verbose"))
 {
-    type <- match.arg(type)
     if (nzchar(ofile) && !append) {
         if (!file.create(ofile, showWarnings = FALSE))
             stop(gettextf("Could not create file %s, aborting", ofile),
                  domain = NA)
     }
-    ## NOTE: ctags output file needs to be further sorted (see below)
-    write.fun <- if (type == "ctags") write.ctags else write.etags
     if (!missing(keep.re))
         src <- grep(keep.re, src, value = TRUE)
     for (s in src)
     {
         if (verbose) message(gettextf("Processing file %s", s), domain = NA)
         tryCatch(
-                 rtags.file(s, ofile = ofile, append = TRUE, write.fun = write.fun),
+                 rtags.file(s, ofile = ofile, append = TRUE),
                  error = function(e) NULL)
-    }
-    ## ctags want the tags file to be "sorted", but it is not clear
-    ## precisely what that means. The following uses R sort(), and
-    ## subsequent appending when tagging non-R files will sort them
-    ## differently. Neither seem to work with vi.
-    if (type == "ctags" && nzchar(ofile))
-    {
-        tagLines <- readLines(ofile)
-        writeLines(sort(tagLines), con = ofile)
     }
     invisible()
 }
+
 
 
 

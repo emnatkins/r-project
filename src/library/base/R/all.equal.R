@@ -18,82 +18,31 @@
 
 all.equal <- function(target, current, ...) UseMethod("all.equal")
 
-## not really: do this inside all.equal.default() :
-## all.equal.... <- function(target, current, ...) . . . .
-
 all.equal.default <- function(target, current, ...)
 {
     ## Really a dispatcher given mode() of args :
     ## use data.class as unlike class it does not give "integer"
-    if(is.language(target))
+    if(is.language(target) || is.function(target))
 	return(all.equal.language(target, current, ...))
-    if(is.function(target)) {
-        .Deprecated("all.equal(*)", old="all.equal.default(<function>)")
-	return(all.equal.function(target, current, ...))
-    }
     if(is.environment(target) || is.environment(current))# both: unclass() fails on env.
 	return(all.equal.environment(target, current, ...))
-    if(is.recursive(target)) {
-        ## NB: "..." is recursive but not a list
-	return(if(typeof(target) == "..." && typeof(current) == "...") {
-		   ## <DOTSXP> ... may change .. *NOT* part of long-term API
-		   if(identical(target, current))
-		       TRUE
-		   else if((lt <- length(target)) != (lc <- length(current)))
-		       paste0('"..."-typed": lengths (', lt, ", ", lc, ") differ")
-		   else if(xor(is.null(nt <- names(target)),
-			       is.null(nc <- names(current)))) {
-		       paste0('"..."-typed: names in ',
-			      if(length(nt))
-				  "target but not in current"
-			      else ## length(nc)
-				  "current but not in target")
-		   } else if(!is.null(nt)) { # and !is.null(nc)
-			   nt <- sort(nt)
-			   nc <- sort(nc)
-			   if(identical(nt, nc)) TRUE
-			   else c('"..."-typed": sorted names differ',
-				  all.equal.character(nt, nc, ...))
-		   }
-		   else ## names both NULL
-		       "\"...\"-types of the same length, no names, but not identical"
-	       }
-	       else all.equal.list(target, current, ...))
-    }
+    if(is.recursive(target))
+	return(all.equal.list(target, current, ...))
     msg <- switch (mode(target),
-                   integer   = ,
-                   complex   = ,
-                   numeric   = all.equal.numeric  (target, current, ...),
+                   integer = ,
+                   complex = ,
+                   numeric = all.equal.numeric(target, current, ...),
                    character = all.equal.character(target, current, ...),
-                   logical   = ,
-                   raw       = all.equal.raw      (target, current, ...),
+                   logical = ,
+                   raw = all.equal.raw(target, current, ...),
 		   ## assumes that slots are implemented as attributes :
-		   S4        = attr.all.equal(target, current, ...),
+		   S4 = attr.all.equal(target, current, ...),
                    if(data.class(target) != data.class(current)) {
                        gettextf("target is %s, current is %s",
                                 data.class(target), data.class(current))
                    } else NULL)
     if(is.null(msg)) TRUE else msg
 }
-
-all.equal.function <- function(target, current, check.environment = TRUE, ...)
-{
-    msg <- all.equal.language(target, current, ...)
-    if(check.environment) {
-        ## pre-check w/ identical(), for speed & against infinite recursion:
-        ee <- identical(environment(target),
-                        environment(current), ignore.environment=FALSE)
-        if(!ee)
-            ee <- all.equal.environment(environment(target),
-                                        environment(current), ...)
-        if(isTRUE(msg))
-            ee
-        else
-            c(msg, if(!isTRUE(ee)) ee)
-    } else
-        msg
-}
-
 
 all.equal.numeric <-
     function(target, current, tolerance = sqrt(.Machine$double.eps),
@@ -214,7 +163,7 @@ all.equal.envRefClass <- function (target, current, ...) {
     getCl <- function(x) { cl <- tryCatch(x$getClass(), error=function(e) NULL)
 			   if(is.null(cl)) class(x) else cl }
     if(!identical(cld <- getCl(target), c2 <- getCl(current))) {
-	hasCA <- "check.attributes" %in% ...names()
+	hasCA <- any("check.attributes" == names(list(...)))
 	ae <-
 	    if(hasCA) all.equal(cld, c2, ...)
 	    else all.equal(cld, c2, check.attributes=FALSE, ...)
@@ -245,14 +194,9 @@ all.equal.envRefClass <- function (target, current, ...) {
     if(is.null(msg)) TRUE else msg
 }
 
-all.equal.environment <- function (target, current, all.names=TRUE, evaluate=TRUE, ...) {
+all.equal.environment <- function (target, current, all.names=TRUE, ...) {
     if(!is.environment (target)) return( "'target' is not an environment")
     if(!is.environment(current)) return("'current' is not an environment")
-    if(identical(target, current)) # only true if *same* address
-                 ## ignore.environment =
-                 ##     if(!is.na(i <- match("check.environment", ...names())))
-                 ##         ! ...elt(i) else FALSE))
-        return(TRUE)
     ae.run <- dynGet("__all.eq.E__", NULL)
     if(is.null(ae.run))
 	"__all.eq.E__" <- environment() # -> 5 visible + 6 ".<..>" objects
@@ -280,21 +224,8 @@ all.equal.environment <- function (target, current, all.names=TRUE, evaluate=TRU
 	if(do1(ae.run)) return(TRUE)
 	## else, continue:
     }
-    if(evaluate) {
-        Lt <- as.list.environment(target , all.names=all.names, sorted=TRUE)
-        Lc <- as.list.environment(current, all.names=all.names, sorted=TRUE)
-        ## identical(*,*) for the environment with `...` and general consistency:
-        if(identical(Lt, Lc))
-            TRUE
-        else
-            all.equal.list(Lt, Lc, ...)
-    } else { ## do *not* force promises, i.e. *not* coerce to list
-        if(!identical(nt <- sort(names(target )),
-                      nc <- sort(names(current))))
-            paste("names of environments differ:", all.equal(nt, nc, ...), collapse=" ")
-        else
-            "environments contain objects of the same names, but are not identical"
-    }
+    all.equal.list(as.list.environment(target , all.names=all.names, sorted=TRUE),
+		   as.list.environment(current, all.names=all.names, sorted=TRUE), ...)
 }
 
 all.equal.factor <- function(target, current, ..., check.attributes = TRUE)
@@ -326,7 +257,8 @@ all.equal.formula <- function(target, current, ...)
     ## the misquided one in package Formula
     if(length(target) != length(current))
 	return(paste0("target, current differ in having response: ",
-                      length(target ) == 3L, ", ",
+                      length(target) == 3L,
+                      ", ",
                       length(current) == 3L))
     ## <NOTE>
     ## This takes same-length formulas as all equal if they deparse
@@ -345,7 +277,7 @@ all.equal.language <- function(target, current, ...)
     mc <- mode(current)
     if(mt == "expression" && mc == "expression")
 	return(all.equal.list(target, current, ...))
-    ttxt <- paste(deparse(target ), collapse = "\n")
+    ttxt <- paste(deparse(target), collapse = "\n")
     ## try: if 'current' is not "language" and deparse() bails out for DOTSXP, see PR#18029
     ctxt <- tryCatch(paste(deparse(current), collapse = "\n"), error=function(e) NULL)
     msg <- c(if(mt != mc)
@@ -489,36 +421,10 @@ attr.all.equal <- function(target, current, ...,
 
 ## formerly in datetime.R
 ## force absolute comparisons
-all.equal.POSIXt <- function(target, current, ..., tolerance = 1e-3, scale,
-                             check.tzone = TRUE)
+all.equal.POSIXt <- function(target, current, ..., tolerance = 1e-3, scale)
 {
-    if(!inherits(target, "POSIXt"))
-        return("'target' is not a POSIXt")
-    if(!inherits(current, "POSIXt"))
-        return("'current' is not a POSIXt")
-    target <- as.POSIXct(target)
-    current <- as.POSIXct(current)
-    msg <- NULL
-    if(check.tzone) {
-        ## See check_tzones():
-        tz <- function(dt) {
-            if(is.null(tz <- attr(dt, "tzone"))) "" else tz[1L]
-        }
-        ## FIXME: check_tzones() ignores differences with "" as time zone,
-        ## regardless of whether that other time zone is the current one.
-        ## However, this code does not handle "" at all, so that it is
-        ## treated as "inconsistent" even with the current time zone,
-        ## leading to surprising results, e.g.
-        ##   x <- Sys.time() ; all.equal(x, as.POSIXlt(x))
-        tzt <- tz(target)
-        tzc <- tz(current)
-        if(!isTRUE(tzt == tzc))
-            msg <- sprintf("'tzone' attributes are inconsistent ('%s' and '%s')",
-                           tzt, tzc)
-    }
+    target <- as.POSIXct(target); current <- as.POSIXct(current)
+    check_tzones(target, current)
     attr(target, "tzone") <- attr(current, "tzone") <- NULL
-    val <- all.equal.numeric(target, current, ...,
-                             tolerance = tolerance, scale = 1)
-    if(!isTRUE(val)) msg <- c(msg, val)
-    if(is.null(msg)) TRUE else msg
+    all.equal.numeric(target, current, ..., tolerance = tolerance, scale = 1)
 }

@@ -226,16 +226,15 @@ static int defaultSerializeVersion()
 #define R_assert(e) ((e) ? (void) 0 : error("assertion '%s' failed: file '%s', line %d\n", #e, __FILE__, __LINE__))
 #endif /* NDEBUG */
 
-/* Rsnprintf: like snprintf, but guaranteed to null-terminate. See
-   errors.c::Rvsnprintf_mbcs for a multi-byte safe version. */
-static int Rsnprintf(char *buf, size_t size, const char *format, ...)
+/* Rsnprintf: like snprintf, but guaranteed to null-terminate. */
+static int Rsnprintf(char *buf, int size, const char *format, ...)
 {
     int val;
     va_list(ap);
     va_start(ap, format);
     /* On Windows this no longer uses the non-C99 MSVCRT.dll version */
     val = vsnprintf(buf, size, format, ap);
-    if(size) buf[size-1] = '\0';
+    buf[size-1] = '\0';
     va_end(ap);
     return val;
 }
@@ -627,7 +626,7 @@ static void InFormat(R_inpstream_t stream)
  *
  * Hashing functions for hashing reference objects during writing.
  * Objects are entered, and the order in which they are encountered is
- * recorded.  HashGet returns this number, a positive integer, if the
+ * recorded.  GashGet returns this number, a positive integer, if the
  * object was seen before, and zero if not.  A fixed hash table size
  * is used; this is not ideal but seems adequate for now.  The hash
  * table representation consists of a (R_NilValue . vector) pair.  The
@@ -680,7 +679,7 @@ static int HashGet(SEXP item, SEXP ht)
 /*
  * Administrative SXP values
  *
- * These macros define SXP "type" for specifying special object, such
+ * These macros defind SXP "type" for specifying special object, such
  * as R_NilValue, or control information, like REFSXP or NAMESPACESXP.
  * The range of SXP types is limited to 5 bit by the current sxpinfo
  * layout, but just in case these values are placed at the top of the
@@ -770,7 +769,7 @@ static void UnpackFlags(int flags, SEXPTYPE *ptype, int *plevs,
  *
  * Code will contain many references to symbols. As long as there are
  * not too many references, the index ant the REFSXP flag indicating a
- * reference can be packed in a single integer.  Since the index is
+ * reference can be packed in a single integeger.  Since the index is
  * 1-based, a 0 is used to indicate an index that doesn't fit and
  * therefore follows.
  */
@@ -1102,9 +1101,9 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
 	switch(TYPEOF(s)) {
 	case LISTSXP:
 	case LANGSXP:
+	case CLOSXP:
 	case PROMSXP:
 	case DOTSXP: hastag = TAG(s) != R_NilValue; break;
-	case CLOSXP: hastag = TRUE; break;
 	default: hastag = FALSE;
 	}
 	/* With the CHARSXP cache chains maintained through the ATTRIB
@@ -1117,6 +1116,7 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
 	switch (TYPEOF(s)) {
 	case LISTSXP:
 	case LANGSXP:
+	case CLOSXP:
 	case PROMSXP:
 	case DOTSXP:
 	    /* Dotted pair objects */
@@ -1131,17 +1131,6 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
 	    WriteItem(CAR(s), ref_table, stream);
 	    /* now do a tail call to WriteItem to handle the CDR */
 	    s = CDR(s);
-	    goto tailcall;
-	case CLOSXP:
-	    /* Like a dotted pair object */
-	    /* Write the ATTRIB field first to allow us to avoid
-	       recursion on the CDR/BODY */
-	    if (hasattr)
-		WriteItem(ATTRIB(s), ref_table, stream);
-	    WriteItem(CLOENV(s), ref_table, stream);
-	    WriteItem(FORMALS(s), ref_table, stream);
-	    /* now do a tail call to WriteItem to handle the CDR/BODY */
-	    s = BODY(s);
 	    goto tailcall;
 	case EXTPTRSXP:
 	    /* external pointers */

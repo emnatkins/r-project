@@ -247,14 +247,10 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
     if(identical(texi2dvi, "emulation")) texi2dvi <- ""
     else {
-        if(is.null(texi2dvi) || !nzchar(texi2dvi) || texi2dvi == "texi2dvi") {
+        if(is.null(texi2dvi) || !nzchar(texi2dvi) || texi2dvi == "texi2dvi")
             texi2dvi <- Sys.which("texi2dvi")
-            if(.Platform$OS.type == "windows" && !nzchar(texi2dvi))
-                texi2dvi <- Sys.which("texify")
-        } else if (!nzchar(Sys.which(texi2dvi))) { # check provided path
-            warning("texi2dvi script/program not available, using emulation")
-            texi2dvi <- ""
-        } # else the provided one should work
+        if(.Platform$OS.type == "windows" && !nzchar(texi2dvi))
+            texi2dvi <- Sys.which("texify")
     }
 
     envSep <- .Platform$path.sep
@@ -514,7 +510,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.13"))
+    function() numeric_version(Sys.getenv("R_BIOC_VERSION", "3.12"))
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 
@@ -1242,7 +1238,7 @@ function()
         repos <- getOption("repos")
         ## This is set by utils:::.onLoad(), hence may be NULL.
         if(!is.null(repos) &&
-           !anyNA(repos[nms]) &&
+           !any(is.na(repos[nms])) &&
            (repos["CRAN"] != "@CRAN@"))
             repos <- repos[nms]
         else {
@@ -1392,7 +1388,7 @@ function(pattern, replacement, x, trafo, count, ...)
     replace <- function(yi) {
         do.call(sprintf,
                 c(list(replacement),
-                  Map(function(tr, co) fsub("\\", "\\\\", tr(yi[co])),
+                  Map(function(tr, co) tr(yi[co]),
                       trafo, count + 1L)))
     }
 
@@ -2130,7 +2126,7 @@ function(file, envir, enc = NA)
     exprs <- exprs[lengths(exprs) > 0L]
     for(e in exprs) {
 	if(is.call(e) && as.character(e[[1L]]) %in% assignmentSymbols)
-            tryCatch(eval(e, envir), error = identity)
+            eval(e, envir)
     }
     invisible()
 }
@@ -2157,8 +2153,6 @@ function(dir, envir, meta = character())
         list_files_with_type(dir, "code")
     if(!all(.file_append_ensuring_LFs(con, files)))
         stop("unable to write code files")
-    if(!is.na(package <- meta["Package"]))
-        envir$.packageName <- package
     tryCatch(.source_assignments(con, envir, enc = meta["Encoding"]),
              error = function(e)
                  stop("cannot source package code:\n", conditionMessage(e),

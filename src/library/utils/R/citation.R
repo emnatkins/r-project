@@ -1,7 +1,7 @@
 #  File src/library/utils/R/citation.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2020 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -1214,8 +1214,8 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     ## auto-generated package citation.
     if(!is.null(auto) &&
        !is.logical(auto) &&
-       !anyNA(match(c("Package", "Version", "Title"),
-                    names(meta <- as.list(auto)))) &&
+       !any(is.na(match(c("Package", "Version", "Title"),
+                        names(meta <- as.list(auto))))) &&
        !all(is.na(match(c("Authors@R", "Author"),
                         names(meta))))
        ) {

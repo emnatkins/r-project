@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2016--2020   The R Core Team
+ *  Copyright (C) 2016--2017   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -923,7 +923,6 @@ SEXP attribute_hidden R_deferred_coerceToString(SEXP v, SEXP info)
    state object.
  */
 
-#ifndef Win32
 static SEXP make_mmap_state(SEXP file, size_t size, int type,
 			    Rboolean ptrOK, Rboolean wrtOK, Rboolean serOK)
 {
@@ -947,8 +946,7 @@ static SEXP make_mmap_state(SEXP file, size_t size, int type,
     UNPROTECT(2);
     return state;
 }
-#endif
-
+			    
 #define MMAP_STATE_FILE(x) CAR(x)
 #define MMAP_STATE_SIZE(x) ((size_t) REAL_ELT(CADR(x), 0))
 #define MMAP_STATE_LENGTH(x) ((size_t) REAL_ELT(CADR(x), 1))
@@ -974,7 +972,6 @@ static R_altrep_class_t mmap_real_class;
    pointer for use by the finalizer.
 */
 
-#ifndef Win32
 static void register_mmap_eptr(SEXP eptr);
 static SEXP make_mmap(void *p, SEXP file, size_t size, int type,
 		      Rboolean ptrOK, Rboolean wrtOK, Rboolean serOK)
@@ -1002,7 +999,6 @@ static SEXP make_mmap(void *p, SEXP file, size_t size, int type,
     UNPROTECT(2); /* state, eptr */
     return ans;
 }
-#endif
 
 #define MMAP_EPTR(x) R_altrep_data1(x)
 #define MMAP_STATE(x) R_altrep_data2(x)
@@ -1029,8 +1025,6 @@ static R_INLINE void *MMAP_ADDR(SEXP x)
    to run a finalizer after unloading would result in an illegal
    instruction. */
 
-
-#ifndef Win32
 static SEXP mmap_list = NULL;
 
 #define MAXCOUNT 10
@@ -1064,7 +1058,6 @@ static void register_mmap_eptr(SEXP eptr)
     /* store the weak reference in the external pointer for do_munmap_file */
     R_SetExternalPtrTag(eptr, CAR(CDR(mmap_list)));
 }
-#endif
 
 #ifdef SIMPLEMMAP
 static void finalize_mmap_objects()
@@ -1261,12 +1254,10 @@ static void InitMmapRealClass(DllInfo *dll)
  */
 
 #ifdef Win32
-/* unused
 static void mmap_finalize(SEXP eptr)
 {
     error("mmap objects not supported on Windows yet");
 }
-*/
 
 static SEXP mmap_file(SEXP file, int type, Rboolean ptrOK, Rboolean wrtOK,
 		      Rboolean serOK, Rboolean warn)

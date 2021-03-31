@@ -1,7 +1,7 @@
 #  File src/library/tools/R/install.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2020 The R Core Team
 #
 # NB: also copyright dates in Usages.
 #
@@ -148,12 +148,10 @@ if(FALSE) {
     }
 
     # This produces a (by default single) quoted string for use in a
-    # command sent to another R process.
-    quote_path <- function(path, quote = "'") {
-        path <- gsub("\\", "\\\\", path, fixed = TRUE)
-        path <- gsub(quote, paste0("\\", quote), path, fixed = TRUE)
-    	paste0(quote, path, quote)
-    }
+    # command sent to another R process.  Currently it only fixes backslashes;
+    # more extensive escaping might be a good idea
+    quote_path <- function(path, quote = "'")
+    	paste0(quote, gsub("\\", "\\\\", path, fixed=TRUE), quote)
 
     # Escape backslashes in a replacement string for gsub etc.
     # To be used when the replacement is a path name which may include
@@ -163,30 +161,13 @@ if(FALSE) {
 
     on.exit(do_exit_on_error())
     WINDOWS <- .Platform$OS.type == "windows"
-    cross <- Sys.getenv("R_CROSS_BUILD")
-    have_cross <- nzchar(cross)
-    if(have_cross && !cross %in% c("i386", "x64"))
-        stop("invalid value ", sQuote(cross), " for R_CROSS_BUILD")
-    if (have_cross) {
-        WINDOWS <- TRUE
-	Sys.setenv(R_OSTYPE = "windows")
-    }
 
     if (WINDOWS) MAKE <- "make"
     else MAKE <- Sys.getenv("MAKE") # FIXME shQuote, default?
     rarch <- Sys.getenv("R_ARCH") # unix only
     if (WINDOWS && nzchar(.Platform$r_arch))
         rarch <- paste0("/", .Platform$r_arch)
-    cross <- Sys.getenv("R_CROSS_BUILD")
-    if(have_cross && !cross %in% c("i386", "x64"))
-        stop("invalid value ", sQuote(cross), " for R_CROSS_BUILD")
     test_archs <- rarch
-    if (have_cross) {
-        WINDOWS <- TRUE
-        r_arch <- paste0("/", cross)
-        test_archs <- c()
-    }
-
 
     SHLIB_EXT <- if (WINDOWS) ".dll" else {
         ## can we do better?
@@ -198,7 +179,7 @@ if(FALSE) {
 
     if(getOption("warn") < warnOption) {
         op <- options(warn = warnOption)
-        on.exit(options(op), add = TRUE)
+        on.exit(options(op), add=TRUE)
     }
     invisible(Sys.setlocale("LC_COLLATE", "C")) # discard output
 
@@ -267,8 +248,6 @@ if(FALSE) {
             "      --no-clean-on-error	do not remove installed package on error",
             "      --merge-multiarch	multi-arch by merging (from a single tarball only)",
             "      --use-vanilla	do not read any Renviron or Rprofile files",
-            "      --use-LTO         use Link-Time Optimization",
-            "      --no-use-LTO      do not use Link-Time Optimization",
            "\nfor Unix",
             "      --configure-args=ARGS",
             "			set arguments for the configure scripts (if any)",
@@ -593,13 +572,9 @@ if(FALSE) {
         ## does create a shlib: not so reliably reported on Windows
         ## Note though that it may not create pkg_name.dll, and
         ## graph does not.
-        run_shlib <- function(pkg_name, srcs, instdir, arch, use_LTO = NA)
+        run_shlib <- function(pkg_name, srcs, instdir, arch)
         {
-            args <- c(shargs,
-                      if(isTRUE(use_LTO)) "--use-LTO",
-                      if(isFALSE(use_LTO)) "--no-use-LTO",
-                      "-o", paste0(pkg_name, SHLIB_EXT),
-                      srcs)
+            args <- c(shargs, "-o", paste0(pkg_name, SHLIB_EXT), srcs)
             if (WINDOWS && debug) args <- c(args, "--debug")
             if (debug) message("about to run ",
                                "R CMD SHLIB ", paste(args, collapse = " "),
@@ -971,13 +946,8 @@ if(FALSE) {
         ## going on in parallel
 
         pkgInfo <- .split_description(.read_description("DESCRIPTION"))
-        R_install_force_depends_imports <- config_val_to_logical(Sys.getenv(
-                "_R_INSTALL_LIBS_ONLY_FORCE_DEPENDS_IMPORTS_", "TRUE"))
-        if (libs_only && isFALSE(R_install_force_depends_imports))
-            pkgs <- unique(c(names(names(pkgInfo$LinkingTo))))
-        else
-            pkgs <- unique(c(names(pkgInfo$Depends), names(pkgInfo$Imports),
-                             names(pkgInfo$LinkingTo)))
+        pkgs <- unique(c(names(pkgInfo$Depends), names(pkgInfo$Imports),
+                         names(pkgInfo$LinkingTo)))
         if (length(pkgs)) {
             miss <- character()
             for (pkg in pkgs) {
@@ -1029,7 +999,6 @@ if(FALSE) {
         pkg_staged_install <- SI <-
             parse_description_field(desc, "StagedInstall", default = NA)
         if (is.na(pkg_staged_install)) pkg_staged_install <- staged_install
-        if (have_cross) pkg_staged_install <- FALSE
         if (pkg_staged_install && libs_only) {
             pkg_staged_install <- FALSE
             message("not using staged install with --libs-only")
@@ -1171,8 +1140,7 @@ if(FALSE) {
                 } else { ## no src/Makefile.win
                     srcs <- dir(pattern = "\\.([cfmM]|cc|cpp|f90|f95|mm)$",
                                 all.files = TRUE)
-                    archs <- if(have_cross) cross
-                    else if (!force_both && !grepl(" x64 ", utils::win.version()))
+                    archs <- if (!force_both && !grepl(" x64 ", utils::win.version()))
                         "i386"
                     else {
                         ## see what is installed
@@ -1205,8 +1173,7 @@ if(FALSE) {
                     }
                     if(force_biarch) one_only <- FALSE
                     if(one_only || length(archs) < 2L)
-                        has_error <-
-                            run_shlib(pkg_name, srcs, instdir, rarch, use_LTO)
+                        has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
                     else {
                         setwd(owd)
                         test_archs <- archs
@@ -1222,8 +1189,7 @@ if(FALSE) {
 
                             ra <- paste0("/", arch)
                             Sys.setenv(R_ARCH = ra, R_ARCH_BIN = ra)
-                            has_error <-
-                                run_shlib(pkg_name, srcs, instdir, ra, use_LTO)
+                            has_error <- run_shlib(pkg_name, srcs, instdir, ra)
                             setwd(owd)
                             if (has_error) break
                         }
@@ -1256,10 +1222,6 @@ if(FALSE) {
                     archs <- Sys.glob("*")
                     setwd(wd2)
                     if (length(allfiles)) {
-                        use_LTO <-
-                            if (!is.na(use_LTO)) use_LTO
-                            else
-                                parse_description_field(desc, "UseLTO", default = NA)
                         ## if there is an executable configure script we install only the main
                         ## sub-architecture
                         if (!multiarch || length(archs) <= 1 ||
@@ -1267,14 +1229,14 @@ if(FALSE) {
                             if (nzchar(rarch))
                                 starsmsg("***", "arch - ",
                                          substr(rarch, 2, 1000))
-                            has_error <- run_shlib(pkg_name, srcs, instdir, rarch, use_LTO)
+                            has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
                         } else {
                             setwd(owd)
                             test_archs <- archs
                             for(arch in archs) {
                                 if (arch == "R") {
                                     ## top-level, so one arch without subdirs
-                                    has_error <- run_shlib(pkg_name, srcs, instdir, "", use_LTO)
+                                    has_error <- run_shlib(pkg_name, srcs, instdir, "")
                                 } else {
                                     starsmsg("***", "arch - ", arch)
                                     ss <- paste0("src-", arch)
@@ -1284,7 +1246,7 @@ if(FALSE) {
                                     ra <- paste0("/", arch)
                                     ## FIXME: do this lower down
                                     Sys.setenv(R_ARCH = ra)
-                                    has_error <- run_shlib(pkg_name, srcs, instdir, ra, use_LTO)
+                                    has_error <- run_shlib(pkg_name, srcs, instdir, ra)
                                     Sys.setenv(R_ARCH = rarch)
                                     setwd(owd)
                                     if (has_error) break
@@ -1330,7 +1292,6 @@ if(FALSE) {
             if (!grepl(" x64 ", utils::win.version())) test_archs <- "i386"
         }
 
-        if (have_cross) Sys.unsetenv("R_ARCH")
 
         ## R files must start with a letter
 	if (install_R && dir.exists("R") && length(dir("R"))) {
@@ -1413,6 +1374,9 @@ if(FALSE) {
 		if (!thislazy && resave_data) {
 		    paths <- Sys.glob(c(file.path(is, "*.rda"),
 					file.path(is, "*.RData")))
+		    if (pkg_name == "cyclones")
+			paths <-
+			    c(paths, Sys.glob(file.path(is, "*.Rdata")))
 		    if (length(paths)) {
 			starsmsg(paste0(stars, "*"), "resaving rda files")
 			resaveRdaFiles(paths, compress = "auto")
@@ -1434,7 +1398,6 @@ if(FALSE) {
                                                 "gzip" = TRUE,
                                                 "bzip2" = 2L,
                                                 "xz" = 3L,
-                                                "yes" = TRUE, ## used in a package
                                                 TRUE)  # default to gzip
 		    res <- try(data2LazyLoadDB(pkg_name, lib,
 					       compress = data_compress))
@@ -1701,7 +1664,7 @@ if(FALSE) {
             }
         }
 
-        if (test_load && !have_cross) {
+        if (test_load) {
             if (pkg_staged_install)
 	        starsmsg(stars,
                     "testing if installed package can be loaded from temporary location")
@@ -1842,7 +1805,6 @@ if(FALSE) {
     compact_docs <- FALSE
     keep.source <- getOption("keep.source.pkgs")
     keep.parse.data <- getOption("keep.parse.data.pkgs")
-    use_LTO <- NA # means take from DESCRIPTION file.
     built_stamp <- character()
 
     install_libs <- TRUE
@@ -1974,10 +1936,6 @@ if(FALSE) {
             byte_compile <- TRUE
         } else if (a == "--no-byte-compile") {
             byte_compile <- FALSE
-        } else if (a == "--use-LTO") {
-            use_LTO <- TRUE
-        } else if (a == "--no-use-LTO") {
-            use_LTO <- FALSE
         } else if (a == "--staged-install") {
             staged_install <- TRUE
         } else if (a == "--no-staged-install") {
@@ -2294,10 +2252,6 @@ if(FALSE) {
             "  -c, --clean		remove files created during compilation",
             "  --preclean		remove files created during a previous run",
             "  -n, --dry-run		dry run, showing commands that would be used",
-#            "",
-#            "Unix only:",
-            "  --use-LTO		use Link-Time Optimization",
-            "  --no-use-LTO		do not use Link-Time Optimization",
             "",
             "Windows only:",
             "  -d, --debug		build a debug DLL",
@@ -2309,14 +2263,6 @@ if(FALSE) {
     p1 <- function(...) paste(..., collapse = " ")
 
     WINDOWS <- .Platform$OS.type == "windows"
-    cross <- Sys.getenv("R_CROSS_BUILD")
-    if(nzchar(cross)) {
-        if(!cross %in% c("i386", "x64"))
-            stop("invalid value ", sQuote(cross), " for R_CROSS_BUILD")
-        WINDOWS <- TRUE
-        Sys.setenv(R_ARCH = paste0("/", cross))
-    }
-
     if (!WINDOWS) {
         mconf <- readLines(file.path(R.home(),
                                      paste0("etc", Sys.getenv("R_ARCH")),
@@ -2369,7 +2315,6 @@ if(FALSE) {
     with_objc <- FALSE
     use_cxxstd <- NULL
     use_fc_link <- FALSE
-    use_lto <- NA
     pkg_libs <- character()
     clean <- FALSE
     preclean <- FALSE
@@ -2400,10 +2345,6 @@ if(FALSE) {
             clean <- TRUE
         } else if (a == "--preclean") {
             preclean <- TRUE
-        } else if (a == "--use-LTO") {
-            use_lto <- TRUE
-        } else if (a == "--no-use-LTO") {
-            use_lto <- FALSE
         } else if (a == "-o") {
             if (length(args) >= 2L) {shlib <- args[2L]; args <- args[-1L]}
             else stop("-o option without value", call. = FALSE)
@@ -2586,13 +2527,6 @@ if(FALSE) {
     build_objects_symbol_tables <-
         config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
                                          "FALSE"))
-
-    makeargs <- c(makeargs,
-                  if(isTRUE(use_lto))
-                      c(paste0("LTO=", shQuote("$(LTO_OPT)")),
-                        paste0("LTO_FC=", shQuote("$(LTO_FC_OPT)")))
-                  else if(isFALSE(use_lto)) c("LTO=", "LTO_FC=")
-                  )
 
     cmd <- paste(MAKE, p1(paste("-f", shQuote(makefiles))), p1(makeargs),
                  p1(makeobjs))

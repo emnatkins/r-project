@@ -1,106 +1,101 @@
-# R Italian translation                                                                                                                   
-# This file is distributed under the same license as the R package.
-# Copyright (C) The R Foundation.
-# Daniele Medri <dmedri@gmail.com>, 2005-2020.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: R-tcltk 3.6.3\n"
+"Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2020-08-13 10:30\n"
-"PO-Revision-Date: \n"
-"Last-Translator: Daniele Medri <dmedri@gmail.com>\n"
-"Language-Team: Italian https://github.com/dmedri/R-italian-lang\n"
+"POT-Creation-Date: 2014-08-03 12:17\n"
+"PO-Revision-Date: 2005-04-17 17:24+0200\n"
+"Last-Translator: stefano iacus <>\n"
+"Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.1\n"
 
 msgid "cannot handle object of mode '%s'"
-msgstr "non è possibile gestire oggetti in modalità '%s'"
+msgstr "impossibile gestire oggetti inmodalità '%s'"
 
 msgid "cannot change names on Tcl array"
-msgstr "non è possibile cambiare i nomi di un array Tcl"
+msgstr "non posso cambiare i nomi di un array Tcl"
 
 msgid "cannot set length of Tcl array"
-msgstr "non è possibile impostare la lunghezza di un array Tcl"
+msgstr "non posso impostare la lunghezza di un array Tcl"
 
 msgid "Tcl package '%s' not found"
 msgstr "Pacchetto Tcl '%s' non trovato"
 
 msgid "The tkGUI is not available under Windows"
-msgstr "La tkGUI non è disponibile su Windows"
+msgstr ""
 
 msgid "File"
-msgstr "File"
+msgstr ""
 
 msgid "Demos"
-msgstr "Demo"
+msgstr ""
 
 msgid "Packages"
-msgstr "Pacchetti"
+msgstr ""
 
 msgid "Help"
-msgstr "Aiuto"
+msgstr ""
 
 msgid "Source R code"
-msgstr "Codice sorgente R"
+msgstr ""
 
 msgid "Quit"
-msgstr "Esci"
+msgstr ""
 
 msgid "Save workspace"
-msgstr "Salva workspace"
+msgstr ""
 
 msgid "Don't save workspace"
-msgstr "Non salvare il workspace"
+msgstr ""
 
 msgid "t test"
-msgstr "test t"
+msgstr ""
 
 msgid "Density"
-msgstr "Densità"
+msgstr ""
 
 msgid "Interactive linear fitting"
-msgstr "Linear fitting interattivo"
+msgstr ""
 
 msgid "R FAQ"
-msgstr "R FAQ"
+msgstr ""
 
 msgid "Load"
-msgstr "Carica"
+msgstr ""
 
 msgid "Go get them!"
-msgstr "Vai a prenderli!"
+msgstr ""
 
 msgid "Load packages"
-msgstr "Carica pacchetti"
+msgstr ""
 
 msgid "Install packages from CRAN"
-msgstr "Installa pacchetti da CRAN"
+msgstr ""
 
 msgid "Help topic:"
-msgstr "Argomento guida:"
+msgstr ""
 
 msgid "Manuals in PDF format"
-msgstr "Manuali in formato PDF"
+msgstr ""
 
 msgid "OK"
-msgstr "OK"
+msgstr ""
 
 msgid "Cancel"
-msgstr "Cancella"
+msgstr ""
 
 msgid "'pb' is not from class %s"
-msgstr "'pb' non è della classe %s"
+msgstr ""
 
 msgid "'filters' must be a 2-column character matrix"
-msgstr "'filters' dev'essere una matrice di caratteri a 2 colonne"
+msgstr ""
 
+#, fuzzy
 msgid "Tcl/Tk support is not available on this system"
-msgstr "Il supporto Tcl/tk non è disponibile su questo sistema"
+msgstr "I file di supporto a Tcl/Tk non sono stati installati"
 
 msgid "Tcl/Tk support files were not installed"
 msgstr "I file di supporto a Tcl/Tk non sono stati installati"
