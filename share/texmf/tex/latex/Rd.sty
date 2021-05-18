@@ -16,7 +16,6 @@
 \newboolean{Rd@has@ae}
 \newboolean{Rd@use@ae}
 \newboolean{Rd@use@hyper}
-\setboolean{Rd@use@hyper}{true}
 \newboolean{Rd@has@times}
 \newboolean{Rd@use@times}
 \newboolean{Rd@use@cm-super}
@@ -332,9 +331,9 @@
     \else
       \@restonecolfalse
     \fi
-    \@ifundefined{chapter*}{}{\chapter*{\contentsname
+    \chapter*{\contentsname
         \@mkboth{%
-           \MakeUppercase\contentsname}{\MakeUppercase\contentsname}}}%
+           \MakeUppercase\contentsname}{\MakeUppercase\contentsname}}%
     \pdfbookmark{Contents}{contents}
     \@starttoc{toc}%
     \if@restonecol\twocolumn\fi

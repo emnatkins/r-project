@@ -5,87 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item Facilities for accessing \samp{ftp://} sites are no longer
-      tested (except \emph{pro tem} for \code{curlGetHeaders()}) as
-      browsers are increasing removing support.
-      %% Chrome and Firefox did in early 2021: Safari and Edge never had it.
-
-      It is planned to reduce \samp{ftp://} support in future versions
-      of \R to that provided by \samp{libcurl}.
-    }
-  }
-
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{matrix(x, n,m)} now warns in more cases where
-      \code{length(x)} is larger than \code{n * m}; suggested by Abby
-      Spurdle and Wolfgang Huber in Feb 2021 on the R-devel mailing
-      list.
-
-      \item Function \code{file_test()} in package \pkg{utils} gains
-      tests for symlinks, reability and writability.
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item The non-API header \file{R_ext/R-ftp-http.h} is no longer
-      provided.  The entry points it included are either deprecated or
-      defunct.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item The (non-default) \code{method = "internal"} for
-      \code{download.file} and \code{url} no longer supports \samp{ftp://}
-      URIs. 
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{qnbinom(p, size, mu)} for large \code{size/mu} is
-      corrected for a range of cases (\PR{18095}); similarly for the
-      \code{(size, prob)} parametrization of the negative binomial.
-
-      \code{qpois()} and \code{qbinom()} are better and/or faster for
-      extreme cases.
-
-      The underlying C code has been modularized and is common to all
-      four cases of discrete distributions.
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 4.1.0 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{require(\var{pkg}, quietly = TRUE)} is quieter and in
-      particular does not warn if the package is not found.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item Using the non-default \code{method = "internal"} for
-      \samp{ftp://} URIs is deprecated for \code{download.file} and
-      \code{url}.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \command{make check-devel} works again in an \R build
-      configured with \option{--without-recommended-packages}.
-    }
-  }
-}
-
-
 \section{\Rlogo CHANGES IN R 4.1.0}{
   \subsection{FUTURE DIRECTIONS}{
     \itemize{
@@ -108,7 +27,6 @@
       \item \samp{www.omegahat.net} is no longer one of the repositories
       known by default to \code{setRepositories()}.  (Nowadays it only
       provides source packages and is often unavailable.)
-      %% it had one Windows binary package for 4.0, none for 3.6.
 
       \item Function \code{package_dependencies()} (in package
       \pkg{tools}) can now use different dependency types for direct and

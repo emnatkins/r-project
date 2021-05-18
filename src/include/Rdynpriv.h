@@ -152,8 +152,7 @@ typedef struct {
 
 
     void (*deleteCachedSymbols)(DllInfo *dll);  /* Discard cached symbols */
-    DL_FUNC (*lookupCachedSymbol)(const char *name, const char *pkg, int all,
-                                  DllInfo **dll);
+    DL_FUNC (*lookupCachedSymbol)(const char *name, const char *pkg, int all);
 
     void  (*fixPath)(char *path);
     void  (*getFullDLLPath)(SEXP call, char *buf, const char * const path);
@@ -174,7 +173,6 @@ typedef struct {
     char pkg[21];
     char name[41];
     DL_FUNC func;
-    DllInfo *dll;
 } R_CPFun;
 
 extern R_CPFun CPFun[];
@@ -182,9 +180,8 @@ extern int nCPFun;
 
 #endif /* CACHE_DLL_SYM */
 
-void Rf_deleteCachedSymbols(DllInfo *);
-DL_FUNC Rf_lookupCachedSymbol(const char *name, const char *pkg, int all,
-                              DllInfo **dll);
+
+DL_FUNC Rf_lookupCachedSymbol(const char *name, const char *pkg, int all);
 
 DL_FUNC R_dlsym(DllInfo *info, char const *name, 
 		R_RegisteredNativeSymbol *symbol);

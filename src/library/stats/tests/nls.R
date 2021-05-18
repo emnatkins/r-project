@@ -57,9 +57,7 @@ nls(y ~ a+b*x+c*I(x^2), start = c(a=1, b=1, c=0.1), algorithm = "port")
 (fm <- nls(y ~ a+b*x+c*I(x^2), start = c(a=1, b=1, c=0.1),
            algorithm = "port", lower = c(0, 0, 0)))
 ## IGNORE_RDIFF_END
-if(have_MASS) {
-    print(confint(fm))
-} else message("skipping tests requiring the MASS package")
+if(have_MASS) print(confint(fm))
 
 ## weighted nls fit
 set.seed(123)

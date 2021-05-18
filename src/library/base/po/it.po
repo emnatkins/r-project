@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 4.1.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2021-05-03 09:56+0200\n"
+"POT-Creation-Date: 2021-05-03 10:48+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Daniele Medri <dmedri@gmail.com>\n"
 "Language-Team: Italian https://github.com/dmedri/R-italian-lang\n"
@@ -126,7 +126,7 @@ msgstr "problema durante la visualizzazione di '%ls'"
 
 #: src/gnuwin32/extra.c:119 src/gnuwin32/extra.c:161 src/gnuwin32/extra.c:351
 #: src/gnuwin32/extra.c:925 src/gnuwin32/extra.c:950
-#: src/gnuwin32/sys-win32.c:249 src/main/Rdynload.c:1145 src/main/agrep.c:131
+#: src/gnuwin32/sys-win32.c:249 src/main/Rdynload.c:1367 src/main/agrep.c:131
 #: src/main/agrep.c:135 src/main/agrep.c:776 src/main/agrep.c:781
 #: src/main/apply.c:332 src/main/apply.c:334 src/main/apply.c:337
 #: src/main/array.c:93 src/main/array.c:1744 src/main/array.c:1883
@@ -703,29 +703,29 @@ msgstr[0] ""
 msgstr[1] ""
 "non è possibile allocare memoria per simboli nativi registrati (%d byte)"
 
-#: src/main/Rdynload.c:1156
+#: src/main/Rdynload.c:1154 src/main/Rdynload.c:1377
 msgid "must pass package name or DllInfo reference"
 msgstr "specificare nome pacchetto o una referenza a DllInfo"
 
-#: src/main/Rdynload.c:1261
+#: src/main/Rdynload.c:1251
 #, c-format
 msgid "unimplemented type %d in 'createRSymbolObject'"
 msgstr "tipo %d non implementato in 'createRSymbolObject'"
 
-#: src/main/Rdynload.c:1343
+#: src/main/Rdynload.c:1333 src/main/Rdynload.c:1429
 msgid "R_getRegisteredRoutines() expects a DllInfo reference"
 msgstr "R_getRegisteredRoutines() necessita di una referenza di tipo DllInfo"
 
-#: src/main/Rdynload.c:1346
+#: src/main/Rdynload.c:1336 src/main/Rdynload.c:1432
 msgid "NULL value passed for DllInfo"
 msgstr "Valore NULL specificato al posto di DllInfo"
 
-#: src/main/Rdynload.c:1431
+#: src/main/Rdynload.c:1495
 #, c-format
 msgid "function '%s' not provided by package '%s'"
 msgstr "funzione '%s' non offerta dal pacchetto '%s'"
 
-#: src/main/Rdynload.c:1433
+#: src/main/Rdynload.c:1497
 msgid "table entry must be an external pointer"
 msgstr "la voce della tabella dev'essere un puntatore esterno"
 

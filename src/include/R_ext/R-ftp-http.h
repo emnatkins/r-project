@@ -21,7 +21,7 @@
  *  https://www.R-project.org/Licenses/
  */
 
-/* Non-API entry points, for that part of libxml included in
+/* Advertized entry points, for that part of libxml included in
  * the internet module.
  */
 
@@ -31,7 +31,7 @@
 /*
   allow for 'large' files (>= 2GB) on 32-bit systems, where supported.
 */
-/* Type is required by C99/C11 */
+/* required by C99/C11 */
 #ifdef __cplusplus
 # include <cstdint>
 #else
@@ -48,6 +48,10 @@ void *R_HTTPOpen(const char *url);
 int   R_HTTPRead(void *ctx, char *dest, int len);
 void  R_HTTPClose(void *ctx);
 
+void *R_FTPOpen(const char *url);
+int   R_FTPRead(void *ctx, char *dest, int len);
+void  R_FTPClose(void *ctx);
+
 void *	RxmlNanoHTTPOpen(const char *URL, char **contentType, const char *headers, int cacheOK);
 int	RxmlNanoHTTPRead(void *ctx, void *dest, int len);
 void	RxmlNanoHTTPClose(void *ctx);
@@ -57,10 +61,17 @@ DLsize_t RxmlNanoHTTPContentLength(void *ctx);
 char *	RxmlNanoHTTPContentType(void *ctx);
 void	RxmlNanoHTTPTimeout(int delay);
 
+void *	RxmlNanoFTPOpen(const char *URL);
+int	RxmlNanoFTPRead(void *ctx, void *dest, int len);
+int	RxmlNanoFTPClose(void *ctx);
+void	RxmlNanoFTPTimeout(int delay);
+DLsize_t RxmlNanoFTPContentLength(void *ctx);
+
 void    RxmlMessage(int level, const char *format, ...);
 
 /* not currently used */
 
+void RxmlNanoFTPCleanup(void);
 void RxmlNanoHTTPCleanup(void);
 
 #ifdef __cplusplus
