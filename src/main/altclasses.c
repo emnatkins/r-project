@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2016--2021   The R Core Team
+ *  Copyright (C) 2016--2020   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1119,8 +1119,8 @@ static SEXP mmap_Unserialize(SEXP class, SEXP state)
     return val;
 }
 
-static Rboolean mmap_Inspect(SEXP x, int pre, int deep, int pvec,
-			     void (*inspect_subtree)(SEXP, int, int, int))
+Rboolean mmap_Inspect(SEXP x, int pre, int deep, int pvec,
+		      void (*inspect_subtree)(SEXP, int, int, int))
 {
     Rboolean ptrOK = MMAP_PTROK(x);
     Rboolean wrtOK = MMAP_WRTOK(x);
@@ -1291,6 +1291,7 @@ static void mmap_finalize(SEXP eptr)
     DEBUG_PRINT("finalizing ... ");
     void *p = R_ExternalPtrAddr(eptr);
     size_t size = MMAP_STATE_SIZE(MMAP_EPTR_STATE(eptr));
+    R_SetExternalPtrAddr(eptr, NULL);
 
     if (p != NULL) {
 	munmap(p, size); /* don't check for errors */
@@ -1503,8 +1504,8 @@ static SEXP wrapper_Duplicate(SEXP x, Rboolean deep)
     return ans;
 }
 
-static Rboolean wrapper_Inspect(SEXP x, int pre, int deep, int pvec,
-				void (*inspect_subtree)(SEXP, int, int, int))
+Rboolean wrapper_Inspect(SEXP x, int pre, int deep, int pvec,
+			 void (*inspect_subtree)(SEXP, int, int, int))
 {
     Rboolean srt = WRAPPER_SORTED(x);
     Rboolean no_na = WRAPPER_NO_NA(x);
@@ -1969,7 +1970,7 @@ SEXP attribute_hidden do_wrap_meta(SEXP call, SEXP op, SEXP args, SEXP env)
     return wrap_meta(x, srt, no_na);
 }
 
-SEXP attribute_hidden R_tryWrap(SEXP x)
+SEXP R_tryWrap(SEXP x)
 {
     return wrap_meta(x, UNKNOWN_SORTEDNESS, FALSE);
 }
@@ -1993,7 +1994,7 @@ SEXP attribute_hidden do_tryWrap(SEXP call, SEXP op, SEXP args, SEXP env)
    operation. It could be used in other places, but extreme caution is
    needed to make sure there is no possibliity that the wrapper object
    will be referenced from C code after it is cleared. */
-SEXP attribute_hidden R_tryUnwrap(SEXP x)
+SEXP R_tryUnwrap(SEXP x)
 {
     if (! MAYBE_SHARED(x) && is_wrapper(x) &&
 	WRAPPER_SORTED(x) == UNKNOWN_SORTEDNESS && ! WRAPPER_NO_NA(x)) {

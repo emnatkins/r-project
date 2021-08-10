@@ -81,9 +81,9 @@ double R_pretty(double *lo, double *up, int *ndiv, int min_n,
  * where it was changed to 1e-10 for seq*(), and in 2017-08-14 for pretty(): */
 #define rounding_eps 1e-10
 
-#define h     high_u_fact[0]
-#define h5    high_u_fact[1]
-#define f_min high_u_fact[2]
+#define h  high_u_fact[0]
+#define h5 high_u_fact[1]
+#define f_min 9.5367431640625e-7 // = 2^-20  will be high_u_fact[2] in R >= 4.2.0
 
     double // save input boundaries
 	lo_ = *lo,
@@ -105,10 +105,9 @@ double R_pretty(double *lo, double *up, int *ndiv, int min_n,
     }
 
 #ifdef DEBUGpr
-    REprintf("R_pretty(lo=%g,up=%g,ndiv=%d,min_n=%d,shrink=%g,high_u=(%g,%g,%g),eps=%d,bnds=%d)"
+    REprintf("R_pretty(lo=%g,up=%g,ndiv=%d,min_n=%d,shrink=%g,high_u=(%g,%g),eps=%d)"
 	     "\n\t => dx=%g; i_small:%s. ==> first cell=%g\n",
-	     lo_, up_, *ndiv, min_n, shrink_sml, h, h5, min_f,
-	     eps_correction, return_bounds,
+	     lo_, up_, *ndiv, min_n, shrink_sml, h, h5, eps_correction,
 	     dx, i_small ? "TRUE" : "F", cell);
 #endif
 
@@ -124,7 +123,8 @@ double R_pretty(double *lo, double *up, int *ndiv, int min_n,
 	    if(*ndiv > 1) cell /= *ndiv;
 	} else { // up - lo = +Inf (overflow; both are finite)
 	    if(*ndiv < 2) {
-		warning(_("R_pretty(): infinite range; *ndiv=%d, should have ndiv >= 2"),
+		warning(_(
+	"Internal(pretty()): infinite range; *ndiv=%d, should have ndiv >= 2"),
 			*ndiv);
 	    } else {
 		cell = up_/(*ndiv) - lo_/(*ndiv);

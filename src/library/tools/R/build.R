@@ -193,7 +193,10 @@ inRbuildignore <- function(files, pkgdir) {
 
     temp_install_pkg <- function(pkgdir, libdir) {
 	dir.create(libdir, mode = "0755", showWarnings = FALSE)
-        if(nzchar(install_dependencies) &&
+        install_missing_dependencies <-
+            config_val_to_logical(Sys.getenv("_R_BUILD_INSTALL_MISSING_DEPENDENCIES_",
+                                             "no"))
+        if(install_missing_dependencies &&
            all((repos <- getOption("repos")) != "@CRAN@")) {
             ## try installing missing dependencies too
             available <- utils::available.packages(repos = repos)
@@ -204,7 +207,7 @@ inRbuildignore <- function(files, pkgdir) {
                                 drop = FALSE],
                       db[colnames(available)])
             depends <- package_dependencies(package, available,
-                                            which = install_dependencies)
+                                            which = "most")
             depends <- setdiff(unlist(depends),
                                utils::installed.packages())
             if(length(depends)) {
@@ -850,12 +853,6 @@ inRbuildignore <- function(files, pkgdir) {
     keep_empty <-
         config_val_to_logical(Sys.getenv("_R_BUILD_KEEP_EMPTY_DIRS_", "FALSE"))
 
-    install_dependencies <- Sys.getenv("_R_BUILD_INSTALL_DEPENDENCIES_")
-    if(nzchar(install_dependencies) &&
-       (install_dependencies %notin% c("strong", "most", "all")))
-        install_dependencies <-
-            if(config_val_to_logical(install_dependencies)) "most" else ""
-
     if (is.null(args)) {
         args <- commandArgs(TRUE)
         ## it seems that splits on spaces, so try harder.
@@ -905,10 +902,6 @@ inRbuildignore <- function(files, pkgdir) {
             with_md5 <- TRUE
         } else if (a == "--log") {
             with_log <- TRUE
-        } else if (substr(a, 1, 23) == "--install-dependencies=") {
-            install_dependencies <- substr(a, 24, 1000)
-        } else if (a == "--install-dependencies") {
-            install_dependencies <- "most"
         } else if (substr(a, 1, 14) == "--compression=") {
             compression <- match.arg(substr(a, 15, 1000),
                                      c("none", "gzip", "bzip2", "xz"))

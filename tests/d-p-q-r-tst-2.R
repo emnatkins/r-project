@@ -773,3 +773,4 @@ stopifnot(dn + dL > 0,
 
 
 cat("Time elapsed: ", proc.time() - .ptime,"\n")
+cat("Time elapsed: ", proc.time() - .ptime,"\n")

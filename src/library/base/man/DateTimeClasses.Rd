@@ -289,8 +289,7 @@
   objects must not be changed, as several C-based conversion methods
   rely on the order for efficiency.
 }
-\examples{
-## IGNORE_RDIFF_BEGIN
+\examples{\donttest{% <--> may fail / be platform dependent
 (z <- Sys.time())             # the current date, as class "POSIXct"
 
 Sys.time() - 3600             # an hour ago
@@ -298,7 +297,7 @@ Sys.time() - 3600             # an hour ago
 as.POSIXlt(Sys.time(), "GMT") # the current time in GMT
 format(.leap.seconds)         # the leap seconds in your time zone
 print(.leap.seconds, tz = "PST8PDT")  # and in Seattle's
-## IGNORE_RDIFF_END
+}% ..test should be diffable from here on:
 
 ## look at *internal* representation of "POSIXlt" :
 leapS <- as.POSIXlt(.leap.seconds)

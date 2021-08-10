@@ -79,6 +79,7 @@
 #include <Fileio.h>
 #include <Rconnections.h>
 #include <R_ext/Complex.h>
+#include <R_ext/R-ftp-http.h>
 #include <R_ext/RS.h>		/* R_chk_calloc and Free */
 #include <R_ext/Riconv.h>
 #include <R_ext/Print.h> // REprintf, REvprintf
@@ -5354,15 +5355,13 @@ R_newCurlUrl(const char *description, const char * const mode, SEXP headers, int
 */
 SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP scmd, sopen, ans, class, enc, headers = R_NilValue;
-#ifdef Win32
-    SEXP headers_flat = R_NilValue;
-#endif
+    SEXP scmd, sopen, ans, class, enc, headers = R_NilValue,
+	headers_flat = R_NilValue;
     char *class2 = "url";
     const char *url, *open;
     int ncon, block, raw = 0, defmeth,
-	meth = 0, // 0: "internal" | "wininet", 1: "libcurl"
-	winmeth = 0;  // 0: "internal", 1: "wininet" (Windows only)
+	meth = 0, // 0: "default" | "internal" | "wininet", 1: "libcurl"
+	winmeth;  // 0: "internal", 1: "wininet" (Windows only)
     cetype_t ienc = CE_NATIVE;
     Rconnection con = NULL;
 
@@ -5391,30 +5390,20 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     url = translateCharFP(STRING_ELT(scmd, 0));
 #endif
 
-    // curl-based url() does not need to know the type. so
-    // only set for use by the wininet method.
-#ifdef Win32
     UrlScheme type = HTTPsh;	/* -Wall */
-#endif
     Rboolean inet = TRUE;
-    if (strncmp(url, "http://", 7) == 0) {
-#ifdef Win32
+    if (strncmp(url, "http://", 7) == 0)
 	type = HTTPsh;
-#endif
-    } else if (strncmp(url, "ftp://", 6) == 0) {
-#ifdef Win32
+    else if (strncmp(url, "ftp://", 6) == 0)
 	type = FTPsh;
-#endif
-    } else if (strncmp(url, "https://", 8) == 0) {
-#ifdef Win32
+    else if (strncmp(url, "https://", 8) == 0)
 	type = HTTPSsh;
- #endif
     // ftps:// is available via most libcurl, only
-    } else if (strncmp(url, "ftps://", 7) == 0) {
-#ifdef Win32
+    // The internal and wininet methods will create a connection
+    // but refuse to open it so as from R 3.2.0 we switch to libcurl
+    else if (strncmp(url, "ftps://", 7) == 0)
 	type = FTPSsh;
-#endif
-    } else
+    else
 	inet = FALSE; // file:// URL or a file path
 
     // --------- open
@@ -5436,12 +5425,12 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     const char *cmeth = CHAR(asChar(CAD4R(args)));
     meth = streql(cmeth, "libcurl"); // 1 if "libcurl", else 0
     defmeth = streql(cmeth, "default");
-//#ifndef Win32
-    if(defmeth) meth = 1; // default to libcurl
-//#endif
+#ifndef Win32
+    if(defmeth) meth = 1;
+#endif
     if (streql(cmeth, "wininet")) {
 #ifdef Win32
-	winmeth = 1;
+	winmeth = 1;  // it already was as this is the default
 #else
 	error(_("method = \"wininet\" is only supported on Windows"));
 #endif
@@ -5462,9 +5451,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXP lheaders = CAD4R(CDR(args));
 	if (!isNull(lheaders)) {
 	    headers = VECTOR_ELT(lheaders, 0);
-#ifdef Win32
 	    headers_flat = VECTOR_ELT(lheaders, 1);
-#endif
 	}
     }
 
@@ -5475,6 +5462,11 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		error("ftps:// URLs are not supported by this method");
 	}
+
+#if defined(Win32) && defined(HAVE_LIBCURL)
+	if (strncmp(url, "ftp://", 8) == 0 && defmeth) meth = 1;
+#endif
+
 #ifdef Win32
 	if (!winmeth && strncmp(url, "https://", 8) == 0) {
 # ifdef HAVE_LIBCURL
@@ -5509,13 +5501,8 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 	    error("url(method = \"libcurl\") is not supported on this platform");
 # endif
 	} else {
-	    if(!winmeth)
-		error(_("the 'internal' method of url() is defunct for http:// and ftp:// URLs"));
-#ifdef Win32
-	    // so for "wininet' only
 	    con = R_newurl(url, strlen(open) ? open : "r", headers_flat, winmeth);
 	    ((Rurlconn)con->private)->type = type;
-#endif
 	}
     } else {
 	if(PRIMVAL(op) == 1) { /* call to file() */

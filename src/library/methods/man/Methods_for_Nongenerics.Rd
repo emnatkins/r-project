@@ -205,10 +205,9 @@ mydf1 <- new("myFrame", df1, timestamps = Sys.time())
 
 ## "myFrame" objects inherit "data.frame" S3 methods; e.g., for `[`
 
-## BEGIN_RDIFF_END % time dependent
+\donttest{% random
 mydf1[1:2, ] # a data frame object (with extra attributes)
-## IGNORE_RDIFF_END
-
+}
 
 ## a method explicitly for "myFrame" class
 
@@ -222,9 +221,7 @@ setMethod("[",
     }
 )
 
-## BEGIN_RDIFF_END
-mydf1[1:2, ]
-## IGNORE_RDIFF_END
+\donttest{mydf1[1:2, ]}
 
 setClass("myDateTime", contains = "POSIXt")
 

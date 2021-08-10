@@ -1192,7 +1192,7 @@ int cmdlineoptions(int ac, char **av)
 		     (unsigned int) GetTickCount());
 	    ifp = fopen(ifile, "w+b");
 	    if(!ifp) R_Suicide(_("creation of tmpfile failed -- set TMPDIR suitably?"));
-	    /* Unix does unlink(ifile) here, but Windows cannot delete open files */
+	    unlink(ifile);
 	}
 	fwrite(cmdlines, strlen(cmdlines)+1, 1, ifp);
 	fflush(ifp);

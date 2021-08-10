@@ -254,7 +254,7 @@ processRdChunk <- function(code, stage, options, env, Rdfile, macros)
 	    tmpcon <- file()
 	    sink(file = tmpcon)
 	    if(options$eval) err <- evalWithOpt(ce, options, env)
-	    res <- c(res, "\n") # attempt to  make sure final line is complete
+	    res <- c(res, "\n") # attampt to  make sure final line is complete
 	    sink()
 	    output <- readLines(tmpcon, warn = FALSE) # sometimes attempt fails.
 	    close(tmpcon)
@@ -280,14 +280,13 @@ processRdChunk <- function(code, stage, options, env, Rdfile, macros)
 	}
 	if (options$results == "rd") {
 	    res <- as.character(err)   # The last value of the chunk
-	    enc <- if(length(res)) Encoding(res) else "unknown"
 	    tmpcon <- file()
 	    writeLines(res, tmpcon, useBytes = TRUE)
 	    parseFragment <- function(cond) {
 	    	               seek(tmpcon, 0)
-	    	               parse_Rd(tmpcon, encoding=enc, fragment=TRUE, macros = macros)
+	    	               parse_Rd(tmpcon, fragment=TRUE, macros = macros)
 	    	            }
-	    res <- tryCatch(parse_Rd(tmpcon, encoding=enc, fragment=FALSE, macros = macros),
+	    res <- tryCatch(parse_Rd(tmpcon, fragment=FALSE, macros = macros),
 	    	            warning = parseFragment, error = parseFragment,
 	    	            finally = close(tmpcon))
 	    # Now remove that extra newline added by the writeLines
@@ -329,12 +328,10 @@ processRdChunk <- function(code, stage, options, env, Rdfile, macros)
 	    }
 	} else if (options$results == "text")
 	    res <- tagged(err, "TEXT")
-	else if (options$results == "hide" || !length(res))
-	    res <- tagged("", "COMMENT")
-	else { ## if (length(res)) 
+	else if (length(res)) {
 	    res <- lapply(as.list(res), function(x) tagged(x, "VERB"))
 	    res <- tagged(res, "\\verb")
-	}
+	} else res <- tagged("", "COMMENT")
     } else res <- code
     ## return :
     replaceRdSrcrefs(res, codesrcref)

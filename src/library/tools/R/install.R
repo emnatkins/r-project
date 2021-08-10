@@ -1642,10 +1642,8 @@ if(FALSE) {
 		if (!fake &&
                     file_test("-f", file.path("build", "vignette.rds")))
 		    installer <- .install_package_vignettes3
+		## FIXME:  this handles pre-3.0.2 tarballs.  In the long run, delete the alternative.
 		else
-		## handle pre-3.0.2 tarballs
-		## and installation from package sources,
-		## including by temp_install_pkg() during R CMD build
 		    installer <- .install_package_vignettes2
                 res <- try(installer(".", instdir, enc))
 	    if (inherits(res, "try-error"))
@@ -2237,8 +2235,7 @@ if(FALSE) {
 
     if (fake) {
         use_configure <- FALSE
-        if("--html" %notin% args0)
-            build_html <- FALSE
+        build_html <- FALSE
         build_latex <- FALSE
         build_example <- FALSE
 	install_libs <- FALSE

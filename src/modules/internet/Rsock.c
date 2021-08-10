@@ -160,6 +160,8 @@ void in_Rsockwrite(int *sockp, char **buf, int *start, int *end, int *len)
 
 /* --------- for use in socket connections ---------- */
 
+#include <R_ext/R-ftp-http.h>
+
 #ifdef Win32
 # include <io.h>
 #else
@@ -312,7 +314,7 @@ int R_SocketWaitMultiple(int nsock, int *insockfd, int *ready, int *write,
 	    tv.tv_sec = mytimeout - used;
 	    tv.tv_usec = ceil(1e6 * (mytimeout - used - tv.tv_sec));
 	} else {  /* always poll occasionally--not really necessary */
-	    tv.tv_sec = 60;
+	    tv.tv_sec = timeout;
 	    tv.tv_usec = 0;
 	}
 #endif

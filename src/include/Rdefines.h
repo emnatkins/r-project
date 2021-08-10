@@ -124,7 +124,7 @@ The use of ‘USE_RINTERNALS’ with Rdefines.h is not supported.
 #define NUMERIC_DATA(x)		(REAL(x))
 #define CHARACTER_DATA(x)	(STRING_PTR(x))
 #define COMPLEX_DATA(x)		(COMPLEX(x))
-/* Use of VECTOR_PTR will now always fail in packages.
+/* Use of VECTOR_PTR will fail unless USE_RINTERNALS is in use
    VECTOR_DATA seems unused, and RECURSIVE_DATA is used only in
    the Expat part of XML.
 */
@@ -167,7 +167,7 @@ The use of ‘USE_RINTERNALS’ with Rdefines.h is not supported.
 #define NEW_OBJECT(class_def)	R_do_new_object(class_def)
 #define NEW(class_def)		R_do_new_object(class_def)
 
-typedef struct SEXPREC s_object;
+#define s_object                SEXPREC
 #define S_EVALUATOR             /**/
 
 /* These conflict with definitions in R_ext/Boolean.h,
