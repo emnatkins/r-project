@@ -6123,7 +6123,6 @@ function(db, files)
     ## we just have a stop list here.
     common_names <- c("pkg", "pkgName", "package", "pos")
 
-    parse_errors <-
     bad_exprs <- character()
     bad_imports <- character()
     bad_data <- character()
@@ -6189,12 +6188,9 @@ function(db, files)
                          ## so ignore 'invalid multibyte character' errors.
                          msg <- .massage_file_parse_error_message(conditionMessage(e))
                          if(!startsWith(msg, "invalid multibyte character"))
-                         {
-                             parse_errors <<- c(parse_errors, f)
                              warning(gettextf("parse error in file '%s':\n%s",
                                               f, msg),
                                      domain = NA, call. = FALSE)
-                         }
                      })
         }
     } else {
@@ -6213,9 +6209,7 @@ function(db, files)
     res <- list(others = unique(bad_exprs),
                 imports = unique(bad_imports),
                 data = unique(bad_data),
-                methods_message = ""
-              , parse_errors = unique(parse_errors)
-    	    )
+                methods_message = "")
     class(res) <- "check_packages_used"
     res
 }
@@ -6246,6 +6240,7 @@ function(package, dir, lib.loc = NULL)
     file <- .createExdotR(pkg_name, dir, silent = TRUE,
                           commentDonttest = FALSE)
     if (is.null(file)) return(invisible(NULL)) # e.g, no examples
+    on.exit(unlink(file))
     enc <- db["Encoding"]
     if(!is.na(enc) &&
        (Sys.getlocale("LC_CTYPE") %notin% c("C", "POSIX"))) {
@@ -6303,7 +6298,7 @@ function(dir, testdir, lib.loc = NULL)
         }
     }
     res <- .check_packages_used_helper(db, c(Rinfiles, Rfiles))
-    if(any(lengths(bad <- res[1L : 3L]))) {
+    if(use_subdirs && any(lengths(bad <- res[1L : 3L]))) {
         ## Filter results against available package names to avoid (too
         ## many) false positives.
         ## <FIXME>
@@ -7553,8 +7548,7 @@ function(dir, localOnly = FALSE, pkgSize = NA)
         code_files <- list_files_with_type(file.path(dir, "R"),
                                            "code",
                                            OS_subdirs = OS_subdirs)
-        names(code_files) <-
-            file_path_relative_to(code_files, dir, parent = FALSE)
+        names(code_files) <- .file_path_relative_to_dir(code_files, dir)
         lines <- Filter(length, lapply(code_files, find_non_ASCII_lines))
         if(length(lines))
             out$R_files_non_ASCII <- lines
@@ -8051,7 +8045,7 @@ function(dir, localOnly = FALSE, pkgSize = NA)
     if(!inherits(year <- tryCatch(format(as.Date(meta0["Published"]), "%Y"),
                                      error = identity),
                     "error")){
-        ## possible misspellings and keep only the new ones:
+        ## possible mis-spellings and keep only the new ones:
         if(NROW(a <- out$spelling)
            && config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_ASPELL_RECHECK_MAYBE_",
                                                "TRUE"))
@@ -8181,7 +8175,7 @@ function(x, ...)
             })),
       if(NROW(y <- x$spelling)) {
           s <- split(sprintf("%d:%d", y$Line, y$Column), y$Original)
-          paste(c("Possibly misspelled words in DESCRIPTION:",
+          paste(c("Possibly mis-spelled words in DESCRIPTION:",
                   sprintf("  %s (%s)",
                           names(s),
                           lapply(s, paste, collapse = ", "))),
@@ -8191,7 +8185,7 @@ function(x, ...)
           "FOSS licence with BuildVignettes: false"
       },
       if(length(y <- x$fields)) {
-          paste(c("Unknown, possibly misspelled, fields in DESCRIPTION:",
+          paste(c("Unknown, possibly mis-spelled, fields in DESCRIPTION:",
                   sprintf("  %s", paste(sQuote(y), collapse = " "))),
                 collapse = "\n")
       },
@@ -8959,14 +8953,12 @@ function(env)
 {
     env <- as.environment(env)
     g <- suppressMessages(methods::getGenerics(env))
-    y <- Map(function(f, p) {
-                 attr(f, "package") <- p
-                 f
-             },
-             g@.Data,
-             g@package)
-    names(y) <- g@.Data
-    y
+    Map(function(f, p) {
+            attr(f, "package") <- p
+            f
+        },
+        g@.Data,
+        g@package)
 }
 
 ### ** .get_S4_methods_list

@@ -16,7 +16,6 @@
 \newboolean{Rd@has@ae}
 \newboolean{Rd@use@ae}
 \newboolean{Rd@use@hyper}
-\setboolean{Rd@use@hyper}{true}
 \newboolean{Rd@has@times}
 \newboolean{Rd@use@times}
 \newboolean{Rd@use@cm-super}
@@ -232,29 +231,12 @@
   \egroup
 }
 
-\ifx\l@nohyphenation \@undefined
-  \newlanguage\l@nohyphenation
-\fi
-
-% \DeclareRobustCommand{\code}{\bgroup\Rd@noligs\Rd@code}
-\def\Rd@code@space{\leavevmode\unskip\space\ignorespaces}
-{\catcode`\ =\active%
-\gdef\Rd@code@obeyspaces{\catcode`\ \active\let \Rd@code@space}}
-\def\Rd@code@wrk#1{\texttt{#1}\egroup}
-\def\Rd@code@ini{%
-  \language\l@nohyphenation
-  \normalfont\spaceskip=\fontdimen2\font\relax
-  \Rd@noligs \Rd@frenchspacing \Rd@code@obeyspaces 
-}
-\DeclareRobustCommand{\code}{\bgroup \Rd@code@ini \Rd@code@wrk}
-
+\DeclareRobustCommand{\code}{\bgroup\Rd@noligs\Rd@code}
 \let\command=\code
 \let\env=\code
 
-% \def\Rd@samp#1{\Rd@code{#1}\rq}
-% \DeclareRobustCommand{\samp}{\lq\bgroup\Rd@noligs\Rd@samp}
-\def\Rd@samp@wrk#1{\texttt{#1}\egroup\rq}
-\DeclareRobustCommand{\samp}{\lq\bgroup\Rd@code@ini\Rd@samp@wrk}
+\def\Rd@samp#1{\Rd@code{#1}\rq}
+\DeclareRobustCommand{\samp}{\lq\bgroup\Rd@noligs\Rd@samp}
 \let\option=\samp
 
 \def\AsIs{\bgroup\let\do\@makeother\Rd@AsIs@dospecials\@noligs\obeylines\@vobeyspaces\parskip\z@skip\Rd@AsIsX}
@@ -349,9 +331,9 @@
     \else
       \@restonecolfalse
     \fi
-    \@ifundefined{chapter*}{}{\chapter*{\contentsname
+    \chapter*{\contentsname
         \@mkboth{%
-           \MakeUppercase\contentsname}{\MakeUppercase\contentsname}}}%
+           \MakeUppercase\contentsname}{\MakeUppercase\contentsname}}%
     \pdfbookmark{Contents}{contents}
     \@starttoc{toc}%
     \if@restonecol\twocolumn\fi

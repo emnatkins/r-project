@@ -329,10 +329,3 @@ grobPoints.null <- function(x, closed, ...) {
     emptyCoords
 }
 
-## Collections of grobs
-grobPoints.gList <- grobCoords.gList
-
-grobPoints.gTree <- function(x, closed, ...) {
-    grobCoords(x$children[x$childrenOrder], closed, ...)
-}
-

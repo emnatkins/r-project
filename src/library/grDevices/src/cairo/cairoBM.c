@@ -195,7 +195,6 @@ BM_Open(pDevDesc dd, pX11Desc xd, int width, int height)
     CairoInitPatterns(xd);
     CairoInitClipPaths(xd);
     CairoInitMasks(xd);
-    CairoInitGroups(xd);
     xd->appending = 0;
 
     return TRUE;
@@ -385,7 +384,6 @@ static void BM_Close(pDevDesc dd)
 	    xd->type == TIFF || xd->type == BMP || xd->type == PNGdirect)
 	    BM_Close_bitmap(xd);
     if (xd->fp) fclose(xd->fp);
-    CairoDestroyGroups(xd);
     CairoDestroyMasks(xd);
     CairoDestroyClipPaths(xd);
     CairoDestroyPatterns(xd);
@@ -521,12 +519,6 @@ BMDeviceDriver(pDevDesc dd, int kind, SEXP filename,
     dd->releaseClipPath = Cairo_ReleaseClipPath;
     dd->setMask = Cairo_SetMask;
     dd->releaseMask = Cairo_ReleaseMask;
-    dd->defineGroup = Cairo_DefineGroup;
-    dd->useGroup = Cairo_UseGroup;
-    dd->releaseGroup = Cairo_ReleaseGroup;
-    dd->stroke = Cairo_Stroke;
-    dd->fill = Cairo_Fill;
-    dd->fillStroke = Cairo_FillStroke;
 
     dd->left = 0;
     dd->right = width;
@@ -551,7 +543,7 @@ BMDeviceDriver(pDevDesc dd, int kind, SEXP filename,
     dd->startfont = 1;
     dd->startgamma = 1;
     dd->displayListOn = FALSE;
-    dd->deviceVersion = R_GE_group;
+    dd->deviceVersion = R_GE_definitions;
 
     dd->deviceSpecific = (void *) xd;
 

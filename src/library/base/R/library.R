@@ -988,27 +988,9 @@ function(x)
 {
     v <- paste(R.version[c("major", "minor")], collapse = ".")
 
-    s <- Sys.info()
-
-    R_LIBS_USER_default <- function() {
-        home <- normalizePath("~")
-        ## FIXME: could re-use v from "above".
-        x.y <- paste0(R.version$major, ".",
-                      sub("[.].*", "", R.version$minor))
-        if(.Platform$OS.type == "windows")
-            file.path(home, "R", "win-library", x.y)
-        else if(s["sysname"] == "Darwin")
-            file.path(home, "Library", "R", s["machine"], x.y, "library")
-        else
-            file.path(home, "R", paste0(R.version$platform, "-library"), x.y)
-    }
-
-    R_LIBS_SITE_default <- file.path(R.home(), "site-library")
-
-    expand <- function(x, spec, expansion) {
-        replace <- sprintf("\\1\\2%s", gsub("([\\])", "\\\\\\1", expansion))
-        gsub(paste0("(^|[^%])(%%)*%", spec), replace, x)
-    }
+    expand <- function(x, spec, expansion)
+        gsub(paste0("(^|[^%])(%%)*%", spec),
+             sprintf("\\1\\2%s", expansion), x)
 
     ## %V => version x.y.z
     x <- expand(x, "V", v)
@@ -1020,10 +1002,6 @@ function(x)
     x <- expand(x, "a", R.version$arch)
     ## %o => os
     x <- expand(x, "o", R.version$os)
-    ## %U => R_LIBS_USER default
-    x <- expand(x, "U", R_LIBS_USER_default())
-    ## %S => R_LIBS_SITE default
-    x <- expand(x, "S", R_LIBS_SITE_default)
 
-    gsub("%%", "%", x, fixed = TRUE)
+    gsub("%%", "%", x, fixed=TRUE)
 }

@@ -160,8 +160,6 @@ typedef struct {
     int numMasks;
     cairo_pattern_t **masks;
     int currentMask;
-    int numGroups;
-    cairo_pattern_t **groups;
 #endif
 
     double fontscale;

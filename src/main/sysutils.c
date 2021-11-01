@@ -794,8 +794,10 @@ void * Riconv_open (const char* tocode, const char* fromcode)
 // These two support "utf8"
 # ifdef Win32
     const char *cp = "ASCII";
+#  ifndef SUPPORT_UTF8_WIN32 /* Always, at present */
     char to[20] = "";
     if (localeCP > 0) {snprintf(to, 20, "CP%d", localeCP); cp = to;}
+#  endif
 # else /* __APPLE__ */
     const char *cp = "UTF-8";
     if (latin1locale) cp = "ISO-8859-1";
@@ -1284,7 +1286,6 @@ const wchar_t *wtransChar(SEXP x)
 #endif
     }
 
-    /* R_AllocStringBuffer returns correctly aligned for wchar_t */
     R_AllocStringBuffer(0, &cbuff);
 top_of_loop:
     inbuf = ans; inb = strlen(inbuf);
@@ -1298,12 +1299,12 @@ next_char:
 	R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 	goto top_of_loop;
     } else if(res == -1 && (errno == EILSEQ || errno == EINVAL)) {
-	if(outb < 5 * sizeof(wchar_t)) {
+	if(outb < 5) {
 	    R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 	    goto top_of_loop;
 	}
-	swprintf((wchar_t*)outbuf, 5, L"<%02x>", (unsigned char)*inbuf);
-	outbuf += 4 * sizeof(wchar_t); outb -= 4 * sizeof(wchar_t);
+	snprintf(outbuf, 5, "<%02x>", (unsigned char)*inbuf);
+	outbuf += 4; outb -= 4;
 	inbuf++; inb--;
 	goto next_char;
 	/* if(!knownEnc) Riconv_close(obj);
@@ -1782,7 +1783,6 @@ void R_reInitTempDir(int die_on_fail)
 #ifdef Win32
     char tmp2[PATH_MAX];
     int hasspace = 0;
-    DWORD res = 0;
 #endif
 
 #define ERROR_MAYBE_DIE(MSG_)			\
@@ -1812,16 +1812,8 @@ void R_reInitTempDir(int die_on_fail)
 	for (p = tm; *p; p++)
 	    if (isspace(*p)) { hasspace = 1; break; }
 	if (hasspace) {
-	    res = GetShortPathName(tm, tmp2, MAX_PATH);
-	    if (res != 0) 
-	        tm = tmp2;
-
-	    hasspace = 0;
-	    for (p = tm; *p; p++)
-		if (isspace(*p)) { hasspace = 1; break; }
-	    if (hasspace) {
-		ERROR_MAYBE_DIE(_("'R_TempDir' contains space"));
-	    }
+	    GetShortPathName(tm, tmp2, MAX_PATH);
+	    tm = tmp2;
 	}
 	snprintf(tmp1, PATH_MAX+11, "%s\\RtmpXXXXXX", tm);
 #else

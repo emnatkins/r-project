@@ -1718,12 +1718,13 @@ xtfrm.data.frame <- function(x) {
 }
 
 list2DF <-
-function(x = list(), nrow = 0L)
+function(x = list(), nrow = NULL)
 {
     stopifnot(is.list(x), is.null(nrow) || nrow >= 0L)
     if(n <- length(x)) {
-        if(length(nrow <- unique(lengths(x))) > 1L)
-            stop("all variables should have the same length")
+        if(is.null(nrow))
+            nrow <- max(lengths(x), 0L)
+        x <- lapply(x, rep_len, nrow)
     } else {
         if(is.null(nrow))
             nrow <- 0L

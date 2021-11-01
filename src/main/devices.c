@@ -510,7 +510,6 @@ pGEDevDesc GEcreateDevDesc(pDevDesc dev)
     gdd->recordGraphics = TRUE;
     gdd->ask = Rf_GetOptionDeviceAsk();
     gdd->dev->eventEnv = R_NilValue;  /* gc needs this */
-    gdd->appending = FALSE;
     return gdd;
 }
 

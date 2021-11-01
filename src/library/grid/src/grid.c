@@ -189,14 +189,14 @@ SEXP doSetViewport(SEXP vp,
     /*
      * Establish the clipping region for this viewport
      */
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /*
          * Clipping settings are (silently) ignored during resolution of 
-         * a (clipping) path
+         * a clipping path
          */
         if (!isClipPath(viewportClipSXP(vp)) &&
             (viewportClip(vp) == NA_LOGICAL || viewportClip(vp))) {
-            warning(_("Turning clipping on or off within a (clipping) path is no honoured"));
+            warning(_("Turning clipping on or off within a clipping path is no honoured"));
         }
     } else if (isClipPath(viewportClipSXP(vp))) {
         SEXP currentClip, parentClip;
@@ -355,7 +355,7 @@ SEXP doSetViewport(SEXP vp,
     /*
      * Establish the mask for this viewport
      */
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /* Masks are (silently) ignored during resolution of a 
          * clipping path
          */
@@ -451,8 +451,8 @@ SEXP L_setviewport(SEXP invp, SEXP hasParent)
         SEXP clip, resolvedclip;
         PROTECT(clip = viewportClipSXP(pushedvp));
         if (isClipPath(clip)) {
-            if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
-                warning(_("Clipping paths within a (clipping) path are not honoured"));
+            if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
+                warning(_("Clipping paths within a clipping path are not honoured"));
                 SET_VECTOR_ELT(pushedvp, PVP_CLIPPATH, R_NilValue);
             } else {
                 /* Record the resolved clip path for subsequent up/down/pop */
@@ -470,8 +470,8 @@ SEXP L_setviewport(SEXP invp, SEXP hasParent)
         SEXP mask, resolvedmask;
         PROTECT(mask = viewportMaskSXP(pushedvp));
         if (isMask(mask)) {
-            if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
-                warning(_("Masks within a (clipping) path are not honoured"));
+            if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
+                warning(_("Masks within a clipping path are not honoured"));
                 SET_VECTOR_ELT(pushedvp, PVP_MASK, R_NilValue);
             } else {
                 /* Record resolved mask for subsequent up/down/pop */
@@ -973,7 +973,7 @@ SEXP L_unsetviewport(SEXP n)
     setGridStateElement(dd, GSS_VP, newvp);
     /* Set the clipping region to the parent's cur.clip
      */
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /* Clipping is (silently) ignored during resolution of 
          * a clipping path
          */
@@ -994,7 +994,7 @@ SEXP L_unsetviewport(SEXP n)
         }
         UNPROTECT(2);
     }
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /* Masks are (silently) ignored during resolution of 
          * a clipping path
          */
@@ -1068,7 +1068,7 @@ SEXP L_upviewport(SEXP n)
     setGridStateElement(dd, GSS_VP, newvp);
     /* Set the clipping region to the parent's cur.clip
      */
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /* Clipping is (silently) ignored during resolution of 
          * a clipping path
          */
@@ -1089,7 +1089,7 @@ SEXP L_upviewport(SEXP n)
         }
         UNPROTECT(2);
     }
-    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGPATH))[0]) {
+    if (LOGICAL(gridStateElement(dd, GSS_RESOLVINGCLIP))[0]) {
         /* Masks are (silently) ignored during resolution of 
          * a clipping path
          */
@@ -1293,23 +1293,14 @@ SEXP L_newpage()
 	GENewPage(&gc, dd);
     }
     
-    return R_NilValue;
-}
-
-SEXP L_clearDefinitions(SEXP clearGroups) {
-    pGEDevDesc dd = getDevice();
     /* Clear all device patterns */
     dd->dev->releasePattern(R_NilValue, dd->dev);
     /* Clear all clip paths */
-    setGridStateElement(dd, GSS_RESOLVINGPATH, ScalarLogical(FALSE));
+    setGridStateElement(dd, GSS_RESOLVINGCLIP, ScalarLogical(FALSE));
     dd->dev->releaseClipPath(R_NilValue, dd->dev);
     /* Clear all masks */
     dd->dev->releaseMask(R_NilValue, dd->dev);
-    if (LOGICAL(clearGroups)[0] && 
-        dd->dev->deviceVersion > R_GE_group) {
-        /* Clear all groups */
-        dd->dev->releaseGroup(R_NilValue, dd->dev);
-    }
+
     return R_NilValue;
 }
 
@@ -3966,15 +3957,9 @@ SEXP L_clip(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust)
     return R_NilValue;    
 }
 
-// for API back compatibility:
 SEXP L_pretty(SEXP scale) {
-    /* Default preferred number of ticks hard coded ! */
-    return L_pretty2(scale, ScalarInteger(5));
-}
-SEXP L_pretty2(SEXP scale, SEXP n_) {
     double min = numeric(scale, 0);
     double max = numeric(scale, 1);
-    int n = asInteger(n_);
     double temp;
     /* FIXME:  This is just a dummy pointer because we do not have
      * log scales.  This will cause death and destruction if it is 
@@ -3982,6 +3967,8 @@ SEXP L_pretty2(SEXP scale, SEXP n_) {
      */
     double *usr = NULL;
     double axp[3];
+    /* FIXME:  Default preferred number of ticks hard coded ! */
+    int n = 5;
     Rboolean swap = min > max;
     /* 
      * Feature: 

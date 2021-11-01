@@ -67,9 +67,9 @@
                                       "13" = "High Sierra",
                                       "14" = "Mojave",
                                       "15" = "Catalina",
-                                      ## used for early pre-releases of Big Sur
+                                      ## used for early pre-releases
                                       ## and still reported by Xcode 10's SDK
-                                      "16" = "Big Sur/Monterey",
+                                      "16" = "Big Sur",
                                       ""),
                                ver)
                    else if(ver1[1L] <= "12")

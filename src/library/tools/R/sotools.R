@@ -420,7 +420,8 @@ nonAPI <- c("chol_", "chol2inv_", "cg_", "ch_", "rg_",
             "max_contour_segments", "mbcsToUcs2", "memtrace_report",
             "parseError", "pythag_", "rs_", "rwarnc_",
             "tql2_", "tqlrat_", "tred1_", "tred2_", "utf8locale", "yylloc",
-            # "signrank_free", "wilcox_free" are API only from 4.2.0
+            ## "signrank_free", "wilcox_free" are API only from 4.2.0
+            ## but WRE advised using them long before.
 
 ## Rinterface.h, Rembedded.h, R_ext/{RStartup,eventloop}.h
             "AllDevicesKilled", "R_CStackLimit", "R_CStackStart",

@@ -32,15 +32,8 @@ bindtextdomain(domain, dirname = NULL)
 \details{
   If \code{domain} is \code{NULL} or \code{""}, and \code{gettext}
   or \code{ngettext}  is called from a function in the namespace of
-  package \pkg{pkg} including called via \code{\link{stop}()},
-  \code{\link{warning}()}, or \code{\link{message}()} from the function,
-  or, say, evaluated as if called from that namespace, see the
-  \code{evalq()} example, % and more in ../../../../tests/reg-translation.R
-  the domain is set to \code{"R-pkg"}.  Otherwise there is no default
-  domain and messages are not translated unless \code{domain} is provided
-  explicitly.  Note in particular that \code{.onAttach}
-  and \code{\link{.onLoad}} are not called from the package namespace, so
-  messages there should always provide a domain explicitly.
+  package \pkg{pkg} the domain is set to \code{"R-pkg"}.  Otherwise
+  there is no default domain.
 
   If a suitable domain is found, each character string is offered for
   translation, and replaced by its translation into the current language
@@ -85,8 +78,8 @@ bindtextdomain(domain, dirname = NULL)
   \code{\link{stop}} and \code{\link{warning}} make use of \code{gettext} to
   translate messages.
 
-  \code{\link{xgettext}} (package \pkg{tools}) for extracting translatable
-  strings from \R source files.
+  \code{\link{xgettext}} for extracting translatable strings from \R
+  source files.
 }
 \examples{
 bindtextdomain("R")  # non-null if and only if NLS is enabled
@@ -114,13 +107,6 @@ cat(sprintf(ngettext(length(miss),
                      "variable \%s contains missing values\n",
                      "variables \%s contain missing values\n"),
             paste(sQuote(miss), collapse = ", ")))
-
-enT <- "empty model supplied"
-Sys.setenv(LANGUAGE = "de") # may not always 'work'
-gettext(enT, domain="R-stats")# "leeres Modell angegeben" (if translation works)
-tget <- function() gettext(enT)
-tget() # not translated as fn tget() is not from "stats" pkg/namespace
-evalq(function() gettext(enT), asNamespace("stats"))() # *is* translated
 }
 \keyword{ utilities }
 \keyword{ character }

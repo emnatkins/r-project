@@ -425,7 +425,7 @@ static int wd(const char * buf)
 #else
 	nw = wcswidth(wc, 2147483647);
 #endif
-	return (nw < 0) ? nc : nw;
+	return (nw < 1) ? nc : nw;
     }
     return nc;
 }
@@ -1089,65 +1089,47 @@ void NORET jump_to_toplevel()
 
 /* #define DEBUG_GETTEXT 1 */
 
-#ifdef DEBUG_GETTEXT
-# include <Print.h>
-# define GETT_PRINT(...) REprintf(__VA_ARGS__)
-#else
-# define GETT_PRINT(...) do {} while(0)
-#endif
 
 /* Called from do_gettext() and do_ngettext() */
-static char * determine_domain_gettext(SEXP domain_, Rboolean up)
+static char * determine_domain_gettext(SEXP domain_, SEXP rho)
 {
     const char *domain = "";
     char *buf; // will be returned
 
-    /* If TYPEOF(cptr->callfun) == CLOSXP (not .Primitive("eval")),
-     * ENCLOS(cptr->cloenv) is CLOENV(cptr->callfun) */
-    /* R_findParentContext(cptr, 1)->cloenv == cptr->sysparent */
+    /* The passed rho is ignored because (n)gettext is called through a
+     * helper function in stop.R. And the context is more useful anyhow */
     if(isNull(domain_)) {
 	RCNTXT *cptr;
-	GETT_PRINT(">> determine_domain_gettext(), first rho=%s\n", EncodeEnvironment(rho));
+	for (cptr = R_GlobalContext; cptr != NULL && cptr->callflag != CTXT_TOPLEVEL;
+	     cptr = cptr->nextcontext)
+	    if (cptr->callflag & CTXT_FUNCTION) {
+		/* stop() etc have internal call to .makeMessage */
+		const char *cfn = CHAR(STRING_ELT(deparse1s(CAR(cptr->call)), 0));
 
-	/* stop() etc have internal call to .makeMessage */
-	/* gettextf calls gettext */
-
-	SEXP rho = R_EmptyEnv;
-	if(R_GlobalContext->callflag & CTXT_FUNCTION) {
-	    if(up) {
-		SEXP call = R_GlobalContext->call;
-		/* The call is of the form
-		   <symbol>(<symbol>, domain = domain [possible other argument]) */
-		rho =
-		    (isSymbol(CAR(call)) && (call = CDR(call)) != R_NilValue &&
-		     TAG(call) == R_NilValue && isSymbol(CAR(call)) &&
-		     (call = CDR(call)) != R_NilValue &&
-		     isSymbol(TAG(call)) && streql(CHAR(PRINTNAME(TAG(call))), "domain") &&
-		     isSymbol(CAR(call)) && streql(CHAR(PRINTNAME(CAR(call))), "domain") &&
-		     (cptr = R_findParentContext(R_GlobalContext, 1)))
-		    ? cptr->sysparent
-		    : R_GlobalContext->sysparent;
+		if(streql(cfn, "stop") || streql(cfn, "warning") || streql(cfn, "message"))
+		    continue;
+		else
+		    break;
 	    }
-	    else
-		rho = R_GlobalContext->sysparent;
-	}
-	GETT_PRINT(" .. rho1_domain_ => rho=%s\n", EncodeEnvironment(rho));
 
+	/* First we try to see if sysparent leads us to a namespace, because gettext
+	   might have a different environment due to being called from (in?) a closure.
+	   If that fails we try cloenv, as the original code did. */
+	/* FIXME: should we only do this search when cptr->callflag & CTXT_FUNCTION? */
 	SEXP ns = R_NilValue;
-	int cnt = 0;
+	for(size_t attempt = 0; attempt < 2 && isNull(ns); attempt++) {
+	    rho = (cptr == NULL) ?
+		R_EmptyEnv :
+		attempt == 0 ? cptr->sysparent : cptr->cloenv;
 	    while(rho != R_EmptyEnv) {
 		if (rho == R_GlobalEnv) break;
 		else if (R_IsNamespaceEnv(rho)) {
 		    ns = R_NamespaceEnvSpec(rho);
 		    break;
 		}
-		if(++cnt <= 5 || cnt > 99) { // diagnose "inf." loop
-		    GETT_PRINT("  cnt=%4d, rho=%s\n", cnt, EncodeEnvironment(rho));
-		    if(cnt > 111) break;
-		}
-		if(rho == ENCLOS(rho)) break; // *did* happen; now keep for safety
 		rho = ENCLOS(rho);
 	    }
+	}
 	if (!isNull(ns)) {
 	    PROTECT(ns);
 	    domain = translateChar(STRING_ELT(ns, 0));
@@ -1156,10 +1138,12 @@ static char * determine_domain_gettext(SEXP domain_, Rboolean up)
 		buf = R_alloc(len, sizeof(char));
 		Rsnprintf_mbcs(buf, len, "R-%s", domain);
 		UNPROTECT(1); /* ns */
-		GETT_PRINT("Managed to determine 'domain' from environment as: '%s'\n", buf);
+#ifdef DEBUG_GETTEXT
+		REprintf("Managed to determine 'domain' from environment as: '%s'\n", buf);
+#endif
 		return buf;
 	    }
-	    UNPROTECT(1); /* ns */
+	    UNPROTECT(1); /* ns */ 
 	}
 	return NULL;
 
@@ -1170,7 +1154,7 @@ static char * determine_domain_gettext(SEXP domain_, Rboolean up)
 	buf = R_alloc(strlen(domain) + 1, sizeof(char));
 	strcpy(buf, domain);
 	return buf;
-
+	
     } else if(isLogical(domain_) && LENGTH(domain_) == 1 && LOGICAL(domain_)[0] == NA_LOGICAL)
 	return NULL;
     else error(_("invalid '%s' value"), "domain");
@@ -1189,7 +1173,7 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     if(!isString(string)) error(_("invalid '%s' value"), "string");
 
-    char * domain = determine_domain_gettext(CAR(args), /*up*/TRUE);
+    char * domain = determine_domain_gettext(CAR(args), rho);
 
     if(domain && strlen(domain)) {
 	SEXP ans = PROTECT(allocVector(STRSXP, n));
@@ -1227,7 +1211,9 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 
 	    if(strlen(tmp)) {
-		GETT_PRINT("translating '%s' in domain '%s'\n", tmp, domain);
+#ifdef DEBUG_GETTEXT
+		REprintf("translating '%s' in domain '%s'\n", tmp, domain);
+#endif
 		tr = dgettext(domain, tmp);
  		R_CheckStack2(        strlen(tr) + ihead + itail + 1);
 		tmp = (char *) alloca(strlen(tr) + ihead + itail + 1);
@@ -1261,7 +1247,8 @@ SEXP attribute_hidden do_ngettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("'%s' must be a character string"), "msg2");
 
 #ifdef ENABLE_NLS
-    char * domain = determine_domain_gettext(CADDDR(args), /*up*/FALSE);
+    SEXP sdom = CADDDR(args);
+    char * domain = determine_domain_gettext(sdom, rho);
 
     if(domain && strlen(domain)) {
 	/* libintl seems to malfunction if given a message of "" */
@@ -1292,7 +1279,7 @@ SEXP attribute_hidden do_bindtextdomain(SEXP call, SEXP op, SEXP args, SEXP rho)
     } else {
 	if(!isString(CADR(args)) || LENGTH(CADR(args)) != 1)
 	    error(_("invalid '%s' value"), "dirname");
-	res = bindtextdomain(translateChar(STRING_ELT(CAR (args),0)),
+	res = bindtextdomain(translateChar(STRING_ELT(CAR(args),0)),
 			     translateChar(STRING_ELT(CADR(args),0)));
     }
     if(res) return mkString(res);
@@ -1833,12 +1820,10 @@ static void NORET gotoExitingHandler(SEXP cond, SEXP call, SEXP entry)
 
 static void vsignalError(SEXP call, const char *format, va_list ap)
 {
-    /* This function does not protect or restore the old handler
-       stack. On return R_HandlerStack will be R_NilValue (unless
-       R_RestartToken is encountered). */
     char localbuf[BUFSIZE];
-    SEXP list;
+    SEXP list, oldstack;
 
+    PROTECT(oldstack = R_HandlerStack);
     Rvsnprintf_mbcs(localbuf, BUFSIZE - 1, format, ap);
     while ((list = findSimpleErrorHandler()) != R_NilValue) {
 	char *buf = errbuf;
@@ -1849,14 +1834,17 @@ static void vsignalError(SEXP call, const char *format, va_list ap)
 	if (IS_CALLING_ENTRY(entry)) {
 	    if (ENTRY_HANDLER(entry) == R_RestartToken) {
 		UNPROTECT(1); /* oldstack */
-		break; /* go to default error handling */
+		return; /* go to default error handling; do not reset stack */
 	    } else {
 		/* if we are in the process of handling a C stack
 		   overflow, treat all calling handlers as failed */
 		if (R_OldCStackLimit)
 		    continue;
 		SEXP hooksym, hcall, qcall, qfun;
-		PROTECT(entry); /* protect since no longer on the stack */
+		/* protect oldstack here, not outside loop, so handler
+		   stack gets unwound in case error is protect stack
+		   overflow */
+		PROTECT(oldstack);
 		hooksym = install(".handleSimpleError");
 		qfun = lang3(R_DoubleColonSymbol, R_BaseSymbol,
 		             R_QuoteSymbol);
@@ -1873,6 +1861,8 @@ static void vsignalError(SEXP call, const char *format, va_list ap)
 	}
 	else gotoExitingHandler(R_NilValue, call, entry);
     }
+    R_HandlerStack = oldstack;
+    UNPROTECT(1); /* oldstack */
 }
 
 static SEXP findConditionHandler(SEXP cond)
@@ -2577,102 +2567,4 @@ SEXP attribute_hidden do_addGlobHands(SEXP call, SEXP op,SEXP args, SEXP rho)
 
     R_ToplevelContext->handlerstack = R_HandlerStack;
     return R_NilValue;
-}
-
-
-/* signaling conditions from C code */
-
-void attribute_hidden R_signalCondition(SEXP cond, SEXP call,
-					int restoreHandlerStack,
-					int exitOnly)
-{
-    if (restoreHandlerStack) {
-	SEXP oldstack = R_HandlerStack;
-	PROTECT(oldstack);
-	R_signalCondition(cond, call, FALSE, exitOnly);
-	R_HandlerStack = oldstack;
-	UNPROTECT(1); /* oldstack */
-    }
-    else {
-	SEXP list;
-	while ((list = findConditionHandler(cond)) != R_NilValue) {
-	    SEXP entry = CAR(list);
-	    R_HandlerStack = CDR(list);
-	    if (IS_CALLING_ENTRY(entry)) {
-		SEXP h = ENTRY_HANDLER(entry);
-		if (h == R_RestartToken)
-		    break;
-		else if (! exitOnly) {
-		    R_CheckStack();
-		    SEXP hcall = LCONS(h, LCONS(cond, R_NilValue));
-		    PROTECT(hcall);
-		    eval(hcall, R_GlobalEnv);
-		    UNPROTECT(1); /* hcall */
-		}
-	    }
-	    else gotoExitingHandler(cond, call, entry);
-	}
-    }
-}
-
-attribute_hidden
-void NORET R_signalErrorConditionEx(SEXP cond, SEXP call, int exitOnly)
-{
-    /* caller must make sure that 'cond' and 'call' are protected. */
-    R_signalCondition(cond, call, FALSE, exitOnly);
-
-    /* the first element of 'cond' must be a scalar string to be used
-       as the error message in default error processing. */
-    if (TYPEOF(cond) != VECSXP || LENGTH(cond) == 0)
-	error(_("condition object must be a VECSXP of length at least one"));
-    SEXP elt = VECTOR_ELT(cond, 0);
-    if (TYPEOF(elt) != STRSXP || LENGTH(elt) != 1)
-	error(_("first element of condition object must be a scalar string"));
-    
-    /* handler stack has been unwound so this uses the default handler */
-    errorcall(call, "%s", CHAR(STRING_ELT(elt, 0)));
-}
-
-attribute_hidden
-void NORET R_signalErrorCondition(SEXP cond, SEXP call)
-{
-    R_signalErrorConditionEx(cond, call, FALSE);
-}
-
-
-/* creating internal error conditions */
-
-/* use a static global buffer to create messages for the error
-   condition objects to save stack space */
-static char emsg_buf[BUFSIZE];
-
-attribute_hidden
-SEXP R_makeNotSubsettableError(SEXP x, SEXP call)
-{
-    if (call == R_CurrentExpression)
-	/* behave like error() */
-	call = getCurrentCall();
-
-    SEXP cond = allocVector(VECSXP, 3);
-    PROTECT(cond);
-    Rsnprintf_mbcs(emsg_buf, BUFSIZE - 1,  R_MSG_ob_nonsub,
-		   type2char(TYPEOF(x)));
-    SET_VECTOR_ELT(cond, 0, mkString(emsg_buf));
-    SET_VECTOR_ELT(cond, 1, call);
-    SET_VECTOR_ELT(cond, 2, x);
-    
-    SEXP names = allocVector(STRSXP, 3);
-    setAttrib(cond, R_NamesSymbol, names);
-    SET_STRING_ELT(names, 0, mkChar("message"));
-    SET_STRING_ELT(names, 1, mkChar("call"));
-    SET_STRING_ELT(names, 2, mkChar("object"));
-
-    SEXP klass = allocVector(STRSXP, 3);
-    setAttrib(cond, R_ClassSymbol, klass);
-    SET_STRING_ELT(klass, 0, mkChar("notSubsettableError"));
-    SET_STRING_ELT(klass, 1, mkChar("error"));
-    SET_STRING_ELT(klass, 2, mkChar("condition"));
-
-    UNPROTECT(1); /* cond */
-    return cond;
 }

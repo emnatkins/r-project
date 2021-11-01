@@ -1651,7 +1651,7 @@ to somewhere on your path.} so these can be typed as commands as on any
 other Unix-alike: see the next chapter of this manual.  There are some
 small differences which may surprise users of @R{} on other platforms,
 notably the default location of the personal library directory (under
-@file{~/Library/R}, e.g.@: @file{~/Library/R/x86_64/4.2/library}), and
+@file{~/Library/R}, e.g.@: @file{~/Library/R/x86_64/4.1/library}), and
 that warnings, messages and other output to @file{stderr} are
 highlighted in bold.
 
@@ -1773,7 +1773,7 @@ that Intel and ARM versions can be installed together, apart from
 installed.  This can be avoided by using @command{pkgutil --forget} (see
 the previous section).  However, note that different versions are
 installed under @file{/Library/Frameworks/R.framework/Versions} as
-@file{4.2} (or @file{4.2-arm64}), @file{4.1} and so on, so it is not
+@file{4.1} (or @file{4.1-arm64}), @file{4.1} and so on, so it is not
 possible to have different @samp{4.x.y} versions installed for the same
 @samp{x} and CPU type.
 
@@ -1918,7 +1918,8 @@ read, so users cannot easily change it.} @samp{.Library.site} in
 @file{@var{R_HOME}/etc/Rprofile.site}, or (not recommended) by setting
 the
 @enindex R_LIBS_SITE
-environment variable @env{R_LIBS_SITE}.
+environment variable @env{R_LIBS_SITE}.  Like @samp{.Library}, the
+site libraries are always included by @samp{.libPaths()}.
 
 @cindex Libraries, user
 @cindex User libraries
@@ -2162,7 +2163,7 @@ source versions of packages without compiled C/C++/Fortran code and offer
 to do so for those with, if @command{make} is available.
 
 Note that most binary packages which include compiled code are tied to a
-particular series (e.g.@: @R{} 4.1.x or 4.2.x) of @R{}.
+particular series (e.g.@: @R{} 4.0.x or 4.1.x) of @R{}.
 
 Installing source packages which do not contain compiled code should
 work with no additional tools. For others you will need the
@@ -3496,7 +3497,7 @@ require the @samp{libXmu} and @samp{libXmu-devel} RPMs.
 Some systems (notably macOS and at least some FreeBSD systems) have
 inadequate support for collation in multibyte locales.  It is possible
 to replace the OS's collation support by that from ICU (International
-Components for Unicode, @uref{https://icu.unicode.org/}), and this
+Components for Unicode, @uref{http://site.icu-project.org/}), and this
 provides much more precise control over collation on all systems.  ICU
 is available as sources and as binary distributions for (at least) most
 Linux distributions, Solaris, FreeBSD, macOS and AIX, usually as
@@ -5285,10 +5286,10 @@ available only for @cputype{arm64}, where components @code{cairo},
 @subsection Other C/C++ compilers
 
 Other distributions of @command{clang} may be available from
-@uref{https://releases.llvm.org/}.@footnote{At the time of writing there
-was one for @command{clang} 12.0.0 but not for several other recent
-versions.} In particular, these include support for OpenMP which Apple
-builds of @command{clang} do not.
+@uref{https://releases.llvm.org/}.  In particular, these include support
+for OpenMP which Apple builds of @command{clang} do not, and may contain
+more bugfixes and new features (such as better diagnostics) than that in
+Command Line Tools / Xcode.
 
 Suppose one of these distributions is installed under
 @file{/usr/local/clang}. Use a file @file{config.site} containing
@@ -5532,7 +5533,7 @@ JAVA_HOME=/path/to/jdk-17.jdk/Contents/Home
 @end example
 
 For an @cputype{arm64} build, the earliest Java version which is
-officially supported is 17.  The currently simplest way to install Java
+officially supported is 17.  The currrently simplest way to install Java
 is from @uref{https://adoptium.net, Adoptium} (who call the architecture
 @cputype{aarch64}): this installs into an Apple-standard location and so
 works with @command{/usr/bin/java}. Other builds are available from

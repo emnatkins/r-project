@@ -31,13 +31,18 @@ do_mapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP f = CAR(args),
 	varyingArgs = CADR(args),   // = 'dots' in R
 	constantArgs = CADDR(args); // = 'MoreArgs' in R
-    int nprot = 0;
+    R_xlen_t *lengths, *counters, longest = 0;
+
+    int nprot = 5;
     if(TYPEOF(varyingArgs) != VECSXP) { // (rarely, hence checking)
 	varyingArgs = PROTECT(coerceVector(varyingArgs, VECSXP)); // or error
 	nprot++;
     }
     int m = length(varyingArgs);
-    R_xlen_t *lengths = (R_xlen_t *)  R_alloc(m, sizeof(R_xlen_t)), longest = 0;
+    SEXP vnames = PROTECT(getAttrib(varyingArgs, R_NamesSymbol));
+    Rboolean named = vnames != R_NilValue;
+
+    lengths = (R_xlen_t *)  R_alloc(m, sizeof(R_xlen_t));
     int zero = 0;
     for (int i = 0; i < m; i++) {
 	SEXP tmp1 = VECTOR_ELT(varyingArgs, i);
@@ -55,26 +60,20 @@ do_mapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	if (lengths[i] == 0) zero++;
 	if (lengths[i] > longest) longest = lengths[i];
-	if (zero && longest) {
-	    // warning(_("zero-length input leads to zero-length result"));
-	    SEXP ans = allocVector(VECSXP, 0);
-	    UNPROTECT(nprot);
-	    return ans;
-	}
     }
+    if (zero && longest)
+	error(_("zero-length inputs cannot be mixed with those of non-zero length"));
 
-    R_xlen_t *counters = (R_xlen_t *) R_alloc(m, sizeof(R_xlen_t));
+    counters = (R_xlen_t *) R_alloc(m, sizeof(R_xlen_t));
     if (m) memset(counters, 0, m * sizeof(R_xlen_t));
 
-    SEXP vnames = PROTECT(getAttrib(varyingArgs, R_NamesSymbol));
     SEXP mindex = PROTECT(allocVector(VECSXP, m));
     SEXP nindex = PROTECT(allocVector(VECSXP, m));
-    nprot += 3;
-    Rboolean named = vnames != R_NilValue;
 
     /* build a call like
        f(dots[[1]][[4]], dots[[2]][[4]], dots[[3]][[4]], d=7)
     */
+
     SEXP fcall = R_NilValue; // -Wall
     if (constantArgs == R_NilValue)
 	;
@@ -83,7 +82,7 @@ do_mapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if (!isPairList(constantArgs))
 	error(_("argument 'MoreArgs' of 'mapply' is not a list or pairlist"));
     PROTECT_INDEX fi;
-    PROTECT_WITH_INDEX(fcall, &fi); nprot++;
+    PROTECT_WITH_INDEX(fcall, &fi);
 
     Rboolean realIndx = longest > INT_MAX;
     SEXP Dots = install("dots");
@@ -100,7 +99,7 @@ do_mapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     REPROTECT(fcall = LCONS(f, fcall), fi);
 
-    SEXP ans = PROTECT(allocVector(VECSXP, longest)); nprot++;
+    SEXP ans = PROTECT(allocVector(VECSXP, longest));
 
     for (int i = 0; i < longest; i++) {
 	for (int j = 0; j < m; j++) {

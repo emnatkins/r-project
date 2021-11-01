@@ -460,17 +460,6 @@ static void R_InitProfiling(SEXP filename, int append, double dinterval,
 
     signal(SIGPROF, doprof);
 
-    /* The macOS implementation requires normalization here:
-
-       setitimer is obsolescent (POSIX >= 2008), replaced by
-       timer_create / timer_settime, but the supported clocks are
-       implementation-dependent.
-
-       Recent Linux has CLOCK_PROCESS_CPUTIME_ID
-       Solaris has CLOCK_PROF, in -lrt.
-       FreeBSD only supports CLOCK_{REALTIME,MONOTONIC}
-       Seems not to be supported at all on macOS.
-    */ 
     itv.it_interval.tv_sec = interval / 1000000;
     itv.it_interval.tv_usec =
 	(suseconds_t)(interval - itv.it_interval.tv_sec * 10000000);

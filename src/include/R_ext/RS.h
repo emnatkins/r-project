@@ -44,10 +44,10 @@ extern "C" {
 
 /* S Like Error Handling */
 
-#if !defined STRICT_R_HEADERS && defined R_LEGACY_S_DEFS && R_LEGACY_S_DEFS
+#include <R_ext/Error.h>	/* for error and warning */
 
-#include <R_ext/Error.h>	/* for Rf_error and Rf_warning */
-    
+#ifndef STRICT_R_HEADERS
+
 #define R_PROBLEM_BUFSIZE	4096
 /* Parentheses added for FC4 with gcc4 and -D_FORTIFY_SOURCE=2 */
 #define PROBLEM			{char R_problem_buf[R_PROBLEM_BUFSIZE];(snprintf)(R_problem_buf, R_PROBLEM_BUFSIZE,
@@ -73,19 +73,15 @@ extern void R_chk_free(void *);
 #define Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
 #define Free(p)        (R_chk_free( (void *)(p) ), (p) = NULL)
 #endif
-    
 #define R_Calloc(n, t)   (t *) R_chk_calloc( (R_SIZE_T) (n), sizeof(t) )
 #define R_Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
 #define R_Free(p)      (R_chk_free( (void *)(p) ), (p) = NULL)
 
-/* undocumented until 4.1.2: widely used. */
 #define Memcpy(p,q,n)  memcpy( p, q, (R_SIZE_T)(n) * sizeof(*p) )
 
-/* added for 3.0.0 but undocumented until 4.1.2.
-   Used by a couple of packages. */
+/* added for 3.0.0 */
 #define Memzero(p,n)  memset(p, 0, (R_SIZE_T)(n) * sizeof(*p))
 
-/* In NEWS.2 for R 2.6.0 for but not otherwise documented.  Used by patchDVI */
 #define CallocCharBuf(n) (char *) R_chk_calloc(((R_SIZE_T)(n))+1, sizeof(char))
 
 /* S Like Fortran Interface */

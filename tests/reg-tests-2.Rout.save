@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2021-10-13 r81047) -- "Unsuffered Consequences"
+R version 4.1.1 Patched (2021-10-12 r81047) -- "Kick Things"
 Copyright (C) 2021 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -811,11 +811,9 @@ attr(,"scaled:scale")
 > 
 > ## ts
 > # Ensure working arithmetic for 'ts' objects :
-> z <- ts(matrix(1:300, 100, 3), start = c(1961, 1), frequency = 12)
+> z <- ts(matrix(1:900, 100, 3), start = c(1961, 1), frequency = 12)
 > stopifnot(z == z)
 > stopifnot(z-z == 0)
-> if(FALSE) ## <<-- not currently: _R_CHECK_MATRIX_DATA_ \\ related to earlier code:
-+ tools::assertWarning(matrix(1:90, 10, 3), verbose=TRUE)
 > 
 > ts(1:5, start=2, end=4) # truncate
 Time Series:
@@ -2273,11 +2271,11 @@ par("yaxp") :        3.142     3.142         3
 
 j.f = 1e-12 ;  rel.range = 56.02 * EPS
 par("usr")[3:4]:     3.142     3.142
-par("yaxp") :        3.142     3.142         3
+par("yaxp") :        3.142     3.142         1
 
 j.f = 7e-13 ;  rel.range = 39.47 * EPS
 par("usr")[3:4]:     3.142     3.142
-par("yaxp") :        3.142     3.142         5
+par("yaxp") :        3.142     3.142         1
 
 j.f = 3e-13 ;  rel.range = 16.55 * EPS
 par("usr")[3:4]:     3.142     3.142
@@ -2303,9 +2301,13 @@ j.f = 1e-14 ;  rel.range =     0 * EPS
 par("usr")[3:4]:     1.784     4.499
 par("yaxp") :            2         4         4
 
-Warning message:
-In plot.window(...) :
-  axis(2, *): range of values (    0) is small wrt |M| =       4 --> not pretty()
+Warning messages:
+1: In plot.window(...) :
+  relative range of values (  43 * EPS) is small (axis 2)
+2: In plot.window(...) :
+  relative range of values (  36 * EPS) is small (axis 2)
+3: In plot.window(...) :
+  relative range of values (   0 * EPS) is small (axis 2)
 > par(mfrow = c(1,1))
 > ## The warnings from inside GScale() will differ in their  relrange() ...
 > ## >> do sloppy testing
@@ -5841,10 +5843,6 @@ structure(list(X1.4 = 1:4), class = "data.frame", row.names = c(NA,
 [1] TRUE
 > all.equal(d0, d1)
 [1] TRUE
-> ## change to identical(,attrib.as.set) code to support internal representation in 4.2.0
-> identical(d0, d1, attrib.as.set = FALSE)
-[1] TRUE
-> ##
 > row.names(d1) <- as.character(1:4)
 > dput(d1)
 structure(list(X1.4 = 1:4), class = "data.frame", row.names = c("1", 
@@ -6375,7 +6373,7 @@ function(given = NULL) {
     if (is.null(given)) callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x21f09d0>
+<bytecode: 0x16b2078>
 > print(foo, useSource = FALSE)
 function (given = NULL) 
 {
@@ -6386,7 +6384,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x21f09d0>
+<bytecode: 0x16b2078>
 > attr(foo, "srcref") <- NULL
 > foo
 function (given = NULL) 
@@ -6398,7 +6396,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x21f09d0>
+<bytecode: 0x16b2078>
 > (f <- structure(function(){}, note = "just a note",
 +                 yada = function() "not the same"))
 function(){}
@@ -7249,21 +7247,16 @@ sigma^2 estimated as 0.001499:  log likelihood = 163.79,  aic = -315.58
 > ## failed on mismatched attributes
 > 
 > 
-> ## PR#15411; PR#18098 ==> digits=0 not ok:
+> ## PR#15411, plus digits change
 > format(9992, digits = 3)
 [1] "9992"
 > format(9996, digits = 3)
 [1] "9996"
-> format(0.0002, digits = 1, nsmall = 2, scientific = FALSE)
-[1] "0.0002"
-> assertErrorV(
-+ format(pi*10,  digits = 0))
-Asserted error: invalid value 0 for 'digits' argument
-> format(pi*10,  digits = 1)
-[1] "31"
-> format(pi*10,  digits = 1, nsmall = 1)
+> format(0.0002, digits = 0, nsmall = 2)
+[1] "0.00"
+> format(pi*10, digits = 0, nsmall = 1)
 [1] "31.4"
-> ## second added an extra space.
+> ## second added an extra space; 3rd and 4th were not allowed.
 > 
 > ## and one branch of this was wrong:
 > xx <- c(-86870268, 107833358, 302536985, 481015309, 675718935, 854197259,

@@ -33,12 +33,7 @@ SEXP setMask(SEXP args)
 {
     pGEDevDesc dd = GEcurrentDevice();
     SEXP mask = CADR(args);
-    if (dd->appending && mask != R_NilValue) {
-        warning(_("Mask ignored (device is appending path)"));
-        return R_NilValue;
-    } else {
-        SEXP ref = CADDR(args);
-        ref = dd->dev->setMask(mask, ref, dd->dev);
-        return ref;
-    }
+    SEXP ref = CADDR(args);
+    ref = dd->dev->setMask(mask, ref, dd->dev);
+    return ref;
 }

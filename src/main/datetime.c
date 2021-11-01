@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2021  The R Core Team.
+ *  Copyright (C) 2000-2020  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -740,7 +740,7 @@ SEXP attribute_hidden do_asPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
 	makelt(ptm, ans, i, valid, d - floor(d));
 	if(!isgmt) {
 	    char *p = "";
-	    // or ptm->tm_zone (but not specified by POSIX)
+	    // or ptm->tm_zone
 	    if(valid && ptm->tm_isdst >= 0)
 		p = R_tzname[ptm->tm_isdst];
 	    SET_STRING_ELT(VECTOR_ELT(ans, 9), i, mkChar(p));
@@ -923,7 +923,6 @@ SEXP attribute_hidden do_formatPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
     if(have_zone && !isString(VECTOR_ELT(x, 9)))
 	error(_("invalid component [[10]] in \"POSIXlt\" should be 'zone'"));
     if(!have_zone && LENGTH(x) > 9) // rather even error ?
-	/* never when !HAVE_GMTOFF */
 	warning(_("More than 9 list components in \"POSIXlt\" without timezone"));
     for(R_xlen_t i = 0; i < N; i++) {
 	double secs = REAL(VECTOR_ELT(x, 0))[i%nlen[0]], fsecs = floor(secs);

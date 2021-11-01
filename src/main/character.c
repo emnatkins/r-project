@@ -71,7 +71,7 @@ abbreviate chartr make.names strtrim tolower toupper give error.
 # include <config.h>
 #endif
 
-/* Used to indicate that we can safely convert marked UTF-8 strings
+/* Used to indicate that we can safely converted marked UTF-8 strings
    to wchar_t* -- not currently used.
 */
 #if defined(Win32) || defined(__STDC_ISO_10646__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__sun)
@@ -275,8 +275,8 @@ int R_nchar(SEXP string, nchar_type type_,
 		if (msg_name)
 		    R_FreeStringBufferL(&cbuff);
 		vmaxset(vmax);
-		return (nci18n < 0) ? nc : nci18n;
-	    } else if (!allowNA) {
+		return (nci18n < 1) ? nc : nci18n;
+	    } else if (allowNA) {
 		if (msg_name)
 		    error(_("invalid multibyte string, %s"), msg_name);
 		else
@@ -612,16 +612,11 @@ substrset(char *buf, const char *const str, cetype_t ienc, int sa, int so,
     } else {
 	/* This cannot work for stateful encodings */
 	if (mbcslocale) {
-	    mbstate_t mb_st_in;
-	    mbs_init(&mb_st_in);
-	    for (i = 1; i < sa; i++)
-		buf += Mbrtowc(NULL, buf, R_MB_CUR_MAX, &mb_st_in);
+	    for (i = 1; i < sa; i++) buf += Mbrtowc(NULL, buf, R_MB_CUR_MAX, NULL);
 	    /* now work out how many bytes to replace by how many */
-	    mbstate_t mb_st_out;
-	    mbs_init(&mb_st_out);
 	    for (i = sa; i <= so && in < strlen(str); i++) {
-		in += (int) Mbrtowc(NULL, str+in, R_MB_CUR_MAX, &mb_st_in);
-		out += (int) Mbrtowc(NULL, buf+out, R_MB_CUR_MAX, &mb_st_out);
+		in += (int) Mbrtowc(NULL, str+in, R_MB_CUR_MAX, NULL);
+		out += (int) Mbrtowc(NULL, buf+out, R_MB_CUR_MAX, NULL);
 		if (!str[in]) break;
 	    }
 	    if (in != out) memmove(buf+in, buf+out, strlen(buf+out)+1);
@@ -706,8 +701,6 @@ SEXP attribute_hidden do_substrgets(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	R_FreeStringBufferL(&cbuff);
     }
-    SHALLOW_DUPLICATE_ATTRIB(s, x);
-    /* This copied the class, if any */
     UNPROTECT(1);
     return s;
 }

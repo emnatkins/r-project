@@ -46,9 +46,8 @@ int gridRegisterIndex;
  *  Replaced by per-device setting as from R 2.7.0.]
  * GSS_SCALE 15 = a scale or "zoom" factor for all output 
  *   (to support "fit to window" resizing on windows device)
- * GSS_RESOLVINGPATH 16 = are we currently resolving a (clipping) path
+ * GSS_RESOLVINGCLIP 16 = are we currently resolving a clipping path
  *   (used to turn off/disallow things like clipping while resolving)
- * GSS_GROUPS 17 = mapping of group names to device references
  * 
  * NOTE: if you add to this list you MUST change the size of the vector
  * allocated in createGridSystemState() below.
@@ -56,7 +55,7 @@ int gridRegisterIndex;
 
 SEXP createGridSystemState()
 {
-    return allocVector(VECSXP, 18);
+    return allocVector(VECSXP, 17);
 }
 
 void initDL(pGEDevDesc dd)
@@ -100,7 +99,7 @@ void initOtherState(pGEDevDesc dd)
     /* Clear all device patterns */
     dd->dev->releasePattern(R_NilValue, dd->dev);
     /* Clear all clip paths */
-    setGridStateElement(dd, GSS_RESOLVINGPATH, ScalarLogical(FALSE));
+    setGridStateElement(dd, GSS_RESOLVINGCLIP, ScalarLogical(FALSE));
     dd->dev->releaseClipPath(R_NilValue, dd->dev);
     /* Clear all masks */
     dd->dev->releaseMask(R_NilValue, dd->dev);
@@ -144,8 +143,7 @@ void fillGridSystemState(SEXP state, pGEDevDesc dd)
     SET_VECTOR_ELT(state, GSS_ASK, ScalarLogical(dd->ask));
 #endif
     SET_VECTOR_ELT(state, GSS_SCALE, ScalarReal(1.0));
-    SET_VECTOR_ELT(state, GSS_RESOLVINGPATH, ScalarLogical(FALSE));
-    SET_VECTOR_ELT(state, GSS_GROUPS, R_NilValue);
+    SET_VECTOR_ELT(state, GSS_RESOLVINGCLIP, ScalarLogical(FALSE));
     UNPROTECT(1);
 }
 
@@ -159,16 +157,6 @@ void setGridStateElement(pGEDevDesc dd, int elementIndex, SEXP value)
 {
     SET_VECTOR_ELT((SEXP) dd->gesd[gridRegisterIndex]->systemSpecific, 
 		   elementIndex, value);
-}
-
-/* Callable from R code */
-SEXP L_setGridState(SEXP elementIndex, SEXP value)
-{
-    /* Get the current device 
-     */
-    pGEDevDesc dd = getDevice();
-    setGridStateElement(dd, INTEGER(elementIndex)[0], value);
-    return R_NilValue;
 }
 
 static void deglobaliseState(SEXP state)

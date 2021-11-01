@@ -312,7 +312,7 @@ Rd2HTML <-
                   "\\file"='&lsquo;<span class="file">',
                   "\\option"='<span class="option">',
                   "\\pkg"='<span class="pkg">',
-                  "\\samp"='&lsquo;<span class="samp">&#8288;',
+                  "\\samp"='<span class="samp">',
                   "\\sQuote"="&lsquo;",
                   "\\dQuote"="&ldquo;",
                   "\\verb"='<code style="white-space: pre;">')
@@ -322,7 +322,7 @@ Rd2HTML <-
                    "\\file"='</span>&rsquo;',
                    "\\option"="</span>",
                    "\\pkg"="</span>",
-                   "\\samp"="&#8288;</span>&rsquo;",
+                   "\\samp"="</span>",
                    "\\sQuote"="&rsquo;",
                    "\\dQuote"="&rdquo;",
                    "\\verb"="</code>")
@@ -923,10 +923,6 @@ Rd2HTML <-
     invisible(out)
 } ## Rd2HTML()
 
-
-## The following functions return 'relative' links assuming that all
-## packages are installed in the same virtual library tree.
-
 findHTMLlinks <- function(pkgDir = "", lib.loc = NULL, level = 0:2)
 {
     ## The priority order is
@@ -956,38 +952,23 @@ findHTMLlinks <- function(pkgDir = "", lib.loc = NULL, level = 0:2)
     gsub("[Rr]d$", "html", Links)
 }
 
-## These helper functions can optionally return the absolute path as
-## well (in the local file system)
-
 .find_HTML_links_in_package <-
-function(dir, absolute = FALSE)
+function(dir)
 {
-    ans <- 
-        if (file_test("-f", f <- file.path(dir, "Meta", "links.rds")))
-            readRDS(f)
-        else if (file_test("-f", f <- file.path(dir, "Meta", "Rd.rds")))
-            .build_links_index(readRDS(f), basename(dir))
-        else character()
-    if (absolute)
-        structure(file.path(dir, "html", basename(ans), fsep = "/"),
-                  names = names(ans))
-    else
-        ans
+    if (file_test("-f", f <- file.path(dir, "Meta", "links.rds")))
+        readRDS(f)
+    else if (file_test("-f", f <- file.path(dir, "Meta", "Rd.rds")))
+        .build_links_index(readRDS(f), basename(dir))
+    else character()
 }
 
 .find_HTML_links_in_library <-
-function(dir, absolute = FALSE)
+function(dir)
 {
-    ans <- 
-        if (file_test("-f", f <- file.path(dir, ".Meta", "links.rds")))
-            readRDS(f)
-        else
-            .build_library_links_index(dir)
-    if (absolute)
-        structure(file.path(dir, substring(ans, first = 7), fsep = "/"), # drop initial "../../"
-                  names = names(ans))
+    if (file_test("-f", f <- file.path(dir, ".Meta", "links.rds")))
+        readRDS(f)
     else
-        ans
+        .build_library_links_index(dir)
 }
 
 .build_library_links_index <-
