@@ -12,16 +12,15 @@ function(title="R", logo=TRUE,
          headerTitle = paste("R:", title),
          outputEncoding = "UTF-8")
 {
-    result <-
-        c('<!DOCTYPE html>',
-          "<html>",
-          paste0('<head><title>', headerTitle, '</title>'),
-          paste0('<meta http-equiv="Content-Type" content="text/html; charset=',
-                 mime_canonical_encoding(outputEncoding), '" />'),
-          '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />',
-          paste0('<link rel="stylesheet" type="text/css" href="', css, '" />'),
-          '</head><body><div class="container">',
-          paste('<h1>', title))
+    result <- c('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
+        '<html xmlns="http://www.w3.org/1999/xhtml">',
+	paste0('<head><title>', headerTitle, '</title>'),
+	paste0('<meta http-equiv="Content-Type" content="text/html; charset=',
+	       mime_canonical_encoding(outputEncoding), '" />'),
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />',
+	paste0('<link rel="stylesheet" type="text/css" href="', css, '" />'),
+	'</head><body><div class="container">',
+	paste('<h1>', title))
     if (logo)
     	result <- c(result,
                     paste0('<img class="toplogo" src="',
@@ -142,7 +141,7 @@ function(x, ...)
                                   cchunks))
                         } else {
                             c(vheaders[i],
-                              print_items(vchunk$HTML))
+                              print_items(vchunk$Text))
                         }
                     })
              ),
@@ -256,13 +255,10 @@ makeHelpTable <- function(help, depth=2) {
              '<col style="width:  2%;" />',
              '<col style="width: 74%;" />')
     pkg <- help[, "Package"]
-    ## Target could be ../library/pkg/help/topic or ../library/pkg/html/filename.html
-    ## We only have topic, so can only do the former. Topics may contain
-    ## special characters, so need to be encoded.
-    root <- paste0(strrep("../", depth), "library/", pkg, "/help/")
+    root <- paste0(strrep("../", depth), "library/", pkg, "/html/")
     topic <- help[, "Topic"]
     Title <- help[, "Title"]
-    links <- paste0('<a href="', root, topic2url(topic), '">',
+    links <- paste0('<a href="', root, topic, '.html">',
 		    ifelse(nchar(pkg), paste0(pkg, "::"), ""),
 		    topic, '</a>')
     lines <- paste0('<tr><td style="text-align: right; vertical-align: top;">', links,
@@ -380,8 +376,8 @@ function(x, header = TRUE, ...)
                   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />",
                   '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />',
                   "</head>")
-        header <- c("<!DOCTYPE html>",
-                  "<html>",
+        header <- c("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">",
+                  "<html xmlns=\"http://www.w3.org/1999/xhtml\">",
                   header,
 		  '<body><div class="container">')
 	footer <- c("</div></body>", "</html>")

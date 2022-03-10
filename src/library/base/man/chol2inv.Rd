@@ -5,9 +5,9 @@
 
 \name{chol2inv}
 \alias{chol2inv}
-\title{Inverse from Cholesky (or QR) Decomposition}
+\title{Inverse from Choleski (or QR) Decomposition}
 \description{
-  Invert a symmetric, positive definite square matrix from its Cholesky
+  Invert a symmetric, positive definite square matrix from its Choleski
   decomposition.  Equivalently, compute \eqn{(X'X)^{-1}}{(X'X)^(-1)}
   from the (\eqn{R} part) of the QR decomposition of \eqn{X}.
 }
@@ -16,14 +16,14 @@ chol2inv(x, size = NCOL(x), LINPACK = FALSE)
 }
 \arguments{
   \item{x}{a matrix.  The first \code{size} columns of the upper triangle
-    contain the Cholesky decomposition of the matrix to be inverted.}
+    contain the Choleski decomposition of the matrix to be inverted.}
   \item{size}{the number of columns of \code{x} containing the
-    Cholesky decomposition.}
+    Choleski decomposition.}
   \item{LINPACK}{logical.  Defunct and gives an error.}
 
 }
 \value{
-  The inverse of the matrix whose Cholesky decomposition was given.
+  The inverse of the matrix whose Choleski decomposition was given.
 
   Unsuccessful results from the underlying LAPACK code will result in an
   error giving a positive error code: these can only be interpreted by

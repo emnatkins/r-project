@@ -42,6 +42,25 @@
 extern "C" {
 #endif
 
+/* S Like Error Handling */
+
+#include <R_ext/Error.h>	/* for error and warning */
+
+#ifndef STRICT_R_HEADERS
+
+#define R_PROBLEM_BUFSIZE	4096
+/* Parentheses added for FC4 with gcc4 and -D_FORTIFY_SOURCE=2 */
+#define PROBLEM			{char R_problem_buf[R_PROBLEM_BUFSIZE];(snprintf)(R_problem_buf, R_PROBLEM_BUFSIZE,
+#define MESSAGE                 {char R_problem_buf[R_PROBLEM_BUFSIZE];(snprintf)(R_problem_buf, R_PROBLEM_BUFSIZE,
+#define ERROR			),Rf_error(R_problem_buf);}
+#define RECOVER(x)		),Rf_error(R_problem_buf);}
+#define WARNING(x)		),Rf_warning(R_problem_buf);}
+#define LOCAL_EVALUATOR		/**/
+#define NULL_ENTRY		/**/
+#define WARN			WARNING(NULL)
+
+#endif
+
 /* S Like Memory Management */
 
 extern void *R_chk_calloc(R_SIZE_T, R_SIZE_T);
@@ -54,19 +73,15 @@ extern void R_chk_free(void *);
 #define Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
 #define Free(p)        (R_chk_free( (void *)(p) ), (p) = NULL)
 #endif
-    
 #define R_Calloc(n, t)   (t *) R_chk_calloc( (R_SIZE_T) (n), sizeof(t) )
 #define R_Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (R_SIZE_T)((n) * sizeof(t)) )
 #define R_Free(p)      (R_chk_free( (void *)(p) ), (p) = NULL)
 
-/* undocumented until 4.1.2: widely used. */
 #define Memcpy(p,q,n)  memcpy( p, q, (R_SIZE_T)(n) * sizeof(*p) )
 
-/* added for 3.0.0 but undocumented until 4.1.2.
-   Used by a couple of packages. */
+/* added for 3.0.0 */
 #define Memzero(p,n)  memset(p, 0, (R_SIZE_T)(n) * sizeof(*p))
 
-/* Added in R 2.6.0 */
 #define CallocCharBuf(n) (char *) R_chk_calloc(((R_SIZE_T)(n))+1, sizeof(char))
 
 /* S Like Fortran Interface */
@@ -83,11 +98,10 @@ extern void R_chk_free(void *);
 #define F77_COM(x)     F77_CALL(x)
 #define F77_COMDECL(x) F77_CALL(x)
 
-/* Depreacated in R 2.15.0, non-API
-#if !defined(NO_CALL_R) && defined(DECLARE_LEGACY_CALL_R)
+// Depreacated in R 2.15.0, non-API
+#ifndef NO_CALL_R
 void	call_R(char*, long, void**, char**, long*, char**, long, char**);
 #endif
-*/
 
 #ifdef  __cplusplus
 }

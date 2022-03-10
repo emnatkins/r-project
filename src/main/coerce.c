@@ -155,9 +155,10 @@ IntegerFromComplex(Rcomplex x, int *warn)
 int attribute_hidden
 IntegerFromString(SEXP x, int *warn)
 {
+    double xdouble;
+    char *endp;
     if (x != R_NaString && !isBlankString(CHAR(x))) { /* ASCII */
-	char *endp;
-	double xdouble = R_strtod(CHAR(x), &endp); /* ASCII */
+	xdouble = R_strtod(CHAR(x), &endp); /* ASCII */
 	if (isBlankString(endp)) {
 #ifdef _R_pre_Version_3_3_0
 	    if (xdouble > INT_MAX) {
@@ -193,7 +194,10 @@ RealFromLogical(int x, int *warn)
 double attribute_hidden
 RealFromInteger(int x, int *warn)
 {
-    return (x == NA_INTEGER) ? NA_REAL : x;
+    if (x == NA_INTEGER)
+	return NA_REAL;
+    else
+	return x;
 }
 
 double attribute_hidden
@@ -201,6 +205,8 @@ RealFromComplex(Rcomplex x, int *warn)
 {
     if (ISNAN(x.r) || ISNAN(x.i))
 	return NA_REAL;
+    if (ISNAN(x.r)) return x.r;
+    if (ISNAN(x.i)) return NA_REAL;
     if (x.i != 0)
 	*warn |= WARN_IMAG;
     return x.r;
@@ -319,7 +325,7 @@ SEXP attribute_hidden StringFromInteger(int x, int *warn)
 	    R_PreserveObject(sficache);
 	}
 	SEXP cval = STRING_ELT(sficache, x);
-	if (cval == R_BlankString) { // ""
+	if (cval == R_BlankString) {
 	    int w;
 	    formatInteger(&x, 1, &w);
 	    cval = mkChar(EncodeInteger(x, w));
@@ -1489,24 +1495,13 @@ SEXP attribute_hidden do_asatomic(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-/* _R_IS_AS_VECTOR_EXPERIMENTS_ : aiming for is.vector(as.vector(.))
-   consistency; specified at *start* of R session : */
-static int do_is_as_vector_experiments = -1;
-#define MAYBE_CACHE_DO_IS_AS_VECTORS_EXPERI				\
-do {									\
-  if(do_is_as_vector_experiments == -1) {				\
-    char *vector_experi = getenv("_R_IS_AS_VECTOR_EXPERIMENTS_");	\
-    do_is_as_vector_experiments =					\
- 	((vector_experi != NULL) && StringTrue(vector_experi)) ? 1 : 0;	\
-  }									\
-} while(0)
-
-
 /* NB: as.vector is used for several other as.xxxx, including
    as.expression, as.list, as.pairlist, as.symbol, (as.single) */
 SEXP attribute_hidden do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP ans;
+    SEXP x, ans;
+    int type;
+
     /* DispatchOrEval internal generic: as.vector */
     if (DispatchOrEval(call, op, "as.vector", args, rho, &ans, 0, 1))
 	return(ans);
@@ -1515,14 +1510,14 @@ SEXP attribute_hidden do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* run the generic internal code */
 
     checkArity(op, args);
+    x = CAR(args);
+
     if (!isString(CADR(args)) || LENGTH(CADR(args)) != 1)
 	error_return(R_MSG_mode);
-
-    SEXP x = CAR(args);
-    int type =
-	(!strcmp("function", CHAR(STRING_ELT(CADR(args), 0))))  /* ASCII */
-	? CLOSXP
-	: str2type(CHAR(STRING_ELT(CADR(args), 0))); /* ASCII */
+    if (!strcmp("function", (CHAR(STRING_ELT(CADR(args), 0))))) /* ASCII */
+	type = CLOSXP;
+    else
+	type = str2type(CHAR(STRING_ELT(CADR(args), 0))); /* ASCII */
 
     /* "any" case added in 2.13.0 */
     if(type == ANYSXP || TYPEOF(x) == type) {
@@ -1538,21 +1533,8 @@ SEXP attribute_hidden do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    CLEAR_ATTRIB(ans);
 	    return ans;
 	case EXPRSXP:
-	case VECSXP: {
-	    MAYBE_CACHE_DO_IS_AS_VECTORS_EXPERI;
-	    if(do_is_as_vector_experiments) {
-		if(ATTRIB(x) == R_NilValue) return x;
-		if(OBJECT(x)) return x; // protect e.g.  setClass(., contains="list")
-		SEXP nms = getAttrib(x, R_NamesSymbol);
-		if(nms != R_NilValue && CDR(ATTRIB(x)) == R_NilValue) return x;
-		ans = MAYBE_REFERENCED(x) ? duplicate(x) : x;
-		CLEAR_ATTRIB(ans);
-		if (nms != R_NilValue)
-		    setAttrib(ans, R_NamesSymbol, nms);
-		return ans;
-	    } else
-		return x;
-	}
+	case VECSXP:
+	    return x;
 	default:
 	    ;
 	}
@@ -1794,7 +1776,7 @@ int asLogical2(SEXP x, int checking, SEXP call, SEXP rho)
 		msg,
 		msg,
 		"_R_CHECK_LENGTH_1_LOGIC2_",
-		TRUE /* by default warn */);
+		FALSE /* by default do nothing */);
 	}
 	switch (TYPEOF(x)) {
 	case LGLSXP:
@@ -2147,20 +2129,22 @@ SEXP attribute_hidden do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 // is.vector(x, mode) :
 SEXP attribute_hidden do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
+    SEXP ans, a, x;
+    const char *stype;
+
     checkArity(op, args);
-    SEXP x = CAR(args);
+    x = CAR(args);
     if (!isString(CADR(args)) || LENGTH(CADR(args)) != 1)
 	error_return(R_MSG_mode);
 
-    const char *stype = CHAR(STRING_ELT(CADR(args), 0)); // 'mode' in R ; ASCII
+    stype = CHAR(STRING_ELT(CADR(args), 0)); /* ASCII */
 
     /* "name" and "symbol" are synonymous */
     if (streql(stype, "name"))
       stype = "symbol";
 
-    SEXP ans = PROTECT(allocVector(LGLSXP, 1));
-    Rboolean any = streql(stype, "any");
-    if (any) {
+    PROTECT(ans = allocVector(LGLSXP, 1));
+    if (streql(stype, "any")) {
 	/* isVector is inlined, means atomic or VECSXP or EXPRSXP */
 	LOGICAL0(ans)[0] = isVector(x);
     }
@@ -2175,25 +2159,9 @@ SEXP attribute_hidden do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     else
 	LOGICAL0(ans)[0] = 0;
 
-    if (LOGICAL0(ans)[0]) {
-      Rboolean IS_vector = FALSE;
-      MAYBE_CACHE_DO_IS_AS_VECTORS_EXPERI;
-      if(do_is_as_vector_experiments) {
-	if((IS_vector = any && isVectorList(x) && OBJECT(x))) {
-	    // use of is.vector(.) to check for non-matrix/array => try dim(.) :
-	  static SEXP op_dim = NULL;
-	  if (op_dim == NULL)
-	      op_dim = R_Primitive("dim");
-	  SEXP args = PROTECT(list1(x));
-	  IS_vector = isNull(do_dim(call, op_dim, args, rho));
-	  UNPROTECT(1);
-	}
-      }
-      if(IS_vector) {
-	  // list or expression w/ is.object() and no dim(): stay TRUE
-      } else if (ATTRIB(x) != R_NilValue) {
-	/* We allow a "names" attribute on any vector. */
-	SEXP a = ATTRIB(x);
+    /* We allow a "names" attribute on any vector. */
+    if (LOGICAL0(ans)[0] && ATTRIB(CAR(args)) != R_NilValue) {
+	a = ATTRIB(CAR(args));
 	while(a != R_NilValue) {
 	    if (TAG(a) != R_NamesSymbol) {
 		LOGICAL0(ans)[0] = 0;
@@ -2201,7 +2169,6 @@ SEXP attribute_hidden do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 	    a = CDR(a);
 	}
-      }
     }
     UNPROTECT(1);
     return (ans);
@@ -2709,7 +2676,7 @@ SEXP attribute_hidden do_docall(SEXP call, SEXP op, SEXP args, SEXP rho)
     envir = CADDR(args);
     args = CADR(args);
 
-    /* must be a string or a function
+    /* must be a string or a function:
        zero-length string check used to be here but install gives
        better error message.
      */

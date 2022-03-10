@@ -34,6 +34,7 @@ local({
 		NULL
 	    }
             getname <- function(e) find(e, envs, enames)
+            getenv <- function(n) find(n, enames, envs)
             insert <- function(e) {
                 idx <<- idx + 1
                 name <- paste("env", idx, sep="::")
@@ -41,7 +42,7 @@ local({
                 enames <<- c(name, enames)
                 name
             }
-            list(insert = insert, getname = getname)
+            list(insert = insert, getenv = getenv, getname = getname)
         }
 
         lazyLoadDBinsertValue <- function(value, file, ascii, compress, hook)

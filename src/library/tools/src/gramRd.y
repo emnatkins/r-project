@@ -26,9 +26,7 @@
 #define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <Parse.h>
-#ifndef STRICT_R_HEADERS
-# define STRICT_R_HEADERS
-#endif
+#define STRICT_R_HEADERS
 #include <R_ext/RS.h>           /* for R_chk_* allocation */
 #include <ctype.h>
 #include <Rmath.h> /* for imax2(.),..*/

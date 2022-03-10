@@ -1,6 +1,6 @@
 % File src/library/tools/man/xgettext.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2021 R Core Team
+% Copyright 1995-2014 R Core Team
 % Distributed under GPL 2 or later
 
 \name{xgettext}
@@ -10,7 +10,7 @@
 \alias{xgettext2pot}
 \description{
   For each file in the \file{R} directory (including system-specific
-  subdirectories) of a \emph{source} package, extract the unique arguments passed
+  subdirectories) of a package, extract the unique arguments passed
   to these \dQuote{message generating} calls;
   \describe{
     \item{for \code{xgettext()}:}{% see c("warning", "stop", ..) in ../R/xgettext.R :
@@ -81,9 +81,7 @@ xgettext2pot(dir, potFile, name = "R", version, bugs)
 \seealso{
   \code{\link{update_pkg_po}()} which calls \code{xgettext2pot()}.
 }
-\examples{\dontrun{## in a source-directory build (not typical!) of R;
-## otherwise, download and unpack the R sources, and replace
-## R.home()  by  "<my_path_to_source_R>" :
+\examples{\dontrun{## in a source-directory build of R:
 xgettext(file.path(R.home(), "src", "library", "splines"))
 }% dont..
 

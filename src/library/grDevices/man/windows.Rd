@@ -31,8 +31,7 @@ windows(width, height, pointsize, record, rescale, xpinch, ypinch,
 win.graph(width, height, pointsize)
 
 win.metafile(filename = "", width = 7, height = 7, pointsize = 12,
-             family, restoreConsole = TRUE,
-             xpinch = NA_real_, ypinch = NA_real_)
+             family, restoreConsole = TRUE)
 
 win.print(width = 7, height = 7, pointsize = 12, printer = "",
           family, antialias, restoreConsole = TRUE)
@@ -122,9 +121,7 @@ win.print(width = 7, height = 7, pointsize = 12, printer = "",
   \code{xpinch} and \code{ypinch}, most conveniently \emph{via}
   \code{\link{windows.options}}.  For example, a 13.3 inch 1280x800
   screen (a typical laptop display) was reported as 96 dpi even though
-  it is physically about 114 dpi.  These arguments may also be useful
-  to match the scale of output to the size of a metafile (which otherwise
-  depends on the system being configured accurately).
+  it is physically about 114 dpi.
 
   The different colours need to be distinguished carefully.  Areas
   outside the device region are coloured in the Windows application background

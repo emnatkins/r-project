@@ -88,8 +88,8 @@ function(formula, data, subset, na.action, ...)
     if(length(mf) > 2L)
         stop("'formula' should be of the form response ~ group")
     DNAME <- paste(names(mf), collapse = " by ")
-    ## Call the default method.    
-    y <- kruskal.test(x = mf[[1L]], g = mf[[2L]])
+    names(mf) <- NULL
+    y <- do.call("kruskal.test", as.list(mf))
     y$data.name <- DNAME
     y
 }

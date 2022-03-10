@@ -1,7 +1,7 @@
 #  File src/library/stats/R/plot.lm.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2022 The R Core Team
+#  Copyright (C) 1995-2019 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,20 +21,17 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
 	  caption = list("Residuals vs Fitted", "Normal Q-Q",
 	  "Scale-Location", "Cook's distance",
 	  "Residuals vs Leverage",
-	  expression("Cook's dist vs Leverage* " * h[ii] / (1 - h[ii]))),
+	  expression("Cook's dist vs Leverage  " * h[ii] / (1 - h[ii]))),
 	  panel = if(add.smooth) function(x, y, ...)
               panel.smooth(x, y, iter=iter.smooth, ...) else points,
 	  sub.caption = NULL, main = "",
 	  ask = prod(par("mfcol")) < length(which) && dev.interactive(), ...,
 	  id.n = 3, labels.id = names(residuals(x)), cex.id = 0.75,
 	  qqline = TRUE, cook.levels = c(0.5, 1.0),
-          cook.col = 8, cook.lty = 2, cook.legendChanges = list(),
 	  add.smooth = getOption("add.smooth"),
           iter.smooth = if(isGlm # && binomialLike
                            ) 0 else 3,
-	  label.pos = c(4,2), cex.caption = 1, cex.oma.main = 1.25
-        , extend.ylim.f = 0.08
-          )
+	  label.pos = c(4,2), cex.caption = 1, cex.oma.main = 1.25)
 {
     dropInf <- function(x, h) {
 	if(any(isInf <- h >= 1.0)) {
@@ -81,12 +78,9 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
     if (any(show[c(2L,3L,5L)])) {
         ## (Defensive programming used when fusing code for 2:3 and 5)
 	ylab5 <- ylab23 <- if(isGlm) "Std. Pearson resid." else "Standardized residuals"
-	## nowhere used:  r.w <- if(is.null(w)) r else sqrt(w) * r
+	r.w <- if (is.null(w)) r else sqrt(w) * r
         ## NB: rs is already NaN if r=0, hii=1
-        rs <- dropInf(if(isGlm) rstandard(x, type="pearson")
-                      else # r.w / (s*sqrt(1 - hii))
-                          (if(is.null(w)) r else sqrt(w) * r) / (s * sqrt(1 - hii)),
-                      hii)
+	rsp <- rs <- dropInf( if (isGlm) rstandard(x, type="pearson") else r.w/(s * sqrt(1 - hii)), hii )
     }
 
     if (any(show[5L:6L])) { # using 'leverages'
@@ -97,7 +91,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
     if (any(show[c(1L, 3L)]))
 	l.fit <- if (isGlm) "Predicted values" else "Fitted values"
     if (is.null(id.n))
-	id.n <- 0L
+	id.n <- 0
     else {
 	id.n <- as.integer(id.n)
 	if(id.n < 0L || id.n > n)
@@ -110,9 +104,9 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
 	show.r <- sort.list(abs(r), decreasing = TRUE)[iid]
 	if(any(show[2L:3L]))
 	    show.rs <- sort.list(abs(rs), decreasing = TRUE)[iid]
-	text.id <- function(x, y, ind, adj.x = TRUE, usr = par("usr")) {
+	text.id <- function(x, y, ind, adj.x = TRUE) {
 	    labpos <-
-		if(adj.x) label.pos[(x > mean(usr[1:2]))+1L] else 3
+                if(adj.x) label.pos[1+as.numeric(x > mean(range(x)))] else 3
 	    text(x, y, labels.id[ind], cex = cex.id, xpd = TRUE,
 		 pos = labpos, offset = 0.25)
 	}
@@ -141,7 +135,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
     if (show[1L]) {
 	ylim <- range(r, na.rm=TRUE)
 	if(id.n > 0)
-	    ylim <- extendrange(r = ylim, f = extend.ylim.f)
+	    ylim <- extendrange(r = ylim, f = 0.08)
         dev.hold()
 	plot(yh, r, xlab = l.fit, ylab = "Residuals", main = main,
 	     ylim = ylim, type = "n", ...)
@@ -204,10 +198,13 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
     if (show[5L]) {
         ### Now handled earlier, consistently with 2:3, except variable naming
         ## ylab5 <- if (isGlm) "Std. Pearson resid." else "Standardized residuals"
-	ylim <- range(rs, na.rm = TRUE)
+        ## r.w <- residuals(x, "pearson")
+        ## if(!is.null(w)) r.w <- r.w[wind] # drop 0-weight cases
+ 	## rsp <- dropInf( r.w/(s * sqrt(1 - hii)), hii )
+	ylim <- range(rsp, na.rm = TRUE)
 	if (id.n > 0) {
-	    ylim <- extendrange(r = ylim, f = extend.ylim.f)
-	    show.rs <- order(-cook)[iid]
+	    ylim <- extendrange(r = ylim, f = 0.08)
+	    show.rsp <- order(-cook)[iid]
 	}
         do.plot <- TRUE
         if(isConst.hat) { ## leverages are all the same
@@ -227,7 +224,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
                 facval <- (dm-1) %*% ff
                 xx <- facval # for use in do.plot section.
                 dev.hold()
-                plot(facval, rs, xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
+                plot(facval, rsp, xlim = c(-1/2, sum((nlev-1) * ff) + 1/2),
                      ylim = ylim, xaxt = "n",
                      main = main, xlab = "Factor Level Combinations",
                      ylab = ylab5, type = "n", ...)
@@ -235,7 +232,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
                      labels = x$xlevels[[1L]])
                 mtext(paste(facvars[1L],":"), side = 1, line = 0.25, adj=-.05)
                 abline(v = ff[1L]*(0:nlev[1L]) - 1/2, col="gray", lty="F4")
-                panel(facval, rs, ...)
+                panel(facval, rsp, ...)
                 abline(h = 0, lty = 3, col = "gray")
                 dev.flush()
             }
@@ -247,51 +244,47 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
                 do.plot <- FALSE
             }
         }
-        else { ## Residual ('rs') vs Leverage
+        else { ## Residual vs Leverage
             xx <- hii
             ## omit hatvalues of 1.
             xx[xx >= 1] <- NA
 
             dev.hold()
-            plot(xx, rs, xlim = c(0, max(xx, na.rm = TRUE)), ylim = ylim,
+            plot(xx, rsp, xlim = c(0, max(xx, na.rm = TRUE)), ylim = ylim,
                  main = main, xlab = "Leverage", ylab = ylab5, type = "n",
                  ...)
-            panel(xx, rs, ...)
+            panel(xx, rsp, ...)
             abline(h = 0, v = 0, lty = 3, col = "gray")
             if (one.fig)
                 title(sub = sub.caption, ...)
             if(length(cook.levels)) {
                 p <- x$rank # not length(coef(x))
-                usr2 <- par("usr")[2L]
-                hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr2,
+                usr <- par("usr")
+                hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr[2L],
                               length.out = 101)
                 for(crit in cook.levels) {
                     cl.h <- sqrt(crit*p*(1-hh)/hh)
-                    lines(hh, cl.h, lty = cook.lty, col = cook.col)
-                    lines(hh,-cl.h, lty = cook.lty, col = cook.col)
+                    lines(hh, cl.h, lty = 2, col = 2)
+                    lines(hh,-cl.h, lty = 2, col = 2)
                 }
-		if(!is.null(cook.legendChanges))
-		    do.call(legend, modifyList(
-				list(x = "bottomleft", legend = "Cook's distance",
-				     lty = cook.lty, col = cook.col, text.col = cook.col,
-				     bty = "n", x.intersp = 1/4, y.intersp = 1/8),
-				cook.legendChanges))
-                xmax <- min(0.99, usr2)
+                legend("bottomleft", legend = "Cook's distance",
+                       lty = 2, col = 2, bty = "n")
+                xmax <- min(0.99, usr[2L])
                 ymult <- sqrt(p*(1-xmax)/xmax)
                 aty <- sqrt(cook.levels)*ymult
                 axis(4, at = c(-rev(aty), aty),
                      labels = paste(c(rev(cook.levels), cook.levels)),
                      mgp = c(.25,.25,0), las = 2, tck = 0,
-                     cex.axis = cex.id, col.axis = cook.col)
+                     cex.axis = cex.id, col.axis = 2)
             }
             dev.flush()
         } # if(const h_ii) .. else ..
 	if (do.plot) {
 	    mtext(getCaption(5), 3, 0.25, cex = cex.caption)
 	    if (id.n > 0) {
-		y.id <- rs[show.rs]
+		y.id <- rsp[show.rsp]
 		y.id[y.id < 0] <- y.id[y.id < 0] - strheight(" ")/3
-		text.id(xx[show.rs], y.id, show.rs)
+		text.id(xx[show.rsp], y.id, show.rsp)
 	    }
 	}
     }
@@ -304,7 +297,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
              xlab = expression("Leverage  " * h[ii]),
 	     xaxt = "n", type = "n", ...)
 	panel(g, cook, ...)
-        ## Label axis with h_ii values, instead of h_ii / (1 - h_ii):
+        ## Label axis with h_ii values
 	athat <- pretty(hii)
 	axis(1, at = athat/(1-athat), labels = paste(athat))
 	if (one.fig)
@@ -320,12 +313,12 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
 	    if(p*ymax > bi2*xmax) {
 		xi <- xmax + strwidth(" ")/3
 		yi <- bi2*xi/p
-		abline(0, bi2, lty = cook.lty)
+		abline(0, bi2, lty = 2)
 		text(xi, yi, paste(bval[i]), adj = 0, xpd = TRUE)
 	    } else {
 		yi <- ymax - 1.5*strheight(" ")
 		xi <- p*yi/bi2
-		lines(c(0, xi), c(0, yi), lty = cook.lty)
+		lines(c(0, xi), c(0, yi), lty = 2)
 		text(xi, ymax-0.8*strheight(" "), paste(bval[i]),
 		     adj = 0.5, xpd = TRUE)
 	    }
@@ -336,7 +329,7 @@ function (x, which = c(1,2,3,5), ## was which = 1L:4L,
 	mtext(getCaption(6), 3, 0.25, cex = cex.caption)
 	if (id.n > 0) {
 	    show.r <- order(-cook)[iid]
-            text.id(g[show.r], cook[show.r], show.r, usr=usr)
+            text.id(g[show.r], cook[show.r], show.r)
         }
         dev.flush()
     }

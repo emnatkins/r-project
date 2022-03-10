@@ -768,7 +768,7 @@ glob3(wchar_t *pathbuf, wchar_t *pathbuf_last, wchar_t *pathend, wchar_t *pathen
 }
 
 
-#include <R_ext/RS.h> /* for R_Calloc, R_Realloc, R_Free */
+#include <R_ext/RS.h> /* for Calloc, Realloc, Free */
 
 /*
  * Extend the gl_pathv member of a glob_t structure to accomodate a new item,
@@ -802,9 +802,9 @@ globextend(const wchar_t *path, wglob_t *pglob, size_t *limitp)
 
     newsize = sizeof(*pathv) * (2 + pglob->gl_pathc + pglob->gl_offs);
     if (pglob->gl_pathv)
-	pathv = R_Realloc(pglob->gl_pathv, newsize, wchar_t *);
+	pathv = Realloc(pglob->gl_pathv, newsize, wchar_t *);
     else
-	pathv = R_Calloc(newsize, wchar_t *);
+	pathv = Calloc(newsize, wchar_t *);
     if (pathv == NULL) {
 	if (pglob->gl_pathv) {
 	    Free(pglob->gl_pathv);
@@ -825,10 +825,10 @@ globextend(const wchar_t *path, wglob_t *pglob, size_t *limitp)
 	;
     len = (STRLEN)(p - path);
     *limitp += len;
-    copy = R_Calloc(p-path, wchar_t);
+    copy = Calloc(p-path, wchar_t);
     if (copy != NULL) {
 	if (g_Ctoc(path, copy, len)) {
-	    R_Free(copy);
+	    Free(copy);
 	    return(GLOB_NOSPACE);
 	}
 	pathv[pglob->gl_offs + pglob->gl_pathc++] = copy;

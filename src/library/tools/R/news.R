@@ -664,13 +664,8 @@ function(x)
     y <- do.call(rbind, y)
     ## Sanitze HTML.
     s <- trimws(y[, "HTML"])
-    i <- which(startsWith(s, "<p>") & !endsWith(s, "</p>"))
-    if(length(i)) {
-        z <- s[i]
-        j <- which((lengths(gregexpr("</?p>", z)) %% 2L) > 0L)
-        if(length(j))
-            s[i[j]] <- paste0(z[j], "</p>")
-    }
+    i <- startsWith(s, "<p>") & !endsWith(s, "</p>")
+    s[i] <- paste0(s[i], "</p>")
     y[, "HTML"] <- s
 
     y

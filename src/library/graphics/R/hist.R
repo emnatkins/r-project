@@ -1,7 +1,7 @@
 #  File src/library/graphics/R/hist.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2018 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,7 @@ hist <- function(x, ...) UseMethod("hist")
 hist.default <-
     function (x, breaks = "Sturges", freq = NULL,
 	      probability = !freq, include.lowest= TRUE,
-	      right = TRUE, fuzz = 1e-7,
-              density = NULL, angle = 45,
+	      right = TRUE, density = NULL, angle = 45,
 	      col = "lightgray", border = NULL,
 	      main = paste("Histogram of", xname),
 	      xlim = range(breaks), ylim = NULL,
@@ -32,7 +31,7 @@ hist.default <-
 {
     if (!is.numeric(x))
 	stop("'x' must be numeric")
-    xname <- deparse1(substitute(x), collapse="\n")
+    xname <- paste(deparse(substitute(x), 500), collapse="\n")
     n <- length(x <- x[is.finite(x)])
     n <- as.integer(n)
     if(is.na(n)) stop("invalid length(x)")
@@ -114,8 +113,7 @@ hist.default <-
     ## As one break point could be very much larger than the others,
     ## as from 1.9.1 we no longer use the range. (PR#6931)
     ## diddle <- 1e-7 * max(abs(range(breaks)))  ## NB: h == diff(breaks)
-    stopifnot("fuzz must be non-negative" = fuzz >= 0)
-    diddle <- fuzz * if(nB > 5) stats::median(h)
+    diddle <- 1e-7 * if(nB > 5) stats::median(h)
     ## for few breaks, protect against very large bins:
 		     else if(nB <= 3) diff(range(x)) else min(h[h > 0])
     fuzz <- if(right)
@@ -148,10 +146,10 @@ hist.default <-
 	    ## make an effort to warn about "non sensical" arguments:
 	    nf <- names(formals()) ## all formals but those:
 	    nf <- nf[is.na(match(nf, c("x", "breaks", "nclass", "plot",
-				       "include.lowest", "right", "fuzz")))]
+				       "include.lowest", "right")))]
 	    missE <- lapply(nf, function(n)
 			    substitute(missing(.), list(. = as.name(n))))
-	    not.miss <- ! vapply(missE, eval, NA, envir = environment())
+	    not.miss <- ! sapply(missE, eval, envir = environment())
 	    if(any(not.miss))
 		warning(sprintf(ngettext(sum(not.miss),
 					 "argument %s is not made use of",
@@ -165,7 +163,7 @@ hist.default <-
 
 plot.histogram <-
     function (x, freq = equidist, density = NULL, angle = 45,
-	      col = "lightgray", border = NULL, lty = NULL,
+	      col = NULL, border = par("fg"), lty = NULL,
 	      main = paste("Histogram of", paste(x$xname, collapse="\n")),
               sub = NULL,
 	      xlab = x$xname, ylab,
@@ -193,10 +191,7 @@ plot.histogram <-
 	if(ann) title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
 	if(axes) {
 	    axis(1, ...)
-            yt <- axTicks(2)
-            if(freq && any(ni <- (yt %% 1) != 0)) # remove non-integers:
-                yt <- yt[!ni]
-	    axis(2, at=yt, ...)
+	    axis(2, ...)
 	}
     }
     rect(x$breaks[-nB], 0, x$breaks[-1L], y,

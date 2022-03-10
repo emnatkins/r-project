@@ -2,7 +2,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2022  The R Core Team
+ *  Copyright (C) 1997--2021  The R Core Team
  *  Copyright (C) 2009--2011  Romain Francois
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -185,12 +185,7 @@ static SEXP	NewList(void);
 static void	NextArg(SEXP, SEXP, SEXP); /* add named element to list end */
 static SEXP	TagArg(SEXP, SEXP, YYLTYPE *);
 static int 	processLineDirective();
-static int      checkForPlaceholder(SEXP placeholder, SEXP arg);
 
-static int HavePlaceholder = FALSE; 
-attribute_hidden SEXP R_PlaceholderToken = NULL;
-
-static int HavePipeBind = FALSE; 
 static SEXP R_PipeBindSymbol = NULL;
 
 /* These routines allocate constants */
@@ -207,7 +202,6 @@ SEXP		mkTrue(void);
 static int	EatLines = 0;
 static int	GenerateCode = 0;
 static int	EndOfFile = 0;
-static int	Status = 1;
 static int	xxgetc();
 static int	xxungetc(int);
 static int	xxcharcount, xxcharsave;
@@ -305,8 +299,7 @@ static int mbcs_get_next(int c, wchar_t *wc)
 	    s[i] = (char) c;
 	}
 	s[clen] ='\0'; /* x86 Solaris requires this */
-	mbs_init(&mb_st);
-	res = (int) mbrtowc(wc, s, clen, &mb_st);
+	res = (int) mbrtowc(wc, s, clen, NULL);
 	if(res == -1) error(_("invalid multibyte character in parser at line %d"), ParseState.xxlineno);
     } else {
 	/* This is not necessarily correct for stateful MBCS */
@@ -391,7 +384,6 @@ static int	xxvalue(SEXP, int, YYLTYPE *);
 /* no longer used: %token COLON_ASSIGN */
 %token		SLOT
 %token		PIPE
-%token          PLACEHOLDER
 %token          PIPEBIND
 
 /* This is the precedence table, low to high */
@@ -420,11 +412,11 @@ static int	xxvalue(SEXP, int, YYLTYPE *);
 
 %%
 
-prog	:	END_OF_INPUT			{ Status = 0; YYACCEPT; }
-	|	'\n'				{ Status = 2; yyresult = xxvalue(NULL,2,NULL); YYACCEPT; }
-	|	expr_or_assign_or_help '\n'	{ Status = 3; yyresult = xxvalue($1,3,&@1); YYACCEPT; }
-	|	expr_or_assign_or_help ';'	{ Status = 4; yyresult = xxvalue($1,4,&@1); YYACCEPT; }
-	|	error	 			{ Status = 1; YYABORT; }
+prog	:	END_OF_INPUT			{ YYACCEPT; }
+	|	'\n'				{ yyresult = xxvalue(NULL,2,NULL);	goto yyreturn; }
+	|	expr_or_assign_or_help '\n'	{ yyresult = xxvalue($1,3,&@1);	goto yyreturn; }
+	|	expr_or_assign_or_help ';'	{ yyresult = xxvalue($1,4,&@1);	goto yyreturn; }
+	|	error	 			{ YYABORT; }
 	;
 
 expr_or_assign_or_help  :    expr               { $$ = $1; }
@@ -439,7 +431,6 @@ expr_or_help  :    expr				    { $$ = $1; }
 expr	: 	NUM_CONST			{ $$ = $1;	setId(@$); }
 	|	STR_CONST			{ $$ = $1;	setId(@$); }
 	|	NULL_CONST			{ $$ = $1;	setId(@$); } 
-	|	PLACEHOLDER			{ $$ = $1;	setId(@$); }
 	|	SYMBOL				{ $$ = $1;	setId(@$); }
 
 	|	'{' exprlist '}'		{ $$ = xxexprlist($1,&@1,$2); setId(@$); }
@@ -1099,7 +1090,7 @@ static SEXP xxfuncall(SEXP expr, SEXP args)
 {
     SEXP ans, sav_expr = expr;
     if (GenerateCode) {
-	if (isString(expr) && expr != R_PlaceholderToken)
+	if (isString(expr))
 	    expr = installTrChar(STRING_ELT(expr, 0));
 	PROTECT(expr);
 	if (length(CDR(args)) == 1 && CADR(args) == R_MissingArg && TAG(CDR(args)) == R_NilValue )
@@ -1181,8 +1172,13 @@ static SEXP xxbinary(SEXP n1, SEXP n2, SEXP n3)
     return ans;
 }
 
+static SEXP findPlaceholderCell(SEXP, SEXP);
+
 static void check_rhs(SEXP rhs)
 {
+    if (TYPEOF(rhs) != LANGSXP)
+	error(_("The pipe operator requires a function call as RHS"));
+
     /* rule out syntactically special functions */
     /* the IS_SPECIAL_SYMBOL bit is set in names.c */
     SEXP fun = CAR(rhs);
@@ -1191,47 +1187,22 @@ static void check_rhs(SEXP rhs)
 	      CHAR(PRINTNAME(fun)));
 }
 
-static void checkTooManyPlaceholders(SEXP rhs, SEXP args)
-{
-    for (SEXP rest = args; rest != R_NilValue; rest = CDR(rest))
-	if (CAR(rest) == R_PlaceholderToken)
-	    errorcall(rhs, _("pipe placeholder may only appear once"));
-}
-
 static SEXP xxpipe(SEXP lhs, SEXP rhs)
 {
     SEXP ans;
     if (GenerateCode) {
-	if (TYPEOF(rhs) != LANGSXP)
-	    error(_("The pipe operator requires a function call as RHS"));
-
 	/* allow x => log(x) on RHS */
-	if (CAR(rhs) == R_PipeBindSymbol) {
+	if (TYPEOF(rhs) == LANGSXP && CAR(rhs) == R_PipeBindSymbol) {
 	    SEXP var = CADR(rhs);
 	    SEXP expr = CADDR(rhs);
-	    if (TYPEOF(var) != SYMSXP)
-		error(_("RHS variable must be a symbol"));
-	    SEXP alist = list1(R_MissingArg);
-	    SET_TAG(alist, var);
-	    SEXP fun = lang4(R_FunctionSymbol, alist, expr, R_NilValue);
-	    return lang2(fun, lhs);
+	    check_rhs(expr);
+	    SEXP phcell = findPlaceholderCell(var, expr);
+	    if (phcell == NULL)
+		error(_("no placeholder found on RHS"));
+	    SETCAR(phcell, lhs);
+	    return expr;
 	}
 
-	/* check for placehilder in the RHS function */
-	if (checkForPlaceholder(R_PlaceholderToken, CAR(rhs)))
-	    error(_("pipe placeholder cannot be used in the RHS function"));
-
-	/* allow top-level placeholder */
-	for (SEXP a = CDR(rhs); a != R_NilValue; a = CDR(a))
-	    if (CAR(a) == R_PlaceholderToken) {
-		if (TAG(a) == R_NilValue)
-		    error(_("pipe placeholder can only be used as a "
-			    "named argument"));
-		checkTooManyPlaceholders(rhs, CDR(a));
-		SETCAR(a, lhs);
-		return rhs;
-	    }
-	
 	check_rhs(rhs);
 	
         SEXP fun = CAR(rhs);
@@ -1491,9 +1462,6 @@ void InitParser(void)
     INIT_SVS();
     R_PreserveObject(ParseState.sexps); /* never released in an R session */
     R_NullSymbol = install("NULL");
-    R_PlaceholderToken = ScalarString(mkChar("_"));
-    MARK_NOT_MUTABLE(R_PlaceholderToken);
-    R_PreserveObject(R_PlaceholderToken);
     R_PipeBindSymbol = install("=>");
 }
 
@@ -1617,7 +1585,6 @@ static void ParseInit(void)
     EndOfFile = 0;
     xxcharcount = 0;
     npush = 0;
-    HavePipeBind = FALSE;
 }
 
 static void initData(void)
@@ -1636,54 +1603,24 @@ static void ParseContextInit(void)
     initData();
 }
 
-static int checkForPipeBind(SEXP arg)
-{
-    if (! HavePipeBind)
-    	return FALSE;
-    else if (arg == R_PipeBindSymbol)
-	return TRUE;
-    else if (TYPEOF(arg) == LANGSXP)
-	for (SEXP cur = arg; cur != R_NilValue; cur = CDR(cur))
-	    if (checkForPipeBind(CAR(cur)))
-		return TRUE;
-    return FALSE;
-}
-
 static SEXP R_Parse1(ParseStatus *status)
 {
-    Status = 1; /* safety */
     switch(yyparse()) {
-    case 0:
-	switch(Status) {
-	case 0:                     /* End of file */
-	    *status = PARSE_EOF;
-	    if (EndOfFile == 2) *status = PARSE_INCOMPLETE;
-	    break;
-	case 1:                     /* Error (currently unreachable) */
-	    *status = PARSE_ERROR;
-	    if (EndOfFile) *status = PARSE_INCOMPLETE;
-	    break;
-	case 2:                     /* Empty Line */
-	    *status = PARSE_NULL;
-	    break;
-	case 3:                     /* Valid expr '\n' terminated */
-	case 4:                     /* Valid expr ';' terminated */
-	    if (checkForPlaceholder(R_PlaceholderToken, R_CurrentExpr))
-		errorcall(R_CurrentExpr,
-			  _("invalid use of pipe placeholder"));
-	    if (checkForPipeBind(R_CurrentExpr))
-		errorcall(R_CurrentExpr,
-			  _("invalid use of pipe bind symbol"));
-	    *status = PARSE_OK;
-	    break;
-	}
+    case 0:                     /* End of file */
+	*status = PARSE_EOF;
+	if (EndOfFile == 2) *status = PARSE_INCOMPLETE;
 	break;
     case 1:                     /* Syntax error / incomplete */
 	*status = PARSE_ERROR;
 	if (EndOfFile) *status = PARSE_INCOMPLETE;
 	break;
-    case 2:
-	error(_("out of memory while parsing"));
+    case 2:                     /* Empty Line */
+	*status = PARSE_NULL;
+	break;
+    case 3:                     /* Valid expr '\n' terminated */
+    case 4:                     /* Valid expr ';' terminated */
+	*status = PARSE_OK;
+	break;
     }
     return R_CurrentExpr;
 }
@@ -2259,7 +2196,6 @@ static void yyerror(const char *s)
 	"NS_GET_INT",	"':::'",
 	"PIPE",         "'|>'",
 	"PIPEBIND",     "'=>'",
-	"PLACEHOLDER",  "'_'",
 	0
     };
     static char const yyunexpected[] = "syntax error, unexpected ";
@@ -2311,13 +2247,6 @@ static void yyerror(const char *s)
                         snprintf(R_ParseErrorMsg, PARSE_ERROR_SIZE, _("unexpected end of line"));
                                 break;
                 default:
-		  if (!strcmp(s + sizeof yyunexpected - 1, "PLACEHOLDER")) {
-		      /* cheat to avoid changing the parse error
-			 message for mis-use of _ */
-		      snprintf(R_ParseErrorMsg, PARSE_ERROR_SIZE,
-			       _("unexpected input"));
-		      break;
-		  }
                   snprintf(R_ParseErrorMsg, PARSE_ERROR_SIZE, _("unexpected %s"),
                            yytname_translations[i+1]);
                                 break;
@@ -2701,48 +2630,13 @@ static SEXP mkStringUTF8(const ucs_t *wcs, int cnt)
     UNPROTECT(1); /* t */
     return t;
 }
-/*
- * Skip at Least `min` Bytes in Complete Character Steps
- *
- * min: minimum number bytes of prefix of "c" to skip
- * returns: min or more as needed to skip complete characters
- *
- * Assumptions:
- * - sizeof(buffer) >= min + R_MB_CUR_MAX, i.e. at least 1 full char in buffer.
- * - MBCS encodings are valid (they've been read already so should be).
- * - Stateless encodings.
- */
 
-static int skipBytesByChar(char *c, int min) {
-    int res = 0;
-    
-    if(!mbcslocale) 
-	res = min;
-    else {
-	if(utf8locale) {
-	    /* Find first non continuation byte; we assume UTF-8 is valid. */
-	    char *cc = c + min;
-	    while(((unsigned char)*cc & 0xc0) == 0x80) ++cc;
-	    res = (int) (cc - c);
-	} else {
-	    mbstate_t mb_st;
-	    mbs_init(&mb_st);
-	    while(res < min)
-		res += (int) mbrtowc(NULL, c + res, R_MB_CUR_MAX, &mb_st);
-	}
-    }
-    return res;
-}
-
-#define CTEXT_PUSH(c) do {                                             \
-	if (ct - currtext >= 1000) {                                   \
-	    int skip = skipBytesByChar(currtext, 100 + 4);             \
-	    memmove(currtext, "... ", 4);                              \
-	    memmove(currtext + 4, currtext + skip, 1000 - skip + 1);   \
-	    ct -= skip - 4;                                            \
-	    currtext_truncated = TRUE;                                 \
-	}                                                              \
-	*ct++ = ((char) c);                                            \
+#define CTEXT_PUSH(c) do { \
+	if (ct - currtext >= 1000) { \
+	    memmove(currtext, currtext+100, 901); memmove(currtext, "... ", 4); ct -= 100; \
+	    currtext_truncated = TRUE; \
+	} \
+	*ct++ = ((char) c);  \
 } while(0)
 #define CTEXT_POP() ct--
 
@@ -2792,8 +2686,6 @@ static int StringValue(int c, Rboolean forSymbol)
 		}
 		if (!octal)
 		    error(_("nul character not allowed (line %d)"), ParseState.xxlineno);
-		if(octal > 0xff)
-		    error(_("exceeded maximum allowed octal value \\377 (line %d)"), ParseState.xxlineno);
 		c = octal;
 		oct_or_hex = TRUE;
 	    }
@@ -2971,26 +2863,18 @@ static int StringValue(int c, Rboolean forSymbol)
 	}
 	STEXT_PUSH(c);
 	if ((unsigned int) c < 0x80) WTEXT_PUSH(c);
-	else { 
-	    /* have an 8-bit char in the current encoding */
-	    /* FIXME: `wc` values will be wrong when native encoding differs
-	       from that indicated by `known_to_be*` */
-	    int res = 0;
+	else { /* have an 8-bit char in the current encoding */
 #ifdef WC_NOT_UNICODE
 	    ucs_t wc;
 	    char s[2] = " ";
 	    s[0] = (char) c;
-	    res = (int) mbtoucs(&wc, s, 2);
+	    mbtoucs(&wc, s, 2);
 #else
 	    wchar_t wc;
 	    char s[2] = " ";
 	    s[0] = (char) c;
-	    /* This is not necessarily correct for stateful SBCS */
-	    mbstate_t mb_st;
-	    mbs_init(&mb_st);
-	    res = (int) mbrtowc(&wc, s, 2, &mb_st);
+	    mbrtowc(&wc, s, 2, NULL);
 #endif
-	    if(res < 0) wc = 0xFFFD; /* placeholder for invalid encoding */
 	    WTEXT_PUSH(wc);
 	}
     }
@@ -3107,22 +2991,17 @@ static int RawStringValue(int c0, int c)
 	STEXT_PUSH(c);
 	if ((unsigned int) c < 0x80) WTEXT_PUSH(c);
 	else { /* have an 8-bit char in the current encoding */
-	    int res = 0;
 #ifdef WC_NOT_UNICODE
 	    ucs_t wc;
 	    char s[2] = " ";
 	    s[0] = (char) c;
-	    res = (int) mbtoucs(&wc, s, 2);
+	    mbtoucs(&wc, s, 2);
 #else
 	    wchar_t wc;
 	    char s[2] = " ";
 	    s[0] = (char) c;
-	    /* This is not necessarily correct for stateful SBCS */
-	    mbstate_t mb_st;
-	    mbs_init(&mb_st);
-	    res = (int) mbrtowc(&wc, s, 2, &mb_st);
+	    mbrtowc(&wc, s, 2, NULL);
 #endif
-	    if(res < 0) wc = 0xFFFD; /* placeholder for invalid encoding */
 	    WTEXT_PUSH(wc);
 	}
     }
@@ -3191,10 +3070,7 @@ int isValidName(const char *name)
 	   use the wchar variants */
 	size_t n = strlen(name), used;
 	wchar_t wc;
-	/* This is not necessarily correct for stateful MBCS */
-	mbstate_t mb_st;
-	mbs_init(&mb_st);
-	used = Mbrtowc(&wc, p, n, &mb_st); p += used; n -= used;
+	used = Mbrtowc(&wc, p, n, NULL); p += used; n -= used;
 	if(used == 0) return 0;
 	if (wc != L'.' && !iswalpha(wc) ) return 0;
 	if (wc == L'.') {
@@ -3202,7 +3078,7 @@ int isValidName(const char *name)
 	    if(isdigit(0xff & (int)*p)) return 0;
 	    /* Mbrtowc(&wc, p, n, NULL); if(iswdigit(wc)) return 0; */
 	}
-	while((used = Mbrtowc(&wc, p, n, &mb_st))) {
+	while((used = Mbrtowc(&wc, p, n, NULL))) {
 	    if (!(iswalnum(wc) || wc == L'.' || wc == L'_')) break;
 	    p += used; n -= used;
 	}
@@ -3259,16 +3135,6 @@ static int SymbolValue(int c)
     
     PRESERVE_SV(yylval = install(yytext));
     return SYMBOL;
-}
-
-static int Placeholder(int c)
-{
-    DECLARE_YYTEXT_BUFP(yyp);
-    YYTEXT_PUSH(c, yyp);
-    YYTEXT_PUSH('\0', yyp);
-    HavePlaceholder = TRUE;
-    PRESERVE_SV(yylval = R_PlaceholderToken);
-    return PLACEHOLDER;
 }
 
 static void setParseFilename(SEXP newname) {
@@ -3399,7 +3265,6 @@ static int token(void)
  symbol:
 
     if (c == '.') return SymbolValue(c);
-    if (c == '_') return Placeholder(c);
     if(mbcslocale) {
 	// FIXME potentially need R_wchar_t with UTF-8 Windows.
 	mbcs_get_next(c, &wc);
@@ -3463,7 +3328,6 @@ static int token(void)
 	}
 	else if (nextchar('>')) {
 	    yylval = install_and_save("=>");
-	    HavePipeBind = TRUE;
 	    return PIPEBIND;
 	}		 
 	yylval = install_and_save("=");
@@ -3778,7 +3642,6 @@ static int yylex(void)
 	/* indicate the end of an expression. */
 
     case SYMBOL:
-    case PLACEHOLDER:
     case STR_CONST:
     case NUM_CONST:
     case NULL_CONST:
@@ -4210,13 +4073,35 @@ static void growID( int target ){
 
 static int checkForPlaceholder(SEXP placeholder, SEXP arg)
 {
-    if (! HavePlaceholder)
-    	return FALSE;
-    else if (arg == placeholder)
+    if (arg == placeholder)
 	return TRUE;
     else if (TYPEOF(arg) == LANGSXP)
 	for (SEXP cur = arg; cur != R_NilValue; cur = CDR(cur))
 	    if (checkForPlaceholder(placeholder, CAR(cur)))
 		return TRUE;
     return FALSE;
+}
+
+static void NORET signal_ph_error(SEXP rhs, SEXP ph) {
+    errorcall(rhs, _("pipe placeholder must only appear as a top-level "
+		     "argument in the RHS call"));
+}
+    
+static SEXP findPlaceholderCell(SEXP placeholder, SEXP rhs)
+{
+    SEXP phcell = NULL;
+    int count = 0;
+    if (checkForPlaceholder(placeholder, CAR(rhs)))
+	signal_ph_error(rhs, placeholder);
+    for (SEXP a = CDR(rhs); a != R_NilValue; a = CDR(a))
+	if (CAR(a) == placeholder) {
+	    if (phcell == NULL)
+		phcell = a;
+	    count++;
+	}
+	else if (checkForPlaceholder(placeholder, CAR(a)))
+	    signal_ph_error(rhs, placeholder);
+    if (count > 1)
+	errorcall(rhs, _("pipe placeholder may only appear once"));
+    return phcell;
 }

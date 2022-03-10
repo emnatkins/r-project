@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2022   The R Core Team.
+ *  Copyright (C) 1998-2017   The R Core Team.
  *  Copyright (C) 2004-2017   The R Foundation
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
@@ -864,16 +864,16 @@ static int Accumulate2(SEXP expr, SEXP exprlist)
     return k + 1;
 }
 
-static SEXP MakeVariable(int k, const char *tag)
+static SEXP MakeVariable(int k, SEXP tag)
 {
+    const void *vmax = vmaxget();
     char buf[64];
-    int res = snprintf(buf, 64, "%s%d", tag, k);
-    if (res >= 64)
-	error(_("too many variables"));
+    snprintf(buf, 64, "%s%d", translateChar(STRING_ELT(tag, 0)), k);
+    vmaxset(vmax);
     return install(buf);
 }
 
-static int FindSubexprs(SEXP expr, SEXP exprlist, const char *tag)
+static int FindSubexprs(SEXP expr, SEXP exprlist, SEXP tag)
 {
     SEXP e;
     int k;
@@ -1069,9 +1069,7 @@ SEXP deriv(SEXP args)
     SEXP ans, ans2, expr, funarg, names, s;
     int f_index, *d_index, *d2_index;
     int i, j, k, nexpr, nderiv=0, hessian;
-    SEXP exprlist, stag;
-    const void *vmax = vmaxget();
-    const char *tag;
+    SEXP exprlist, tag;
 
     args = CDR(args);
     InitDerivSymbols();
@@ -1090,12 +1088,10 @@ SEXP deriv(SEXP args)
     funarg = CAR(args);
     args = CDR(args);
     /* tag: */
-    stag = CAR(args);
-    if (!isString(stag) || length(stag) < 1 || length(STRING_ELT(stag, 0)) < 1)
+    tag = CAR(args);
+    if (!isString(tag) || length(tag) < 1
+	|| length(STRING_ELT(tag, 0)) < 1 || length(STRING_ELT(tag, 0)) > 60)
 	error(_("invalid tag"));
-    tag = translateChar(STRING_ELT(stag, 0));
-    if(strlen(tag) > 60) error(_("invalid tag"));
-
     args = CDR(args);
     /* hessian: */
     hessian = asLogical(CAR(args));
@@ -1266,7 +1262,6 @@ SEXP deriv(SEXP args)
 	SET_VECTOR_ELT(funarg, 0, exprlist);
 	/* funarg = lang2(install("expression"), exprlist); */
     }
-    vmaxset(vmax);
     UNPROTECT(2);
     return funarg;
 }

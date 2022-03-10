@@ -1,6 +1,6 @@
 % File src/library/stats/man/asOneSidedFormula.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2022 R Core Team
+% Copyright 1995-2010 R Core Team
 % Distributed under GPL 2 or later
 
 \name{asOneSidedFormula}
@@ -11,14 +11,12 @@ asOneSidedFormula(object)
 }
 \alias{asOneSidedFormula}
 \arguments{
- \item{object}{a one-sided formula, name, call, expression, numeric value, or
+ \item{object}{a one-sided formula, an expression, a numeric value, or a
    character string.}
 }
 \description{
-  Names, calls, expressions (first element), numeric values, and
-  character strings are converted to one-sided formulae
-  associated with the global environment.
-  If the input is a formula, it must be
+  Names, expressions, numeric values, and character strings are converted to
+  one-sided formulae. If \code{object} is a formula, it must be
   one-sided, in which case it is returned unaltered.
 }
 \value{
@@ -29,13 +27,7 @@ asOneSidedFormula(object)
 \seealso{\code{\link{formula}}}
 
 \examples{
-(form <- asOneSidedFormula("age"))
-stopifnot(exprs = {
-    identical(form, asOneSidedFormula(form))
-    identical(form, asOneSidedFormula(as.name("age")))
-    identical(form, asOneSidedFormula(expression(age)))
-})
-asOneSidedFormula(quote(log(age)))
-asOneSidedFormula(1)
+asOneSidedFormula("age")
+asOneSidedFormula(~ age)
 }
 \keyword{models}

@@ -133,9 +133,6 @@ expectedList <- list(
 globalCallingHandlers(error = hnd1, error = hnd2, error = hnd3)
 stopifnot(identical(globalCallingHandlers(), expectedList))
 globalCallingHandlers(NULL)
-## and removeSource() now retains attributes:
-stopifnot( identical(attributes(removeSource(hnd2)), list(bar = TRUE)) )
-
 
 ## Source references do not cause handlers to be treated as distinct
 withSource <- function(src, envir = parent.frame(), file = NULL) {
@@ -150,6 +147,6 @@ withSource("hnd1 <- structure(function(...) { NULL })")
 withSource("hnd2 <- structure(function(...) { NULL })")
 globalCallingHandlers(NULL)
 globalCallingHandlers(error = hnd1)
-globalCallingHandlers(error = hnd2) # message "pushing duplicate .."
+globalCallingHandlers(error = hnd2)
 stopifnot(identical(globalCallingHandlers(), list(error = hnd2)))
 globalCallingHandlers(NULL)

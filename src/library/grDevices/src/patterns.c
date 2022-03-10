@@ -33,13 +33,6 @@ SEXP setPattern(SEXP args)
 {
     pGEDevDesc dd = GEcurrentDevice();
     SEXP pattern = CADR(args);
-    if (dd->appending) {
-        /* Fill can be silently ignored if we are appending a path
-         * because path only accumulates lines and curves for
-         * path boundary */
-        return R_NilValue;
-    } else {
-        SEXP ref = dd->dev->setPattern(pattern, dd->dev);
-        return ref;
-    }
+    SEXP ref = dd->dev->setPattern(pattern, dd->dev);
+    return ref;
 }

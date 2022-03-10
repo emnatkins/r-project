@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997-2022   The R Core Team
+ *  Copyright (C) 1997-2021   The R Core Team
  *  Copyright (C) 1995-1996   Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -350,12 +350,14 @@ int R_system(const char *command)
 #if defined(__APPLE__)
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
-#elif defined(Win32)
+#else
+extern char ** environ;
+#endif
+
+#ifdef Win32
 /* _wenviron is declared in stdlib.h */
 # define WIN32_LEAN_AND_MEAN 1
 # include <windows.h> /* _wgetenv etc */
-#else
-extern char ** environ;
 #endif
 
 SEXP attribute_hidden do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -727,35 +729,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 			}
 		    }
 		    goto next_char;
-		} else if(fromUTF8 && streql(sub, "c99")) {
-		    if(outb < 11) {
-			R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
-			goto top_of_loop;
-		    }
-		    wchar_t wc;
-		    ssize_t clen = utf8toucs(&wc, inbuf);
-		    if(clen > 0 && inb >= clen) {
-			R_wchar_t ucs;
-			if (IS_HIGH_SURROGATE(wc))
-			    ucs = utf8toucs32(wc, inbuf);
-			else
-			    ucs = (R_wchar_t) wc;
-			inbuf += clen; inb -= clen;
-			if(ucs < 65536) {
-			    // gcc 7 objects to this with unsigned int
-			    snprintf(outbuf, 7, "\\u%04x", (unsigned short) ucs);
-			    outbuf += 6; outb -= 6;
-			} else {
-			    /* R_wchar_t is unsigned int on Windows, 
-			       otherwise wchar_t (usually int).
-			       In any case Unicode points <= 0x10FFFF
-			    */
-			    snprintf(outbuf, 11, "\\U%08x", (unsigned int) ucs);
-			    outbuf += 10; outb -= 10;
-			}
-		    }
-		    goto next_char;
-		} else if(strcmp(sub, "byte") == 0) {
+		}  else if(strcmp(sub, "byte") == 0) {
 		    if(outb < 5) {
 			R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 			goto top_of_loop;
@@ -820,8 +794,10 @@ void * Riconv_open (const char* tocode, const char* fromcode)
 // These two support "utf8"
 # ifdef Win32
     const char *cp = "ASCII";
+#  ifndef SUPPORT_UTF8_WIN32 /* Always, at present */
     char to[20] = "";
     if (localeCP > 0) {snprintf(to, 20, "CP%d", localeCP); cp = to;}
+#  endif
 # else /* __APPLE__ */
     const char *cp = "UTF-8";
     if (latin1locale) cp = "ISO-8859-1";
@@ -1310,7 +1286,6 @@ const wchar_t *wtransChar(SEXP x)
 #endif
     }
 
-    /* R_AllocStringBuffer returns correctly aligned for wchar_t */
     R_AllocStringBuffer(0, &cbuff);
 top_of_loop:
     inbuf = ans; inb = strlen(inbuf);
@@ -1324,12 +1299,12 @@ next_char:
 	R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 	goto top_of_loop;
     } else if(res == -1 && (errno == EILSEQ || errno == EINVAL)) {
-	if(outb < 5 * sizeof(wchar_t)) {
+	if(outb < 5) {
 	    R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 	    goto top_of_loop;
 	}
-	swprintf((wchar_t*)outbuf, 5, L"<%02x>", (unsigned char)*inbuf);
-	outbuf += 4 * sizeof(wchar_t); outb -= 4 * sizeof(wchar_t);
+	snprintf(outbuf, 5, "<%02x>", (unsigned char)*inbuf);
+	outbuf += 4; outb -= 4;
 	inbuf++; inb--;
 	goto next_char;
 	/* if(!knownEnc) Riconv_close(obj);
@@ -1356,6 +1331,9 @@ const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
     char *outbuf, *p;
     size_t inb, outb, res, top;
     char *tocode = NULL, *fromcode = NULL;
+#ifdef Win32
+    char buf[20];
+#endif
     R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
 
     /* We can only encode from Symbol to UTF-8 */
@@ -1377,11 +1355,17 @@ const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
     if(strIsASCII(x)) return x;
 
     switch(ce_in) {
-    /* Looks like CP1252 is treated as Latin-1 by iconv (on Windows) */
-    case CE_NATIVE: fromcode = ""; break;
 #ifdef Win32
+    case CE_NATIVE:
+	{
+	    /* Looks like CP1252 is treated as Latin-1 by iconv */
+	    snprintf(buf, 20, "CP%d", localeCP);
+	    fromcode = buf;
+	    break;
+	}
     case CE_LATIN1: fromcode = "CP1252"; break;
 #else
+    case CE_NATIVE: fromcode = ""; break;
     case CE_LATIN1: fromcode = "latin1"; break; /* FIXME: allow CP1252? */
 #endif
     case CE_UTF8:   fromcode = "UTF-8"; break;
@@ -1389,8 +1373,17 @@ const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
     }
 
     switch(ce_out) {
-    /* avoid possible misidentification of CP1250 as LATIN-2 (on Windows, ??) */
+ #ifdef Win32
+    case CE_NATIVE:
+	{
+	    /* avoid possible misidentification of CP1250 as LATIN-2 */
+	    snprintf(buf, 20, "CP%d", localeCP);
+	    tocode = buf;
+	    break;
+	}
+#else
     case CE_NATIVE: tocode = ""; break;
+#endif
     case CE_LATIN1: tocode = "latin1"; break;
     case CE_UTF8:   tocode = "UTF-8"; break;
     default: return x;
@@ -1462,6 +1455,7 @@ void reEnc2(const char *x, char *y, int ny,
     char *outbuf;
     size_t inb, outb, res, top;
     char *tocode = NULL, *fromcode = NULL;
+    char buf[20];
     R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
 
     strncpy(y, x, ny);
@@ -1476,16 +1470,26 @@ void reEnc2(const char *x, char *y, int ny,
     if(strIsASCII(x)) return;
 
     switch(ce_in) {
-    /* Looks like CP1252 is treated as Latin-1 by iconv */
-    case CE_NATIVE: fromcode = ""; break;
+    case CE_NATIVE:
+	{
+	    /* Looks like CP1252 is treated as Latin-1 by iconv */
+	    snprintf(buf, 20, "CP%d", localeCP);
+	    fromcode = buf;
+	    break;
+	}
     case CE_LATIN1: fromcode = "CP1252"; break;
     case CE_UTF8:   fromcode = "UTF-8"; break;
     default: return;
     }
 
     switch(ce_out) {
-    /* avoid possible misidentification of CP1250 as LATIN-2 (??) */
-    case CE_NATIVE: tocode = ""; break;
+    case CE_NATIVE:
+	{
+	    /* avoid possible misidentification of CP1250 as LATIN-2 */
+	    snprintf(buf, 20, "CP%d", localeCP);
+	    tocode = buf;
+	    break;
+	}
     case CE_LATIN1: tocode = "latin1"; break;
     case CE_UTF8:   tocode = "UTF-8"; break;
     default: return;
@@ -1779,7 +1783,6 @@ void R_reInitTempDir(int die_on_fail)
 #ifdef Win32
     char tmp2[PATH_MAX];
     int hasspace = 0;
-    DWORD res = 0;
 #endif
 
 #define ERROR_MAYBE_DIE(MSG_)			\
@@ -1809,16 +1812,8 @@ void R_reInitTempDir(int die_on_fail)
 	for (p = tm; *p; p++)
 	    if (isspace(*p)) { hasspace = 1; break; }
 	if (hasspace) {
-	    res = GetShortPathName(tm, tmp2, MAX_PATH);
-	    if (res != 0) 
-	        tm = tmp2;
-
-	    hasspace = 0;
-	    for (p = tm; *p; p++)
-		if (isspace(*p)) { hasspace = 1; break; }
-	    if (hasspace) {
-		ERROR_MAYBE_DIE(_("'R_TempDir' contains space"));
-	    }
+	    GetShortPathName(tm, tmp2, MAX_PATH);
+	    tm = tmp2;
 	}
 	snprintf(tmp1, PATH_MAX+11, "%s\\RtmpXXXXXX", tm);
 #else
@@ -2007,58 +2002,6 @@ do_setSessionTimeLimit(SEXP call, SEXP op, SEXP args, SEXP rho)
     else elapsedLimit2 = -1;
 
     return R_NilValue;
-}
-
-void attribute_hidden R_CheckTimeLimits(void)
-{
-    if (cpuLimit > 0.0 || elapsedLimit > 0.0) {
-
-	/* On Linux and macOS at least R_getProcTime can be quite slow;
-	   currentTIme is somewhat faster. */
-
-	/* To reduce overhead, skip checking TIME_CHECK_SKIP times. */
-	const int TIME_CHECK_SKIP = 5;
-	static int check_count = 0;
-	if (check_count < TIME_CHECK_SKIP) {
-	    check_count++;
-	    return;
-	}
-	else check_count = 0;
-
-	/* Before calling R_getProcTime first use checkTime to make
-	   sure at least TIME_CHECK_DELTA seconds have elapsed since
-	   the last call. */
-	const double TIME_CHECK_DELTA = 0.05;
-	static double check_time = 0;
-	double tm = currentTime();
-	if (tm < check_time)
-	    return;
-	else check_time = tm + TIME_CHECK_DELTA;
-
-	double cpu, data[5];
-	R_getProcTime(data);
-#ifdef Win32
-	cpu = data[0] + data[1];
-#else
-	cpu = data[0] + data[1] + data[3] + data[4];
-#endif
-	if (elapsedLimit > 0.0 && data[2] > elapsedLimit) {
-	    cpuLimit = elapsedLimit = -1;
-	    if (elapsedLimit2 > 0.0 && data[2] > elapsedLimit2) {
-		elapsedLimit2 = -1.0;
-		error(_("reached session elapsed time limit"));
-	    } else
-		error(_("reached elapsed time limit"));
-	}
-	if (cpuLimit > 0.0 && cpu > cpuLimit) {
-	    cpuLimit = elapsedLimit = -1;
-	    if (cpuLimit2 > 0.0 && cpu > cpuLimit2) {
-		cpuLimit2 = -1.0;
-		error(_("reached session CPU time limit"));
-	    } else
-		error(_("reached CPU time limit"));
-	}
-    }
 }
 
 /* moved from character.c in 2.10.0: configure requires this */

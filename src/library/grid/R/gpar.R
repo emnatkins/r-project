@@ -177,8 +177,6 @@ validGP <- function(gpars) {
 			      EUC   = 7L,
 			      stop("invalid fontface ", ch)), 0L)
 	}
-    ## Remove fontface
-    gpars$fontface <- NULL
   }
   gpars
 }
@@ -189,7 +187,7 @@ validGP <- function(gpars) {
         return(gpar())
     maxn <- do.call("max", lapply(x, length))
     newgp <- lapply(x, rep, length.out=maxn)
-    newgp <- lapply(X = newgp, FUN = `[`, index, ...)
+    newgp <- lapply(X = newgp, FUN = "[", index, ...)
     class(newgp) <- "gpar"
     newgp
 }
@@ -207,7 +205,6 @@ validGP <- function(gpars) {
 set.gpar <- function(gp, grob=NULL) {
   if (!is.gpar(gp))
     stop("argument must be a 'gpar' object")
-  gp <- validGP(gp)
   temp <- grid.Call(C_getGPar)
   # gamma defunct in 2.7.0
   if ("gamma" %in% names(gp)) {
@@ -234,8 +231,12 @@ set.gpar <- function(gp, grob=NULL) {
       if (is.null(grob)) {
           class(gp$fill) <- c("GridViewportPattern", class(gp$fill))
       } else {
-          class(gp$fill) <- c("GridGrobPattern", class(gp$fill))
-          attr(gp$fill, "grob") <- grob
+          if (inherits(grob, "gTree")) {
+              ## Just pass the fill through to child grobs
+          } else {
+              class(gp$fill) <- c("GridGrobPattern", class(gp$fill))
+              attr(gp$fill, "grob") <- grob
+          }
       }
   }
   # All other gpars

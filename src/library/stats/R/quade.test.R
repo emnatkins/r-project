@@ -102,7 +102,8 @@ function(formula, data, subset, na.action, ...)
     m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " and ")
-    y <- quade.test(mf[[1L]], mf[[2L]], mf[[3L]])
+    names(mf) <- NULL
+    y <- do.call("quade.test", as.list(mf))
     y$data.name <- DNAME
     y
 }

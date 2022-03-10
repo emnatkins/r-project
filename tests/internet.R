@@ -15,6 +15,7 @@ zz <- url("http://cran.r-project.org/")
 readLines(zz)
 close(zz)
 
-# and via read.table
+# and via read.table, test http and ftp.
 
 read.table("http://www.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")
+read.table("ftp://ftp.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")

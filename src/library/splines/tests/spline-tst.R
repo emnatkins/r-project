@@ -61,8 +61,7 @@ chkSum <- function(knots, n = 1 + 2^9, ord = 4) {
 	cat("non-finite at x = "); dput(x[iBad])
     } else if(length(bb)) { # only when bb[] is not 0-dimensional
 	eps <- 3*.Machine$double.eps
-	stopifnot(abs(1 - sumB[is.x.in]) <= 2*eps, 0 <= sumB+eps, sumB-2*eps <= 1,
-		  allow.logical0=TRUE)
+	stopifnot(abs(1 - sumB[is.x.in]) <= 2*eps, 0 <= sumB+eps, sumB-2*eps <= 1)
 	## TODO: now also check derivatives
     }
     invisible(bb)

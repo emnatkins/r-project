@@ -1,7 +1,7 @@
 #  File src/library/stats/R/models.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2022 The R Core Team
+#  Copyright (C) 1995-2021 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -578,8 +578,9 @@ model.frame.default <-
                              domain = NA)
 		    data[[nm]] <- factor(xi, levels=xl, exclude=NULL)
 		    if (!identical(attr(data[[nm]], "contrasts"), ctr))
-		    	warning(gettextf("contrasts dropped from factor %s", nm),
-		    	        call. = FALSE, domain = NA)
+		    	warning(gettext(sprintf("contrasts dropped from factor %s",
+						nm), domain = NA),
+		    	        call. = FALSE)
 		}
 	    }
     } else if(drop.unused.levels) {
@@ -590,9 +591,9 @@ model.frame.default <-
 	        ctr <- attr(x, "contrasts")
 		data[[nm]] <- x[, drop = TRUE]
 		if (!identical(attr(data[[nm]], "contrasts"), ctr))
-		    warning(gettextf(
+		    warning(gettext(sprintf(
 				"contrasts dropped from factor %s due to missing levels",
-					    nm), domain = NA, call. = FALSE)
+					    nm), domain = NA), call. = FALSE)
 	    }
 	}
     }

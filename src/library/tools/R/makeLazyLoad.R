@@ -171,10 +171,6 @@ makeLazyLoadDB <- function(from, filebase, compress = TRUE, ascii = FALSE,
     envlist <- function(e)
         .Internal(getVarsFromFrame(ls(e, all.names = TRUE), e, FALSE))
 
-    ## This can be inefficient if there are many environments,
-    ## e.g. from source references (PR18236), but has to be used in
-    ## initial bootstrapping since hash tables in the utils package
-    ## are not yet available.
     envtable <- function() {
         idx <- 0
         envs <- NULL
@@ -186,6 +182,7 @@ makeLazyLoadDB <- function(from, filebase, compress = TRUE, ascii = FALSE,
 	    NULL
 	}
         getname <- function(e) find(e, envs, enames)
+        getenv <- function(n) find(n, enames, envs)
         insert <- function(e) {
             idx <<- idx + 1
             name <- paste0("env::", idx)
@@ -193,22 +190,8 @@ makeLazyLoadDB <- function(from, filebase, compress = TRUE, ascii = FALSE,
             enames <<- c(name, enames)
             name
         }
-        list(insert = insert, getname = getname)
+        list(insert = insert, getenv = getenv, getname = getname)
     }
-    ## Use a hash table once utils is fully available.
-    if (file.exists(system.file("R", "utils.rdx", package = "utils")))
-        envtable <- function() {
-            idx <- 0
-            h <- utils::hashtab()
-            getname <- function(e) utils::gethash(h, e)
-            insert <- function(e) {
-                idx <<- idx + 1
-                name <- paste0("env::", idx)
-                utils::sethash(h, e, name)
-                name
-            }
-            list(insert = insert, getname = getname)
-        }
 
     lazyLoadDBinsertValue <- function(value, file, ascii, compress, hook)
         .Internal(lazyLoadDBinsertValue(value, file, ascii, compress, hook))

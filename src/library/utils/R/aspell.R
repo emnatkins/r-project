@@ -211,23 +211,27 @@ function(files, filter, control = list(), encoding = "unknown",
 	    info <- strsplit(lines[ind], ": ", fixed = TRUE)
 	    one <- strsplit(sapply(info, `[`, 1L), " ",  fixed = TRUE)
 	    two <- strsplit(sapply(info, `[`, 2L), ", ", fixed = TRUE)
-	    db1 <- list2DF(list(Original = vapply(one, `[`, "", 2L),
-                                File = rep_len(fname, length(one)),
-                                Line = pos[ind],
-                                Column =
-                                    as.integer(vapply(one, `[`, "", 4L)),
-                                Suggestions = two))
+	    db1 <- data.frame(Original =
+			      as.character(sapply(one, `[`, 2L)),
+			      File = fname,
+			      Line = pos[ind],
+			      Column =
+			      as.integer(sapply(one, `[`, 4L)),
+			      stringsAsFactors = FALSE)
+	    db1$Suggestions <- two
 	    db <- rbind(db, db1)
 	}
 	## Looks at words not in dictionary with no suggestions.
 	if(any(ind <- startsWith(lines, "#"))) {
 	    one <- strsplit(lines[ind], " ", fixed = TRUE)
-	    db1 <- list2DF(list(Original = vapply(one, `[`, "", 2L),
-                                File = rep_len(fname, length(one)),
-                                Line = pos[ind],
-                                Column =
-                                    as.integer(vapply(one, `[`, "", 3L)),
-                                Suggestions = vector("list", length(one))))
+	    db1 <- data.frame(Original =
+			      as.character(sapply(one, `[`, 2L)),
+			      File = fname,
+			      Line = pos[ind],
+			      Column =
+			      as.integer(sapply(one, `[`, 3L)),
+			      stringsAsFactors = FALSE)
+	    db1$Suggestions <- vector("list", length(one))
 	    db <- rbind(db, db1)
 	}
     }
@@ -282,7 +286,7 @@ function(object, ...)
 {
     words <- sort(unique(object$Original))
     if(length(words)) {
-        writeLines("Possibly misspelled words:")
+        writeLines("Possibly mis-spelled words:")
         print(words)
     }
     invisible(words)
@@ -1154,9 +1158,8 @@ function(dir,
                do.call(aspell_package_R_files, args),
                do.call(aspell_package_C_files, args))
     if(nrow(a)) {
-        a$File <- tools:::file_path_relative_to(a$File,
-                                                dirname(dir),
-                                                parent = FALSE)
+        a$File <- tools:::.file_path_relative_to_dir(a$File,
+                                                     dirname(dir))
     }
     a
 }

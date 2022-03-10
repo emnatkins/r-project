@@ -18,7 +18,7 @@ typeof(1000L) == "integer"
 typeof(1e3L) == "integer"
 typeof(1e-3L) == "double" # gives warning
 1.L # gives warning
-inherits(try(parse(text = "12iL"), silent=TRUE), "try-error") # gives syntax error
+try(parse(text = "12iL")) # gives syntax error
 
 
 all((0:6) == pi + ((-pi):pi))

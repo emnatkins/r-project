@@ -17,7 +17,7 @@ aggregate(x, \dots)
 
 \method{aggregate}{data.frame}(x, by, FUN, \dots, simplify = TRUE, drop = TRUE)
 
-\method{aggregate}{formula}(x, data, FUN, \dots,
+\method{aggregate}{formula}(formula, data, FUN, \dots,
           subset, na.action = na.omit)
 
 \method{aggregate}{ts}(x, nfrequency = 1, FUN = sum, ndeltat = 1,
@@ -28,10 +28,7 @@ aggregate(x, \dots)
   and returns the result in a convenient form.
 }
 \arguments{
-  \item{x}{an \R object.  For the \code{formula} method a \code{\link{formula}},
-    such as \code{y ~ x} or \code{cbind(y1, y2) ~ x1 + x2}, where the
-    \code{y} variables are numeric data to be split into groups according
-    to the grouping \code{x} variables (usually factors).}
+  \item{x}{an R object.}
   \item{by}{a list of grouping elements, each as long as the variables
     in the data frame \code{x}.  The elements are coerced to factors
     before use.}
@@ -42,6 +39,10 @@ aggregate(x, \dots)
   \item{drop}{a logical indicating whether to drop unused combinations
     of grouping values.  The non-default case \code{drop=FALSE} has been
     amended for \R 3.5.0 to drop unused combinations.}
+  \item{formula}{a \link{formula}, such as \code{y ~ x} or
+    \code{cbind(y1, y2) ~ x1 + x2}, where the \code{y} variables are
+    numeric data to be split into groups according to the grouping
+    \code{x} variables (usually factors).}
   \item{data}{a data frame (or list) from which the variables in formula
     should be taken.}
   \item{subset}{an optional vector specifying a subset of observations
@@ -115,9 +116,9 @@ aggregate(x, \dots)
 }
 
 \section{Warning}{
-  The first argument of the \code{"formuala"} method was named
-  \code{formula} rather than \code{x} prior to \R 4.2.0.  Portable uses
-  should not name that argument.
+  In future, the first argument of the \code{"formula"} method may be named
+  \code{x} rather than \code{formula}.  Portable uses should not name
+  that argument.
 }
 
 \author{

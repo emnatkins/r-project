@@ -316,10 +316,6 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
 
     writeAlias <- function(block, tag) {
         alias <- as.character(block)
-        if(length(alias) > 1L)
-            stop("alias:\n",
-                 sQuote(paste(alias, collapse = "\n")),
-                 "\nis not one line")
         aa <- "\\aliasA{"
         ## Some versions of hyperref (from 6.79d) have trouble indexing these
         ## |, || in base, |.bit, %||% in ggplot2 ...
@@ -407,9 +403,9 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
 	       	          },
 
                "\\verb"= {
-                   of0("\\AsIs{\\texttt{")
+                   of0("\\AsIs{")
                    writeContent(block, tag)
-                   of1("}}")
+                   of1("}")
                },
                "\\special"= writeContent(block, tag), ## FIXME, verbatim?
                "\\linkS4class" =,
@@ -442,11 +438,9 @@ Rd2latex <- function(Rd, out = "", defines = .Platform$OS.type,
                	   of0('}{')
                	   if (length(block) > 1L) {
 		       includeoptions <- .Rd_get_latex(block[[2]])
-                       ## this was wrong if length(includeopptions) > 1
-		       if (length(includeoptions))
-                           for (z in includeoptions)
-                               if(startsWith(z, "options: "))
-                                   of0(sub("^options: ", "", z))
+		       if (length(includeoptions)
+			   && startsWith(includeoptions, "options: "))
+			   of0(sub("^options: ", "", includeoptions))
                    }
                	   of0('}')
                	   hasFigures <<- TRUE

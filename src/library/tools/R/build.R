@@ -193,7 +193,10 @@ inRbuildignore <- function(files, pkgdir) {
 
     temp_install_pkg <- function(pkgdir, libdir) {
 	dir.create(libdir, mode = "0755", showWarnings = FALSE)
-        if(nzchar(install_dependencies) &&
+        install_missing_dependencies <-
+            config_val_to_logical(Sys.getenv("_R_BUILD_INSTALL_MISSING_DEPENDENCIES_",
+                                             "no"))
+        if(install_missing_dependencies &&
            all((repos <- getOption("repos")) != "@CRAN@")) {
             ## try installing missing dependencies too
             available <- utils::available.packages(repos = repos)
@@ -204,7 +207,7 @@ inRbuildignore <- function(files, pkgdir) {
                                 drop = FALSE],
                       db[colnames(available)])
             depends <- package_dependencies(package, available,
-                                            which = install_dependencies)
+                                            which = "most")
             depends <- setdiff(unlist(depends),
                                utils::installed.packages())
             if(length(depends)) {
@@ -446,17 +449,17 @@ inRbuildignore <- function(files, pkgdir) {
             messageLog(Log, "cleaning src")
             if (WINDOWS) {
                 have_make <- nzchar(Sys.which(Sys.getenv("MAKE", "make")))
-                if (file.exists(fn <- "Makefile.ucrt") || file.exists(fn <- "Makefile.win")) {
+                if (file.exists("Makefile.win")) {
                     if (have_make)
-                        Ssystem(Sys.getenv("MAKE", "make"), paste0("-f ", fn, " clean"))
+                        Ssystem(Sys.getenv("MAKE", "make"), "-f Makefile.win clean")
                     else warning("unable to run 'make clean' in 'src'",
                                  domain = NA)
                 } else {
-                    if (file.exists(fn <- "Makevars.ucrt") || file.exists(fn <- "Makevars.win")) {
+                    if (file.exists("Makevars.win")) {
                         if (have_make) {
                             makefiles <- paste("-f",
                                                shQuote(file.path(R.home("share"), "make", "clean.mk")),
-                                           "-f", fn)
+                                           "-f Makevars.win")
                             Ssystem(Sys.getenv("MAKE", "make"),
                                     c(makefiles, "clean"))
                         } else warning("unable to run 'make clean' in 'src'",
@@ -501,20 +504,14 @@ inRbuildignore <- function(files, pkgdir) {
         ## to 'Writing R Extensions', but were not in Perl version (nor
         ## was cleanup.win used).
         if (WINDOWS) {
-            has_cleanup_ucrt <- file.exists("cleanup.ucrt")
-            if (has_cleanup_ucrt || file.exists("cleanup.win")) {
+            if (file.exists("cleanup.win")) {
                 ## check we have sh.exe first
                 if (nzchar(Sys.which("sh.exe"))) {
                     Sys.setenv(R_PACKAGE_NAME = pkgname)
                     Sys.setenv(R_PACKAGE_DIR = pkgdir)
                     Sys.setenv(R_LIBRARY_DIR = dirname(pkgdir))
-                    if (has_cleanup_ucrt) {
-                        messageLog(Log, "running 'cleanup.ucrt'")
-                        Ssystem("sh", "./cleanup.ucrt")
-                    } else {
-                        messageLog(Log, "running 'cleanup.win'")
-                        Ssystem("sh", "./cleanup.win")
-                    }
+                    messageLog(Log, "running 'cleanup.win'")
+                    Ssystem("sh", "./cleanup.win")
                 }
             }
         } else if (file_test("-x", "cleanup")) {
@@ -524,7 +521,6 @@ inRbuildignore <- function(files, pkgdir) {
             messageLog(Log, "running 'cleanup'")
             Ssystem("./cleanup")
         }
-        revert_install_time_patches()
     }
 
     update_Rd_index <- function(oldindex, Rd_files, Log)
@@ -647,8 +643,8 @@ inRbuildignore <- function(files, pkgdir) {
     fix_nonLF_in_make_files <- function(pkgname, Log) {
         fix_nonLF_in_files(pkgname,
                            paste0("^(",
-                                  paste(c("Makefile", "Makefile.in", "Makefile.win", "Makefile.ucrt",
-                                          "Makevars", "Makevars.in", "Makevars.win", "Makevars.ucrt"),
+                                  paste(c("Makefile", "Makefile.in", "Makefile.win",
+                                          "Makevars", "Makevars.in", "Makevars.win"),
                                         collapse = "|"), ")$"), Log)
         ## Other Makefiles
         makes <- dir(pkgname, pattern = "^Makefile$",
@@ -857,12 +853,6 @@ inRbuildignore <- function(files, pkgdir) {
     keep_empty <-
         config_val_to_logical(Sys.getenv("_R_BUILD_KEEP_EMPTY_DIRS_", "FALSE"))
 
-    install_dependencies <- Sys.getenv("_R_BUILD_INSTALL_DEPENDENCIES_")
-    if(nzchar(install_dependencies) &&
-       (install_dependencies %notin% c("strong", "most", "all")))
-        install_dependencies <-
-            if(config_val_to_logical(install_dependencies)) "most" else ""
-
     if (is.null(args)) {
         args <- commandArgs(TRUE)
         ## it seems that splits on spaces, so try harder.
@@ -912,10 +902,6 @@ inRbuildignore <- function(files, pkgdir) {
             with_md5 <- TRUE
         } else if (a == "--log") {
             with_log <- TRUE
-        } else if (substr(a, 1, 23) == "--install-dependencies=") {
-            install_dependencies <- substr(a, 24, 1000)
-        } else if (a == "--install-dependencies") {
-            install_dependencies <- "most"
         } else if (substr(a, 1, 14) == "--compression=") {
             compression <- match.arg(substr(a, 15, 1000),
                                      c("none", "gzip", "bzip2", "xz"))

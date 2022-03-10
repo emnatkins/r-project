@@ -92,7 +92,8 @@ function(formula, data, subset, na.action, ...)
     m[[1L]] <- quote(stats::model.frame)
     mf <- eval(m, parent.frame())
     DNAME <- paste(names(mf), collapse = " and ")
-    y <- friedman.test(mf[[1L]], mf[[2L]], mf[[3L]])
+    names(mf) <- NULL
+    y <- do.call("friedman.test", as.list(mf))
     y$data.name <- DNAME
     y
 }

@@ -1,7 +1,7 @@
 
-R Under development (unstable) (2022-02-22 r81797) -- "Unsuffered Consequences"
-Copyright (C) 2022 The R Foundation for Statistical Computing
-Platform: aarch64-apple-darwin21.2.0 (64-bit)
+R version 4.1.1 Patched (2021-10-12 r81047) -- "Kick Things"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -811,11 +811,9 @@ attr(,"scaled:scale")
 > 
 > ## ts
 > # Ensure working arithmetic for 'ts' objects :
-> z <- ts(matrix(1:300, 100, 3), start = c(1961, 1), frequency = 12)
+> z <- ts(matrix(1:900, 100, 3), start = c(1961, 1), frequency = 12)
 > stopifnot(z == z)
 > stopifnot(z-z == 0)
-> if(FALSE) ## <<-- not currently: _R_CHECK_MATRIX_DATA_ \\ related to earlier code:
-+ tools::assertWarning(matrix(1:90, 10, 3), verbose=TRUE)
 > 
 > ts(1:5, start=2, end=4) # truncate
 Time Series:
@@ -997,15 +995,15 @@ $B$subset
 > 
 > ## Chong Gu 2001-Feb-16.  step on binomials
 > detg1 <-
-+ structure(list(Temp = factor(c(2L, 1L, 2L, 1L, 2L, 1L, 2L,
-+     1L, 2L, 1L, 2L, 1L), labels = c("High", "Low")),
-+     M.user = factor(c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L, 1L,
-+     1L, 2L, 2L), labels = c("N", "Y")),
-+     Soft = factor(c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L),
-+     labels = c("Hard", "Medium", "Soft")),
++ structure(list(Temp = structure(c(2L, 1L, 2L, 1L, 2L, 1L, 2L,
++     1L, 2L, 1L, 2L, 1L), .Label = c("High", "Low"), class = "factor"),
++     M.user = structure(c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L, 1L,
++     1L, 2L, 2L), .Label = c("N", "Y"), class = "factor"),
++     Soft = structure(c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L),
++     .Label = c("Hard", "Medium", "Soft"), class = "factor"),
 +     M = c(42, 30, 52, 43,
 +     50, 23, 55, 47, 53, 27, 49, 29), X = c(68, 42, 37, 24, 66,
-+     33, 47, 23, 63, 29, 57, 19)), names = c("Temp", "M.user",
++     33, 47, 23, 63, 29, 57, 19)), .Names = c("Temp", "M.user",
 + "Soft", "M", "X"), class = "data.frame", row.names = c("1", "3",
 + "5", "7", "9", "11", "13", "15", "17", "19", "21", "23"))
 > detg1.m0 <- glm(cbind(X,M)~1,binomial,detg1)
@@ -1110,11 +1108,10 @@ Residual Deviance: 5.656 	AIC: 71.35
 +     0.999573603041505, 0.67546318055115, -0.756802495307928,
 +     -0.0583741434275801, -0.756802495307928, 0.999573603041505,
 +     -0.756802495307928, 0.67546318055115, -0.0583741434275801
-+     ), groups = factor(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L,
-+                          2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L),
-+                        labels = c("1", "2", "3"))),
-+ names = c("A", "B", "C", "D", "groups"), row.names = 1:24,
-+ class = "data.frame")
++     ), groups = structure(c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,
++     2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3), class = "factor", .Label = c("1",
++     "2", "3"))), .Names = c("A", "B", "C", "D", "groups"), row.names = 1:24,
++             class = "data.frame")
 > 
 > gofX.manova <- manova(formula = cbind(A, B, C, D) ~ groups, data = gofX.df)
 > try(summary(gofX.manova))
@@ -2274,11 +2271,11 @@ par("yaxp") :        3.142     3.142         3
 
 j.f = 1e-12 ;  rel.range = 56.02 * EPS
 par("usr")[3:4]:     3.142     3.142
-par("yaxp") :        3.142     3.142         3
+par("yaxp") :        3.142     3.142         1
 
 j.f = 7e-13 ;  rel.range = 39.47 * EPS
 par("usr")[3:4]:     3.142     3.142
-par("yaxp") :        3.142     3.142         5
+par("yaxp") :        3.142     3.142         1
 
 j.f = 3e-13 ;  rel.range = 16.55 * EPS
 par("usr")[3:4]:     3.142     3.142
@@ -2304,9 +2301,13 @@ j.f = 1e-14 ;  rel.range =     0 * EPS
 par("usr")[3:4]:     1.784     4.499
 par("yaxp") :            2         4         4
 
-Warning message:
-In plot.window(...) :
-  axis(2, *): range of values (    0) is small wrt |M| =       4 --> not pretty()
+Warning messages:
+1: In plot.window(...) :
+  relative range of values (  43 * EPS) is small (axis 2)
+2: In plot.window(...) :
+  relative range of values (  36 * EPS) is small (axis 2)
+3: In plot.window(...) :
+  relative range of values (   0 * EPS) is small (axis 2)
 > par(mfrow = c(1,1))
 > ## The warnings from inside GScale() will differ in their  relrange() ...
 > ## >> do sloppy testing
@@ -2322,7 +2323,7 @@ In plot.window(...) :
 +                    x4 = c(60, 52, 20, 47, 33, 22, 6, 44, 22, 26, 34, 12, 12),
 +                    y = c(78.5, 74.3, 104.3, 87.6, 95.9, 109.2, 102.7, 72.5,
 +                    93.1, 115.9, 83.8, 113.3, 109.4)),
-+               names = c("x1", "x2", "x3", "x4", "y"), class = "data.frame",
++               .Names = c("x1", "x2", "x3", "x4", "y"), class = "data.frame",
 +               row.names = 1:13)
 > teststep <- function(formula, data)
 + {
@@ -3261,15 +3262,14 @@ Error in `[.data.frame`(x, 1, c("a", "c")) : undefined columns selected
 > meth2gen("data.frame")
  [1] $<-           Math          Ops           Summary       [            
  [6] [<-           [[            [[<-          aggregate     anyDuplicated
-[11] anyNA         as.data.frame as.list       as.matrix     as.vector    
-[16] by            cbind         dim           dimnames      dimnames<-   
-[21] droplevels    duplicated    edit          format        formula      
-[26] head          is.na         merge         na.exclude    na.omit      
-[31] plot          print         prompt        rbind         row.names    
-[36] row.names<-   rowsum        split         split<-       stack        
-[41] str           subset        summary       t             tail         
-[46] transform     type.convert  unique        unstack       within       
-[51] xtfrm        
+[11] anyNA         as.data.frame as.list       as.matrix     by           
+[16] cbind         dim           dimnames      dimnames<-    droplevels   
+[21] duplicated    edit          format        formula       head         
+[26] is.na         merge         na.exclude    na.omit       plot         
+[31] print         prompt        rbind         row.names     row.names<-  
+[36] rowsum        split         split<-       stack         str          
+[41] subset        summary       t             tail          transform    
+[46] type.convert  unique        unstack       within        xtfrm        
 > meth2gen("dendrogram")
  [1] [[            as.dendrogram as.hclust     cophenetic    cut          
  [6] labels        merge         nobs          plot          print        
@@ -5843,10 +5843,6 @@ structure(list(X1.4 = 1:4), class = "data.frame", row.names = c(NA,
 [1] TRUE
 > all.equal(d0, d1)
 [1] TRUE
-> ## change to identical(,attrib.as.set) code to support internal representation in 4.2.0
-> identical(d0, d1, attrib.as.set = FALSE)
-[1] TRUE
-> ##
 > row.names(d1) <- as.character(1:4)
 > dput(d1)
 structure(list(X1.4 = 1:4), class = "data.frame", row.names = c("1", 
@@ -6377,7 +6373,7 @@ function(given = NULL) {
     if (is.null(given)) callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x138577838>
+<bytecode: 0x16b2078>
 > print(foo, useSource = FALSE)
 function (given = NULL) 
 {
@@ -6388,7 +6384,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x138577838>
+<bytecode: 0x16b2078>
 > attr(foo, "srcref") <- NULL
 > foo
 function (given = NULL) 
@@ -6400,7 +6396,7 @@ function (given = NULL)
         callObj$default <- TRUE
     callObj
 }
-<bytecode: 0x138577838>
+<bytecode: 0x16b2078>
 > (f <- structure(function(){}, note = "just a note",
 +                 yada = function() "not the same"))
 function(){}
@@ -7251,21 +7247,16 @@ sigma^2 estimated as 0.001499:  log likelihood = 163.79,  aic = -315.58
 > ## failed on mismatched attributes
 > 
 > 
-> ## PR#15411; PR#18098 ==> digits=0 not ok:
+> ## PR#15411, plus digits change
 > format(9992, digits = 3)
 [1] "9992"
 > format(9996, digits = 3)
 [1] "9996"
-> format(0.0002, digits = 1, nsmall = 2, scientific = FALSE)
-[1] "0.0002"
-> assertErrorV(
-+ format(pi*10,  digits = 0))
-Asserted error: invalid value 0 for 'digits' argument
-> format(pi*10,  digits = 1)
-[1] "31"
-> format(pi*10,  digits = 1, nsmall = 1)
+> format(0.0002, digits = 0, nsmall = 2)
+[1] "0.00"
+> format(pi*10, digits = 0, nsmall = 1)
 [1] "31.4"
-> ## second added an extra space.
+> ## second added an extra space; 3rd and 4th were not allowed.
 > 
 > ## and one branch of this was wrong:
 > xx <- c(-86870268, 107833358, 302536985, 481015309, 675718935, 854197259,
@@ -7866,10 +7857,6 @@ list(one = 1, two = )
 > quote(~+-!?x) # ditto: ....`?`(x)
 ~+-!`?`(x)
 > ## `!` no longer produces parentheses now
-> ##
-> ## There should be no parentheses (always worked)
-> quote(+!x)
-+!x
 > 
 > 
 > ## summary.data.frame() with NAs in columns of class "Date" -- PR#16709
@@ -8120,135 +8107,4 @@ mean of x
 > printCoefmat(cm)  # NaN's were replaced by NA in R < 4.1.0
      Estimate SE   t Pr(>|t|)
 [1,]        0  0 NaN      NaN
-> 
-> 
-> ## deparse() wraps cflow bodies when deeply burried through a LHS (PR#18232)
-> ##
-> ## These didn't print the same before fix, the bquote() expression
-> ## missed parentheses
->  quote(1 +        (if (TRUE) 2)  + 3)
-1 + (if (TRUE) 2) + 3
-> bquote(1 + .(quote(if (TRUE) 2)) + 3)
-1 + (if (TRUE) 2) + 3
-> bquote(2 * .(quote(if (TRUE) 2 else 3)) / 4)
-2 * (if (TRUE) 2 else 3)/4
-> ## From Suharto. Failed `left` state wasn't properly forwarded across operators
-> bquote(1 + ++.(quote(if (TRUE) 2)) + 3)
-1 + ++(if (TRUE) 2) + 3
-> bquote(1^- .  (quote(if (TRUE) 2)) + 3)
-1^-(if (TRUE) 2) + 3
-> ## (found when fiddling w/ cases below):
-> quote(`-`(1 + if(L) 2, 3+4))# wrongly was  1 + if (L) 2 - (3 + 4)
-1 + (if (L) 2) - (3 + 4)
-> ##
-> ##__ All the following were ok in R <= 4.1.x already __
-> bquote(1 + .(quote(if (TRUE) 2)) ^ 3) # already correct previously
-1 + (if (TRUE) 2)^3
-> ## other constructs cancel the LHS state ==> `if` call isn't wrapped:
-> bquote(1 + .(quote(   f(if (TRUE) 2))) + 3)
-1 + f(if (TRUE) 2) + 3
-> bquote(1 + .(quote((2 + if (TRUE) 3))) + 4)
-1 + (2 + if (TRUE) 3) + 4
-> ## cflow bodies are only wrapped if needed ==> no parentheses here :
-> quote(a <- if (TRUE) 1)
-a <- if (TRUE) 1
-> ## print the same
-> quote(`^`(-1, 2))
-(-1)^2
-> quote((-1)^2)
-(-1)^2
-> ## no parentheses:
-> quote(1^-2)
-1^-2
-> quote(1^-2 + 3)
-1^-2 + 3
-> ## The "formula" case of Adrian Dusa (maintainer of QCA); R-devel ML, Nov.15, 2021
-> quote(A + ~B + C ~ D) # no parens
-A + ~B + C ~ D
-> ## 'simple' binary op
-> quote(a$"b")
-a$b
-> ## When cflow body is burried deeply through the right, don't rewrap
-> ## unnecessarily. There should be only one set of parentheses.
-> ## Cases where R-devel 81211 still gave unneeded parens:
-> quote(`^`(1 + if(L) 2, 3))
-(1 + if (L) 2)^3
-> quote(`*`(1 - if(L) 2 else 22, 3))
-(1 - if (L) 2 else 22) * 3
-> quote(`^`(1 + repeat 2, 3))
-(1 + repeat 2)^3
-> quote(`*`(1 + repeat 2, 3))
-(1 + repeat 2) * 3
-> quote(`=`(1 + repeat 2, 3))# *no* parens in R <= 4.1.x
-1 + (repeat 2) = 3
-> quote(`=`(1 + `+`(2, repeat 3), 4))
-1 + (2 + repeat 3) = 4
-> quote(`+`(`<-`(1, `=`(2, repeat 3)), 4)) # (1 <- (2 = ..
-(1 <- (2 = repeat 3)) + 4
-> quote(`+`(`:`(1, `=`(2, repeat 3)), 4))
-1:(2 = repeat 3) + 4
-> ## No parentheses when the cflow form is trailing
-> quote(1 + +repeat 2)
-1 + +repeat 2
-> quote(`<-`(1, +repeat 2))
-1 <- +repeat 2
-> quote(1^+repeat 2)
-1^+repeat 2
-> quote(`$`(1, +repeat 2))
-`$`(1, +repeat 2)
-> ## More cases where parens are needed
-> quote(`^`(`+`(repeat 1, 2), 3))
-((repeat 1) + 2)^3
-> quote(`+`(`+`(repeat 1, 2), 3))
-(repeat 1) + 2 + 3
-> quote(`+`(`+`(`+`(repeat 1, repeat 2), repeat 3), 4))
-(repeat 1) + (repeat 2) + (repeat 3) + 4
-> ##__ end { all fine in older R }
-> 
-> ## Unary operators are parenthesised if needed; print the same:
-> quote((-a)$b)
-(-a)$b
-> quote(`$`(-a, b))    # no parens in R <= 4.1.x
-(-a)$b
-> ## Binary operators are parenthesised on the LHS of `$`. ; the same:
-> quote((1 + 1)$b)
-(1 + 1)$b
-> quote(`$`(1 + 1, b)) # no parens in R <= 4.1.x
-(1 + 1)$b
-> ##
-> ## Unparseable expressions are deparsed in prefixed form
-> quote(`$`(1))       # was 1$NULL  in R <= 4.1.x
-`$`(1)
-> quote(`$`(1, 2, 3)) # was 1$2
-`$`(1, 2, 3)
-> quote(`$`(1, NA_character_)) # was 1$NA_char..
-`$`(1, NA_character_)
-> quote(`$`(1, if(L) 2))   # was 1$if (L) 2
-`$`(1, if (L) 2)
-> quote(`$`(`$`(1, if(L) 2), 3))
-`$`(`$`(1, if (L) 2), 3)
-> ## No parens because prefix form
-> quote(`$`(1 + repeat 2, 3))
-`$`(1 + repeat 2, 3)
-> quote(`=`(`$`(1, `$`(2, repeat 3)), 4))
-`$`(1, `$`(2, repeat 3)) = 4
-> ## these were really bad in  R <= 4.1.x
-> 
-> 
-> ## Deparsing of !  -- PR#18284
-> ## no parens in 3.5.0 <= R <= 4.1.x:
-> quote(1 +  `!`(2) + 3) -> x; x
-1 + (!2) + 3
-> quote(1 + +`!`(2) + 3)
-1 + +(!2) + 3
-> quote(1 + `!`(!2) + 3)
-1 + (!!2) + 3
-> quote(1 + `!`(if(L) 2) + 3)
-1 + (!if (L) 2) + 3
-> ## ok in 3.5.0 <= R <= 4.1.x:
-> quote(`&`(a < !b, d))
-a < !b & d
-> ## deparse--parse roundtrip is stable (basically)
-> stopifnot(eval(x) == 4, eval(parse(text = deparse(x))) == 4)
-> ## eval()ed to 1 since R 3.5.0 {also because of the weak precedence of `!`}
 > 

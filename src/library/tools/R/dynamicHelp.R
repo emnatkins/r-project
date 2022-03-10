@@ -27,16 +27,6 @@
 ##             or by file, /library/<pkg>/html/<file>.html
 httpd <- function(path, query, ...)
 {
-    logHelpRequests <-
-        config_val_to_logical(Sys.getenv("_R_HTTPD_LOG_MESSAGES_", "FALSE"))
-    if (logHelpRequests) {
-        message(sprintf("HTTPD-REQUEST %s%s", path,
-                        if (is.null(query)) ""
-                        else { # query is a named chr vector 
-                            paste(paste(names(query), query, sep = "="),
-                                  collapse = ",")
-                        }))
-    }
     linksToTopics <-
         config_val_to_logical(Sys.getenv("_R_HELP_LINKS_TO_TOPICS_", "TRUE"))
     .HTMLdirListing <- function(dir, base, up) {
@@ -178,11 +168,11 @@ httpd <- function(path, query, ...)
             c(HTMLheader("Help search concepts"),
               c("",
                 "<table>",
-                "<tr><th style=\"text-align: left\">Concept</th><th>Frequency</th><th>Packages</th></tr>",
+                "<tr><th style=\"text-align: left\">Concept</th><th>Frequency</th><th>Packages</th><tr>",
                 paste0("<tr><td>",
                        "<a href=\"/doc/html/Search?pattern=",
                        utils::URLencode(reQuote(s), reserved = TRUE),
-                       "&amp;fields.concept=1&amp;agrep=0\">",
+                       "&fields.concept=1&agrep=0\">",
                        shtmlify(substr(s, 1L, 80L)),
                        "</a>",
                        "</td><td style=\"text-align: right\">",
@@ -202,7 +192,7 @@ httpd <- function(path, query, ...)
             c(HTMLheader("Help search keywords"),
               c("",
                 "<table>",
-                "<tr><th style=\"text-align: left\">Keyword</th><th style=\"text-align: left\">Concept</th><th>Frequency</th><th>Packages</th></tr>",
+                "<tr><th style=\"text-align: left\">Keyword</th><th style=\"text-align: left\">Concept</th><th>Frequency</th><th>Packages</th><tr>",
                 paste0("<tr><td>",
                        "<a href=\"/doc/html/Search?category=",
                        keywords$Keyword,
@@ -270,14 +260,10 @@ httpd <- function(path, query, ...)
     mono <- function(text)
         paste0('<span class="samp">', text, "</span>")
 
-    error_page <- function(msg) {
-        if (logHelpRequests) {
-            message(sprintf("HTTPD-ERROR %s %s", path, paste(msg, collapse = " ")))
-        }
+    error_page <- function(msg)
         list(payload =
              paste(c(HTMLheader("httpd error"), msg, "\n</div></body></html>"), collapse = "\n"))
-    }
-        
+
     cssRegexp <- "^/library/([^/]*)/html/R.css$"
     if (grepl("R\\.css$", path) && !grepl(cssRegexp, path))
         return(list(file = file.path(R.home("doc"), "html", "R.css"),
@@ -325,19 +311,8 @@ httpd <- function(path, query, ...)
     	pkg <- sub(topicRegexp, "\\1", path)
     	if (pkg == "NULL") pkg <- NULL  # There were multiple hits in the console
     	topic <- sub(topicRegexp, "\\2", path)
-        ## If a package is specified, look there first. If not found,
-        ## search in other packages. This is used to search for
-        ## off-package links where the target package is not specified
-        ## (they are nominally links to topics in the same package)
-
-        ## However, if pkg is specified but not installed, give an
-        ## error message.
+        ## if a package is specified, look there first, then everywhere
     	if (!is.null(pkg)) { # () avoids deparse here
-            if (!nzchar(system.file(package = pkg))) {
-                msg <- gettextf("No package named %s could be found",
-                                mono(pkg))
-                return(error_page(msg))
-            }
     	    file <- utils::help(topic, package = (pkg), help_type = "text")
             ## Before searching other packages, check if topic.Rd is
             ## available as a file in the package.
@@ -356,7 +331,7 @@ httpd <- function(path, query, ...)
 	if (!length(file)) {
             msg <- gettextf("No help found for topic %s in any package.",
                             mono(topic))
-	    return(error_page(msg))
+	    return(list(payload = error_page(msg)))
 	} else if (length(file) == 1L) {
 	    path <- dirname(dirname(file))
 	    file <- paste0('../../', basename(path), '/html/',
@@ -392,14 +367,7 @@ httpd <- function(path, query, ...)
                                collapse = "\n")
 
             return(list(payload =
-                        paste0("<!DOCTYPE html>",
-                               "<html>",
-                               "<head>",
-                               "<title>R: help</title>",
-                               "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />",
-                               "</head>",
-                               "<body>",
-                                "<p>",
+                        paste0("<p>",
                                ## for languages with multiple plurals ....
                                sprintf(ngettext(length(paths),
                                                 "Help on topic '%s' was found in the following package:",
@@ -407,8 +375,6 @@ httpd <- function(path, query, ...)
                                                 ), topic),
                                "</p><dl>\n",
                                packages, "</dl>",
-                               "</body>",
-                               "</html>",
                                collapse = "\n")
                         ))
         }
@@ -532,11 +498,7 @@ httpd <- function(path, query, ...)
     } else if (grepl(DemoRegexp, path)) {
     	pkg <- sub(DemoRegexp, "\\1", path)
     	demo <- sub(DemoRegexp, "\\2", path)
-        if (logHelpRequests) {
-            message(sprintf("HTTPD-DEMO %s::%s", pkg, demo))
-        }
-        else
-            demo(demo, package=pkg, character.only=TRUE, ask=FALSE)
+    	demo(demo, package=pkg, character.only=TRUE, ask=FALSE)
 	return( list(payload = paste0("Demo '", pkg, "::", demo,
 				"' was run in the console.",
 				" To repeat, type 'demo(",

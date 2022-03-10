@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2022	The R Core Team.
+ *  Copyright (C) 1998--2021	The R Core Team.
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -460,17 +460,6 @@ static void R_InitProfiling(SEXP filename, int append, double dinterval,
 
     signal(SIGPROF, doprof);
 
-    /* The macOS implementation requires normalization here:
-
-       setitimer is obsolescent (POSIX >= 2008), replaced by
-       timer_create / timer_settime, but the supported clocks are
-       implementation-dependent.
-
-       Recent Linux has CLOCK_PROCESS_CPUTIME_ID
-       Solaris has CLOCK_PROF, in -lrt.
-       FreeBSD only supports CLOCK_{REALTIME,MONOTONIC}
-       Seems not to be supported at all on macOS.
-    */ 
     itv.it_interval.tv_sec = interval / 1000000;
     itv.it_interval.tv_usec =
 	(suseconds_t)(interval - itv.it_interval.tv_sec * 10000000);
@@ -720,17 +709,9 @@ SEXP eval(SEXP e, SEXP rho)
     /* We need to explicit set a NULL call here to circumvent attempts
        to deparse the call in the error-handler */
     if (R_EvalDepth > R_Expressions) {
-	/* This bump of R_Expressions doesn't really work in many
-	   cases since jumps (e.g. from explicit return() calls or in
-	   UseMethod dispatch) reset this. Something more
-	   sophisticated might work, but also increase the risk of a C
-	   stack overflow. LT */
 	R_Expressions = R_Expressions_keep + 500;
-
-	/* condiiton is pre-allocated and protected with R_PreserveObject */
-	SEXP cond = R_getExpressionStackOverflowError();
-
-	R_signalErrorCondition(cond, R_NilValue);
+	errorcall(R_NilValue,
+		  _("evaluation nested too deeply: infinite recursion / options(expressions=)?"));
     }
     R_CheckStack();
 
@@ -2188,16 +2169,15 @@ static R_INLINE Rboolean asLogicalNoNA(SEXP s, SEXP call, SEXP rho)
 
     int len = length(s);
     if (len > 1) {
-//	/* PROTECT(s) needed as per PR#15990.  call gets protected by
-//	   warningcall(). Now "s" is protected by caller and also
-//	   R_BadValueInRCode disables GC. */
-//	R_BadValueInRCode(s, call, rho,
-//	    "the condition has length > 1",
-//	    _("the condition has length > 1"),
-//	    _("the condition has length > 1 and only the first element will be used"),
-//	    "_R_CHECK_LENGTH_1_CONDITION_",
-//	    TRUE /* by default issue warning */);
-	errorcall(call, _("the condition has length > 1"));
+	/* PROTECT(s) needed as per PR#15990.  call gets protected by
+	   warningcall(). Now "s" is protected by caller and also
+	   R_BadValueInRCode disables GC. */
+	R_BadValueInRCode(s, call, rho,
+	    "the condition has length > 1",
+	    _("the condition has length > 1"),
+	    _("the condition has length > 1 and only the first element will be used"),
+	    "_R_CHECK_LENGTH_1_CONDITION_",
+	    TRUE /* by default issue warning */);
     }
     if (len > 0) {
 	/* inline common cases for efficiency */
@@ -4675,7 +4655,11 @@ static struct { const char *name; SEXP sym; double (*fun)(double); }
 
 	{"cospi", NULL, cospi},
 	{"sinpi", NULL, sinpi},
+#ifndef HAVE_TANPI
+	{"tanpi", NULL, tanpi}
+#else
 	{"tanpi", NULL, Rtanpi}
+#endif
     };
 
 static R_INLINE double (*getMath1Fun(int i, SEXP call))(double) {
@@ -4898,10 +4882,7 @@ static R_INLINE SEXP getForLoopSeq(int offset, Rboolean *iscompact)
 
 static void NORET nodeStackOverflow()
 {
-    /* condiiton is pre-allocated and protected with R_PreserveObject */
-    SEXP cond = R_getNodeStackOverflowError();
-
-    R_signalErrorCondition(cond, R_CurrentExpression);
+    error(_("node stack overflow"));
 }
 
 /* Allocate consecutive space of nelems node stack elements */

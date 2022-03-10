@@ -2,9 +2,9 @@
 createClipPath <- function(clip) {
     force(clip)
     pathFun <- function() {
-        grid.draw(clip$grob, recording=FALSE)
+        grid.draw(clip, recording=FALSE)
     }
-    path <- list(f=.clipPath(pathFun, clip$rule), ref=NULL)
+    path <- list(f=pathFun, ref=NULL)
     class(path) <- "GridClipPath"
     path
 }   

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997-2021   The R Core Team
+ *  Copyright (C) 1997-2020   The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -595,6 +595,11 @@ static R_INLINE SEXP VECTOR_ELT_FIX_NAMED(SEXP y, R_xlen_t i) {
 
 static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
 {
+    SEXP indx, newnames;
+    R_xlen_t i, ii, n, nx, ny, iny;
+    int which;
+    R_xlen_t stretch;
+
     /* try for quick return for simple scalar case */
     if (ATTRIB(s) == R_NilValue) {
 	if (TYPEOF(x) == REALSXP && IS_SCALAR(y, REALSXP)) {
@@ -631,22 +636,21 @@ static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
 	if (isMatrix(s) && isArray(x) && ncols(s) == length(dim)) {
 	    if (isString(s)) {
 		SEXP dnames = PROTECT(GetArrayDimnames(x));
-		s = strmat2intmat(s, dnames, call, x);
+		s = strmat2intmat(s, dnames, call);
 		UNPROTECT(2); /* dnames, s */
 		PROTECT(s);
 	    }
 	    if (isInteger(s) || isReal(s)) {
-		s = mat2indsub(dim, s, R_NilValue, x);
-		//                     .......... or call, as in VectorSubset() [subset.c]?
+		s = mat2indsub(dim, s, R_NilValue);
 		UNPROTECT(1);
 		PROTECT(s);
 	    }
 	}
     }
 
-    R_xlen_t stretch = 1;
-    SEXP indx = PROTECT(makeSubscript(x, s, &stretch, R_NilValue));
-    R_xlen_t i, ii, n = xlength(indx);
+    stretch = 1;
+    PROTECT(indx = makeSubscript(x, s, &stretch, R_NilValue));
+    n = xlength(indx);
     if(xlength(y) > 1)
 	for(i = 0; i < n; i++)
 	    if(gi(indx, i) == NA_INTEGER)
@@ -655,15 +659,14 @@ static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
     /* Here we make sure that the LHS has */
     /* been coerced into a form which can */
     /* accept elements from the RHS. */
-    int which = SubassignTypeFix(&x, &y, stretch, 1, call, rho);
+    which = SubassignTypeFix(&x, &y, stretch, 1, call, rho);
     /* = 100 * TYPEOF(x) + TYPEOF(y);*/
     if (n == 0) {
 	UNPROTECT(2);
 	return x;
     }
-    R_xlen_t
-	ny = xlength(y),
-	nx = xlength(x), iny;
+    ny = xlength(y);
+    nx = xlength(x);
 
     PROTECT(x);
 
@@ -853,7 +856,7 @@ static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
     /* Check for additional named elements. */
     /* Note makeSubscript passes the additional names back as the use.names
        attribute (a vector list) of the generated subscript vector */
-    SEXP newnames = getAttrib(indx, R_UseNamesSymbol);
+    newnames = getAttrib(indx, R_UseNamesSymbol);
     if (newnames != R_NilValue) {
 	SEXP oldnames = getAttrib(x, R_NamesSymbol);
 	if (oldnames != R_NilValue) {
@@ -886,7 +889,6 @@ static SEXP VectorAssign(SEXP call, SEXP rho, SEXP x, SEXP s, SEXP y)
     return x;
 }
 
-// in ./subscript.c :
 SEXP int_arraySubscript(int dim, SEXP s, SEXP dims, SEXP x, SEXP call);
 
 #define MATRIX_ASSIGN_LOOP(CODE) do {			\
@@ -1571,14 +1573,6 @@ SEXP attribute_hidden do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
     return do_subassign_dflt(call, op, ans, rho);
 }
 
-static void NORET errorNotSubsettable(SEXP x)
-{
-    SEXP call = R_CurrentExpression; /* behave like error() */
-    SEXP cond = R_makeNotSubsettableError(x, call);
-    R_signalErrorCondition(cond, call);
-    UNPROTECT(1); /* cond; not reached */
-}
-
 SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP subs, x, y;
@@ -1659,7 +1653,7 @@ SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	break;
     default:
-	errorNotSubsettable(x);
+	error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
 	break;
     }
 
@@ -1729,15 +1723,6 @@ SEXP attribute_hidden do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
       return(ans);
 
     return do_subassign2_dflt(call, op, ans, rho);
-}
-
-static void NORET errorOutOfBoundsSEXP(SEXP x, int subscript, SEXP sindex)
-{
-    SEXP call = R_CurrentExpression; /* default behaves like error() */
-    SEXP cond = R_makeOutOfBoundsError(x, subscript, sindex, call, "[[ ]]");
-    PROTECT(cond);
-    R_signalErrorCondition(cond, call);
-    UNPROTECT(1); /* cond; not reached */
 }
 
 SEXP attribute_hidden
@@ -1854,7 +1839,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 		return xtop;
 	    }
 	    if (offset < 0)
-		errorOutOfBoundsSEXP(x, -1, thesub);
+		error(_("[[ ]] subscript out of bounds"));
 	    if (offset >= XLENGTH(x))
 		stretch = offset + 1;
 	}
@@ -1865,16 +1850,15 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    int *pindx = INTEGER0(indx);
 	    names = getAttrib(x, R_DimNamesSymbol);
 	    for (i = 0; i < ndims; i++) {
-		SEXP thesub = CAR(subs);
 		pindx[i] = (int)
-		    get1index(thesub, isNull(names) ?
+		    get1index(CAR(subs), isNull(names) ?
 			      R_NilValue : VECTOR_ELT(names, i),
 			      pdims[i],
 			      /*partial ok*/FALSE, -1, call);
 		subs = CDR(subs);
 		if (pindx[i] < 0 ||
 		    pindx[i] >= pdims[i])
-		    errorOutOfBoundsSEXP(x, i, thesub);
+		    error(_("[[ ]] subscript out of bounds"));
 	    }
 	    offset = 0;
 	    for (i = (ndims - 1); i > 0; i--)
@@ -2049,15 +2033,14 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    int *pindx = INTEGER0(indx);
 	    names = getAttrib(x, R_DimNamesSymbol);
 	    for (i = 0; i < ndims; i++) {
-		SEXP thesub = CAR(subs);
 		pindx[i] = (int)
-		    get1index(thesub, VECTOR_ELT(names, i),
+		    get1index(CAR(subs), VECTOR_ELT(names, i),
 			      pdims[i],
 			      /*partial ok*/FALSE, -1, call);
 		subs = CDR(subs);
 		if (pindx[i] < 0 ||
 		    pindx[i] >= pdims[i])
-		    errorOutOfBoundsSEXP(x, i, thesub);
+		    error(_("[[ ]] subscript (%d) out of bounds"), i+1);
 	    }
 	    offset = 0;
 	    for (i = (ndims - 1); i > 0; i--)
@@ -2072,7 +2055,7 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(x);
 	PROTECT(xup);
     }
-    else errorNotSubsettable(x);
+    else error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
 
     if(recursed) {
 	if (isVectorList(xup)) {
@@ -2198,7 +2181,7 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 	     TYPEOF(x) == CLOSXP ||
 	     TYPEOF(x) == SPECIALSXP ||
 	     TYPEOF(x) == BUILTINSXP) {
-	errorNotSubsettable(x);
+	error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
     }
     else {
 	R_xlen_t i, imatch, nx;

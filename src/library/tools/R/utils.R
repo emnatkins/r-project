@@ -1,7 +1,7 @@
 #  File src/library/tools/R/utils.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2020 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -44,44 +44,6 @@ function(x)
     normalizePath(epath, "/", TRUE)
 }
 
-### ** file_path_relative_to
-
-file_path_relative_to <-
-function(x, start = getwd(), parent = TRUE)
-{
-    x <- normalizePath(x, "/", mustWork = FALSE)
-    if(!parent) {
-        p <- normalizePath(start[1L], "/", mustWork = TRUE)
-        if(any(i <- startsWith(x, p))) {
-            ## Assume .Platform$file.sep is a single character.
-            x[i] <- substring(x[i], nchar(p) + 2L)
-        }
-        x
-    } else {
-        p <- strsplit(normalizePath(start, "/", mustWork = FALSE),
-                      "/", fixed = TRUE)[[1L]]
-        y <- strsplit(x, "/", fixed = TRUE)
-        f <- function(u, v) {
-            i <- 1L
-            while(i <= min(length(v), length(p))) {
-                if(v[i] == p[i])
-                    i <- i + 1L
-                else
-                    break
-            }
-            if(i == 1L) {
-                ## Paths start differently, so relative cannot work
-                u
-            } else {
-                i <- i - 1L
-                paste(c(rep_len("..", length(p) - i), v[-seq_len(i)]),
-                      collapse = .Platform$file.sep)
-            }
-        }
-        unlist(Map(f, x, y, USE.NAMES = FALSE))
-    }
-}
-
 ### ** file_path_sans_ext
 
 file_path_sans_ext <-
@@ -101,8 +63,7 @@ function(x, compression = FALSE)
 file_test <-
 function(op, x, y)
 {
-    ## Provide shell-style '-f', '-d', '-h'/'-L', '-x', '-w', '-r',
-    ## '-nt' and '-ot' tests.
+    ## Provide shell-style '-f', '-d', '-x', '-nt' and '-ot' tests.
     ## Note that file.exists() only tests existence ('test -e' on some
     ## systems), and that our '-f' tests for existence and not being a
     ## directory (the GNU variant tests for being a regular file).
@@ -110,8 +71,6 @@ function(op, x, y)
     switch(op,
            "-f" = !is.na(isdir <- file.info(x, extra_cols = FALSE)$isdir) & !isdir,
            "-d" = dir.exists(x),
-           "-h" = (!is.na(y <- Sys.readlink(x)) & nzchar(y)),
-           "-L" = (!is.na(y <- Sys.readlink(x)) & nzchar(y)),
            "-nt" = (!is.na(mt.x <- file.mtime(x))
                     & !is.na(mt.y <- file.mtime(y))
                     & (mt.x > mt.y)),
@@ -119,8 +78,6 @@ function(op, x, y)
                     & !is.na(mt.y <- file.mtime(y))
                     & (mt.x < mt.y)),
            "-x" = (file.access(x, 1L) == 0L),
-           "-w" = (file.access(x, 2L) == 0L),
-           "-r" = (file.access(x, 4L) == 0L),
            stop(gettextf("test '%s' is not available", op),
                 domain = NA))
 }
@@ -203,7 +160,7 @@ reQuote <-
 function(x)
 {
     escape <- function(s) paste0("\\", s)
-    re <- "[.*?+^$\\()[]"
+    re <- "[.*?+^$\\[]"
     m <- gregexpr(re, x)
     regmatches(x, m) <- lapply(regmatches(x, m), escape)
     x
@@ -825,8 +782,8 @@ function(x, predicate = NULL, recursive = FALSE)
 
     f <- if(is.null(predicate))
         function(e) is.call(e)
-    else ## no check predicate returns a scalar, so any() added for 4.2.0
-        function(e) is.call(e) && any(predicate(e))
+    else
+        function(e) is.call(e) && predicate(e)
 
     if(!recursive) return(Filter(f, x))
 
@@ -1009,10 +966,11 @@ function(package, lib.loc = NULL)
     if(!nzchar(path)) return(NULL)
     if(package == "base") {
         len <- nrow(.S3_methods_table)
-        return(list2DF(list(generic = .S3_methods_table[, 1L],
-                            home = rep_len("base", len),
-                            class = .S3_methods_table[, 2L],
-                            delayed = rep_len(FALSE, len))))
+        return(data.frame(generic = .S3_methods_table[, 1L],
+                          home = rep_len("base", len),
+                          class = .S3_methods_table[, 2L],
+                          delayed = rep_len(FALSE, len),
+                          stringsAsFactors = FALSE))
     }
     lib.loc <- dirname(path)
     nsinfo <- parseNamespaceFile(package, lib.loc)
@@ -1023,10 +981,11 @@ function(package, lib.loc = NULL)
     if(!all(ind)) {
         ## Delayed registrations can be handled directly.
         pos <- which(!ind)
-        tab <- list2DF(list(generic = S3methods[pos, 1L],
-                            home = S3methods[pos, 4L],
-                            class = S3methods[pos, 2L],
-                            delayed = rep_len(TRUE, length(pos))))
+        tab <- data.frame(generic = S3methods[pos, 1L],
+                          home = S3methods[pos, 4L],
+                          class = S3methods[pos, 2L],
+                          delayed = rep_len(TRUE, length(pos)),
+                          stringsAsFactors = FALSE)
         S3methods <- S3methods[ind, , drop = FALSE]
     }
     generic <- S3methods[, 1L]
@@ -1044,10 +1003,11 @@ function(package, lib.loc = NULL)
                use.names = FALSE)
     ## S3 group generics belong to base.
     homes[!ind] <- "base"
-    rbind(list2DF(list(generic = generic,
-                       home = homes[match(generic, generics)],
-                       class = S3methods[, 2L],
-                       delayed = rep_len(FALSE, length(generic)))),
+    home <- homes[match(generic, generics)]
+    class <- S3methods[, 2L]
+    delayed <- rep_len(FALSE, length(class))
+    rbind(data.frame(generic, home, class, delayed,
+                     stringsAsFactors = FALSE),
           tab)
 }
 
@@ -1365,7 +1325,6 @@ function()
                "Title",
                "Type",
                "URL",
-               "UseLTO",
                "Version",
                "VignetteBuilder",
                "ZipData"),
@@ -1982,7 +1941,7 @@ function(txt)
     c("Description", "Authors@R", "Author", "Built", "Packaged")
 
 .read_description <-
-function(dfile, keep.white = .keep_white_description_fields)
+function(dfile)
 {
     ## Try reading in package metadata from a DESCRIPTION file.
     ## (Never clear whether this should work on the path of the file
@@ -1993,14 +1952,16 @@ function(dfile, keep.white = .keep_white_description_fields)
     ## </NOTE>
     if(!file_test("-f", dfile))
         stop(gettextf("file '%s' does not exist", dfile), domain = NA)
-    out <- tryCatch(read.dcf(dfile, keep.white = keep.white),
+    out <- tryCatch(read.dcf(dfile,
+                             keep.white =
+                             .keep_white_description_fields),
                     error = function(e)
                     stop(gettextf("file '%s' is not in valid DCF format",
                                   dfile),
                          domain = NA, call. = FALSE))
-    if (nrow(out) != 1L)
+    if (nrow(out) != 1)
         stop("contains a blank line", call. = FALSE)
-    out <- out[1L, ]
+    out <- out[1,]
     if(!is.na(encoding <- out["Encoding"])) {
         ## could convert everything (valid) to UTF-8
         if(encoding == "UTF-8") {
@@ -2047,7 +2008,8 @@ function(x, dfile)
         asc <- iconv(x, "latin1", "ASCII")
         ## fields might have been NA to start with, so use identical.
         if(!identical(asc, x)) {
-            warning("Unknown encoding with non-ASCII data: converting to ASCII")
+            warning(gettext("Unknown encoding with non-ASCII data: converting to ASCII"),
+                    domain = NA)
 	    ind <- is.na(asc) | (asc != x)
             x[ind] <- iconv(x[ind], "latin1", "ASCII", sub = "byte")
         }
@@ -2268,33 +2230,6 @@ function(command, args = character(), env = character(),
          stderr = readLines(errfile, warn = FALSE))
 }
 
-### ** .trim_common_leading_whitespace
-
-.trim_common_leading_whitespace <-
-function(x)
-{
-    y <- sub("^([ \t]*).*", "\\1", x)
-    n <- nchar(y)
-    if(any(n == 0))
-        return(x)
-    i <- grep("\t", y, fixed = TRUE)
-    if(length(i)) {
-        ## Need to convert tabs to spaces.
-        ## Ideally nchar(y, "width") would do things for us ...
-        wids <- vapply(strsplit(y[i], ""),
-                       function(e) {
-                           p <- which(e == "\t")
-                           d <- diff(c(0, p))
-                           sum(d + 8 - (d %% 8)) + length(e) -
-                               p[length(p)]
-                       },
-                       0)
-        x[i] <- paste0(strrep(" ", wids), substring(x[i], n[i] + 1L))
-        n[i] <- wids
-    }
-    substring(x, min(n) + 1L)
-}
-
 ### ** .try_quietly
 
 .try_quietly <-
@@ -2389,70 +2324,6 @@ function(args, msg)
 }
 
 ### * Miscellania
-
-### ** R
-
-R <-
-function(fun, args = list(), opts = character(), env = character(),
-         arch = "", drop = TRUE, timeout = 0)
-{
-    .safe_repositories <- function() {
-        x <- getOption("repos")
-        y <- .get_standard_repository_URLs()
-        i <- which(names(x) == "CRAN")[1L]
-        if(is.na(i) || x[i] == "@CRAN@")
-            x[i] <- y["CRAN"]
-        c(x, y[match(names(y), names(x), 0L) == 0L])
-    }
-
-    tfi <- tempfile("runri")
-    tfo <- tempfile("runro")
-    wrk <- c(sprintf("x <- readRDS(\"%s\")", tfi),
-             "options(repos = x$repos)",
-             ## need quote = TRUE in case some of args are not self-evaluating
-             ## could catch other conditions also
-             "y <- tryCatch(list(do.call(x$fun, x$args, quote = TRUE)), error = identity)",
-             sprintf("saveRDS(y, \"%s\")", tfo))
-    saveRDS(list(fun = fun, args = args, repos = .safe_repositories()),
-            tfi)
-    cmd <- if(.Platform$OS.type == "windows") {
-               if(nzchar(arch))
-                   file.path(R.home(), "bin", arch, "Rterm.exe")
-               else
-                   file.path(R.home("bin"), "Rterm.exe")
-           } else {
-               if(nzchar(arch))
-                   opts <- c(paste0("--arch=", arch), opts)
-               file.path(R.home("bin"), "R")
-           }
-    res <- .system_with_capture(cmd, opts, env, input = wrk,
-                                timeout = timeout)
-    ## FIXME: what should the "value" be in case of error?
-    if(file.exists(tfo)) {
-        val <- readRDS(tfo)
-        if (inherits(val, "condition")) {
-            ## maybe wrap in a classed error and include some of res
-            msg <- paste0("error in inferior call:\n  ", conditionMessage(val))
-            stop(errorCondition(msg,
-                                class = "inferiorCallError",
-                                res = res,
-                                error = val))
-        }
-        else {
-            val <- val[[1L]]
-            if(drop)
-                val
-            else
-                c(list(value = val), res)
-        }
-    }
-    else
-        ## again maybe wrap in a classed error  and include some of res
-        ## might want to distinguish two errors by sub-classes
-        stop(errorCondition("inferior call failed",
-                            class = "inferiorCallError",
-                            res = res))
-}
 
 ### ** Rcmd
 

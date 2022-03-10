@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2022  The R Core Team
+ *  Copyright (C) 1997--2021  The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -57,6 +57,8 @@ void editorcleanall(void);                  /* from editor.c */
 
 int Rwin_graphicsx = -25, Rwin_graphicsy = 0;
 
+R_size_t R_max_memory = R_SIZE_T_MAX;
+
 extern SA_TYPE SaveAction; /* from ../main/startup.c */
 Rboolean DebugMenuitem = FALSE;  /* exported for rui.c */
 static FILE *ifp = NULL;
@@ -111,10 +113,6 @@ void R_ProcessEvents(void)
 {
     while (peekevent()) doevent();
     if (cpuLimit > 0.0 || elapsedLimit > 0.0) {
-#ifdef HAVE_CHECK_TIME_LIMITS
-	/* switch to using R_CheckTimeLimits after testing on WIndows */
-	R_CheckTimeLimits();
-#else
 	double cpu, data[5];
 	R_getProcTime(data);
 	cpu = data[0] + data[1];  /* children? */
@@ -134,7 +132,6 @@ void R_ProcessEvents(void)
 	    } else
 		error(_("reached CPU time limit"));
 	}
-#endif
     }
     if (UserBreak) {
 	UserBreak = FALSE;
@@ -196,13 +193,13 @@ void R_Suicide(const char *s)
 */
 
 /* Global variables */
-static int (*TrueReadConsole) (const char *, unsigned char *, int, int);
-static int (*InThreadReadConsole) (const char *, unsigned char *, int, int);
+static int (*TrueReadConsole) (const char *, char *, int, int);
+static int (*InThreadReadConsole) (const char *, char *, int, int);
 static void (*TrueWriteConsole) (const char *, int);
 static void (*TrueWriteConsoleEx) (const char *, int, int);
 HANDLE EhiWakeUp;
 static const char *tprompt;
-static unsigned char *tbuf;
+static char *tbuf;
 static  int tlen, thist, lineavailable;
 
  /* Fill a text buffer with user typed console input. */
@@ -211,7 +208,7 @@ R_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	      int addtohistory)
 {
     R_ProcessEvents();
-    return TrueReadConsole(prompt, buf, len, addtohistory);
+    return TrueReadConsole(prompt, (char *) buf, len, addtohistory);
 }
 
 	/* Write a text buffer to the console. */
@@ -244,8 +241,7 @@ void Rconsolesetwidth(int cols)
 }
 
 static int
-GuiReadConsole(const char *prompt, unsigned char *buf, int len,
-               int addtohistory)
+GuiReadConsole(const char *prompt, char *buf, int len, int addtohistory)
 {
     int res;
     const char *NormalPrompt =
@@ -256,7 +252,7 @@ GuiReadConsole(const char *prompt, unsigned char *buf, int len,
 	Rconsolesetwidth(consolecols(RConsole));
     }
     ConsoleAcceptCmd = !strcmp(prompt, NormalPrompt);
-    res = consolereads(RConsole, prompt, (char *)buf, len, addtohistory);
+    res = consolereads(RConsole, prompt, buf, len, addtohistory);
     ConsoleAcceptCmd = 0;
     return !res;
 }
@@ -277,8 +273,7 @@ static void __cdecl ReaderThread(void *unused)
 }
 
 static int
-ThreadedReadConsole(const char *prompt, unsigned char *buf, int len,
-                    int addtohistory)
+ThreadedReadConsole(const char *prompt, char *buf, int len, int addtohistory)
 {
     sighandler_t oldint,oldbreak;
     /*
@@ -311,11 +306,10 @@ ThreadedReadConsole(const char *prompt, unsigned char *buf, int len,
 
 /*2: from character console with getline (only used as InThreadReadConsole)*/
 static int
-CharReadConsole(const char *prompt, unsigned char *buf, int len,
-                int addtohistory)
+CharReadConsole(const char *prompt, char *buf, int len, int addtohistory)
 {
-    int res = getline(prompt, (char *)buf, len);
-    if (addtohistory) gl_histadd((char *)buf);
+    int res = getline(prompt, buf, len);
+    if (addtohistory) gl_histadd(buf);
     return !res;
 }
 
@@ -323,7 +317,7 @@ CharReadConsole(const char *prompt, unsigned char *buf, int len,
 static void *cd = NULL;
 
 static int
-FileReadConsole(const char *prompt, unsigned char *buf, int len, int addhistory)
+FileReadConsole(const char *prompt, char *buf, int len, int addhistory)
 {
     int ll, err = 0;
 
@@ -331,11 +325,11 @@ FileReadConsole(const char *prompt, unsigned char *buf, int len, int addhistory)
 	fputs(prompt, stdout);
 	fflush(stdout);
     }
-    if (fgets((char *)buf, len, ifp ? ifp : stdin) == NULL) return 0;
+    if (fgets(buf, len, ifp ? ifp : stdin) == NULL) return 0;
     /* translate if necessary */
     if(strlen(R_StdinEnc) && strcmp(R_StdinEnc, "native.enc")) {
-	size_t res, inb = strlen((char *)buf), onb = len;
-	const char *ib = (char *)buf; 
+	size_t res, inb = strlen(buf), onb = len;
+	const char *ib = buf; 
 	char obuf[len+1], *ob = obuf;
 	if(!cd) {
 	    cd = Riconv_open("", R_StdinEnc);
@@ -347,19 +341,19 @@ FileReadConsole(const char *prompt, unsigned char *buf, int len, int addhistory)
 	/* errors lead to part of the input line being ignored */
 	if(err) printf(_("<ERROR: re-encoding failure from encoding '%s'>\n"),
 		       R_StdinEnc);
-	strncpy((char *)buf, obuf, len);
+	strncpy(buf, obuf, len);
     }
 
 /* according to system.txt, should be terminated in \n, so check this
    at eof or error */
-    ll = strlen((char *)buf);
+    ll = strlen(buf);
     if ((err || feof(ifp ? ifp: stdin))
 	&& buf[ll - 1] != '\n' && ll < len) {
 	buf[ll++] = '\n'; buf[ll] = '\0';
     }
 
     if (!R_Interactive && !R_NoEcho) {
-	fputs((char *)buf, stdout);
+	fputs(buf, stdout);
 	fflush(stdout);
     }
     return 1;
@@ -835,7 +829,7 @@ char *PrintUsage(void)
 	msg2[] =
 	"  --vanilla             Combine --no-save, --no-restore, --no-site-file,\n                          --no-init-file and --no-environ\n",
 	msg2b[] =
-	"  --max-ppsize=N        Set max size of protect stack to N\n",
+	"  --max-mem-size=N      Set limit for memory to be used by R\n  --max-ppsize=N        Set max size of protect stack to N\n",
 	msg3[] =
 	"  -q, --quiet           Don't print startup message\n  --silent              Same as --quiet\n  --no-echo             Make R run as quietly as possible\n  --verbose             Print more information about progress\n  --args                Skip the rest of the command line\n",
 	msg4[] =
@@ -907,8 +901,11 @@ static Rboolean use_workspace(Rstart Rp, char *name, Rboolean usedRdata)
 
 int cmdlineoptions(int ac, char **av)
 {
-    int   i;
+    int   i, ierr;
+    R_size_t value;
+    char *p;
     char  s[1024], cmdlines[10000];
+    R_size_t Virtual;
     structRstart rstart;
     Rstart Rp = &rstart;
     Rboolean usedRdata = FALSE, processing = TRUE;
@@ -930,6 +927,24 @@ int cmdlineoptions(int ac, char **av)
        R_common_command_line().
     */
     R_set_command_line_arguments(ac, av);
+
+
+    /* set defaults for R_max_memory. This is set here so that
+       embedded applications get no limit */
+    {
+	MEMORYSTATUSEX ms;
+	ms.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&ms); /* Win2k or later */
+	Virtual = ms.ullTotalVirtual; /* uint64 = DWORDLONG */
+#ifdef _WIN64
+	R_max_memory = ms.ullTotalPhys;
+#else
+	R_max_memory = min(Virtual - 512*Mega, ms.ullTotalPhys);
+#endif
+
+	/* need enough to start R, with some head room */
+	R_max_memory = max(32 * Mega, R_max_memory);
+    }
 
     R_DefParams(Rp);
     Rp->CharacterMode = CharacterMode;
@@ -1025,6 +1040,16 @@ int cmdlineoptions(int ac, char **av)
 
     R_common_command_line(&ac, av, Rp);
 
+    char *q = getenv("R_MAX_MEM_SIZE");
+    if (q && q[0]) {
+	value = R_Decode2Long(q, &ierr);
+	if(ierr || value < 32 * Mega || value > Virtual) {
+	    snprintf(s, 1024,
+		     _("WARNING: R_MAX_MEM_SIZE value is invalid: ignored\n"));
+	    R_ShowMessage(s);
+	} else R_max_memory = value;
+    }
+
     cmdlines[0] = '\0';
     while (--ac) {
 	if (processing && **++av == '-') {
@@ -1047,6 +1072,41 @@ int cmdlineoptions(int ac, char **av)
 		MDIset = 1;
 	    } else if (!strcmp(*av, "--sdi") || !strcmp(*av, "--no-mdi")) {
 		MDIset = -1;
+	    } else if (!strncmp(*av, "--max-mem-size", 14)) {
+		if(strlen(*av) < 16) {
+		    ac--; av++; p = *av;
+		}
+		else
+		    p = &(*av)[15];
+		if (p == NULL) {
+		    R_ShowMessage(_("WARNING: no max-mem-size given\n"));
+		    break;
+		}
+		value = R_Decode2Long(p, &ierr);
+		if(ierr) {
+		    if(ierr < 0)
+			snprintf(s, 1024,
+				 _("WARNING: --max-mem-size value is invalid: ignored\n"));
+		    else
+			snprintf(s, 1024,
+				 _("WARNING: --max-mem-size=%lu%c: too large and ignored\n"),
+				(unsigned long) value,
+				(ierr == 1) ? 'M': ((ierr == 2) ? 'K': 'G'));
+		    R_ShowMessage(s);
+		} else if (value < 32 * Mega) {
+		    snprintf(s, 1024,
+			     _("WARNING: --max-mem-size=%4.1fM: too small and ignored\n"),
+			     value/(1024.0 * 1024.0));
+		    R_ShowMessage(s);
+		} else if (value > Virtual) {
+		    snprintf(s, 1024,
+			     _("WARNING: --max-mem-size=%4.0fM: too large and taken as %uM\n"),
+			     value/(1024.0 * 1024.0),
+			     (unsigned int) (Virtual/(1024.0 * 1024.0)));
+		    R_max_memory = Virtual;
+		    R_ShowMessage(s);
+		} else
+		    R_max_memory = value;
 	    } else if(!strcmp(*av, "--debug")) {
 		DebugMenuitem = TRUE;
 		breaktodebugger();
@@ -1132,7 +1192,7 @@ int cmdlineoptions(int ac, char **av)
 		     (unsigned int) GetTickCount());
 	    ifp = fopen(ifile, "w+b");
 	    if(!ifp) R_Suicide(_("creation of tmpfile failed -- set TMPDIR suitably?"));
-	    /* Unix does unlink(ifile) here, but Windows cannot delete open files */
+	    unlink(ifile);
 	}
 	fwrite(cmdlines, strlen(cmdlines)+1, 1, ifp);
 	fflush(ifp);

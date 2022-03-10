@@ -1,6 +1,6 @@
 % File src/library/base/man/iconv.Rd
 % Part of the R package, https://www.R-project.org
-% Copyright 1995-2022 R Core Team
+% Copyright 1995-2021 R Core Team
 % Distributed under GPL 2 or later
 
 \name{iconv}
@@ -28,9 +28,7 @@ iconvlist()
     any non-convertible bytes in the input.  (This would normally be a
     single character, but can be more.)  If \code{"byte"}, the indication is
     \code{"<xx>"} with the hex code of the byte.  If \code{"Unicode"}
-    and converting from UTF-8, the Unicode point in the form
-    \code{"<U+xxxx>"}, or if \code{c99}, a C99-style escape
-    \code{"\\uxxxx"}.}
+    and converting from UTF-8, the Unicode point in the form \code{"<U+xxxx>"}.}
   \item{mark}{logical, for expert use.  Should encodings be marked?}
   \item{toRaw}{logical.  Should a list of raw vectors be returned rather
     than a character vector?}
@@ -69,14 +67,14 @@ iconvlist()
   validity checking and will often mis-convert inputs which are invalid
   in encoding \code{from}.
 
-  If \code{sub = "Unicode"} or \code{sub = "c99"} is used for a
-  non-UTF-8 input it is the same as \code{sub = "byte"}.
+  If \code{sub = "Unicode"} is used for a non-UTF-8 input it is the same
+  as \code{sub = "byte"}.
 }
 
 \section{Implementation Details}{
   There are three main implementations of \code{iconv} in use.  Linux's
   most common C runtime, \samp{glibc}, contains one.  Several platforms
-  supply GNU \samp{libiconv}, including macOS and FreeBSD, in
+  supply GNU \samp{libiconv}, including macOS, FreeBSD and Cygwin, in
   some cases with additional encodings.  On Windows we use a version of
   Yukihiro Nakadaira's \samp{win_iconv}, which is based on Windows'
   codepages.  (We have added many encoding names for compatibility with
@@ -189,7 +187,6 @@ iconv(x, "latin1", "ASCII", "?")     # "fa?ile"
 iconv(x, "latin1", "ASCII", "")      # "faile"
 iconv(x, "latin1", "ASCII", "byte")  # "fa<e7>ile"
 iconv(xx, "UTF-8", "ASCII", "Unicode") # "fa<U+00E7>ile"
-iconv(xx, "UTF-8", "ASCII", "c99")   # "fa\u00E7ile"
 
 ## Extracts from old R help files (they are nowadays in UTF-8)
 x <- c("Ekstr\xf8m", "J\xf6reskog", "bi\xdfchen Z\xfcrcher")

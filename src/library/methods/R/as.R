@@ -200,8 +200,7 @@ setAs <-
 {
     ## where there is an "is" relation, modify it
     fromDef <- getClassDef(from, where)
-    toDef <- getClassDef(to, where)
-    extds <- possibleExtends(from, to, fromDef, toDef)
+    extds <- possibleExtends(from, to, fromDef)
     if(is(extds, "SClassExtension")) {
         test <- extds@test
         if(is.null(replace))
@@ -216,6 +215,7 @@ setAs <-
                  domain = NA)
         ## usually to will be a class union, where setAs() is not
         ## allowed by the definition of a union
+        toDef <- getClassDef(to, where=where)
         if(is.null(toDef))
             stop(gettextf("class %s is not defined in this environment",
                           dQuote(to)),

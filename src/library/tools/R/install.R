@@ -366,12 +366,6 @@ if(FALSE) {
 
         dir.create(instdir, recursive = TRUE, showWarnings = FALSE)
         if (!dir.exists(instdir)) {
-            # This allows a package to be installed if a broken symbolic
-            # link (or a regular file) is place (PR#18262)
-            unlink(instdir, recursive = FALSE)
-            dir.create(instdir, recursive = TRUE, showWarnings = FALSE)
-        }
-        if (!dir.exists(instdir)) {
             message("ERROR: unable to create ", sQuote(instdir), domain = NA)
             do_exit_on_error()
         }
@@ -513,9 +507,7 @@ if(FALSE) {
 
             owd <- setwd("src")
             if (WINDOWS) {
-                if (file.exists("Makefile.ucrt"))
-                    system(paste(MAKE, "-f Makefile.ucrt clean"))
-                else if (file.exists("Makefile.win"))
+                if (file.exists("Makefile.win"))
                     system(paste(MAKE, "-f Makefile.win clean"))
                 else
                     unlink(c("Makedeps",
@@ -530,14 +522,11 @@ if(FALSE) {
             setwd(owd)
         }
         if (WINDOWS) {
-            if (file.exists("cleanup.ucrt"))
-                system("sh ./cleanup.ucrt") 
-            else if (file.exists("cleanup.win"))
-                system("sh ./cleanup.win")
+            if (file.exists("cleanup.win")) system("sh ./cleanup.win")
         } else if (file_test("-x", "cleanup")) system("./cleanup")
         else if (file.exists("cleanup"))
             warning("'cleanup' exists but is not executable -- see the 'R Installation and Administration Manual'", call. = FALSE)
-        revert_install_time_patches()
+
     }
 
     do_install_source <- function(pkg_name, instdir, pkg_dir, desc)
@@ -1079,103 +1068,9 @@ if(FALSE) {
 
         if (preclean) run_clean()
 
-        if (WINDOWS) {
-            # Installation-time patching is enabled as a temporary measure
-            # during the transition from MSVCRT to UCRT, when packages with
-            # many reverse dependencies have to be update to link. To
-            # disable this feature, switch it_patches_base below to "no".
-
-            # Users may locally disable this feature by setting
-            # _R_INSTALL_TIME_PATCHES_ to "no", or provide a local directory
-            # with their own patches.
-
-            it_patches_base <- Sys.getenv("_R_INSTALL_TIME_PATCHES_",
-                "https://www.r-project.org/nosvn/winutf8/ucrt3/")
-
-            # The patches are identified by package name. An index is used
-            # to map the name to a directory with patches for a given
-            # package. There may be multiple patches for a single package,
-            # but that hasn't been used. The patches applied to a package
-            # are copied into directory install_time_patches inside the
-            # package installation (so in library, but also in binary
-            # package build) for reference.
-
-            # The patches are automatically reverted on cleanup, see
-            # revert_install_time_patches, also during R CMD build (see
-            # build.R). The latter is needed to ensure that unpatched source
-            # package tarball is produced when the package native code is
-            # compiled during R CMD build, e.g. to build vignettes.
-
-            # This feature is experimental, it may be completely removed in
-            # the future.
-
-	    if (!it_patches_base %in% c("no", "disabled", "false", "FALSE")) {
-        
-                patches_idx <- tryCatch({
-                        idxfile <- file(paste0(it_patches_base, "/",
-                                               "patches_idx.rds"))
-                        patches_idx <- readRDS(idxfile)
-                        close(idxfile)
-                        patches_idx
-                    },
-                    error = function(e) NULL)
-
-                if (is.null(patches_idx))
-                    message("WARNING: installation-time patches will not be applied, could not get the patches index")
-                else {
-                    patches_msg <- FALSE
-                    for(p in patches_idx[[pkg_name]]) {
-                        if (!patches_msg) {
-                            patches_msg <- TRUE
-                            starsmsg(stars, "applying installation-time patches")
-                        }
-                        purl <- paste0(it_patches_base, "/", p)
-                        if (grepl("/CRAN/", purl, fixed=TRUE))
-                            ## installation-time patches created for R
-                            ## 4.2/UCRT should have been incorporated into
-                            ## packages
-                            message("WARNING: package still has an installation time-patch")
-                        have_patch <- nzchar(Sys.which("patch"))
-                        if (!have_patch)
-                            stop("patch utility is needed for installation-time patching")
-                        dir.create("install_time_patches", recursive=TRUE)
-                        fname <- paste0("install_time_patches/", basename(p))
-                        if (grepl("^http", purl))
-                            utils::download.file(purl, destfile = fname, mode = "wb")
-    		        else
-                            file.copy(purl, fname)
-
-                        if (system2("patch", args = c("--dry-run", "-p2", "--binary", "--force"),
-                                    stdin = fname, stdout = NULL, stderr = NULL) != 0) {
-                            ## the patch cannot be applied, check if it might
-                            ## be reversed
-                            if (system2("patch", args = c("--dry-run", "-R", "-p2", "--binary",
-                                                          "--force"), stdin = fname) == 0)
-                                message("NOTE: Skipping installation-time patch ", purl, 
-                                        " which seems to be already applied.\n")
-                            else
-                                message("WARNING: failed to apply patch ", purl, "\n")
-                        } else {
-                            if (system2("patch", args = c("-p2", "--binary", "--force"),
-                                        stdin = fname) != 0)
-                                ## should not happen as dry-run succeeded
-                                message("WARNING: failed to apply patch ", p, "\n")
-                            else
-                                message("Applied installation-time patch ", purl,
-                                        " and saved it as ", fname,
-                                        " in package installation\n")
-                        }
-                    }
-                }
-            }
-	}
-
         if (use_configure) {
             if (WINDOWS) {
-                if (file.exists("configure.ucrt")) {
-                    res <- system("sh ./configure.ucrt")
-                    if (res) pkgerrmsg("configuration failed", pkg_name)
-                } else if (file.exists("configure.win")) {
+                if (file.exists("configure.win")) {
                     res <- system("sh ./configure.win")
                     if (res) pkgerrmsg("configuration failed", pkg_name)
                 } else if (file.exists("configure"))
@@ -1262,15 +1157,13 @@ if(FALSE) {
                 if (!is.na(f <- Sys.getenv("R_MAKEVARS_USER",
                                            NA_character_))) {
                     if (file.exists(f))  makefiles <- f
-                } else if (file.exists(f <- path.expand("~/.R/Makevars.ucrt")))
-                    makefiles <- f
-                else if (file.exists(f <- path.expand("~/.R/Makevars.win")))
+                } else if (file.exists(f <- path.expand("~/.R/Makevars.win")))
                     makefiles <- f
                 else if (file.exists(f <- path.expand("~/.R/Makevars")))
                     makefiles <- f
-                if (file.exists(f <- "Makefile.ucrt") || file.exists(f <- "Makefile.win")) {
-                    makefiles <- c(f, makefiles)
-                    message(paste0("  running 'src/", f, "' ..."), domain = NA)
+                if (file.exists("Makefile.win")) {
+                    makefiles <- c("Makefile.win", makefiles)
+                    message("  running 'src/Makefile.win' ...", domain = NA)
                     res <- system(paste("make --no-print-directory",
                                         paste("-f", shQuote(makefiles), collapse = " ")))
                     if (res == 0L) shlib_install(instdir, rarch)
@@ -1288,8 +1181,7 @@ if(FALSE) {
                         f[f %in% c("i386", "x64")]
                     }
                     one_only <- !multiarch
-                    has_configure_ucrt <- file.exists("../configure.ucrt")
-                    if(!one_only && (has_configure_ucrt || file.exists("../configure.win"))) {
+                    if(!one_only && file.exists("../configure.win")) {
                         ## for now, hardcode some exceptions
                         ## These are packages which have arch-independent
                         ## code in configure.win
@@ -1303,15 +1195,11 @@ if(FALSE) {
                              "proj4", "randtoolbox", "rgdal", "rngWELL",
                              "rphast", "rtfbs", "sparsenet", "tcltk2",
                              "tiff", "udunits2"))
-                            one_only <- sum(nchar(readLines(
-                                if(has_configure_ucrt) "../configure.ucrt" else "../configure.win",
-                                warn = FALSE), "bytes")) > 0
+                            one_only <- sum(nchar(readLines("../configure.win", warn = FALSE), "bytes")) > 0
                         if(one_only && !force_biarch) {
                             if(parse_description_field(desc, "Biarch", FALSE))
                                 force_biarch <- TRUE
-                            else if (has_configure_ucrt)
-                                warning("this package has a non-empty 'configure.ucrt' file,\nso building only the main architecture\n", call. = FALSE, domain = NA)
-                            else 
+                            else
                                 warning("this package has a non-empty 'configure.win' file,\nso building only the main architecture\n", call. = FALSE, domain = NA)
                         }
                     }
@@ -1423,8 +1311,6 @@ if(FALSE) {
                              paste("Archs:", paste(dirs, collapse = ", "))
                              )
                 writeLines(newdesc, descfile, useBytes = TRUE)
-                saveRDS(.split_description(.read_description(descfile)),
-                         file.path(instdir, "Meta", "package.rds"))
             }
         } else if (multiarch) {   # end of src dir
             if (WINDOWS) {
@@ -1443,11 +1329,8 @@ if(FALSE) {
             ## Windows, even if it is installed.
             if (!grepl(" x64 ", utils::win.version())) test_archs <- "i386"
         }
- 
-        if (have_cross) Sys.unsetenv("R_ARCH")
 
-        if (WINDOWS && dir.exists("install_time_patches"))
-            file.copy("install_time_patches", instdir, recursive = TRUE)
+        if (have_cross) Sys.unsetenv("R_ARCH")
 
         ## R files must start with a letter
 	if (install_R && dir.exists("R") && length(dir("R"))) {
@@ -1759,10 +1642,8 @@ if(FALSE) {
 		if (!fake &&
                     file_test("-f", file.path("build", "vignette.rds")))
 		    installer <- .install_package_vignettes3
+		## FIXME:  this handles pre-3.0.2 tarballs.  In the long run, delete the alternative.
 		else
-		## handle pre-3.0.2 tarballs
-		## and installation from package sources,
-		## including by temp_install_pkg() during R CMD build
 		    installer <- .install_package_vignettes2
                 res <- try(installer(".", instdir, enc))
 	    if (inherits(res, "try-error"))
@@ -1985,7 +1866,7 @@ if(FALSE) {
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                .R_copyright_msg(2000),
+                "Copyright (C) 2000-2020 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
@@ -2354,8 +2235,7 @@ if(FALSE) {
 
     if (fake) {
         use_configure <- FALSE
-        if("--html" %notin% args0)
-            build_html <- FALSE
+        build_html <- FALSE
         build_latex <- FALSE
         build_example <- FALSE
 	install_libs <- FALSE
@@ -2507,7 +2387,7 @@ if(FALSE) {
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                .R_copyright_msg(2000),
+                "Copyright (C) 2000-2020 The R Core Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep = "\n")
@@ -2574,9 +2454,6 @@ if(FALSE) {
         if (!is.na(f <- Sys.getenv("R_MAKEVARS_USER", NA_character_))) {
             if (file.exists(f))  makefiles <- c(makefiles, f)
         } else if (rarch == "/x64" &&
-                   file.exists(f <- path.expand("~/.R/Makevars.ucrt")))
-            makefiles <- c(makefiles, f)
-        else if (rarch == "/x64" &&
                    file.exists(f <- path.expand("~/.R/Makevars.win64")))
             makefiles <- c(makefiles, f)
         else if (file.exists(f <- path.expand("~/.R/Makevars.win")))
@@ -2588,9 +2465,9 @@ if(FALSE) {
     }
 
     makeobjs <- paste0("OBJECTS=", shQuote(objs))
-    if (WINDOWS && (file.exists(fn <- "Makevars.ucrt") || file.exists(fn <- "Makevars.win"))) {
-        makefiles <- c(fn, makefiles)
-        lines <- readLines(fn, warn = FALSE)
+    if (WINDOWS && file.exists("Makevars.win")) {
+        makefiles <- c("Makevars.win", makefiles)
+        lines <- readLines("Makevars.win", warn = FALSE)
         if (length(grep("^OBJECTS *=", lines, perl=TRUE, useBytes = TRUE)))
             makeobjs <- ""
         if (length(ll <- grep("^CXX_STD *=", lines, perl = TRUE,
@@ -2704,7 +2581,7 @@ if(FALSE) {
 
     if (WINDOWS && debug) makeargs <- c(makeargs, "DEBUG=T")
     ## TCLBIN is needed for tkrplot and tcltk2
-    if (WINDOWS && rarch == "/x64") makeargs <- c(makeargs, "WIN=64 TCLBIN=")
+    if (WINDOWS && rarch == "/x64") makeargs <- c(makeargs, "WIN=64 TCLBIN=64")
 
     build_objects_symbol_tables <-
         config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
@@ -2799,20 +2676,22 @@ if(FALSE) {
 
     topics <- Rd$Aliases
     M <- if (!length(topics)) {
-        list2DF(list(Topic = character(),
-                     File = character(),
-                     Title = character(),
-                     Internal = character()))
+        data.frame(Topic = character(),
+                   File = character(),
+                   Title = character(),
+                   Internal = character(),
+                   stringsAsFactors = FALSE)
     } else {
         lens <- lengths(topics)
         files <- sub("\\.[Rr]d$", "", Rd$File)
         internal <- (vapply(Rd$Keywords,
                             function(x) match("internal", x, 0L),
                             0L) > 0L)
-        list2DF(list(Topic = unlist(topics),
-                     File = rep.int(files, lens),
-                     Title = rep.int(Rd$Title, lens),
-                     Internal = rep.int(internal, lens)))
+        data.frame(Topic = unlist(topics),
+                   File = rep.int(files, lens),
+                   Title = rep.int(Rd$Title, lens),
+                   Internal = rep.int(internal, lens),
+                   stringsAsFactors = FALSE)
     }
     ## FIXME duplicated aliases warning
     outman <- file.path(outDir, "help")
@@ -3116,9 +2995,6 @@ function()
             if(file.exists(f)) m <- f
         }
         else if((Sys.getenv("R_ARCH") == "/x64") &&
-                file.exists(f <- path.expand("~/.R/Makevars.ucrt")))
-            m <- f
-        else if((Sys.getenv("R_ARCH") == "/x64") &&
                 file.exists(f <- path.expand("~/.R/Makevars.win64")))
             m <- f
         else if(file.exists(f <- path.expand("~/.R/Makevars.win")))
@@ -3137,26 +3013,6 @@ function()
             m <- f
     }
     m
-}
-
-revert_install_time_patches <- function()
-{
-    WINDOWS <- .Platform$OS.type == "windows"
-    if (WINDOWS && dir.exists("install_time_patches")) {
-        patches <- sort(list.files("install_time_patches"),
-                        decreasing = TRUE)
-        for(p in patches) {
-            fname <- paste0("install_time_patches/", p)
-            if (system2("patch",
-                        args = c("-p2", "--binary", "--force", "--reverse"),
-                        stdin = fname) != 0)
-                message("WARNING: failed to revert patch ", p, "\n")
-            else
-                message("Reverted installation-time patch ", p,
-                        " in package installation\n")
-        }
-        unlink("install_time_patches", recursive = TRUE)
-    }
 }
 
 ### * makevars_site

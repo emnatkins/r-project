@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2003-2022   The R Core Team.
+ *  Copyright (C) 2003-2021   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ SEXP check_nonASCII2(SEXP text)
     const char *p;
 
     if(TYPEOF(text) != STRSXP) error("invalid input");
-    ind = R_Calloc(m_all, int);
+    ind = Calloc(m_all, int);
     for (i = 0; i < LENGTH(text); i++) {
 	p = CHAR(STRING_ELT(text, i));
 	yes = 0;
@@ -204,7 +204,7 @@ SEXP check_nonASCII2(SEXP text)
 	if(yes) {
 	    if(m >= m_all) {
 		m_all *= 2;
-		ind = R_Realloc(ind, m_all, int);
+		ind = Realloc(ind, m_all, int);
 	    }
 	    ind[m++] = i + 1; /* R is 1-based */
 	}
@@ -214,7 +214,7 @@ SEXP check_nonASCII2(SEXP text)
 	ians = INTEGER(ans);
 	for(i = 0; i < m; i++) ians[i] = ind[i];
     }
-    R_Free(ind);
+    Free(ind);
     return ans;
 }
 

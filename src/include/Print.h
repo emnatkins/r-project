@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997--2021  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1997-2019   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,8 +33,7 @@
 #define formatStringS       Rf_formatStringS
 #define EncodeElement       Rf_EncodeElement
 #define EncodeElement0      Rf_EncodeElement0
-#define EncodeExptr         Rf_EncodeExtptr
-#define EncodeElement       Rf_EncodeElement
+#define EncodeEnvironment   Rf_EncodeEnvironment
 #define printArray          Rf_printArray
 #define printMatrix         Rf_printMatrix
 #define printNamedVector    Rf_printNamedVector
@@ -54,7 +53,6 @@ void formatStringS(SEXP, R_xlen_t, int*, int);
 /* Formating of values */
 const char *EncodeElement0(SEXP, R_xlen_t, int, const char *);
 const char *EncodeEnvironment(SEXP);
-const char *EncodeExtptr(SEXP);
 /* Legacy, for R.app */
 const char *EncodeElement(SEXP, int, int, char);
 
@@ -76,7 +74,7 @@ void R_PV(SEXP s);
 
 #define R_MIN_WIDTH_OPT		10
 #define R_MAX_WIDTH_OPT		10000
-#define R_MIN_DIGITS_OPT	1
+#define R_MIN_DIGITS_OPT	0
 #define R_MAX_DIGITS_OPT	22
 
 #endif

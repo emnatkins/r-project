@@ -40,12 +40,9 @@ is.element(el, set)
   \code{is.element(x, y)} is identical to \code{x \%in\% y}.
 }
 \value{
-  For \code{union}, a vector of a common mode.
-
-  For \code{intersect}, a vector of a common mode, or \code{NULL} if
-  \code{x} or \code{y} is \code{NULL}.
-
-  For \code{setdiff}, a vector of the same \code{\link{mode}} as \code{x}.
+  A vector of the same \code{\link{mode}} as \code{x} or \code{y} for
+  \code{setdiff} and \code{intersect}, respectively, and
+  of a common mode for \code{union}.
 
   A logical scalar for \code{setequal} and a logical of the same
   length as \code{x} for \code{is.element}.

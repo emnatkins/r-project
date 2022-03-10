@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2020-2022 The R Core Team.
+ *  Copyright (C) 2020 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ static SEXP package_dependencies_scan_one(SEXP this) {
         return NEW_CHARACTER(0);
     }
 
-    beg = R_Calloc(size, int);
-    end = R_Calloc(size, int);
+    beg = Calloc(size, int);
+    end = Calloc(size, int);
 
     e = getCharCE(this);
     s = CHAR(this);
@@ -66,8 +66,8 @@ static SEXP package_dependencies_scan_one(SEXP this) {
 			if(size > INT_MAX / 2)
 			    error(_("too many items"));
 			size *= 2;
-			beg = R_Realloc(beg, size, int);
-			end = R_Realloc(end, size, int);
+			beg = Realloc(beg, size, int);
+			end = Realloc(end, size, int);
 		    }
 		    beg[nb] = i;
 		    nb++;
@@ -99,8 +99,8 @@ static SEXP package_dependencies_scan_one(SEXP this) {
         SET_STRING_ELT(y, i, mkCharCE(p, e));
     }
 
-    R_Free(beg);
-    R_Free(end);
+    Free(beg);
+    Free(end);
 
     UNPROTECT(1);
 

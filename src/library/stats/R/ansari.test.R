@@ -72,7 +72,7 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                 rab <- rank(c(x/sig, y))
                 sum(pmin(rab, N - rab + 1)[seq_along(x)])
             }
-            ratio <- outer(x, y, `/`)
+            ratio <- outer(x, y, "/")
             aratio <- ratio[ratio >= 0]
             sigma <- sort(aratio)
 
@@ -259,9 +259,8 @@ function(formula, data, subset, na.action, ...)
     g <- factor(mf[[-response]])
     if(nlevels(g) != 2L)
         stop("grouping factor must have exactly 2 levels")
-    DATA <- split(mf[[response]], g)
-    ## Call the default method.
-    y <- ansari.test(x = DATA[[1L]], y = DATA[[2L]], ...)
+    DATA <- setNames(split(mf[[response]], g), c("x", "y"))
+    y <- do.call("ansari.test", c(DATA, list(...)))
     y$data.name <- DNAME
     y
 }

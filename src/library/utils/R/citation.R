@@ -1,7 +1,7 @@
 #  File src/library/utils/R/citation.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2022 The R Core Team
+#  Copyright (C) 1995-2020 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -58,15 +58,21 @@ function(given = NULL, family = NULL, middle = NULL,
                               sQuote("given"),
                               sQuote("first"), sQuote("middle")),
                      domain = NA)
-            warning(gettextf("It is recommended to use %s instead of %s.",
+            ## <FIXME>
+            ## Start warning eventually ... maybe use message() for now?
+            message(gettextf("It is recommended to use %s instead of %s.",
                              sQuote("given"), sQuote("first")),
                     domain = NA)
+            ## </FIXME>
             given <- first
         }
         if(!.is_not_nonempty_text(middle)) {
-            warning(gettextf("It is recommended to use %s instead of %s.",
+            ## <FIXME>
+            ## Start warning eventually ... maybe use message() for now?
+            message(gettextf("It is recommended to use %s instead of %s.",
                              sQuote("given"), sQuote("middle")),
                     domain = NA)
+            ## </FIXME>
             given <- c(given, unlist(strsplit(middle, "[[:space:]]+")))
         }
 
@@ -75,9 +81,12 @@ function(given = NULL, family = NULL, middle = NULL,
                 stop(gettextf("Use either %s or %s but not both.",
                               sQuote("family"), sQuote("last")),
                      domain = NA)
-            warning(gettextf("It is recommended to use %s instead of %s.",
+            ## <FIXME>
+            ## Start warning eventually ... maybe use message() for now?
+            message(gettextf("It is recommended to use %s instead of %s.",
                              sQuote("family"), sQuote("last")),
                     domain = NA)
+            ## </FIXME>
             family <- last
         }
 
@@ -266,7 +275,7 @@ function(..., recursive = FALSE)
                          sQuote("person")),
                 domain = NA)
     args <- lapply(args, unclass)
-    rval <- do.call(c, args)
+    rval <- do.call("c", args)
     class(rval) <- "person"
     rval
 }
@@ -319,7 +328,8 @@ function(x)
 
     ## Step B.
     pattern <- "[[:space:]]?(,|,?[[:space:]]and)[[:space:]]+"
-    x <- do.call(c, regmatches(x, gregexpr(pattern, y), invert = TRUE))
+    x <- do.call("c",
+                 regmatches(x, gregexpr(pattern, y), invert = TRUE))
     x <- x[!vapply(x, .is_not_nonempty_text, NA)]
 
     ## don't expect Jr. to be a person
@@ -378,7 +388,7 @@ function(x)
         return(z)
     }
 
-    as.list(do.call(c, lapply(x, as_person1)))
+    as.list(do.call("c", lapply(x, as_person1)))
 }
 
 personList <-
@@ -389,7 +399,7 @@ function(...)
         stop(gettextf("all arguments must be of class %s",
                       dQuote("person")),
              domain = NA)
-    do.call(c, z)
+    do.call("c", z)
 }
 
 as.personList <-
@@ -404,7 +414,7 @@ as.personList.default <-
 function(x)
 {
     if(inherits(x, "person")) return(x)
-    do.call(c, lapply(x, as.person))
+    do.call("c", lapply(x, as.person))
 }
 
 format.person <-
@@ -447,7 +457,7 @@ function(x,
     collapse <- lapply(collapse, rep_len, 1L)
 
     ## extract selected elements
-    x <- lapply(unclass(x), `[`, include)
+    x <- lapply(unclass(x), "[", include)
     braces <- braces[include]
     collapse <- collapse[include]
 
@@ -479,7 +489,7 @@ function(x,
                                                      collapse[[i]]),
                                       braces[[i]][2L])
                        })
-	paste(do.call(c, rval), collapse = " ")
+	paste(do.call("c", rval), collapse = " ")
     }
 
     sapply(x, format_person1)
@@ -605,8 +615,8 @@ function(bibtype, textVersion = NULL, header = NULL, footer = NULL, key = NULL,
     rval <- lapply(seq_along(args$bibtype),
                    function(i)
                    do.call(bibentry1,
-                           c(lapply(args, `[[`, i),
-                             list(other = lapply(other, `[[`, i)))))
+                           c(lapply(args, "[[", i),
+                             list(other = lapply(other, "[[", i)))))
 
     ## add main header/footer for overall bibentry vector
     if(!.is_not_nonempty_text(mheader))
@@ -758,32 +768,21 @@ function(x, style = "text", .bibstyle = NULL,
     }
 
     format_as_citation <- function(x, msg) {
-        m <- attr(x, "mheader")
-        if(is.null(m) &&
-           is.null(x$header) &&
-           !is.null(p <- attr(x, "package")))
-            m <- gettextf("To cite package %s in publications use:",
-                          sQuote(p))
-        i <- !is.null(m)
-        c(character(),
-          if(i)
-              paste(strwrap(m), collapse = "\n"),
+         c(paste(strwrap(attr(x, "mheader")), collapse = "\n"),
           unlist(lapply(x, function(y) {
-              h <- y$header
-              j <- !is.null(h)
-              s <- y$textVersion
-              if(is.null(s))
-                  s <- format(y)
-              paste(c(if(j)
-                          c(strwrap(h), ""),
-                      if(i || j)
-                          strwrap(s, prefix = "  ") else strwrap(s),
+              paste(c(if(!is.null(y$header))
+                      c(strwrap(y$header), ""),
+                      if(!is.null(y$textVersion)) {
+                          strwrap(y$textVersion, prefix = "  ")
+                      } else {
+                          format(y)
+                      },
                       if(bibtex) {
                           c(gettext("\nA BibTeX entry for LaTeX users is\n"),
 			    paste0("  ", unclass(toBibtex(y))))
                       },
                       if(!is.null(y$footer))
-                          c("", strwrap(y$footer))),
+                      c("", strwrap(y$footer))),
                     collapse = "\n")
           })),
 	  paste(strwrap(c(attr(x, "mfooter"),
@@ -809,7 +808,7 @@ function(x, style = "text", .bibstyle = NULL,
                    out[!lengths(out)] <- ""
                    unlist(out)
                },
-               "citation" = format_as_citation(.bibentry(x),
+               "citation" = format_as_citation(x,
                                                msg = missing(bibtex) &&
                                                    missing(citation.bibtex.max)),
                "R" = .format_bibentry_as_R_code(x, ...)
@@ -1019,7 +1018,7 @@ function(x, name)
     ## </COMMENT>
     is_attribute <- name %in% bibentry_attribute_names
     rval <- if(is_attribute) lapply(unclass(x), attr, name)
-        else lapply(unclass(x), `[[`, tolower(name))
+        else lapply(unclass(x), "[[", name)
     if(length(rval) == 1L) rval <- rval[[1L]]
     rval
 }
@@ -1030,7 +1029,7 @@ function(x, name, value)
     is_attribute <- name %in% bibentry_attribute_names
 
     x <- unclass(x)
-    if(!is_attribute) name <- tolower(name)
+    name <- tolower(name)
 
     ## recycle value
     value <- rep_len(.listify(value), length(x))
@@ -1070,10 +1069,6 @@ function(x, name, value)
     .bibentry(x)
 }
 
-`$<-.citation` <-
-function(x, name, value)
-    .citation(NextMethod("$<-"), attr(x, "package"))
-
 c.bibentry <-
 function(..., recursive = FALSE)
 {
@@ -1083,7 +1078,7 @@ function(..., recursive = FALSE)
                          sQuote("bibentry")),
                 domain = NA)
     args <- lapply(args, unclass)
-    rval <- do.call(c, args)
+    rval <- do.call("c", args)
     .bibentry(rval)
 }
 
@@ -1201,7 +1196,7 @@ function(file, meta = NULL)
     if(rlen == 1L)
         rval <- rval[[1L]]
     else if(rlen > 1L)
-        rval <- do.call(c, rval)
+        rval <- do.call("c", rval)
     if(!.is_not_nonempty_text(mheader))
         attr(rval, "mheader") <- paste(mheader, collapse = "\n")
     if(!.is_not_nonempty_text(mfooter))
@@ -1365,6 +1360,9 @@ function(package = "base", lib.loc = NULL, auto = NULL)
                         tail(author, 1L), sep = " and ")
 
     rval <- bibentry(bibtype = "Manual",
+                     textVersion =
+                     paste0(author, " (", z$year, "). ", z$title, ". ",
+                            z$note, ". ", z$url),
                      header = header,
                      footer = footer,
                      other = z
@@ -1395,7 +1393,7 @@ function(x)
     ## Let's by nice ...
     ## Alternatively, we could throw an error.
     if(!inherits(out, "person"))
-        out <- do.call(c, lapply(x, as.person))
+        out <- do.call("c", lapply(x, as.person))
 
     out
 }

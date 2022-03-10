@@ -1,88 +1,70 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
- "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
 <title>Testing the Embeddable R library</title>
-<link rel=stylesheet href="../../doc/html/R.css" />
+<link rel=stylesheet href="../../doc/html/R.css">
 </head>
 
 <body>
 <h1>Test the Embeddable R Library</h1>
 
-<p>
 This a collection of tests for verifying that using R as a library
 within another application (i.e. embedded R) works for this
 installation. This is only relevant if one has configured R with the
 <code>--enable-R-shlib </code> argument for the top-level
-<code>configure</code>.
-</p>
+<code>configure</code>.  
 
 <p>
+
 More information can be found at the 
 <a href="https://developer.r-project.org/embedded.html">R Developers' site</a>
-</p>
 
 <h3>Test Applications</h3>
 <dl>
   <dt>
-    <a href="Rtest.c">Rtest</a>
-  </dt>
+  <li> <a href="Rtest.c">Rtest</a>
   <dd>
-    Just prints the vector <code>c(1, 2, ..., 10)</code>
-  </dd>
+      Just prints the vector <code>c(1, 2, ..., 10)</code>
   <dt>
-    <a href="Rplot.c">Rplot</a>
-  </dt>
-  <dd> 
-    Creates a basic plot of  <code>c(1,2,..., 10)</code>
-    in the default device and then quits immediately.
-  </dd>
+  <li> <a href="Rplot.c">Rplot</a>
+  <dd> Creates a basic plot of  <code>c(1,2,..., 10)</code>
+        in the default device and then quits immediately.
   <dt>
-    <a href="Rpostscript.c">Rpostscript</a>
-  </dt>
+  <li> <a href="Rpostscript.c">Rpostscript</a>
   <dd>
-    Produces a plot of <code>1:100</code> using the Postscript
-    graphics device. This creates a file named <code>Rplots.ps</code>
-  </dd>
+        Produces a plot of <code>1:100</code> using the Postscript
+       graphics device. This creates a file named <code>Rplots.ps</code>
+
   <dt>
-    <a href="Rerror.c"> Rerror</a>
-  </dt>
-  <dd> 
-    Reads a function definition from an external file
-    (<a href="code.R"><code>code.R</code></a>) and calls it 
-    which in turn generates an "error" via <code>stop()</code>.
-    The local error handler defined for this application
-    catches this error and recovers.
-  </dd>
+  <li><a href="Rerror.c"> Rerror</a>
+  <dd> Reads a function definition from an external file (<a
+      href="code.R"><code>code.R</code></a>) and calls it
+        which in turn generates an "error" via <code>stop()</code>.
+      The local error handler defined for this application
+      catches this error and recovers.
+
   <dt>
-    <a href="RNamedCall.c">RNamedCall</a>
-  </dt>
-  <dd> 
-    Calls a function with some named arguments.
-  </dd>
+  <li> <a href="RNamedCall.c">RNamedCall</a>
+  <dd> Calls a function with some named arguments.
+
   <dt>
-    <a href="RParseEval.c">RParseEval</a>
-  </dt>
-  <dd> 
-    Parses a string and evaluates the resulting expression(s).
-  </dd>
+  <li> <a href="RParseEval.c">RParseEval</a>
+  <dd>  Parses a string and evaluates the resulting expression(s).
+
+     
   <dt>
-    <a href="Rpackage.c">Rpackage</a>
-  </dt>
-  <dd> 
-    Invokes <code>example()</code> for functions in ctest and mva
-    to ensure that packages can be loaded into R in an embedded
-    context.  These packages must be linked against libR.so.
-  </dd>
+  <li> <a href="Rpackage.c">Rpackage</a>
+  <dd> Invokes <code>example()</code>
+       for functions in ctest and mva
+        to ensure that packages can be loaded
+      into R in an embedded context. These
+      packages must be linked against libR.so.
+
   <dt>
-    <a href="embeddedRCall.c">embeddedRCall.c</a>
-  </dt>
-  <dd> 
-    Collection of routines used in the different tests.
-  </dd>
+  <li> <a href="embeddedRCall.c">embeddedRCall.c</a>
+  <dd> Collection of routines used in the different
+      tests.
   <dt>
-    Other Tests
-  </dt>
+  <li> Other Tests
   <dd>
     This has been tested in many  other situations including the some of
     the former Omegahat packages: 
@@ -115,7 +97,14 @@ More information can be found at the
   </dd>
 </dl>
 
-<hr/>
-
-</body>
-</html>
+<hr>
+<address></address>
+<!---
+<a href="http://cm.bell-labs.com/stat/duncan">Duncan Temple Lang</a>
+<a href=mailto:duncan@research.bell-labs.com>&lt;duncan@research.bell-labs.com&gt;</a>
+-->
+</address>
+<!-- hhmts start -->
+Last modified: Sat Jan 12 2008
+<!-- hhmts end -->
+</body> </html>

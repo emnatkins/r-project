@@ -96,13 +96,7 @@ extends(class1, class2, maybe = TRUE, fullInfo = FALSE)
   which should rarely be encountered.
 
 
-}
-
-\note{
-  Prior to \R 4.2.0 the code used the first elements of \code{class1}
-  and \code{class2}, silently,  These are now required to be length-one
-  character vectors.
-}
+ }
 
 \references{
  Chambers, John M. (2016)

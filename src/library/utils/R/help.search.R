@@ -255,7 +255,8 @@ function(pattern, fields = c("alias", "concept", "title"),
         }
     }
     search_db_results <- function(p, f, e)
-        list2DF(list(Position = p, Field = f, Entry = e))
+        data.frame(Position = p, Field = f, Entry = e,
+                   stringsAsFactors = FALSE)
     search_db_field <- function(field) {
 	switch(field,
 	       alias = {
@@ -520,10 +521,10 @@ function(package = NULL, lib.loc = NULL,
 	## Create the global base, aliases, keywords and concepts tables
 	## via calls to rbind() on the columns of the matrix used for
 	## aggregating.
-	db <- list(Base     = do.call(rbind, dbMat[, 1]),
-		   Aliases  = do.call(rbind, dbMat[, 2]),
-		   Keywords = do.call(rbind, dbMat[, 3]),
-		   Concepts = do.call(rbind, dbMat[, 4]))
+	db <- list(Base     = do.call("rbind", dbMat[, 1]),
+		   Aliases  = do.call("rbind", dbMat[, 2]),
+		   Keywords = do.call("rbind", dbMat[, 3]),
+		   Concepts = do.call("rbind", dbMat[, 4]))
         rownames(db$Base) <- NULL
         ## <FIXME>
         ## Remove eventually ...
@@ -596,7 +597,7 @@ function(package = NULL, lib.loc = NULL,
 	    warning("removing all entries with invalid multi-byte character data")
 	    for(i in seq_along(db)) {
 		ind <- db[[i]][, "ID"] %in% bad_IDs
-		db[[i]] <- db[[i]][!ind, , drop = FALSE]
+		db[[i]] <- db[[i]][!ind, ]
 	    }
 	}
 
@@ -606,7 +607,7 @@ function(package = NULL, lib.loc = NULL,
         if(length(bad_IDs)) {
 	    for(i in seq_along(db)) {
 		ind <- db[[i]][, "ID"] %in% bad_IDs
-		db[[i]] <- db[[i]][!ind, , drop = FALSE]
+		db[[i]] <- db[[i]][!ind, ]
 	    }
 	}
 
@@ -830,9 +831,11 @@ function(db = hsearch_db())
     enums <- vapply(entries, NROW, 0L)
     pnums <- vapply(entries, function(e) length(unique(e$Package)), 0L)
     pos <- order(enums, pnums, decreasing = TRUE)
-    list2DF(list(Concept = names(entries)[pos],
-                 Frequency = enums[pos],
-                 Packages = pnums[pos]))
+    data.frame(Concept = names(entries)[pos],
+               Frequency = enums[pos],
+               Packages = pnums[pos],
+               stringsAsFactors = FALSE,
+               row.names = NULL)
 }
 
 hsearch_db_keywords <-
@@ -848,10 +851,12 @@ function(db = hsearch_db())
     concepts <- standard$Descriptions[match(names(entries),
                                             standard$Keywords)]
     pos <- order(enums, pnums, decreasing = TRUE)
-    list2DF(list(Keyword = names(entries)[pos],
-                 Concept = concepts[pos],
-                 Frequency = enums[pos],
-                 Packages = pnums[pos]))
+    data.frame(Keyword = names(entries)[pos],
+               Concept = concepts[pos],
+               Frequency = enums[pos],
+               Packages = pnums[pos],
+               stringsAsFactors = FALSE,
+               row.names = NULL)
 }
 
 print.hsearch_db <-

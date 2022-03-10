@@ -120,8 +120,7 @@ void    nextpage(printer p);
 
 /* metafile.c */
 typedef objptr metafile;
-metafile newmetafile(const char *name, double width, double height,
-                     double xpinch, double ypinch);
+metafile newmetafile(const char *name, double width, double height);
 
 
 /* thread safe and extended  drawing functions (gdraw.c) */

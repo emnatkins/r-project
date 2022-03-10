@@ -30,20 +30,18 @@ asOneSidedFormula <-
   ## to a one-sided formula
   function(object)
 {
-    if ((mode(object) == "call") && (object[[1L]] == "~") &&
-        !inherits(object, "formula")) {
+    if ((mode(object) == "call") && (object[[1L]] == "~")) {
         object <- eval(object)
-        environment(object) <- .GlobalEnv
     }
     if (inherits(object, "formula")) {
         if (length(object) != 2L) {
             stop(gettextf("formula '%s' must be of the form '~expr'",
-                          deparse1(object)), domain = NA)
+                          deparse(as.vector(object))), domain = NA)
         }
         return(object)
     }
-    ff <- call("~",
-                 switch(mode(object),
+    do.call("~",
+            list(switch(mode(object),
                         name = ,
                         numeric = ,
                         call = object,
@@ -53,9 +51,7 @@ asOneSidedFormula <-
                                       substitute(object), mode(object)),
                              domain = NA)
                         ))
-    class(ff) <- "formula"
-    environment(ff) <- .GlobalEnv
-    ff
+            )
 }
 
 ## "FIXME": move to 'base' and make .Internal or even .Primitive

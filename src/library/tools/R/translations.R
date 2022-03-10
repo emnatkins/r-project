@@ -1,7 +1,7 @@
 #  File src/library/tools/R/translations.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2021 The R Core Team
+#  Copyright (C) 1995-2020 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -71,9 +71,7 @@ en_quote <- function(potfile, outfile)
     close(con)
 }
 
-update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL,
-                          mergeOpts = "", # only those *in addition* to --update
-                          copyright, bugs)
+update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL, copyright, bugs)
 {
     same <- function(a, b)
     {
@@ -126,7 +124,7 @@ update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL,
         lang <- sub("^R-(.*)[.]po$", "\\1", basename(f))
         message("  R-", lang, ":", appendLF = FALSE, domain = NA)
         ## This seems not to update the file dates.
-        cmd <- paste("msgmerge --update", mergeOpts, f, shQuote(potfile))
+        cmd <- paste("msgmerge --update", f, shQuote(potfile))
         if(system(cmd) != 0L) {
             warning("running msgmerge on ", sQuote(f), " failed", domain = NA)
             next
@@ -171,11 +169,9 @@ update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL,
         od <- setwd("src")
         exts <- "[.](c|cc|cpp|m|mm)$"
         cfiles <- dir(".", pattern = exts)
-        for (subdir in c("windows", "cairo")) { # only grDevices/src/cairo
-          if(dir.exists(subdir))
+        if (file.exists("windows"))
             cfiles <- c(cfiles,
-                        dir(subdir, pattern = exts, full.names = TRUE))
-        }
+                        dir("windows", pattern = exts, full.names = TRUE))
     } else {
         dom <- "R"
         od <- setwd("../../..")
@@ -202,7 +198,7 @@ update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL,
     for (f in pofiles) {
         lang <- sub("[.]po", "", basename(f))
         message("  ", lang, ":", appendLF = FALSE, domain = NA)
-        cmd <- paste("msgmerge --update", mergeOpts, shQuote(f), shQuote(potfile))
+        cmd <- paste("msgmerge --update", shQuote(f), shQuote(potfile))
         if(system(cmd) != 0L) {
             warning("running msgmerge on ",  f, " failed", domain = NA)
             next
@@ -240,7 +236,7 @@ update_pkg_po <- function(pkgdir, pkg = NULL, version = NULL,
     invisible()
 }
 
-update_RGui_po <- function(srcdir, mergeOpts = "")
+update_RGui_po <- function(srcdir)
 {
     same <- function(a, b)
     {
@@ -281,7 +277,7 @@ update_RGui_po <- function(srcdir, mergeOpts = "")
         lang <- sub("^RGui-(.*)[.]po$", "\\1", basename(f))
         lang2 <- sub("[.]po", "", basename(f))
         message("  ", lang2, ":", appendLF = FALSE, domain = NA)
-        cmd <- paste("msgmerge --update", mergeOpts, f, potfile)
+        cmd <- paste("msgmerge --update", f, potfile)
         if(system(cmd) != 0L) {
             warning("running msgmerge failed", domain = NA)
             next

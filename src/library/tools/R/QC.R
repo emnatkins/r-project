@@ -1,7 +1,7 @@
 #  File src/library/tools/R/QC.R
 #  Part of the R package, https://www.R-project.org
 #
-#  Copyright (C) 1995-2022 The R Core Team
+#  Copyright (C) 1995-2021 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 ## .check_package_code_assign_to_globalenv
 ## .check_package_code_attach
 ## .check_package_code_data_into_globalenv
-## .check_package_code_class_is_string
 ## .check_code_usage_in_package
 ## .check_bogus_return
 ## .check_dotInternal
@@ -484,7 +483,8 @@ function(package, dir, lib.loc = NULL,
         names(function_args_in_ns) <- functions_in_ns
 
         function_args_in_S3Table <-
-            lapply(functions_in_S3Table, function(f) formals(S3Table[[f]]))
+            lapply(functions_in_S3Table,
+                   function(f) formals(get(f, envir = S3Table)))
         names(function_args_in_S3Table) <- functions_in_S3Table
 
         tmp <- c(function_args_in_code, function_args_in_S3Table,
@@ -668,7 +668,7 @@ function(package, dir, lib.loc = NULL,
             }
         }
 
-        bad_functions <- do.call(c, bad_functions)
+        bad_functions <- do.call("c", bad_functions)
         if(length(bad_functions))
             bad_doc_objects[[docObj]] <- bad_functions
 
@@ -1173,10 +1173,10 @@ function(package, lib.loc = NULL)
 
         nms <- character()
         ## Handle trailing colons and leading/trailing white space.
-        s <- sub("^[[:space:]]*", "", sub("([[:space:]]*:)?[[:space:]]*$", "", s))
+        s <- sub("^ *", "", sub("( *:)? *$", "", s))
         ## Handle \samp entries: need to match until the first unescaped
         ## rbrace.
-        re <- "\\\\samp\\{(([^\\}]|[\\].)*)\\}([[:space:]]*,[[:space:]]*)?"
+        re <- "\\\\samp\\{(([^\\}]|[\\].)*)\\}( *, *)?"
         m <- gregexpr(re, s)
         if(any(unlist(m) > -1)) {
             nms <- sub(re, "\\1", unlist(regmatches(s, m)))
@@ -1186,7 +1186,7 @@ function(package, lib.loc = NULL)
         }
         ## Handle \code entries, assuming that they can be taken literally
         ## (no escaping or quoting to obtain valid R syntax).
-        re <- "\\\\code\\{([^}]*)\\}([[:space:]]*,[[:space:]]*)?"
+        re <- "\\\\code\\{([^}]*)\\}( *, *)?"
         m <- gregexpr(re, s)
         add <- regmatches(s, m)
         lens <- lengths(add)
@@ -1209,7 +1209,7 @@ function(package, lib.loc = NULL)
         nms <- c(nms, add)
         regmatches(s, m) <- ""
         ## Handle rest.
-        nms <- c(nms, unlist(strsplit(s, "[[:space:]]*,[[:space:]]*")))
+        nms <- c(nms, unlist(strsplit(s, " *, *")))
         nms
     }
 
@@ -1224,7 +1224,7 @@ function(package, lib.loc = NULL)
         x <- .Rd_drop_comments(x[[1L]])
         ## </FIXME>
         ## What did the format section start with?
-        if(!grepl("^[[:space:]]*(A|This) data frame",
+        if(!grepl("^[ \n\t]*(A|This) data frame",
                   .Rd_deparse(x, tag = FALSE)))
             return(character())
         ## Get \describe inside \format.
@@ -1408,7 +1408,7 @@ function(package, dir, lib.loc = NULL, chkInternal = FALSE)
             exprs     <- exprs    [!ind]
             functions <- functions[!ind]
         }
-        ## (Note that as.character(sapply(exprs, `[[`, 1L)) does not do
+        ## (Note that as.character(sapply(exprs, "[[", 1L)) does not do
         ## what we want due to backquotifying.)
         arg_names_in_usage <-
             unlist(lapply(exprs,
@@ -1693,13 +1693,13 @@ function(package, dir, lib.loc = NULL)
     methods_in_package <-
         Map(function(g) {
                 ## This isn't really right: it assumes the generics are
-                ## visible.
+                ## visible. 
                 if(!exists(g, envir = code_env)) return(character())
                 ## <FIXME>
                 ## We should really determine the name g dispatches for,
                 ## see a current version of methods() [2003-07-07].
                 ## (Care is needed for internal generics and group
-                ## generics.)
+                ## generics.) 
                 name <- paste0(g, ".")
                 methods <-
                     functions_in_code[startsWith(functions_in_code, name)]
@@ -1767,7 +1767,7 @@ function(package, dir, lib.loc = NULL)
         functions <-
             as.character(sapply(exprs,
                                 function(e) as.character(e[[1L]])))
-        ## (Note that as.character(sapply(exprs, `[[`, 1L)) does not do
+        ## (Note that as.character(sapply(exprs, "[[", 1L)) does not do
         ## what we want due to backquotifying.)
         ## Replacement functions.
         ind <- vapply(exprs, .is_call_from_replacement_function_usage, NA)
@@ -1814,7 +1814,7 @@ function(x, ...)
         ## documentation, in particular for the primary argument).
         ## Hence, even if we still provide information about this, we
         ## no longer print it by default.  One can still access it via
-        ##   lapply(checkDocStyle("foo"), `[[`, "withGeneric")
+        ##   lapply(checkDocStyle("foo"), "[[", "withGeneric")
         ## (but of course it does not print that nicely anymore),
         ## </NOTE>
         methods_with_full_name <- x[[nm]][["withFullName"]]
@@ -2103,7 +2103,7 @@ function(package, dir, file, lib.loc = NULL,
                     wrong_pkg <<- c(wrong_pkg, e)
                     bad_pkg <<- c(bad_pkg, this)
                 }
-                parg <- if(!is.null(parg) && any(nzchar(parg))) "OK"
+                parg <- if(!is.null(parg) && (nzchar(parg))) "OK"
                 else if(identical(parg, "")) {
                     empty_exprs <<- c(empty_exprs, e)
                     "EMPTY"
@@ -4218,8 +4218,8 @@ function(package, lib.loc = NULL)
                 ## uses
                 desc <- readRDS(file.path(find.package(package, NULL),
                                           "Meta", "package.rds"))
-                pkgs1 <- sapply(desc$Suggests, `[[`, "name")
-                pkgs2 <- sapply(desc$Enhances, `[[`, "name")
+                pkgs1 <- sapply(desc$Suggests, "[[", "name")
+                pkgs2 <- sapply(desc$Enhances, "[[", "name")
                 for(pkg in unique(c(pkgs1, pkgs2)))
                     ## tcltk warns if no DISPLAY variable
                     ##, errors if not compiled in
@@ -4387,7 +4387,7 @@ function(package, dir, lib.loc = NULL)
     }
 
     ## Flatten the xref db into one big matrix.
-    db <- cbind(do.call(rbind, db),
+    db <- cbind(do.call("rbind", db),
                 File = rep.int(names(db), vapply(db, NROW, 0L)))
     if(nrow(db) == 0L)
         return(structure(list(), class = "check_Rd_xrefs"))
@@ -4881,7 +4881,7 @@ function(dir, doDelete = FALSE)
     if(dir.exists(code_dir)) {
         all_files <- mydir(code_dir)
         ## Under Windows, need a Makefile.win for methods.
-        R_files <- c("sysdata.rda", "Makefile.win", "Makefile.ucrt",
+        R_files <- c("sysdata.rda", "Makefile.win",
                      list_files_with_type(code_dir, "code",
                                           full.names = FALSE,
                                           OS_subdirs = OS_subdirs))
@@ -5017,8 +5017,8 @@ function(dir)
             loc <- Sys.getenv("R_ENCODING_LOCALES", NA_character_)
             if(!is.na(loc)) {
                 loc <- strsplit(strsplit(loc, ":")[[1L]], "=")
-                nm <- lapply(loc, `[[`, 1L)
-                loc <- lapply(loc, `[[`, 2L)
+                nm <- lapply(loc, "[[", 1L)
+                loc <- lapply(loc, "[[", 2L)
                 names(loc) <- nm
                 if(!is.null(l <- loc[[enc]]))
                     Sys.setlocale("LC_CTYPE", l)
@@ -5193,7 +5193,7 @@ function(dir)
     calls <- .find_calls_in_package_code(dir,
                                          .worker =
                                          .get_startup_function_calls_in_file)
-    FL <- unlist(lapply(calls, `[[`, ".First.lib"))
+    FL <- unlist(lapply(calls, "[[", ".First.lib"))
     calls <- Filter(length,
                     lapply(calls,
                            function(e)
@@ -5293,8 +5293,7 @@ function(file, encoding = NA)
            (length(y <- as.character(e[[2L]])) == 1L) &&
            (y %in% c(".First.lib", ".onAttach", ".onLoad")) &&
 	   (is.call(z <- e[[3L]])) &&
-           (length(w <- as.character(z[[1L]])) == 1L) &&            
-           (w == "function")) {
+           (as.character(z[[1L]]) == "function")) {
             new <- list(z)
             names(new) <- as.character(y)
             calls <- c(calls, new)
@@ -5337,7 +5336,7 @@ function(dir)
     calls <- .find_calls_in_package_code(dir,
                                          .worker =
                                          .get_unload_function_calls_in_file)
-    LL <- unlist(lapply(calls, `[[`, ".Last.lib"))
+    LL <- unlist(lapply(calls, "[[", ".Last.lib"))
     calls <- Filter(length,
                     lapply(calls,
                            function(e)
@@ -5424,8 +5423,7 @@ function(file, encoding = NA)
            (length(y <- as.character(e[[2L]])) == 1L) &&
            (y %in% c(".Last.lib", ".onDetach")) &&
 	   (is.call(z <- e[[3L]])) &&
-           (length(w <- as.character(z[[1L]])) == 1L) &&            
-           (w == "function")) {
+           (as.character(z[[1L]]) == "function")) {
             new <- list(z)
             names(new) <- as.character(y)
             calls <- c(calls, new)
@@ -5448,7 +5446,6 @@ function(dir)
         if(as.character(e[[1L]])[1L] %in% "unlockBinding") {
             e3 <- as.character(e[[3L]])
             if (e3[[1L]] == "asNamespace") e3 <- as.character(e[[3L]][[2L]])
-            ## maybe this should use any()
             return(e3 != pkgname)
         }
         if((as.character(e[[1L]])[1L] %in% ".Internal") &&
@@ -5456,7 +5453,6 @@ function(dir)
         if(as.character(e[[1L]])[1L] %in% "assignInNamespace") {
             e3 <- as.character(e[[4L]])
             if (e3[[1L]] == "asNamespace") e3 <- as.character(e[[4L]][[2L]])
-            ## maybe this should use any()
             return(e3 != pkgname)
         }
         FALSE
@@ -5587,41 +5583,6 @@ function(x, ...)
       unlist(Map(.format_calls_in_file, x, names(x))))
 }
 
-### * .check_package_code_class_is_string
-
-## Could easily make this return something classed with suitable
-## format() and print() methods ...
-
-.check_package_code_class_is_string <-
-function(dir) {
-    predicate <- function(e) {
-        is.call(e) &&
-            (length(e) >= 2L) &&
-            (as.character(e[[1L]])[1L] == "if") &&
-            is.call(e <- e[[2L]]) &&
-            (as.character(e[[1L]])[1L] %in% c("==", "!-")) &&
-            is.call(e2 <- e[[2L]]) &&
-            (as.character(e2[[1L]])[1L] == "class") &&
-            is.character(e[[3L]]) &&
-            (length(e[[3L]] == 1L))
-    }
-    x <- Filter(length,
-                .find_calls_in_package_code(dir, predicate,
-                                            recursive = TRUE))
-    if(length(x)) {
-        s <- sprintf("File %s: %s",
-                     sQuote(rep.int(names(x), lengths(x))),
-                     vapply(unlist(x),
-                            function(e)
-                                sprintf("if (%s) ...", deparse1(e[[2L]])),
-                            ""))
-        writeLines(c("Found if() conditions comparing class() to string:",
-                     s,
-                     "Use inherits() (or maybe is()) instead."))
-    }
-    invisible(x)
-}
-
 ### * .check_packages_used
 
 .check_packages_used <-
@@ -5722,33 +5683,29 @@ function(package, dir, lib.loc = NULL)
                     ## (BTW, what if character.only is given a value
                     ## which is an expression evaluating to TRUE?)
                     dunno <- FALSE
-                    if((Call %in% c("loadNamespace",
-                                    "requireNamespace"))) {
-                        if(!identical(class(pkg), "character"))
-                            dunno <- TRUE
-                    } else {
-                        if(!identical(class(pkg), "character") &&
-                           isTRUE(mc$character.only))
-                            dunno <- TRUE
-                    }
+                    if(isTRUE(mc$character.only)
+                       && !identical(class(pkg), "character"))
+                        dunno <- TRUE
                     ## </NOTE>
                     ## <FIXME> could be inside substitute or a variable
                     ## and is in e.g. R.oo
                     if(!dunno) {
-                        pkg <- as.character(pkg)
-                        if(Call %in% c("loadNamespace",
-                                       "requireNamespace")) {
-                            if(pkg %notin%
-                               c(imports, depends_suggests, common_names))
-                                bad_imps <<- c(bad_imps, pkg)
-                        } else {
+                        if (Call %in% c("loadNamespace", "requireNamespace")) {
+                            if (identical(class(pkg), "character")) {
+                                pkg <- sub('^"(.*)"$', '\\1', deparse(pkg))
+                                if(! pkg %in%
+                                   c(imports, depends_suggests, common_names))
+                                    bad_imps <<- c(bad_imps, pkg)
+                            }
+                       } else {
+                           pkg <- sub('^"(.*)"$', '\\1', deparse(pkg))
                             if(pkg %notin% c(depends_suggests, common_names))
                                 bad_exprs <<- c(bad_exprs, pkg)
                             if(pkg %in% depends)
                                 bad_deps <<- c(bad_deps, pkg)
-                            ## assume calls to itself are to clusterEvalQ etc
-                            else if (pkg != pkg_name)
-                                bad_prac <<- c(bad_prac, pkg)
+                           ## assume calls to itself are to clusterEvalQ etc
+                           else if (pkg != pkg_name)
+                               bad_prac <<- c(bad_prac, pkg)
                         }
                     }
                 }
@@ -6166,50 +6123,46 @@ function(db, files)
     ## we just have a stop list here.
     common_names <- c("pkg", "pkgName", "package", "pos")
 
-    parse_errors <-
     bad_exprs <- character()
     bad_imports <- character()
     bad_data <- character()
     find_bad_exprs <- function(e) {
         if(is.call(e) || is.expression(e)) {
             Call <- deparse(e[[1L]])[1L]
-            if((Call %in%
-               c("library", "require", "loadNamespace", "requireNamespace"))
-               && (length(e) >= 2L)) {
-                ## We need to remove '...': OTOH the argument could be NULL
-                keep <- vapply(e,
-                               function(x) deparse(x)[1L] != "...",
-                               NA)
-                mc <- match.call(baseenv()[[Call]], e[keep])
-                if(!is.null(pkg <- mc$package)) {
-                    ## <NOTE>
-                    ## Using code analysis, we really don't know which
-                    ## package was called if character.only = TRUE and
-                    ## the package argument is not a string constant.
-                    ## (Btw, what if character.only is given a value
-                    ## which is an expression evaluating to TRUE?)
-                    dunno <- FALSE
-                    if((Call %in% c("loadNamespace",
-                                    "requireNamespace"))) {
-                        if(!identical(class(pkg), "character"))
+            if(length(e) >= 2L) pkg <- deparse(e[[2L]])
+            if(Call %in%
+               c("library", "require", "loadNamespace", "requireNamespace")) {
+                if(length(e) >= 2L) {
+                    ## We need to remove '...': OTOH the argument could be NULL
+                    keep <- vapply(e,
+                                   function(x) deparse(x)[1L] != "...",
+                                   NA)
+                    mc <- match.call(baseenv()[[Call]], e[keep])
+                    if(!is.null(pkg <- mc$package)) {
+                        pkg <- sub('^"(.*)"$', '\\1', pkg)
+                        ## <NOTE>
+                        ## Using code analysis, we really don't know which
+                        ## package was called if character.only = TRUE and
+                        ## the package argument is not a string constant.
+                        ## (Btw, what if character.only is given a value
+                        ## which is an expression evaluating to TRUE?)
+                        dunno <- FALSE
+                        pos <- which(!is.na(pmatch(names(e),
+                                                   "character.only")))
+                        if(length(pos)
+                           && isTRUE(e[[pos]])
+                           && !identical(class(e[[2L]]), "character"))
                             dunno <- TRUE
-                    } else {
-                        if(!identical(class(pkg), "character") &&
-                           isTRUE(mc$character.only))
-                            dunno <- TRUE
-                    }
-                    if(!dunno) {
-                        pkg <- as.character(pkg)
-                        if(pkg %notin% c(depends_suggests, common_names))
+                        ## </NOTE>
+                        if(! dunno
+                           && pkg %notin% c(depends_suggests, common_names))
                             bad_exprs <<- c(bad_exprs, pkg)
                     }
                 }
             } else if(Call %in%  "::") {
-                pkg <- deparse(e[[2L]])
                 if(! pkg %in% depends_suggests)
                     bad_imports <<- c(bad_imports, pkg)
             } else if(Call %in%  ":::") {
-                pkg <- deparse(e[[2L]])
                 if(! pkg %in% depends_suggests)
                     bad_imports <<- c(bad_imports, pkg)
             } else if((Call %in% "data" && length(e) >= 3L) ||
@@ -6235,12 +6188,9 @@ function(db, files)
                          ## so ignore 'invalid multibyte character' errors.
                          msg <- .massage_file_parse_error_message(conditionMessage(e))
                          if(!startsWith(msg, "invalid multibyte character"))
-                         {
-                             parse_errors <<- c(parse_errors, f)
                              warning(gettextf("parse error in file '%s':\n%s",
                                               f, msg),
                                      domain = NA, call. = FALSE)
-                         }
                      })
         }
     } else {
@@ -6259,9 +6209,7 @@ function(db, files)
     res <- list(others = unique(bad_exprs),
                 imports = unique(bad_imports),
                 data = unique(bad_data),
-                methods_message = ""
-              , parse_errors = unique(parse_errors)
-    	    )
+                methods_message = "")
     class(res) <- "check_packages_used"
     res
 }
@@ -6292,6 +6240,7 @@ function(package, dir, lib.loc = NULL)
     file <- .createExdotR(pkg_name, dir, silent = TRUE,
                           commentDonttest = FALSE)
     if (is.null(file)) return(invisible(NULL)) # e.g, no examples
+    on.exit(unlink(file))
     enc <- db["Encoding"]
     if(!is.na(enc) &&
        (Sys.getlocale("LC_CTYPE") %notin% c("C", "POSIX"))) {
@@ -6349,7 +6298,7 @@ function(dir, testdir, lib.loc = NULL)
         }
     }
     res <- .check_packages_used_helper(db, c(Rinfiles, Rfiles))
-    if(any(lengths(bad <- res[1L : 3L]))) {
+    if(use_subdirs && any(lengths(bad <- res[1L : 3L]))) {
         ## Filter results against available package names to avoid (too
         ## many) false positives.
         ## <FIXME>
@@ -6695,7 +6644,7 @@ function(package, dir, lib.loc = NULL, details = TRUE)
             calls <- .find_calls(v, recursive = TRUE)
             if(!length(calls)) return()
             calls <- calls[.call_names(calls) == ".Internal"]
-            calls2 <- lapply(calls, `[`, 2L)
+            calls2 <- lapply(calls, "[", 2L)
             calls3 <-
                 sapply(calls2, function(x) sub("\\(.*", "", deparse(x)[1L]))
             internals <<- c(internals, calls3)
@@ -7599,8 +7548,7 @@ function(dir, localOnly = FALSE, pkgSize = NA)
         code_files <- list_files_with_type(file.path(dir, "R"),
                                            "code",
                                            OS_subdirs = OS_subdirs)
-        names(code_files) <-
-            file_path_relative_to(code_files, dir, parent = FALSE)
+        names(code_files) <- .file_path_relative_to_dir(code_files, dir)
         lines <- Filter(length, lapply(code_files, find_non_ASCII_lines))
         if(length(lines))
             out$R_files_non_ASCII <- lines
@@ -8097,7 +8045,7 @@ function(dir, localOnly = FALSE, pkgSize = NA)
     if(!inherits(year <- tryCatch(format(as.Date(meta0["Published"]), "%Y"),
                                      error = identity),
                     "error")){
-        ## possible misspellings and keep only the new ones:
+        ## possible mis-spellings and keep only the new ones:
         if(NROW(a <- out$spelling)
            && config_val_to_logical(Sys.getenv("_R_CHECK_CRAN_INCOMING_ASPELL_RECHECK_MAYBE_",
                                                "TRUE"))
@@ -8227,7 +8175,7 @@ function(x, ...)
             })),
       if(NROW(y <- x$spelling)) {
           s <- split(sprintf("%d:%d", y$Line, y$Column), y$Original)
-          paste(c("Possibly misspelled words in DESCRIPTION:",
+          paste(c("Possibly mis-spelled words in DESCRIPTION:",
                   sprintf("  %s (%s)",
                           names(s),
                           lapply(s, paste, collapse = ", "))),
@@ -8237,7 +8185,7 @@ function(x, ...)
           "FOSS licence with BuildVignettes: false"
       },
       if(length(y <- x$fields)) {
-          paste(c("Unknown, possibly misspelled, fields in DESCRIPTION:",
+          paste(c("Unknown, possibly mis-spelled, fields in DESCRIPTION:",
                   sprintf("  %s", paste(sQuote(y), collapse = " "))),
                 collapse = "\n")
       },
@@ -9005,14 +8953,12 @@ function(env)
 {
     env <- as.environment(env)
     g <- suppressMessages(methods::getGenerics(env))
-    y <- Map(function(f, p) {
-                 attr(f, "package") <- p
-                 f
-             },
-             g@.Data,
-             g@package)
-    names(y) <- g@.Data
-    y
+    Map(function(f, p) {
+            attr(f, "package") <- p
+            f
+        },
+        g@.Data,
+        g@package)
 }
 
 ### ** .get_S4_methods_list

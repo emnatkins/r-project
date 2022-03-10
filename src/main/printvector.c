@@ -34,7 +34,7 @@
 #include <config.h>
 #endif
 
-#include "Defn.h"
+#include "Rinternals.h"
 #include "Print.h"
 #include <R_ext/Itermacros.h> /* for ITERATE_BY_REGION */
 

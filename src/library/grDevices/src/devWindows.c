@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004-2021   The R Core Team
+ *  Copyright (C) 2004-2020   The R Core Team
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
  *  Copyright (C) 2004        The R Foundation
@@ -74,8 +74,7 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
 			double gamma, int xpos, int ypos, Rboolean buffered,
 			SEXP psenv, Rboolean restoreConsole,
 			const char *title, Rboolean clickToConfirm,
-			Rboolean fillOddEven, const char *family, int quality,
-                        double xpinch, double ypinch);
+			Rboolean fillOddEven, const char *family, int quality);
 
 
 /* a colour used to represent the background on png if transparent
@@ -83,6 +82,15 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
 */
 
 #define PNG_TRANS 0xfdfefd
+
+/* these really are globals: per machine, not per window */
+static double user_xpinch = 0.0, user_ypinch = 0.0;
+
+static void GAsetunits(double xpinch, double ypinch)
+{
+    user_xpinch = xpinch;
+    user_ypinch = ypinch;
+}
 
 static rgb GArgb(int color, double gamma)
 {
@@ -372,7 +380,7 @@ static void SaveAsWin(pDevDesc dd, const char *display,
 		       0, 1, White, White, 1, NA_INTEGER, NA_INTEGER, FALSE,
 		       R_GlobalEnv, restoreConsole, "", FALSE,
 		       ((gadesc*) dd->deviceSpecific)->fillOddEven, "",
-		       DEFAULT_QUALITY, 0.0, 0.0))
+		       DEFAULT_QUALITY))
 	PrivateCopyDevice(dd, ndd, display);
 }
 
@@ -1531,12 +1539,12 @@ setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
     char buf[100];
 
     xd->kind = SCREEN;
-    if (xd->xpinch > 0.0)
-	dw = dw0 = (int) (w * xd->xpinch);
+    if (R_FINITE(user_xpinch) && user_xpinch > 0.0)
+	dw = dw0 = (int) (w * user_xpinch);
     else
 	dw = dw0 = (int) (w / pixelWidth(NULL));
-    if (xd->ypinch > 0.0)
-	dh = (int) (h * xd->ypinch);
+    if (R_FINITE(user_ypinch) && user_ypinch > 0.0)
+	dh = (int) (h * user_ypinch);
     else
 	dh = (int) (h / pixelHeight(NULL));
 
@@ -1915,8 +1923,7 @@ static Rboolean GA_Open(pDevDesc dd, gadesc *xd, const char *dsp,
 	snprintf(buf, 600, xd->filename, 1);
 	xd->w = MM_PER_INCH * w;
 	xd->h =  MM_PER_INCH * h;
-	xd->gawin = newmetafile(buf, MM_PER_INCH * w, MM_PER_INCH * h,
-                                xd->xpinch, xd->ypinch);
+	xd->gawin = newmetafile(buf, MM_PER_INCH * w, MM_PER_INCH * h);
 	xd->kind = METAFILE;
 	xd->fast = 0; /* use scalable line widths */
 	if (!xd->gawin) {
@@ -2175,7 +2182,7 @@ static void GA_NewPage(const pGEcontext gc,
 	else {
 	    del(xd->gawin);
 	    snprintf(buf, 600, xd->filename, xd->npage);
-	    xd->gawin = newmetafile(buf, xd->w, xd->h, xd->xpinch, xd->ypinch);
+	    xd->gawin = newmetafile(buf, xd->w, xd->h);
 	    if(!xd->gawin)
 		error(_("metafile '%s' could not be created"), buf);
 	}
@@ -2232,9 +2239,9 @@ static void GA_NewPage(const pGEcontext gc,
 
 static void deleteGraphMenus(int devnum)
 {
-    char prefix[18];
+    char prefix[15];
 
-    snprintf(prefix, 18, "$Graph%i", devnum);
+    snprintf(prefix, 15, "$Graph%i", devnum);
     windelmenus(prefix);
 }
 
@@ -2368,27 +2375,6 @@ static void GA_Deactivate(pDevDesc dd)
 	/* locations to DEVICE coordinates using GConvert	*/
 	/********************************************************/
 
-/* Get a rect based on the current clip rect, but make
- * sure it does not lie outside device extent.
- */
-static rect getClipRect(gadesc *xd) {
-    rect r1 = getregion(xd);
-    rect r2 = xd->clip;
-    if (r2.x < r1.x) {
-        r2.width = r1.x - r2.x;
-        r2.x = r1.x;        
-    }
-    if (r2.y < r1.y) {
-        r2.height = r1.y - r2.y;
-        r2.y = r1.y;
-    }
-    if (r2.x + r2.width > r1.x + r1.width) 
-        r2.width = (r1.x + r1.width) - r2.x;
-    if (r2.y + r2.height > r1.y + r1.height)
-        r2.height = (r1.y + r1.height) - r2.y;
-    return r2;
-}
-
 static void GA_Rect(double x0, double y0, double x1, double y1,
 		    const pGEcontext gc,
 		    pDevDesc dd)
@@ -2426,7 +2412,7 @@ static void GA_Rect(double x0, double y0, double x1, double y1,
 	DRAW(gfillrect(_d, xd->fgcolor, r));
     } else if(R_ALPHA(gc->fill) > 0) {
 	if(xd->have_alpha) {
-	    rect cp = getClipRect(xd);
+	    rect cp = xd->clip;
 	    /* We are only working with the screen device here, so
 	       we can assume that x->bm is the current state.
 	       Copying from the screen window does not work. */
@@ -2454,7 +2440,7 @@ static void GA_Rect(double x0, double y0, double x1, double y1,
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
 	    int adj, tol = xd->lwd; /* only half needed */
-	    rect cp = getClipRect(xd);
+	    rect cp = xd->clip;
 	    rr = r;
 	    r.x -= tol; r.y -= tol; r.width += 2*tol; r.height += 2*tol;
 	    if (r.x < 0) {adj = r.x; r.x = 0; r.width = r.width + adj;}
@@ -2509,7 +2495,7 @@ static void GA_Circle(double x, double y, double radius,
 	DRAW(gfillellipse(_d, xd->fgcolor, rr));
     } else if(R_ALPHA(gc->fill) > 0) {
 	if (xd->have_alpha) {
-	    rect cp = getClipRect(xd);
+	    rect cp = xd->clip;
 	    /* Clip to the device region */
 	    if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
 	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
@@ -2533,7 +2519,7 @@ static void GA_Circle(double x, double y, double radius,
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
 	    int adj, tol = xd->lwd; /* only half needed */
-	    rect cp = getClipRect(xd);
+	    rect cp = xd->clip;
 	    r.x -= tol; r.y -= tol; r.width += 2*tol; r.height += 2*tol;
 	    if (r.x < 0) {adj = r.x; r.x = 0; r.width = r.width + adj;}
 	    if (r.y < 0) {adj = r.y; r.y = 0; r.height = r.height + adj;}
@@ -2582,14 +2568,7 @@ static void GA_Line(double x1, double y1, double x2, double y2,
 	SH;
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
-	    rect r, rr, cp = getClipRect(xd);
-            r = rr = cp;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
+	    rect r = xd->clip;
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    gdrawline(xd->bm2, xd->lwd, xd->lty, xd->fgcolor,
@@ -2635,15 +2614,7 @@ static void GA_Polyline(int n, double *x, double *y,
 			   xd->lend, xd->ljoin, xd->lmitre));
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
-	    /* lines can go well outside bbox of points */
-	    rect r, rr, cp = getClipRect(xd);
-            r = rr = cp;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
+	    rect r = xd->clip; /* lines can go well outside bbox of points */
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    gdrawpolyline(xd->bm2, xd->lwd, xd->lty, xd->fgcolor, p, n, 0, 0,
@@ -2705,14 +2676,6 @@ static void GA_Polygon(int n, double *x, double *y,
 	DRAW(gfillpolygon(_d, xd->fgcolor, points, n));
     } else if(R_ALPHA(gc->fill) > 0) {
 	if(xd->have_alpha) {
-	    rect rr, cp = getClipRect(xd);
-            rr = r;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    gfillpolygon(xd->bm2, xd->fgcolor, points, n);
@@ -2727,14 +2690,7 @@ static void GA_Polygon(int n, double *x, double *y,
 			  xd->lend, xd->ljoin, xd->lmitre));
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
-	    rect r, rr, cp = getClipRect(xd);
-            rr = r = cp;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
+	    r = xd->clip;
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    gdrawpolygon(xd->bm2, xd->lwd, xd->lty, xd->fgcolor, points, n, 0,
@@ -2793,14 +2749,6 @@ static void GA_Path(double *x, double *y,
 	DRAW(gfillpolypolygon(_d, xd->fgcolor, points, npoly, nper));
     } else if(R_ALPHA(gc->fill) > 0) {
 	if(xd->have_alpha) {
-	    rect rr, cp = getClipRect(xd);
-            rr = r;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    gfillpolypolygon(xd->bm2, xd->fgcolor, points, npoly, nper);
@@ -2820,14 +2768,7 @@ static void GA_Path(double *x, double *y,
         }
     } else if(R_ALPHA(gc->col) > 0) {
 	if(xd->have_alpha) {
-	    rect r, rr, cp = getClipRect(xd);
-            r = rr = cp;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
+	    r = xd->clip;
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
             pointIndex = points;
@@ -3126,14 +3067,8 @@ static void GA_Text0(double x, double y, const char *str, int enc,
     } else if(R_ALPHA(gc->col) > 0) {
 	/*  it is too hard to get a correct bounding box */
 	if(xd->have_alpha) {
-	    rect r, rr, cp = getClipRect(xd);
-            r = rr = cp;
-            if (r.x < 0) {r.x = 0; r.width = r.width + rr.x;}
-	    if (r.y < 0) {r.y = 0; r.height = r.height + rr.y;}
-	    if (r.x + r.width > cp.x + cp.width)
-		  r.width = cp.x + cp.width - r.x;
-	    if (r.y + r.height > cp.y + cp.height)
-		  r.height = cp.y + cp.height - r.y;
+	    rect r = xd->clip;
+	    r = getregion(xd);
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    if(gc->fontface != 5) {
@@ -3321,7 +3256,7 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
 			SEXP psenv, Rboolean restoreConsole,
 			const char *title, Rboolean clickToConfirm,
 			Rboolean fillOddEven, const char *family,
-			int quality, double xpinch, double ypinch)
+			int quality)
 {
     /* if need to bail out with some sort of "error" then */
     /* must free(dd) */
@@ -3338,15 +3273,6 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
 
     /* from here on, if need to bail out with "error", must also */
     /* free(xd) */
-
-    /* Allow user override of ppi */
-    xd->xpinch = 0.0;
-    xd->ypinch = 0.0;
-    if (R_FINITE(xpinch) && xpinch > 0.0 &&
-	R_FINITE(ypinch) && ypinch > 0.0) {
-        xd->xpinch = xpinch;
-        xd->ypinch = ypinch;
-    }
 
     ps = pointsize;
     if (ps < 1) ps = 12;
@@ -3456,10 +3382,10 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
     if (xd->kind > METAFILE && xd->res_dpi > 0) ps *= xd->res_dpi/72.0;
 
     if (xd->kind <= METAFILE) {
-        /* it is 12 *point*, not 12 pixel */
-        double ps0 = ps * xd->rescale_factor;
-        dd->cra[0] = 0.9 * ps0 * devicepixelsx(xd->gawin) / 72.0;
-        dd->cra[1] = 1.2 * ps0 * devicepixelsy(xd->gawin) / 72.0;
+	/* it is 12 *point*, not 12 pixel */
+	double ps0 = ps * xd->rescale_factor;
+	dd->cra[0] = 0.9 * ps0 * devicepixelsx(xd->gawin) / 72.0;
+	dd->cra[1] = 1.2 * ps0 * devicepixelsy(xd->gawin) / 72.0;
     } else {
 	dd->cra[0] = 0.9 * ps;
 	dd->cra[1] = 1.2 * ps;
@@ -3476,12 +3402,12 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
     /* Inches per raster unit */
 
     if (xd->kind <= METAFILE) { /* non-screen devices set NA_real_ */
-	if (xd->xpinch > 0.0)
-	    dd->ipr[0] = 1.0/xd->xpinch;
+	if (R_FINITE(user_xpinch) && user_xpinch > 0.0)
+	    dd->ipr[0] = 1.0/user_xpinch;
 	else
 	    dd->ipr[0] = pixelWidth(xd->gawin);
-	if (xd->ypinch > 0.0)
-	    dd->ipr[1] = 1.0/xd->ypinch;
+	if (R_FINITE(user_ypinch) && user_ypinch > 0.0)
+	    dd->ipr[1] = 1.0/user_ypinch;
 	else
 	    dd->ipr[1] = pixelHeight(xd->gawin);
     } else if (xd->res_dpi > 0) {
@@ -3842,11 +3768,12 @@ SEXP devga(SEXP args)
 	}
 	/* Allocate and initialize the device driver data */
 	if (!(dev = (pDevDesc) calloc(1, sizeof(DevDesc)))) return 0;
+	GAsetunits(xpinch, ypinch);
 	if (!GADeviceDriver(dev, display, width, height, ps,
 			    (Rboolean)recording, resize, bg, canvas, gamma,
 			    xpos, ypos, (Rboolean)buffered, psenv,
 			    restoreConsole, title, clickToConfirm,
-			    fillOddEven, family, quality, xpinch, ypinch)) {
+			    fillOddEven, family, quality)) {
 	    free(dev);
 	    error(_("unable to start %s() device"), type);
 	}

@@ -885,9 +885,8 @@ if test "${use_readline}" = yes; then
     ## only need ncurses if libreadline is not statically linked against it
     unset ac_cv_lib_readline_rl_callback_read_char
     AC_CHECK_LIB(ncurses, main, [],
-                 AC_CHECK_LIB(tinfo, main, [],
-                              AC_CHECK_LIB(termcap, main, [],
-                                           AC_CHECK_LIB(termlib, main))))
+                 AC_CHECK_LIB(termcap, main, [],
+                              AC_CHECK_LIB(termlib, main)))
     AC_CHECK_LIB(readline, rl_callback_read_char)
     use_readline="${ac_cv_lib_readline_rl_callback_read_char}"
     if test "${use_readline}" = yes; then
@@ -1317,8 +1316,7 @@ if test "${GCC}" = yes; then
 ## has 32k and so can use -fpic.
 ## However, although the gcc docs do not mention it, it seems s390/s390x
 ## also supports and needs -fPIC
-## See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1004747> for alpha.
-    alpha*|sparc*|ppc64*|powerpc64*|s390*)
+    sparc*|ppc64*|powerpc64*|s390*)
       cpicflags="-fPIC"
       ;;
     *)
@@ -1329,7 +1327,7 @@ if test "${GCC}" = yes; then
 fi
 if test "${ac_cv_fc_compiler_gnu}" = yes; then
   case "${host_cpu}" in
-    alpha*|sparc*|ppc64*|powerpc64*|s390*)
+    sparc*|ppc64*|powerpc64*|s390*)
       fpicflags="-fPIC"
       ;;
     *)
@@ -1345,7 +1343,7 @@ case "${FC}" in
 esac
 if test "${GXX}" = yes; then
   case "${host_cpu}" in
-    alpha*|sparc*|ppc64*|powerpc64*|s390*)
+    sparc*|ppc64*|powerpc64*|s390*)
       cxxpicflags="-fPIC"
       ;;
     *)

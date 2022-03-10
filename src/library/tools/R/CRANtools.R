@@ -549,9 +549,10 @@ function(db = CRAN_package_db())
     maintainer <- db[, "Maintainer"]
     address <- tolower(sub(".*<(.*)>.*", "\\1", maintainer))
     maintainer <- gsub("\n", " ", maintainer, fixed=TRUE)
-    list2DF(list(Package = db[, "Package"],
-                 Address = address,
-                 Maintainer = maintainer))
+    data.frame(Package = db[, "Package"],
+               Address = address,
+               Maintainer = maintainer,
+               stringsAsFactors = FALSE)
 }
 
 CRAN_package_maintainers_info <-
@@ -609,11 +610,11 @@ function(packages)
 
     v <- read_CRAN_object(CRAN_baseurl_for_src_area(),
                           "src/contrib/Views.rds")
-    v <- do.call(rbind,
+    v <- do.call("rbind",
                  mapply(cbind,
                         Package =
                         lapply(v, function(e) e$packagelist$name),
-                        View = vapply(v, `[[`, "name", FUN.VALUE = "")))
+                        View = vapply(v, "[[", "name", FUN.VALUE = "")))
     v <- split(v[, 2L], v[, 1L])
 
     r <- package_dependencies(packages, a, reverse = TRUE)
@@ -720,7 +721,8 @@ function(packages, which = "most", recursive = FALSE,
                }
                d <- as.Date(d)
                o <- order(d, decreasing = TRUE)
-               list2DF(list(Package = e[o], Date = d[o]))
+               data.frame(Package = e[o], Date = d[o],
+                          stringsAsFactors = FALSE)
            })
 }
 

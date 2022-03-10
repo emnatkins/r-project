@@ -1,8 +1,8 @@
 /*
  *  Mathlib : A C Library of Special Functions
- *  Copyright (C) 2000-2021 The R Core Team
- *  Copyright (C) 2005-2021 The R Foundation
  *  Copyright (C) 1998 Ross Ihaka
+ *  Copyright (C) 2000-2016 The R Core Team
+ *  Copyright (C) 2005-2016 The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
