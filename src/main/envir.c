@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999--2022  The R Core Team.
+ *  Copyright (C) 1999--2021  The R Core Team.
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -425,6 +425,9 @@ static void R_HashDelete(int hashcode, SEXP symbol, SEXP env, int *found)
 
 static SEXP R_HashResize(SEXP table)
 {
+    SEXP new_table, chain, new_chain, tmp_chain;
+    int counter, new_hashcode;
+
     /* Do some checking */
     if (TYPEOF(table) != VECSXP)
 	error("first argument ('table') not of type VECSXP, from R_HashResize");
@@ -434,17 +437,17 @@ static SEXP R_HashResize(SEXP table)
     /* hash_grow = HASHSIZE(table); */
 
     /* Allocate the new hash table */
-    SEXP new_table = R_NewHashTable(1 + (int)(HASHSIZE(table) * HASHTABLEGROWTHRATE));
-    for (int counter = 0; counter < length(table); counter++) {
-	SEXP chain = VECTOR_ELT(table, counter);
+    new_table = R_NewHashTable((int)(HASHSIZE(table) * HASHTABLEGROWTHRATE));
+    for (counter = 0; counter < length(table); counter++) {
+	chain = VECTOR_ELT(table, counter);
 	while (!ISNULL(chain)) {
-	    int new_hashcode = R_Newhashpjw(CHAR(PRINTNAME(TAG(chain)))) %
+	    new_hashcode = R_Newhashpjw(CHAR(PRINTNAME(TAG(chain)))) %
 		HASHSIZE(new_table);
-	    SEXP new_chain = VECTOR_ELT(new_table, new_hashcode);
+	    new_chain = VECTOR_ELT(new_table, new_hashcode);
 	    /* If using a primary slot then increase HASHPRI */
 	    if (ISNULL(new_chain))
 		SET_HASHPRI(new_table, HASHPRI(new_table) + 1);
-	    SEXP tmp_chain = chain;
+	    tmp_chain = chain;
 	    chain = CDR(chain);
 	    SETCDR(tmp_chain, new_chain);
 	    SET_VECTOR_ELT(new_table, new_hashcode,  tmp_chain);

@@ -426,7 +426,7 @@ prepare_Rd <-
         Rd <- eval(substitute(parse_Rd(f, encoding = enc, fragment = frag, ...),
                               list(f = Rd, enc = encoding, frag = fragment)))
     } else if(inherits(Rd, "connection")) {
-        Rdfile <- summary(Rd)$description
+        Rdfile <- summary(Rd)
         Rd <- parse_Rd(Rd, encoding = encoding, fragment=fragment, ...)
     } else Rdfile <- attr(Rd, "Rdfile")
     srcref <- attr(Rd, "srcref")
@@ -650,31 +650,6 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages = "render",
         get_link(block, tag, Rdfile) ## to do the same as Rd2HTML
     }
 
-    checkEmail <- function(block) {
-        pattern <- .make_RFC_2822_email_address_regexp()
-        if(length(block)) {
-            address <- lines2str(.Rd_deparse(block, tag = FALSE))
-            if(!grepl(re_anchor(pattern), address))
-                warnRd(block, Rdfile, level = 7,
-                       "invalid email address: ", address)
-        }
-    }
-
-    checkURL <- function(block, tag) {
-        if(tag == "\\url")
-            u <- .Rd_deparse(block, tag = FALSE)
-        else
-            u <- .Rd_deparse(block[[1L]], tag = FALSE)
-        u <- lines2str(u)
-        parts <- parse_URI_reference(u)
-        if(nzchar(s <- parts[, "scheme"])) {
-            if(is.na(match(s, c(IANA_URI_scheme_db$URI_Scheme,
-                                "javascript"))))
-                warnRd(block, Rdfile, level = 7,
-                       "invalid URL: ", u)
-        }
-    }
-            
     ## blocktag is unused
     checkBlock <- function(block, tag, blocktag)
     {
@@ -731,14 +706,8 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages = "render",
                "\\verb"= checkContent(block, tag),
                "\\linkS4class" =,
                "\\link" = checkLink(tag, block),
-               "\\email" = {
-                   checkEmail(block)
-                   has_text <<- TRUE
-               },
-               "\\url" = {
-                   checkURL(block, tag)
-                   has_text <<- TRUE
-               },
+               "\\email" =,
+               "\\url" = has_text <<- TRUE,
                "\\cr" ={},
                "\\dots" =,
                "\\ldots" =,
@@ -792,9 +761,7 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages = "render",
                },
                "\\href" = {
                    if (!identical(RdTags(block[[1L]]), "VERB"))
-                   	stopRd(block, Rdfile,
-                               "First argument to \\href must be verbatim URL")
-                   checkURL(block, tag)
+                   	stopRd(block, Rdfile, "First argument to \\href must be verbatim URL")
                	   checkContent(block[[2L]], tag)
                },
                "\\out" = {
@@ -919,12 +886,6 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages = "render",
             switch(tag,
             "\\item" = {
     	    	if (!inlist) inlist <- TRUE
-                if((blocktag %in% c("\\describe", "\\arguments",
-                                    "\\value")) &&
-                    isBlankRd(block[[1L]]))
-                    warnRd(block[[1L]], Rdfile, level = 7,
-                           "\\item in ", blocktag,
-                           " must have non-empty label")
     		switch(blocktag,
     		"\\arguments"= {
     		    checkContent(block[[1L]], tag)
@@ -987,8 +948,6 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages = "render",
                        "Tag ", tag, " must not be empty")
         }
     }
-
-        
 
     dt <- which(RdTags(Rd) == "\\docType")
     docTypes <- character(length(dt))

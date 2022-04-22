@@ -5594,32 +5594,20 @@ function(x, ...)
 
 .check_package_code_class_is_string <-
 function(dir) {
-    funA <- function(e) {
-        if(is.call(e) &&
-           (length(e) >= 2L) &&
-           (length(s <- as.character(e[[1L]])) == 1L)) {
-            if(s %in% c("(", "!"))
-                return(Recall(e[[2L]]))
-            else if(s %in% c("||", "&&", "|", "&"))
-                return(Recall(e[[2L]]) || Recall(e[[3L]]))
-            else if(s %in% c("==", "!-") &&
-                    is.call(e2 <- e[[2L]]) &&
-                    (as.character(e2[[1L]])[1L] == "class") &&
-                    is.character(e[[3L]]) &&
-                    (length(e[[3L]] == 1L)))
-                return(TRUE)
-        }
-        FALSE
-    }
-    funB <- function(e) {
-        if(is.call(e) &&
-           (length(e) >= 2L) &&
-           (as.character(e[[1L]])[1L] == "if"))
-            return(funA(e[[2L]]))
-        FALSE
+    predicate <- function(e) {
+        is.call(e) &&
+            (length(e) >= 2L) &&
+            (as.character(e[[1L]])[1L] == "if") &&
+            is.call(e <- e[[2L]]) &&
+            (as.character(e[[1L]])[1L] %in% c("==", "!-")) &&
+            is.call(e2 <- e[[2L]]) &&
+            (as.character(e2[[1L]])[1L] == "class") &&
+            is.character(e[[3L]]) &&
+            (length(e[[3L]] == 1L))
     }
     x <- Filter(length,
-                .find_calls_in_package_code(dir, funB, recursive = TRUE))
+                .find_calls_in_package_code(dir, predicate,
+                                            recursive = TRUE))
     if(length(x)) {
         s <- sprintf("File %s: %s",
                      sQuote(rep.int(names(x), lengths(x))),
@@ -7230,9 +7218,7 @@ function(dir, localOnly = FALSE, pkgSize = NA)
     Rdb <- tryCatch(.build_Rd_db(dir, stages = NULL,
                                  os = c("unix", "windows"), step = 1),
                     error = identity)
-    if(inherits(Rdb, "error"))
-        out$Rd_db_build_error <- conditionMessage(Rdb)
-    else if(length(Rdb)) {
+    if(!inherits(Rdb, "error") && length(Rdb)) {
         names(Rdb) <-
             substring(names(Rdb), nchar(file.path(dir, "man")) + 2L)
         Rdb0 <- Rdb
@@ -8378,11 +8364,6 @@ function(x, ...)
       },
       if(length(y <- x$missing_vignette_index)) {
           "Package has a VignetteBuilder field but no prebuilt vignette index."
-      },
-      if(length(y <- x$Rd_db_build_error)) {
-          paste(c("Reading Rd files failed with",
-                  paste0("  ", y)),
-                collapse = "\n")
       },
       fmt(c(if(length(y <- x$missing_manual_rdb)) {
                 "Package has help file(s) containing build-stage \\Sexpr{} expressions but no 'build/partial.rdb' file."

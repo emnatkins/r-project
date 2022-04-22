@@ -71,7 +71,6 @@ check_for_XQuartz <- function()
 }
 
 
-x11 <-
 X11 <- function(display = "", width, height, pointsize, gamma,
                 bg, canvas, fonts, family,
                 xpos, ypos, title, type, antialias, symbolfamily)
@@ -131,6 +130,8 @@ X11 <- function(display = "", width, height, pointsize, gamma,
                type, antialias, d$family, optionSymbolFont(d$symbolfamily))
     invisible()
 }
+
+x11 <- X11
 
 
 ####################

@@ -5,106 +5,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
-    \itemize{
-      \item Calling \code{&&} or \code{||} with either argument of
-      length greater than one is now an error.
-      [Scheduled for not later than May 2.]
-    }
-  }
-
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The included BLAS sources have been updated to those
-      shipped with LAPACK version 3.10.1,
-    }
-  }
-
-  \subsection{INSTALLATION on a UNIX-ALIKE}{
-    \itemize{
-      \item A system installation of generic LAPACK 3.10.0 or later will
-      be preferred to the version in the \R sources.
-
-      \command{configure} option \option{--with-lapack=no} (equivalently
-      \option{--without-lapack}) forces compilation of the internal
-      LAPACK sources.
-
-      If \option{--with-lapack} is not specified, a system
-      \code{liblapack} is looked for and used if it reports version
-      3.10.0 or later and does not contain BLAS routines.
-
-      Using 3.10.x may give some different signs from earlier versions
-      in SVDs or eigendecompositions.
-
-      Packages using LAPACK will need to be reinstalled if this changes
-      to using an external library.
-
-      \item The included LAPACK sources have been updated to include
-      the four Fortran 90 routines rather than their Fortran 77
-      predecessors.  This may give some different signs in SVDs.
-    }
-  }
-
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item \code{USE_FC_LEN_T} is the default: this uses the
-      correct prototypes for Fortran BLAS/LAPACK routines called from
-      C/C++, and requires adjustment of most such calls -- see
-      \sQuote{Writing R Extensions} §6.6.1.
-
-      [In progress: scheduled for May 5 if enough packages are
-      corrected before then.
-
-      Setting environment variable \env{_R_INSTALL_USE_FC_LEN_T_} to a
-      true value enables this \emph{pro tem}.  This is set by \command{R
-	CMD check --as-cran} when it installs a package.]
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item The deprecated S-compatibility macros \code{DOUBLE_*} in
-      \file{R_ext/Constants.h} (included by \file{R.h}) have been removed.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item \command{R CMD check} does more checking of package Rd
-      files, warning about invalid email addresses and (some) invalid
-      URIs and noting empty \samp{\item} labels in description lists.
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-    \itemize{
-      \item \code{default.stringsAsFactors()} is defunct,
-
-      [Scheduled for May 7.]
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Hashed \code{environment}s with sizes less than 5 now can grow,
-      too. (Reported to R-devel by Duncan Garmonsway.)
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R 4.2.0 patched}{
-  \subsection{INSTALLATION on a UNIX-ALIKE}{
-    \itemize{
-      \item The libraries searched for by \option{--with-blas} (without
-      a value) now include BLIS (after OpenBLAS but before ATLAS).  And
-      on macOS, the Accelerate framework (after ATLAS).
-
-      \item The included LAPACK sources have been updated to 3.10.1.
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R 4.2.0}{
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
     \itemize{
@@ -331,7 +231,7 @@
       \item New functions \code{psmirnov()}, \code{qsmirnov()} and
       \code{rsmirnov()} in package \pkg{stats} implementing the
       asymptotic and exact distributions of the two-sample Smirnov statistic.
-
+      
       \item \code{iconv()} now allows \code{sub = "c99"} to use C99-style
       escapes for UTF-8 inputs which cannot be converted to encoding \code{to}.
 

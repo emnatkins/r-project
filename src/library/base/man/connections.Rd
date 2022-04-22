@@ -669,12 +669,11 @@ seek(Tfile, 0, rw = "r") # reset to beginning
 readLines(Tfile)
 cat("ghi\n", file = Tfile)
 readLines(Tfile)
-\dontshow{## IGNORE_RDIFF_BEGIN}
 Tfile # -> print() :  "valid" connection
 close(Tfile)
 Tfile # -> print() :  "invalid" connection
 unlink(Tpath)
-\dontshow{## IGNORE_RDIFF_END}
+
 ## We can do the same thing with an anonymous file.
 Tfile <- file()
 cat("abc\ndef\n", file = Tfile)

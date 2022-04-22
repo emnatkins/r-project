@@ -2364,15 +2364,13 @@ AM_CONDITIONAL(USE_VECLIB_G95FIX, [test "x${use_veclib_g95fix}" = xyes])
 AM_CONDITIONAL(USE_EXTERNAL_BLAS, [test "${acx_blas_ok}" = "yes"])
 
 ## LAPACK.
-## The default is "unset"
-if test "${use_lapack}" = "unset"; then
-  R_LAPACK_SYSTEM_LIB
-elif test "${use_lapack}" = "yes"; then
+## The default has already been set on macOS: otherwise it is "no"
+## and so this test fails.
+if test "${use_lapack}" = "yes"; then
   R_LAPACK_LIBS
 fi
 if test "${acx_lapack_ok}" != "yes"; then
   LAPACK_LIBS="-L\"\$(R_HOME)/lib\$(R_ARCH)\" -lRlapack"
-  AC_MSG_NOTICE([using internal LAPACK sources])
 fi
 AC_SUBST(LAPACK_LIBS)
 AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
@@ -2600,10 +2598,11 @@ AC_SUBST(R_JAVA_LD_LIBRARY_PATH)
 AC_LANG_PUSH(Fortran)
 ## The next two are needed to get IBM's xlf* and Intel's ifc
 ## to accept these extensions (but neither are current).
-## They set FCFLAGS_f9x used in etc/Makeconf.in
+## They set FCFLAGS_F9x used in etc/Makeconf.in
 AC_FC_SRCEXT(f90, [dummy=1], [dummy=0])
 AC_FC_SRCEXT(f95, [dummy=1], [dummy=0])
 ## We probably should be calling AC_FC_FREEFORM: adds to FCFLAGS
+## We could call AC_FC_FIXEDFORM: adds to FCFLAGS
 R_OPENMP
 AC_LANG_POP()
 
@@ -2930,6 +2929,7 @@ if test "${acx_blas_ok}" = "yes"; then
     *-latlas*) r_blas=ATLAS ;;
     *-lgoto*) r_blas=Goto ;;
     *-lopenblas*) r_blas=OpenBLAS ;;
+    *-lacml*) r_blas=ACML ;;
     *-lmkl*) r_blas=MKL ;;
     *-lsgemm*) r_blas=PhiPack ;;
     *sunperf*) r_blas=SunPerf ;;

@@ -2259,10 +2259,8 @@ add_dummies <- function(dir, Log)
             t2 <- proc.time()
             print_time(t1, t2, Log)
             if (length(out)) {
-                if(length(grep(paste("^prepare.*Dropping empty section",
-                                     "^check.*\\item.*must have non-empty label",
-                                     sep = "|"),
-                               out, invert = TRUE)))
+                if(length(grep("^prepare.*Dropping empty section", out,
+                               invert = TRUE)))
                     warningLog(Log)
                 else noteLog(Log)
                 printLog0(Log, paste(c(out, ""), collapse = "\n"))
@@ -6497,10 +6495,6 @@ add_dummies <- function(dir, Log)
         R_check_bogus_return <- TRUE
         R_check_code_class_is_string <- TRUE
         R_check_Rd_validate_Rd2HTML <- TRUE
-
-        ## Temporary until it becomes the default.
-        ## Only used when check does the installation itself.
-        Sys.setenv("_R_INSTALL_USE_FC_LEN_T_" = "TRUE")
     } else {
         ## do it this way so that INSTALL produces symbols.rds
         ## when called from check but not in general.

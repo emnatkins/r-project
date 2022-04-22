@@ -626,8 +626,6 @@ static cairo_pattern_t *CairoCreateMask(SEXP mask, pX11Desc xd)
     SEXP R_fcall;
     /* Start new group - drawing is redirected to this group */
     cairo_push_group(cc);
-    /* Start with "over" operator */
-    cairo_set_operator(cc, CAIRO_OPERATOR_OVER);
     /* Play the mask function to build the mask */
     R_fcall = PROTECT(lang1(mask));
     eval(R_fcall, R_GlobalEnv);
@@ -706,7 +704,6 @@ static void CairoInitGroups(pX11Desc xd)
     for (i = 0; i < xd->numGroups; i++) {
         xd->groups[i] = NULL;
     }
-    xd->nullGroup = cairo_pattern_create_rgb(0, 0, 0);
 }
 
 static int CairoGrowGroups(pX11Desc xd)
@@ -730,8 +727,7 @@ static void CairoCleanGroups(pX11Desc xd)
 {
     int i;
     for (i = 0; i < xd->numGroups; i++) {
-        if (xd->groups[i] != NULL &&
-            xd->groups[i] != xd->nullGroup) {
+        if (xd->groups[i] != NULL) {
             cairo_pattern_destroy(xd->groups[i]);
             xd->groups[i] = NULL;
         }
@@ -742,14 +738,12 @@ static void CairoDestroyGroups(pX11Desc xd)
 {
     int i;
     for (i = 0; i < xd->numGroups; i++) {
-        if (xd->groups[i] != NULL &&
-            xd->groups[i] != xd->nullGroup) {
+        if (xd->groups[i] != NULL) {
             cairo_pattern_destroy(xd->groups[i]);
             xd->groups[i] = NULL;
         }
     }    
     free(xd->groups);
-    cairo_pattern_destroy(xd->nullGroup);
 }
 
 static int CairoNewGroupIndex(pX11Desc xd)
@@ -757,9 +751,6 @@ static int CairoNewGroupIndex(pX11Desc xd)
     int i;
     for (i = 0; i < xd->numGroups; i++) {
         if (xd->groups[i] == NULL) {
-            /* Place temporary hold on this slot in case of 
-             * group within group */
-            xd->groups[i] = xd->nullGroup;
             return i;
         } else {
             if (i == (xd->numGroups - 1) &&
@@ -815,8 +806,6 @@ static cairo_pattern_t *CairoCreateGroup(SEXP src, int op, SEXP dst,
 
     /* Start new group - drawing is redirected to this group */
     cairo_push_group(cc);
-    /* Start with "over" operator */
-    cairo_set_operator(cc, CAIRO_OPERATOR_OVER);
 
     if (dst != R_NilValue) {
         /* Play the destination function to draw the destination */
